@@ -37,7 +37,7 @@ import {
 const Opcode = AllStandardOps;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 0x0002);
+  const cCounterparty = op(Opcode.context, 0x0002);
 
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
@@ -85,20 +85,14 @@ describe("OrderBook counterparty in context", async function () {
       ratio_A,
       carol.address,
     ];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
     const aOpMaxIfNotMatch = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 2)
-    );
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const expectedCounterparty = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -106,10 +100,10 @@ describe("OrderBook counterparty in context", async function () {
     const source_A = concat([
           cCounterparty,
           expectedCounterparty,
-        op(Opcode.EQUAL_TO),
+        op(Opcode.equalTo),
         aOpMax,
         aOpMaxIfNotMatch,
-      op(Opcode.EAGER_IF),
+      op(Opcode.eagerIf),
       aRatio,
     ]);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
@@ -145,14 +139,8 @@ describe("OrderBook counterparty in context", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,
@@ -189,14 +177,8 @@ describe("OrderBook counterparty in context", async function () {
 
     const ratio_C = fixedPointDiv(ONE, ratio_A);
     const constants_C = [max_uint256, ratio_C];
-    const cOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const cRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const cOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const cRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_C = concat([
       cOpMax,

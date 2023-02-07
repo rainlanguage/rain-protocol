@@ -35,11 +35,11 @@ export enum SelectLteMode {
 }
 
 export function DEBUG_STATE_PACKED(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.DEBUG, Debug.StatePacked)]);
+  return concat([...items, op(AllStandardOps.debug, Debug.StatePacked)]);
 }
 
 export function DEBUG_STACK(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.DEBUG, Debug.Stack)]);
+  return concat([...items, op(AllStandardOps.debug, Debug.Stack)]);
 }
 
 /**

@@ -13,9 +13,9 @@ export const afterBlockNumberSource = (vBlock: number): Uint8Array => {
   // prettier-ignore
   return concat([
     // (BLOCK_NUMBER blockNumberSub1 gt)
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, vBlock)),
-    op(Opcode.GREATER_THAN),
+      op(Opcode.blockNumber),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, vBlock)),
+    op(Opcode.greaterThan),
   ]);
 };
 
@@ -33,12 +33,12 @@ export const betweenBlockNumbersSource = (
 ): Uint8Array => {
   // prettier-ignore
   return concat([
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.blockNumber),
         vStart,
-      op(Opcode.GREATER_THAN),
-        op(Opcode.BLOCK_NUMBER),
+      op(Opcode.greaterThan),
+        op(Opcode.blockNumber),
         vEnd,
-      op(Opcode.LESS_THAN),
-    op(Opcode.EVERY, 2),
+      op(Opcode.lessThan),
+    op(Opcode.every, 2),
   ])
 };

@@ -56,31 +56,31 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.ERC20_BALANCE_OF)  ,
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-            op(Opcode.DIV, 2),
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.erc20BalanceOf)  ,
+             op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.div, 2),
 
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET),
+             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // key
+             op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // val
+            op(Opcode.set),
 
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.GET),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.ADD, 2),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.get),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.add, 2),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -175,31 +175,31 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.ERC20_BALANCE_OF)  ,
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-            op(Opcode.DIV, 2),
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.erc20BalanceOf)  ,
+             op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.div, 2),
 
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET),
+             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // key
+             op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // val
+            op(Opcode.set),
 
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.GET),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.SUB, 2),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.get),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.sub, 2),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -291,18 +291,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -397,18 +397,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -497,18 +497,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -641,18 +641,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {

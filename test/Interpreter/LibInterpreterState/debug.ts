@@ -36,7 +36,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1))
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1))
       ])
     ];
     const context = [[3, 5, 7, 9, 11]];
@@ -63,7 +63,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1))
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1))
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
@@ -90,7 +90,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.BLOCK_NUMBER, 0),
+        op(Opcode.blockNumber, 0),
       ])
     ];
 
@@ -118,7 +118,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.BLOCK_NUMBER, 0),
+        op(Opcode.blockNumber, 0),
       ])
     ];
 

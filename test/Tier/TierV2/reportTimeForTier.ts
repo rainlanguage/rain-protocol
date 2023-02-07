@@ -34,10 +34,10 @@ describe("TierV2 report time for tier op", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // account
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // tier
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0000), // account
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // tier
+      op(Opcode.itierV2ReportTimeForTier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(

@@ -1,0 +1,33 @@
+{
+  "name": "do-while",
+  "desc": "Runs a while loop on number of items taken from a stack until a conditions is met",
+  "operand": [
+    {
+      "name": "Inputs",
+      "bits": [0, 3],
+      "validRange": [[1, 15]]
+    },
+    {
+      "name": "Source Index",
+      "desc": "index of the source to run",
+      "bits": [8, 11]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 3],
+    "parameters": [
+      {
+        "name": "Input",
+        "spread": true
+      },
+      {
+        "name": "Condition",
+        "desc": "condition of while loop"
+      }
+    ]
+  },
+  "outputs": {
+    "bits": [0, 3]
+  },
+  "aliases": ["while", "dowhile"]
+}

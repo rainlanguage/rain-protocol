@@ -44,12 +44,12 @@ describe("ISaleV2 TotalReserveReceived tests", async function () {
     fakeSale.totalReserveReceived.returns(totalReserveReceived);
 
     const SALE_ADDRESS = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
+      op(Opcode.isaleV2TotalReserveReceived),
     ])];
     const constants = [fakeSale.address];
 

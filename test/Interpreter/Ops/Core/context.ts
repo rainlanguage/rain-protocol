@@ -11,7 +11,7 @@ const Opcode = AllStandardOps;
 describe("RainInterpreter context", async function () {
   it("should support context height [COLUMN] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0f00)])];
+    const sources = [concat([op(Opcode.context, 0x0f00)])];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
@@ -35,7 +35,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context width [ROW] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x000f)])];
+    const sources = [concat([op(Opcode.context, 0x000f)])];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
@@ -59,7 +59,7 @@ describe("RainInterpreter context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];
+    const sources = [concat([op(Opcode.context, 0x0003)])];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
@@ -88,17 +88,17 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.CONTEXT, 0x0001),
-        op(Opcode.CONTEXT, 0x0002),
-        op(Opcode.CONTEXT, 0x0003),
-        op(Opcode.CONTEXT, 0x0100),
-        op(Opcode.CONTEXT, 0x0101),
-        op(Opcode.CONTEXT, 0x0102),
-        op(Opcode.CONTEXT, 0x0103),
-        op(Opcode.CONTEXT, 0x0200),
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202), // OOB read
+        op(Opcode.context, 0x0000),
+        op(Opcode.context, 0x0001),
+        op(Opcode.context, 0x0002),
+        op(Opcode.context, 0x0003),
+        op(Opcode.context, 0x0100),
+        op(Opcode.context, 0x0101),
+        op(Opcode.context, 0x0102),
+        op(Opcode.context, 0x0103),
+        op(Opcode.context, 0x0200),
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202), // OOB read
       ]),
     ];
 
@@ -133,16 +133,16 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.CONTEXT, 0x0001),
-        op(Opcode.CONTEXT, 0x0002),
-        op(Opcode.CONTEXT, 0x0003),
-        op(Opcode.CONTEXT, 0x0100),
-        op(Opcode.CONTEXT, 0x0101),
-        op(Opcode.CONTEXT, 0x0102),
-        op(Opcode.CONTEXT, 0x0103),
-        op(Opcode.CONTEXT, 0x0200),
-        op(Opcode.CONTEXT, 0x0201),
+        op(Opcode.context, 0x0000),
+        op(Opcode.context, 0x0001),
+        op(Opcode.context, 0x0002),
+        op(Opcode.context, 0x0003),
+        op(Opcode.context, 0x0100),
+        op(Opcode.context, 0x0101),
+        op(Opcode.context, 0x0102),
+        op(Opcode.context, 0x0103),
+        op(Opcode.context, 0x0200),
+        op(Opcode.context, 0x0201),
       ]),
     ];
 
@@ -185,9 +185,9 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.CONTEXT, 0x0001),
-        op(Opcode.CONTEXT, 0x0002),
+        op(Opcode.context, 0x0000),
+        op(Opcode.context, 0x0001),
+        op(Opcode.context, 0x0002),
       ]),
     ];
 
@@ -222,7 +222,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
+    const sources = [concat([op(Opcode.context, 0x0000)])];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(

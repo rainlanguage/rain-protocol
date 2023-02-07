@@ -33,21 +33,21 @@ describe("CombineTier ERC165 tests", async function () {
   });
 
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
+  const ctxAccount = op(Opcode.context, 0x0000);
 
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.CONTEXT, 0x0001),
+      op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.ITIERV2_REPORT),
+    op(Opcode.itierV2Report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
     const evaluableConfig0 = await generateEvaluableConfig({
       sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [ALWAYS],
@@ -61,9 +61,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
-        op(Opcode.CONTEXT, 0x0000),
-      op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.context, 0x0000),
+      op(Opcode.itierV2Report, 0),
     ]);
 
     const combineTierSourceConfig = {
@@ -96,8 +96,8 @@ describe("CombineTier ERC165 tests", async function () {
     const evaluableConfig0 = await generateEvaluableConfig(
       {
         sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
@@ -117,9 +117,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
-        op(Opcode.CONTEXT, 0x0000),
-      op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.context, 0x0000),
+      op(Opcode.itierV2Report, 0),
     ]);
 
     const combineTierSourceConfig = {

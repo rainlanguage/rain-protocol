@@ -53,17 +53,14 @@ describe("RainInterpreter update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vBlock = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
-        Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
+        Opcode.updateTimesForTierRange,
         tierRangeUnrestricted(Tier.ZERO, 9) // beyond max tier of Tier.EIGHT
       ),
     ]);

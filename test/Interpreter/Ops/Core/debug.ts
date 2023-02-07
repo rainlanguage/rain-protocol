@@ -20,10 +20,10 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-      op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+      op(Opcode.debug, Debug.Stack),
     ])];
 
     const { consumerLogic, interpreter, dispatch } =
@@ -49,10 +49,10 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-      op(Opcode.DEBUG, Debug.StatePacked),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+      op(Opcode.debug, Debug.StatePacked),
     ])];
 
     const { consumerLogic, interpreter, dispatch } =
@@ -78,19 +78,19 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const checkValue = concat([
-      op(Opcode.DEBUG, Debug.Stack), // Should show the new stack
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.LESS_THAN),
+      op(Opcode.debug, Debug.Stack), // Should show the new stack
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.lessThan),
     ]);
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
-      op(Opcode.CALL, callOperand(1, 1, 1)),
-      op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.debug, Debug.Stack), // Should show the stack here
+      op(Opcode.call, callOperand(1, 1, 1)),
+      op(Opcode.debug, Debug.Stack), // Should show the stack here
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -114,22 +114,22 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source to run is on index 1
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.lessThan),
+      op(Opcode.doWhile, doWhileOperand(1, 0, 1)), // Source to run is on index 1
     ]);
 
     // prettier-ignore
     const sourceWHILE = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.LESS_THAN),
-      op(Opcode.DEBUG, Debug.Stack),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.lessThan),
+      op(Opcode.debug, Debug.Stack),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -157,16 +157,16 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.ADD, 2),
-        op(Opcode.DEBUG, Debug.Stack),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.add, 2),
+        op(Opcode.debug, Debug.Stack),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
