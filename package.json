@@ -51,8 +51,8 @@
   },
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
-    "@ethereumjs/common": "^3.0.2",
-    "@ethereumjs/evm": "^1.2.3",
+    "@ethereumjs/common": "=3.0.2",
+    "@ethereumjs/evm": "=1.2.3",
     "@openzeppelin/contracts-upgradeable": "=4.8.0",
     "@types/node": "=18.11.18",
     "ajv": "=8.12.0",
