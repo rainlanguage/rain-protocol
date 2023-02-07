@@ -123,7 +123,6 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const deployer = signers[0];
 
     const opMeta = getRainterpreterOpMetaBytes();
-    console.log(keccak256(opMeta))
     const interpreterStore: RainterpreterStore =
       await rainterpreterStoreDeploy();
 
