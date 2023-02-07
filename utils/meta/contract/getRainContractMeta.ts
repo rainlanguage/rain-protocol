@@ -7,8 +7,10 @@ import Sale from "../../../contracts/sale/SaleFactory.meta.json";
 import Stake from "../../../contracts/stake/StakeFactory.meta.json";
 import CombineTier from "../../../contracts/tier/CombineTierFactory.meta.json";
 import AutoApprove from "../../../contracts/verify/auto/AutoApproveFactory.meta.json";
+import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json"
 import { deflateSync } from "zlib";
 import { format } from "prettier";
+import { metaFromBytes } from "../general";
 
 /**
  * @public
@@ -41,29 +43,26 @@ export const getRainContractMetaBytes = (
   if (contract === "combinetier") meta = CombineTier
 
   const content = format(JSON.stringify(meta, null, 4), { parser: "json" })
-  const opmetaBytes = Uint8Array.from(deflateSync(content));
-  let contractMetaHex = "0x";
-  for (let i = 0; i < opmetaBytes.length; i++) {
-    contractMetaHex =
-      contractMetaHex + opmetaBytes[i].toString(16).padStart(2, "0");
+  const bytes = Uint8Array.from(deflateSync(content));
+  let hex = "0x";
+  for (let i = 0; i < bytes.length; i++) {
+    hex =
+      hex + bytes[i].toString(16).padStart(2, "0");
   }
-  return contractMetaHex;
+  return hex;
 };
 
 /**
  * @public
- * Get deployable bytes for any contract meta 
+ * Decompress and convert bytes to one of Rain's contract metas
  * 
- * @param contractMeta - Contract meta as an object (json stringified)
- * @returns Deployable bytes as hex string
+ * @param bytes - Bytes to decompress and convert back to json meta
+ * @param path - Path to write the results to if having the output as a json file is desired
+ * @returns 
  */
-export const getContractMetaBytes = (contractMeta: object): string => {
-  const content = format(JSON.stringify(contractMeta, null, 4), { parser: "json" })
-  const opmetaBytes = Uint8Array.from(deflateSync(content));
-  let contractMetaHex = "0x";
-  for (let i = 0; i < opmetaBytes.length; i++) {
-    contractMetaHex =
-      contractMetaHex + opmetaBytes[i].toString(16).padStart(2, "0");
-  }
-  return contractMetaHex;
+export const getRainContractMetaFromBytes = (
+  bytes: string | Uint8Array,
+  path?: string
+) => {
+  return metaFromBytes(bytes, ContractMetaSchema, path)
 }

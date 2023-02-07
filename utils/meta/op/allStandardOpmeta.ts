@@ -57,10 +57,12 @@ import iTierV2ReportTimeForTierMeta from "../../../contracts/interpreter/ops/tie
 import saturatingDiffMeta from "../../../contracts/interpreter/ops/tier/SaturatingDiff.opmeta.json";
 import selectLteMeta from "../../../contracts/interpreter/ops/tier/SelectLte.opmeta.json";
 import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier/UpdateTimesForTierRange.opmeta.json";
+import OpMetaSchema from "../../../schema/meta/v0/op.meta.schema.json"
 import { deflateSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
+import { metaFromBytes } from "../general";
 
 /**
  * @public
@@ -133,18 +135,18 @@ export const rainterpreterOpmeta = [
  * Compress and convert Rainterpreter opmetas to bytes
  * @returns hex string
  */
-export const getRainterpreterOpmetaBytes = (): string => {
+export const getRainterpreterOpMetaBytes = (): string => {
   const opmetaBytes = Uint8Array.from(
     deflateSync(
       format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
     )
   );
-  let opmetaHexString = "0x";
+  let hex = "0x";
   for (let i = 0; i < opmetaBytes.length; i++) {
-    opmetaHexString =
-      opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
+    hex =
+      hex + opmetaBytes[i].toString(16).padStart(2, "0");
   }
-  return opmetaHexString;
+  return hex;
 };
 
 /**
@@ -155,7 +157,7 @@ export const getRainterpreterOpmetaBytes = (): string => {
  * @param fileName - The name of the file, default is "RainterpreterOpmeta"
  * @returns Rainterpreter opmeta json
  */
-export const getRainterpreterOpmetaJson = (
+export const getRainterpreterOpMetaJson = (
   path?: string,
   fileName?: string
 ) => {
@@ -171,3 +173,18 @@ export const getRainterpreterOpmetaJson = (
     console.log(error);
   }
 };
+
+/**
+ * @public
+ * Decompress and convert bytes to Rainterpreter op metas
+ * 
+ * @param bytes - Bytes to decompress and convert back to json meta
+ * @param path - Path to write the results to if having the output as a json file is desired
+ * @returns 
+ */
+export const getRainterpreterOpMetaFromBytes = (
+  bytes: string | Uint8Array,
+  path?: string
+) => {
+  return metaFromBytes(bytes, OpMetaSchema, path)
+}
