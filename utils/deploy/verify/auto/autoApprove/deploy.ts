@@ -10,11 +10,12 @@ import {
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
+import { getRainContractMetaBytes } from "../../../../meta";
 
 export const autoApproveFactoryDeploy = async () => {
   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
   const autoApproveFactory =
-    (await factoryFactory.deploy()) as AutoApproveFactory;
+    (await factoryFactory.deploy(getRainContractMetaBytes('autoapprove'))) as AutoApproveFactory;
   await autoApproveFactory.deployed();
 
   const { implementation } = (await getEventArgs(

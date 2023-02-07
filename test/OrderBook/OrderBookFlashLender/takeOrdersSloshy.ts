@@ -34,6 +34,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -65,7 +66,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -263,7 +264,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const bob = signers[2];
     const uni = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 

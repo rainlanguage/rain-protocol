@@ -38,7 +38,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
 
-bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
+bytes32 constant CALLER_META_HASH = bytes32(0xf3bf4100d48b104793d6aa60e801a42423d61c57063ba3b42c257b52be8e9ff0);
 
 /// @dev Value that signifies that an order is live in the internal mapping.
 /// Anything nonzero is equally useful.

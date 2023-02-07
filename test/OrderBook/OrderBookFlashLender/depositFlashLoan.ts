@@ -13,6 +13,7 @@ import { randomUint256 } from "../../../utils/bytes";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { assertError } from "../../../utils/test/assertError";
+import { getRainContractMetaBytes } from "../../../utils";
 
 describe("OrderBook flash loan deposit tests", async function () {
   let orderBookFactory: ContractFactory;
@@ -37,7 +38,9 @@ describe("OrderBook flash loan deposit tests", async function () {
   });
 
   it("should not allow depositing flash loan without paying it back", async function () {
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const vaultBot = ethers.BigNumber.from(randomUint256());
 

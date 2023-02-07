@@ -6,6 +6,7 @@ import { DepositConfigStruct } from "../../typechain/contracts/orderbook/OrderBo
 import { randomUint256 } from "../../utils/bytes";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { getRainContractMetaBytes } from "../../utils";
 
 describe("OrderBook vaultBalance", async function () {
   let orderBookFactory: ContractFactory;
@@ -28,7 +29,7 @@ describe("OrderBook vaultBalance", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());

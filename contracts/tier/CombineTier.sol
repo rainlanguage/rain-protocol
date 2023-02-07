@@ -15,7 +15,7 @@ import "../interpreter/caller/LibCallerMeta.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
-bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
+bytes32 constant CALLER_META_HASH = bytes32(0x5281a1ecd46ea18005d52780b1d6c17311ecdb6136c83392b96fe4621d57d86e);
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);

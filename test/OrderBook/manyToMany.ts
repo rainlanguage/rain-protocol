@@ -33,6 +33,7 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -63,7 +64,7 @@ describe("OrderBook many-to-many", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -119,7 +120,7 @@ describe("OrderBook many-to-many", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -390,7 +391,7 @@ describe("OrderBook many-to-many", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
 
     const aliceVaultA = ethers.BigNumber.from(randomUint256());
     const aliceVaultB = ethers.BigNumber.from(randomUint256());

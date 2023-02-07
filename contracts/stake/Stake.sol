@@ -50,7 +50,7 @@ error ZeroWithdrawShares();
 /// @dev Thrown when a nonzero store is provided.
 error UnexpectedStore(IInterpreterStoreV1 store);
 
-bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
+bytes32 constant CALLER_META_HASH = bytes32(0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b  );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);

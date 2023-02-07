@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import type { RedeemableERC20ClaimEscrow } from "../../../../typechain";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../../../typechain";
 import { SaleConstructorConfigStruct } from "../../../../typechain/contracts/sale/Sale";
+import { getRainContractMetaBytes } from "../../../meta";
 import { redeemableERC20FactoryDeploy } from "../../redeemableERC20/redeemableERC20Factory/deploy";
 import { saleFactoryDeploy } from "../../sale/saleFactory/deploy";
 import { readWriteTierDeploy } from "../../tier/readWriteTier/deploy";
@@ -14,6 +15,7 @@ export const escrowDeploy = async () => {
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
+    callerMeta: getRainContractMetaBytes('sale')
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

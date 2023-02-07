@@ -28,10 +28,12 @@ describe("OrderBook withdraw from vault", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it.only("should allow withdrawals from vaults", async function () {
+  it("should allow withdrawals from vaults", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS

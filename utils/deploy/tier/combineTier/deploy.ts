@@ -6,6 +6,7 @@ import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/Co
 import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
+import { getRainContractMetaBytes } from "../../../meta";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
@@ -15,7 +16,7 @@ export const combineTierDeploy = async (
     "CombineTierFactory"
   );
   const combineTierFactory =
-    (await combineTierFactoryFactory.deploy()) as CombineTierFactory;
+    (await combineTierFactoryFactory.deploy(getRainContractMetaBytes('combinetier'))) as CombineTierFactory;
   await combineTierFactory.deployed();
 
   const { implementation } = (await getEventArgs(
