@@ -19,7 +19,7 @@ import { ethers } from "hardhat";
 
 const Opcode = AllStandardOps;
 
-describe("CHAINLINK_PRICE Opcode tests", async function () {
+describe("chainlink-price Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
 
   beforeEach(async () => {
