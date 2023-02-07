@@ -29,7 +29,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
     const source = concat([
       // (BLOCK_TIMESTAMP)
-      op(Opcode.BLOCK_TIMESTAMP),
+      op(Opcode.blockTimestamp),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -60,7 +60,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
     const source = concat([
       // (BLOCK_NUMBER)
-      op(Opcode.BLOCK_NUMBER),
+      op(Opcode.blockNumber),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

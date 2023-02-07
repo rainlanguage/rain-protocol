@@ -79,9 +79,9 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
       constants: ["1", "2"],
       sources: [
         concat([
-          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(AllStandardOps.ADD, 2),
+          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.add, 2),
         ]),
       ],
     };

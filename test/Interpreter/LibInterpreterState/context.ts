@@ -21,7 +21,7 @@ describe("LibInterpreterState context tests", async function () {
   it("should store a 2D context upon deserializing", async () => {
     // prettier-ignore
     const stackLength = 1
-    const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
+    const sources = [concat([op(Opcode.context, 0x0000)])];
     const constants = [];
 
     const context = [

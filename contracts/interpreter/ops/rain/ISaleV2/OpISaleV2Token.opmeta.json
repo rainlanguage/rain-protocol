@@ -1,0 +1,14 @@
+{
+  "name": "isale-v2-token",
+  "desc": "The rTKN address",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "ISale Token Address"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["sale-token"]
+}

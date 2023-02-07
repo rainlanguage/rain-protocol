@@ -25,12 +25,12 @@ describe("LibInterpreterState deserialize tests", async function () {
     const sources = [
       concat([
         // sourceIndex 0
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.blockNumber),
       ]),
       concat([
         // sourceIndex 1
-        op(Opcode.BLOCK_NUMBER),
-        op(Opcode.EXPLODE32),
+        op(Opcode.blockNumber),
+        op(Opcode.explode32),
       ]),
     ];
     const constants = [];

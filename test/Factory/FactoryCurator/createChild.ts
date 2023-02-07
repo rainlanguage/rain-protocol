@@ -295,8 +295,8 @@ describe("FactoryCurator createChild", async function () {
       await generateEvaluableConfig(
         {
           sources: [
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
           ],
           constants: [max_uint256],
         },
@@ -421,8 +421,8 @@ describe("FactoryCurator createChild", async function () {
       await generateEvaluableConfig(
         {
           sources: [
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
           ],
           constants: [max_uint256],
         },
@@ -449,40 +449,40 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0101), // TIER
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLD
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0101), // TIER
+        op(Opcode.context, 0x0200), // THRESHOLD
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0101), // TIER
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLD
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0101), // TIER
+        op(Opcode.context, 0x0200), // THRESHOLD
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
     ]);
 
     const sourceReportDefault = concat([
-      op(Opcode.CONTEXT, 0x0201),
-      op(Opcode.CONTEXT, 0x0200),
-      op(Opcode.ITIERV2_REPORT),
+      op(Opcode.context, 0x0201),
+      op(Opcode.context, 0x0200),
+      op(Opcode.itierV2Report),
     ]);
 
     // MAIN
@@ -490,15 +490,15 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceMain = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.LESS_THAN),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.lessThan),
             sourceReportStake1, // stake1 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.LESS_THAN),
-        op(Opcode.EVERY, 2), // Condition
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.lessThan),
+        op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
-      op(Opcode.EAGER_IF)
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.eagerIf)
     ]);
 
     const evaluableConfigCombineTier = await generateEvaluableConfig({

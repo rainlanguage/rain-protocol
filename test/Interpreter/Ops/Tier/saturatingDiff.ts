@@ -37,11 +37,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -49,7 +49,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.SATURATING_DIFF),
+      op(Opcode.saturatingDiff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -89,11 +89,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -101,7 +101,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.SATURATING_DIFF),
+      op(Opcode.saturatingDiff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -138,11 +138,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -150,7 +150,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.SATURATING_DIFF),
+      op(Opcode.saturatingDiff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

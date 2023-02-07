@@ -83,25 +83,22 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const OWNER = () => op(Opcode.CONTEXT, 0x0001);
-    const COUNTERPARTY = () => op(Opcode.CONTEXT, 0x0002);
+    const OWNER = () => op(Opcode.context, 0x0001);
+    const COUNTERPARTY = () => op(Opcode.context, 0x0002);
 
     const constants_A = [max_uint256, ratio_A, alice.address, bob.address];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedOwner = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
 
     const vExpectedCounterpart = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -109,12 +106,12 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             OWNER()  ,
             vExpectedOwner ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1) ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1) ,
             COUNTERPARTY() ,
             vExpectedCounterpart ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1)  ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1)  ,
             vOutputMax,
             vRatio,
         ]);
@@ -123,12 +120,12 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
                 OWNER()  ,
                 vExpectedOwner ,
-                op(Opcode.EQUAL_TO),
-                op(Opcode.ENSURE, 1) ,
+                op(Opcode.equalTo),
+                op(Opcode.ensure, 1) ,
                 COUNTERPARTY() ,
                 vExpectedCounterpart ,
-                op(Opcode.EQUAL_TO),
-                op(Opcode.ENSURE, 1)
+                op(Opcode.equalTo),
+                op(Opcode.ensure, 1)
         ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig({
@@ -314,35 +311,32 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, depositAmountA, depositAmountB];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedInputTokenBalance = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputTokenBalance = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
-    const INPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.CONTEXT, 0x0203);
-    const OUTPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.CONTEXT, 0x0303);
+    const INPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.context, 0x0203);
+    const OUTPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.context, 0x0303);
 
     // prettier-ignore
     const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedInputTokenBalance ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_BALANCE()  ,
                 vExpectedOutputTokenBalance ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1) ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
     ]);
@@ -351,12 +345,12 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedInputTokenBalance ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedOutputTokenBalance ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1)
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig({
@@ -512,31 +506,28 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, aliceVault];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedVaultId = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
 
-    const INPUT_TOKEN_VAULT_ID = () => op(Opcode.CONTEXT, 0x0202);
-    const OUTPUT_TOKEN_VAULT_ID = () => op(Opcode.CONTEXT, 0x0302);
+    const INPUT_TOKEN_VAULT_ID = () => op(Opcode.context, 0x0202);
+    const OUTPUT_TOKEN_VAULT_ID = () => op(Opcode.context, 0x0302);
 
     // prettier-ignore
     const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1) ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
     ]);
@@ -545,12 +536,12 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1)
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig({
@@ -711,35 +702,32 @@ describe("OrderBook expression checks", async () => {
       tokenB06.address,
     ];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedInputToken = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputToken = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
-    const INPUT_TOKEN = () => op(Opcode.CONTEXT, 0x0200);
-    const OUTPUT_TOKEN = () => op(Opcode.CONTEXT, 0x0300);
+    const INPUT_TOKEN = () => op(Opcode.context, 0x0200);
+    const OUTPUT_TOKEN = () => op(Opcode.context, 0x0300);
 
     // prettier-ignore
     const calculateSoruce = concat([
             INPUT_TOKEN()  ,
             vExpectedInputToken ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN()  ,
             vExpectedOutputToken ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1) ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
     ]);
@@ -748,12 +736,12 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN()  ,
             vExpectedInputToken ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN()  ,
             vExpectedOutputToken ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1)
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig({
@@ -909,35 +897,32 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, tokenADecimals, tokenBDecimals];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedInputTokenDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputTokenDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
-    const INPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0201);
-    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
+    const INPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0201);
+    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0301);
 
     // prettier-ignore
     const calculateSoruce = concat([
             INPUT_TOKEN_DECIMALS()  ,
             vExpectedInputTokenDecimals ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_DECIMALS()  ,
             vExpectedOutputTokenDecimals ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1) ,
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
     ]);
@@ -946,12 +931,12 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_DECIMALS()  ,
             vExpectedInputTokenDecimals ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_DECIMALS()  ,
             vExpectedOutputTokenDecimals ,
-            op(Opcode.EQUAL_TO),
-            op(Opcode.ENSURE, 1)
+            op(Opcode.equalTo),
+            op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig({
@@ -1118,54 +1103,51 @@ describe("OrderBook expression checks", async () => {
       tokenBDecimals,
     ];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     const compareKey = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const inputTokenKey = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
     const outputTokenKey = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 4)
     );
 
     const vExpectedInputTokenDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 5)
     );
     const vExpectedOutputTokenDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 6)
     );
 
-    const INPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0201);
-    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
+    const INPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0201);
+    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0301);
 
     // prettier-ignore
     const calculateSoruce= concat([
         compareKey ,
            INPUT_TOKEN_DECIMALS() ,
            OUTPUT_TOKEN_DECIMALS() ,
-          op(Opcode.GREATER_THAN),
-        op(Opcode.SET),
+          op(Opcode.greaterThan),
+        op(Opcode.set),
 
         inputTokenKey ,
           INPUT_TOKEN_DECIMALS(),
-        op(Opcode.SET),
+        op(Opcode.set),
 
         outputTokenKey ,
           OUTPUT_TOKEN_DECIMALS(),
-        op(Opcode.SET),
+        op(Opcode.set),
         vOutputMax,
         vRatio,
     ]);
@@ -1173,20 +1155,20 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const handleIOSource = concat([
           compareKey,
-        op(Opcode.GET),
-        op(Opcode.ENSURE, 1)  ,
+        op(Opcode.get),
+        op(Opcode.ensure, 1)  ,
 
           inputTokenKey,
-        op(Opcode.GET),
+        op(Opcode.get),
         vExpectedInputTokenDecimals ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1) ,
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1) ,
 
           outputTokenKey,
-        op(Opcode.GET),
+        op(Opcode.get),
         vExpectedOutputTokenDecimals ,
-        op(Opcode.EQUAL_TO),
-        op(Opcode.ENSURE, 1)
+        op(Opcode.equalTo),
+        op(Opcode.ensure, 1)
 
     ]);
 
@@ -1309,8 +1291,8 @@ describe("OrderBook expression checks", async () => {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const INPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0204);
-    const OUTPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0304);
+    const INPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0204);
+    const OUTPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0304);
 
     // ORDERS
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
@@ -1321,28 +1303,25 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, aip, aop];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedInputDiff = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputDiff = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
     // prettier-ignore
     const calculateSoruce = concat([
        INPUT_BALANCE_DIFF()  ,
-      op(Opcode.ENSURE, 0) ,
+      op(Opcode.ensure, 0) ,
        OUTPUT_BALANCE_DIFF()  ,
-      op(Opcode.ENSURE, 0) ,
+      op(Opcode.ensure, 0) ,
       vOutputMax,
       vRatio,
 
@@ -1352,12 +1331,12 @@ describe("OrderBook expression checks", async () => {
     const handleSource = concat([
         INPUT_BALANCE_DIFF()  ,
         vExpectedOutputDiff ,
-       op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1) ,
+       op(Opcode.equalTo),
+      op(Opcode.ensure, 1) ,
         OUTPUT_BALANCE_DIFF()  ,
         vExpectedInputDiff ,
-       op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1)
+       op(Opcode.equalTo),
+      op(Opcode.ensure, 1)
    ]);
 
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
@@ -1489,16 +1468,13 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, amountB];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
-    const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
-    const ORDER_RATIO = () => op(Opcode.CONTEXT, 0x0101);
+    const OUTPUT_MAX = () => op(Opcode.context, 0x0100);
+    const ORDER_RATIO = () => op(Opcode.context, 0x0101);
 
     // prettier-ignore
     const calculateSoruce = concat([
@@ -1625,15 +1601,12 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, depositAmountB];
     const vOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vExpectedOutputMax = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     // prettier-ignore
@@ -1642,13 +1615,13 @@ describe("OrderBook expression checks", async () => {
       vRatio,
     ]);
 
-    const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
+    const OUTPUT_MAX = () => op(Opcode.context, 0x0100);
     // prettier-ignore
     const handleSource = concat([
         vExpectedOutputMax,
         OUTPUT_MAX(),
-       op(Opcode.EQUAL_TO) ,
-      op(Opcode.ENSURE,1)
+       op(Opcode.equalTo) ,
+      op(Opcode.ensure,1)
     ]);
 
     const EvaluableConfig = await generateEvaluableConfig({

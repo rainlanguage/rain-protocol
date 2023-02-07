@@ -1,0 +1,22 @@
+{
+  "name": "ensure",
+  "desc": "Require ietms(s) of the stack to be true, i.e. greater than zero, revert if not",
+  "operand": [
+    {
+      "name": "Inputs",
+      "bits": [0, 7],
+      "validRange": [[1, 255]]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 7],
+    "parameters": [
+      {
+        "name": "Input",
+        "spread": true
+      }
+    ]
+  },
+  "outputs": 0,
+  "aliases": ["require"]
+}

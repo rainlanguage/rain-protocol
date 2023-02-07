@@ -13,20 +13,20 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier report context tests", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
+  const ctxAccount = op(Opcode.context, 0x0000);
 
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.CONTEXT, 0x0001),
+      op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.ITIERV2_REPORT),
+    op(Opcode.itierV2Report),
   ]);
 
   it("should support a program which simply returns the account", async () => {
     const signers = await ethers.getSigners();
 
-    const sourceReport = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const sourceReport = concat([op(Opcode.context, 0x0100)]);
     const evaluableConfig = await generateEvaluableConfig({
       sources: [sourceReport, sourceReportTimeForTierDefault],
       constants: [],

@@ -67,17 +67,14 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig({
@@ -210,16 +207,13 @@ describe("Sale buy", async function () {
       maxUnits,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const vMaxUnits = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
     const sources = [
@@ -330,17 +324,14 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const cooldownDuration = 5;
@@ -477,17 +468,14 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig({
@@ -588,17 +576,14 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig({
@@ -676,20 +661,17 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.context, 0x0001),
 
         // price
         vBasePrice,
@@ -932,43 +914,43 @@ describe("Sale buy", async function () {
       0,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vDiscountedPrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const key = op(Opcode.CONTEXT, 0x0000); // msg.sender
-    const zero = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const key = op(Opcode.context, 0x0000); // msg.sender
+    const zero = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
 
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.context, 0x0001),
 
             // price will be dynamic based on the value set for  msg.sender
             // (getValue == 0) ? vBasePrice : vDiscountedPrice
               key,
-            op(Opcode.GET),
+            op(Opcode.get),
             zero,
-          op(Opcode.GREATER_THAN),
+          op(Opcode.greaterThan),
           vDiscountedPrice,
           vBasePrice,
-        op(Opcode.EAGER_IF),
+        op(Opcode.eagerIf),
 
       ]),
       concat([
         key, // setting blocknumber for msg.sender as the key
-        op(Opcode.BLOCK_NUMBER),
-        op(Opcode.SET),
+        op(Opcode.blockNumber),
+        op(Opcode.set),
       ]),
     ];
     const evaluableConfig = await generateEvaluableConfig({
