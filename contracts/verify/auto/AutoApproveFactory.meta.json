@@ -1,6 +1,5 @@
 {
   "name": "Auto Approve Factory",
-  // @TODO write desc
   "desc": "",
   "alias": "auto-approve-factory",
   "source": "https://github.com/rainprotocol/rain-protocol",

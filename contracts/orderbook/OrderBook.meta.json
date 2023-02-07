@@ -24,7 +24,6 @@
           "name": "Order",
           "desc": "An expression for the order. Orderbook context is actually fairly complex. The calling context column is populated before calculate order, but the remaining columns are only available to handle IO as they depend on the full evaluation of calculuate order, and cross referencing against the same from the counterparty, as well as accounting limits such as current vault balances, etc. The token address and decimals for vault inputs and outputs IS available to the calculate order entrypoint, but not the final vault balances/diff.",
           "path": "[19].inputs[0].components[2]",
-          // @ TODO callerContext and SignedContext
           "signedContext": false,
           "callerContext": false,
           "contextColumns": [
