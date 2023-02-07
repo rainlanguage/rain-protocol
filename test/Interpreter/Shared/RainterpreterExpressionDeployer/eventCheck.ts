@@ -1,9 +1,9 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { RainterpreterStore } from "../../../../typechain";
 import {
-  OpMetaEvent,
+  InterpreterOpMetaEvent,
   Rainterpreter,
   RainterpreterConfigStruct,
   ValidStoreEvent,
@@ -36,9 +36,9 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       constants: ["1", "2"],
       sources: [
         concat([
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 1)),
-          op(AllStandardOps.add, 2),
+          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.ADD, 2),
         ]),
       ],
     };
@@ -56,11 +56,11 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     const mathExpressionConstants = [2, 3];
     const v2 = op(
-      AllStandardOps.readMemory,
+      AllStandardOps.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
     const v3 = op(
-      AllStandardOps.readMemory,
+      AllStandardOps.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -70,12 +70,12 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
               v2,
               v2,
               v2,
-            op(AllStandardOps.add, 3),
+            op(AllStandardOps.ADD, 3),
             v3,
-          op(AllStandardOps.mul, 2),
+          op(AllStandardOps.MUL, 2),
           v2,
           v3,
-        op(AllStandardOps.div, 3),
+        op(AllStandardOps.DIV, 3),
       ]),
     ];
 
@@ -118,11 +118,12 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     );
   });
 
-  it("should emit correct opMeta on interpreter construction", async () => {
+  it.only("should emit correct opMeta on interpreter construction", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
     const opMeta = getRainterpreterOpMetaBytes();
+    console.log(keccak256(opMeta))
     const interpreterStore: RainterpreterStore =
       await rainterpreterStoreDeploy();
 
@@ -136,16 +137,16 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     ])) as Rainterpreter;
 
     // Checking OpMeta Event
-    const OpMetaEvent = (await getEventArgs(
+    const InterpreterOpMetaEvent = (await getEventArgs(
       interpreter.deployTransaction,
       "OpMeta",
       interpreter
-    )) as OpMetaEvent["args"];
+    )) as InterpreterOpMetaEvent["args"];
 
     const expectedString = ethers.utils.hexlify(opMeta);
 
-    assert(OpMetaEvent.sender === deployer.address, "wrong sender");
-    assert(OpMetaEvent.opMeta === expectedString, "incorrect bytes");
+    assert(InterpreterOpMetaEvent.sender === deployer.address, "wrong sender");
+    assert(InterpreterOpMetaEvent.opMeta === expectedString, "incorrect bytes");
 
     // Checking ValidStore Event
     const ValidStoreEvent = (await getEventArgs(

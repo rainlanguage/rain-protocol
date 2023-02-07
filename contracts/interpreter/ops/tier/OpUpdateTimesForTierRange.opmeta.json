@@ -1,5 +1,5 @@
 {
-  "name": "update-time-for-tier-range",
+  "name": "update-times-for-tier-range",
   "desc": "Inserts the result of updating the range of tiers of a report taken from stack by a value taken from the stack into the stack",
   "operand": [
     {
