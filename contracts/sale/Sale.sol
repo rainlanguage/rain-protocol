@@ -24,7 +24,9 @@ import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../interpreter/caller/LibCallerMeta.sol";
 
-bytes32 constant CALLER_META_HASH = bytes32(0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b);
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
+);
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed

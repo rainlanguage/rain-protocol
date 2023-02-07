@@ -34,7 +34,7 @@ describe("Lobby Tests claim", async function () {
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
-  
+
   before(async () => {
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });

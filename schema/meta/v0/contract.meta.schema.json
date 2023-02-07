@@ -36,13 +36,7 @@
           "minItems": 1
         }
       },
-      "required": [
-        "name",
-        "desc",
-        "alias",
-        "source",
-        "methods"
-      ],
+      "required": ["name", "desc", "alias", "source", "methods"],
       "additionalProperties": false,
       "title": "Rain Contract Metadata",
       "description": "Required info about a contract that receives expression in at least one of its methods."
@@ -75,11 +69,7 @@
           "minItems": 1
         }
       },
-      "required": [
-        "name",
-        "desc",
-        "expressions"
-      ],
+      "required": ["name", "desc", "expressions"],
       "additionalProperties": false
     },
     "Input": {
@@ -99,11 +89,7 @@
           "description": "Input's path in contract's ABI."
         }
       },
-      "required": [
-        "name",
-        "desc",
-        "path"
-      ],
+      "required": ["name", "desc", "path"],
       "additionalProperties": false
     },
     "Expression": {
@@ -143,11 +129,7 @@
           "maxItems": 256
         }
       },
-      "required": [
-        "name",
-        "desc",
-        "path"
-      ],
+      "required": ["name", "desc", "path"],
       "additionalProperties": false
     },
     "ContextColumn": {
@@ -185,11 +167,7 @@
           "maxItems": 256
         }
       },
-      "required": [
-        "name",
-        "alias",
-        "columnIndex"
-      ],
+      "required": ["name", "alias", "columnIndex"],
       "additionalProperties": false
     },
     "ContextCell": {
@@ -217,11 +195,7 @@
           "description": "Index of this context cell grid, column index value and this value will be inside of <> of associated interpreter's opcode, example: columnIndex: 0, cellIndex: 1 -> context-cell-opcode<0 1>."
         }
       },
-      "required": [
-        "name",
-        "alias",
-        "cellIndex"
-      ],
+      "required": ["name", "alias", "cellIndex"],
       "additionalProperties": false
     }
   }

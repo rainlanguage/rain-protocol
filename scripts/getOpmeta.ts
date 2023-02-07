@@ -63,11 +63,11 @@ const main = async () => {
       `
     );
   } else {
-    let toWrite = false
+    let toWrite = false;
     let dir = root;
     let schemaPath = "";
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
-      toWrite = true
+      toWrite = true;
       const _i =
         args.indexOf("--dest") > -1
           ? args.indexOf("--dest")
@@ -121,8 +121,7 @@ const main = async () => {
           const tmp = JSON.parse(readFile(path.resolve(root, _tmp[i])));
           if (validate(tmp)) opmetas.push(tmp);
           else throw new Error(`${_tmp[i]} has invalid content`);
-        } else
-          throw new Error(`${_tmp[i]} is not valid, must be a valid json`);
+        } else throw new Error(`${_tmp[i]} is not valid, must be a valid json`);
       }
 
       let opmetaHexString = "0x";
@@ -163,12 +162,12 @@ const main = async () => {
 Deployable Opmeta Bytes: 
 ${opmetaHexString}
 
-`)
+`);
       console.log(`
 Deployable Opmeta Schema Bytes: 
 ${schemaHexString}
 
-`)
+`);
     } else
       console.log(
         `

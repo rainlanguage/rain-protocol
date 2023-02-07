@@ -29,7 +29,9 @@ describe("OrderBook vaultBalance", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());

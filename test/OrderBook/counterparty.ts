@@ -63,7 +63,9 @@ describe("OrderBook counterparty in context", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());

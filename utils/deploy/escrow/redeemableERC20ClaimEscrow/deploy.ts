@@ -15,7 +15,7 @@ export const escrowDeploy = async () => {
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    callerMeta: getRainContractMetaBytes('sale')
+    callerMeta: getRainContractMetaBytes("sale"),
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

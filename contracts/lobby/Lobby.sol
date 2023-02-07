@@ -31,7 +31,9 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 /// Thrown when `invalid` is called but the lobby is not invalid.
 error NotInvalid();
 
-bytes32 constant CALLER_META_HASH = bytes32(0x7ee328cade392f781d0c0b5a3acae004e96e508d3a735568e20f4c4a9d1d7946);
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x7ee328cade392f781d0c0b5a3acae004e96e508d3a735568e20f4c4a9d1d7946
+);
 
 /// Configuration for the construction of a `Lobby` reference implementation.
 /// All `Lobby` contracts initialized by a factory will share this.

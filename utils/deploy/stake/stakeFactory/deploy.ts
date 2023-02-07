@@ -7,7 +7,9 @@ export const stakeFactoryDeploy = async () => {
     "StakeFactory",
     {}
   );
-  const stakeFactory = (await stakeFactoryFactory.deploy(getRainContractMetaBytes('sale'))) as StakeFactory;
+  const stakeFactory = (await stakeFactoryFactory.deploy(
+    getRainContractMetaBytes("sale")
+  )) as StakeFactory;
   await stakeFactory.deployed();
   return stakeFactory;
 };

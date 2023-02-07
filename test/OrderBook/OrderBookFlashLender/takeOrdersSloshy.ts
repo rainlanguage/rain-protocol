@@ -66,7 +66,9 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -264,7 +266,9 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const bob = signers[2];
     const uni = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 

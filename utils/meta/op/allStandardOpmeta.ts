@@ -1,4 +1,4 @@
-import OpMetaSchema from "../../../schema/meta/v0/op.meta.schema.json"
+import OpMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
 import path from "path";
 import { deflateSync } from "zlib";
 import fs from "fs";
@@ -85,8 +85,7 @@ export const getRainterpreterOpMetaBytes = (): string => {
   );
   let hex = "0x";
   for (let i = 0; i < opmetaBytes.length; i++) {
-    hex =
-      hex + opmetaBytes[i].toString(16).padStart(2, "0");
+    hex = hex + opmetaBytes[i].toString(16).padStart(2, "0");
   }
   return hex;
 };
@@ -128,5 +127,5 @@ export const getRainterpreterOpMetaFromBytes = (
   bytes: string | Uint8Array,
   path?: string
 ) => {
-  return metaFromBytes(bytes, OpMetaSchema, path)
-}
+  return metaFromBytes(bytes, OpMetaSchema, path);
+};

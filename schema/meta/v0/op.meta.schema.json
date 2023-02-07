@@ -50,13 +50,7 @@
           "description": "Extra word used to identify the opcode."
         }
       },
-      "required": [
-        "name",
-        "desc",
-        "operand",
-        "inputs",
-        "outputs"
-      ],
+      "required": ["name", "desc", "operand", "inputs", "outputs"],
       "additionalProperties": false,
       "title": "Opcode Metadata",
       "description": "Schema for opcodes metadata used by RainLang."
@@ -124,10 +118,7 @@
             "description": "Determines the valid range of the operand argument after computation applied. For example an operand argument can be any value between range of 1 - 10: [[1, 10]] or an operand argument can only be certain exact values: [[2], [3], [9]], meaning it can only be 2 or 3 or 9."
           }
         },
-        "required": [
-          "bits",
-          "name"
-        ],
+        "required": ["bits", "name"],
         "additionalProperties": false
       },
       "minItems": 1
@@ -163,9 +154,7 @@
                     "description": "Specifies if an argument is dynamic in length, default is false, so only needs to be defined if an argument is spread."
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "additionalProperties": false
               },
               "title": "Parameters",
@@ -189,9 +178,7 @@
               "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) inputs."
             }
           },
-          "required": [
-            "parameters"
-          ],
+          "required": ["parameters"],
           "additionalProperties": false
         }
       ]

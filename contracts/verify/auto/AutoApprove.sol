@@ -14,7 +14,9 @@ import "../../interpreter/caller/LibCallerMeta.sol";
 import "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
 
-bytes32 constant CALLER_META_HASH = bytes32(0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d);
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
+);
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;

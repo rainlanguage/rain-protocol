@@ -29,7 +29,7 @@ describe("Lobby Tests Intialize", async function () {
   before(async () => {
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
-  
+
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await tokenA.initialize();

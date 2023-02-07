@@ -117,17 +117,17 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                     uint256[][] memory context_;
                     {
                         context_ = LibContext.build(
-                                new uint256[][](0),
-                                // Transfer params are caller context.
-                                LibUint256Array.arrayFrom(
-                                    uint(uint160(operator_)),
-                                    uint256(uint160(from_)),
-                                    uint256(uint160(to_)),
-                                    ids_[i_],
-                                    amounts_[i_]
-                                ),
-                                new SignedContext[](0)
-                            );
+                            new uint256[][](0),
+                            // Transfer params are caller context.
+                            LibUint256Array.arrayFrom(
+                                uint(uint160(operator_)),
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_)),
+                                ids_[i_],
+                                amounts_[i_]
+                            ),
+                            new SignedContext[](0)
+                        );
                     }
                     (
                         uint256[] memory stack_,

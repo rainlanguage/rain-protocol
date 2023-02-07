@@ -69,7 +69,7 @@ export const saleDependenciesDeploy = async () => {
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 10000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    callerMeta: getRainContractMetaBytes('sale')
+    callerMeta: getRainContractMetaBytes("sale"),
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

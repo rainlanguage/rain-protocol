@@ -63,11 +63,11 @@ const main = async () => {
       `
     );
   } else {
-    let toWrite = false
+    let toWrite = false;
     let dir = root;
     let schemaPath = "";
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
-      toWrite = true
+      toWrite = true;
       const _i =
         args.indexOf("--dest") > -1
           ? args.indexOf("--dest")
@@ -115,7 +115,8 @@ const main = async () => {
           ? args.indexOf("-c")
           : args.indexOf("-C");
       const item = args.splice(_i + 1, _i + 2);
-      if (item.length !== 1) throw new Error("expected path to contract meta file");
+      if (item.length !== 1)
+        throw new Error("expected path to contract meta file");
       if (item[0].endsWith(".json")) {
         const tmp = JSON.parse(readFile(path.resolve(root, item[0])));
         if (validate(tmp)) contractMeta = tmp;
@@ -144,7 +145,7 @@ const main = async () => {
 
       const data = {
         deployableContractMetaBytes: contractMetaHexString,
-        deployableSchemaBytes: schemaHexString
+        deployableSchemaBytes: schemaHexString,
       };
       if (toWrite) {
         const fileData = format(JSON.stringify(data, null, 4), {
@@ -159,12 +160,12 @@ const main = async () => {
 Deployable ContractMeta Bytes: 
 ${contractMetaHexString}
 
-`)
+`);
       console.log(`
 Deployable ContractMeta Schema Bytes: 
 ${schemaHexString}
 
-`)
+`);
     } else
       console.log(
         `

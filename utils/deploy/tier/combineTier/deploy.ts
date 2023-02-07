@@ -15,8 +15,9 @@ export const combineTierDeploy = async (
   const combineTierFactoryFactory = await ethers.getContractFactory(
     "CombineTierFactory"
   );
-  const combineTierFactory =
-    (await combineTierFactoryFactory.deploy(getRainContractMetaBytes('combinetier'))) as CombineTierFactory;
+  const combineTierFactory = (await combineTierFactoryFactory.deploy(
+    getRainContractMetaBytes("combinetier")
+  )) as CombineTierFactory;
   await combineTierFactory.deployed();
 
   const { implementation } = (await getEventArgs(

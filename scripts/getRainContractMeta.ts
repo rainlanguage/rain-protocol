@@ -60,10 +60,10 @@ const main = async () => {
       `
     );
   } else {
-    let toWrite = false
+    let toWrite = false;
     let dir = root;
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
-      toWrite = true
+      toWrite = true;
       const _i =
         args.indexOf("--dest") > -1
           ? args.indexOf("--dest")
@@ -78,11 +78,7 @@ const main = async () => {
     const schema = ContractMetaSchema;
 
     let contractMeta;
-    if (
-      args.includes("--name") ||
-      args.includes("-n") ||
-      args.includes("-N")
-    ) {
+    if (args.includes("--name") || args.includes("-n") || args.includes("-N")) {
       const _i =
         args.indexOf("--name") > -1
           ? args.indexOf("--name")
@@ -91,16 +87,25 @@ const main = async () => {
           : args.indexOf("-N");
       const item = args.splice(_i + 1, _i + 2);
       if (item.length !== 1) throw new Error("expected Rain contract name");
-      if (item[0].toLocaleLowerCase() === "sale") contractMeta = Sale
-      else if (item[0].toLocaleLowerCase() === "stake") contractMeta = Stake
-      else if (item[0].toLocaleLowerCase() === "orderbook") contractMeta = Orderbook
-      else if (item[0].toLocaleLowerCase() === "flow20") contractMeta = FlowERC20
-      else if (item[0].toLocaleLowerCase() === "flow721") contractMeta = FlowERC721
-      else if (item[0].toLocaleLowerCase() === "flow1155") contractMeta = FlowERC1155
-      else if (item[0].toLocaleLowerCase() === "lobby") contractMeta = Lobby
-      else if (item[0].toLocaleLowerCase() === "autoapprove") contractMeta = AutoApprove
-      else if (item[0].toLocaleLowerCase() === "combinetier") contractMeta = CombineTier
-      else throw new Error(`${item[0]} is not a valid Rain contract with contract meta`)
+      if (item[0].toLocaleLowerCase() === "sale") contractMeta = Sale;
+      else if (item[0].toLocaleLowerCase() === "stake") contractMeta = Stake;
+      else if (item[0].toLocaleLowerCase() === "orderbook")
+        contractMeta = Orderbook;
+      else if (item[0].toLocaleLowerCase() === "flow20")
+        contractMeta = FlowERC20;
+      else if (item[0].toLocaleLowerCase() === "flow721")
+        contractMeta = FlowERC721;
+      else if (item[0].toLocaleLowerCase() === "flow1155")
+        contractMeta = FlowERC1155;
+      else if (item[0].toLocaleLowerCase() === "lobby") contractMeta = Lobby;
+      else if (item[0].toLocaleLowerCase() === "autoapprove")
+        contractMeta = AutoApprove;
+      else if (item[0].toLocaleLowerCase() === "combinetier")
+        contractMeta = CombineTier;
+      else
+        throw new Error(
+          `${item[0]} is not a valid Rain contract with contract meta`
+        );
 
       let contractMetaHexString = "0x";
       const opmetaBytes = Uint8Array.from(
@@ -124,7 +129,7 @@ const main = async () => {
 
       const data = {
         deployableContractMetaBytes: contractMetaHexString,
-        deployableSchemaBytes: schemaHexString
+        deployableSchemaBytes: schemaHexString,
       };
       if (toWrite) {
         const fileData = format(JSON.stringify(data, null, 4), {
@@ -139,12 +144,12 @@ const main = async () => {
 Deployable ContractMeta Bytes: 
 ${contractMetaHexString}
 
-`)
+`);
       console.log(`
 Deployable ContractMeta Schema Bytes: 
 ${schemaHexString}
 
-`)
+`);
     } else
       console.log(
         `

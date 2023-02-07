@@ -75,12 +75,12 @@ const main = async () => {
 Deployable Opmeta Bytes: 
 ${opmetaHexString}
 
-`)
+`);
     console.log(`
 Deployable Opmeta Schema Bytes: 
 ${schemaHexString}
 
-`)
+`);
   }
 };
 

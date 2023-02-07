@@ -214,7 +214,6 @@ describe("EXTERN Opcode tests", async function () {
     );
   });
 
-
   it("rainInterpreterExtern should get price from oracle", async () => {
     const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
 

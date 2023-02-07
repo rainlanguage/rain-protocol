@@ -41,7 +41,9 @@ describe("OrderBook flash loan withdraw tests", async function () {
   });
 
   it("should not allow decreasing flash debt by more than the sender's vault balance", async function () {
-    const orderBook = (await orderBookFactory.deploy(getRainContractMetaBytes("orderbook"))) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const vaultBot = ethers.BigNumber.from(randomUint256());
 
