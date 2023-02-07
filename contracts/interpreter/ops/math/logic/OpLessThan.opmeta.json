@@ -13,9 +13,5 @@
       }
     ]
   },
-<<<<<<< HEAD:contracts/interpreter/ops/math/logic/LessThan.opmeta.json
-  "aliases": ["lt", "little-than"]
-=======
-  "aliases": ["lt", "lessthan", "littlethan", "little-than"]
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/logic/OpLessThan.opmeta.json
+  "aliases": ["lt"]
 }

@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD:contracts/interpreter/ops/rain/IOrderBookV1/IOderBookV1VaultBalance.opmeta.json
-  "name": "ioderbook-v2-vault-balance",
-=======
   "name": "iorderbook-v1-vault-balance",
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/IOrderBookV1/OpIOderBookV1VaultBalance.opmeta.json
   "desc": "The balance of an orderbook vault",
   "operand": 0,
   "inputs": {
@@ -26,9 +22,5 @@
     ]
   },
   "outputs": 1,
-<<<<<<< HEAD:contracts/interpreter/ops/rain/IOrderBookV1/IOderBookV1VaultBalance.opmeta.json
-  "aliases": ["vault-balance", "ob-vault-balance"]
-=======
   "aliases": ["vault-balance", "orderbook-vault-balance"]
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/IOrderBookV1/OpIOderBookV1VaultBalance.opmeta.json
 }

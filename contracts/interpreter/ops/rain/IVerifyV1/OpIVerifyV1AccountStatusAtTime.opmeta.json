@@ -13,9 +13,5 @@
       }
     ]
   },
-<<<<<<< HEAD:contracts/interpreter/ops/rain/IVerifyV1/IVerifyV1AccountStatusAtTime.opmeta.json
   "aliases": ["verify-status"]
-=======
-  "aliases": ["verify-account-status-at-time"]
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/IVerifyV1/OpIVerifyV1AccountStatusAtTime.opmeta.json
 }

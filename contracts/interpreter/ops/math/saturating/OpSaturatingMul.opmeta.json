@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD:contracts/interpreter/ops/math/saturating/SaturatingMul.opmeta.json
-  "name": "saturatin-mul",
-=======
   "name": "saturating-mul",
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/saturating/OpSaturatingMul.opmeta.json
   "desc": "Inserts multiplied result of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size",
   "operand": [
     {
@@ -22,9 +18,5 @@
     ]
   },
   "outputs": 1,
-<<<<<<< HEAD:contracts/interpreter/ops/math/saturating/SaturatingMul.opmeta.json
   "aliases": ["sat-mul"]
-=======
-  "aliases": ["saturatingmul", "sat-mul", "satmul"]
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/saturating/OpSaturatingMul.opmeta.json
 }

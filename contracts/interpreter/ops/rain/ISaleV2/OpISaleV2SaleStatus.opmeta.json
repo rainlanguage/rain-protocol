@@ -5,11 +5,7 @@
   "inputs": {
     "parameters": [
       {
-<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2SaleStatus.opmeta.json
         "name": "isale-address"
-=======
-        "name": "ISale status"
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2SaleStatus.opmeta.json
       }
     ]
   },

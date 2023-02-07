@@ -10,9 +10,5 @@
     ]
   },
   "outputs": 1,
-<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2Reserve.opmeta.json
-  "aliases": ["reserve", "reserve-token"]
-=======
   "aliases": ["sale-reserve"]
->>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2Reserve.opmeta.json
 }
