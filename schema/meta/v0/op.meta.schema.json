@@ -210,6 +210,9 @@
               "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) outputs."
             }
           },
+          "required": [
+            "bits"
+          ],
           "additionalProperties": false
         }
       ]
