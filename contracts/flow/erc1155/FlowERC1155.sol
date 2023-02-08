@@ -34,6 +34,10 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x1290d7867e9b5439014535435d75311851bb268aaba61b7b0b8399449a36c71f
+);
+
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
@@ -50,7 +54,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+    constructor(bytes memory callerMeta_) FlowCommon() {
+        _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+    }
 
     function initialize(
         FlowERC1155Config calldata config_

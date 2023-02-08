@@ -46,6 +46,10 @@ struct FlowERC721IO {
     FlowTransfer flow;
 }
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x64c1efa057778dfb26bcf6fce5bd0764d2f20252596d32d1124b9304e7611567
+);
+
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
@@ -66,7 +70,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+    constructor(bytes memory callerMeta_) FlowCommon() {
+        _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+    }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(
