@@ -3,7 +3,7 @@
   "desc": "Inserts a context cell into the stack by reading the column from operand and row from stack",
   "operand": [
     {
-      "name": "Column",
+      "name": "column",
       "desc": "context column",
       "bits": [0, 7]
     }
@@ -11,7 +11,7 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Row"
+        "name": "row"
       }
     ]
   },

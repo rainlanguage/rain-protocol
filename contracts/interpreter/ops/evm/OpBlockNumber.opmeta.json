@@ -4,5 +4,5 @@
   "operand": 0,
   "inputs": 0,
   "outputs": 1,
-  "aliases": ["current-block", "currentblock", "blocknumber"]
+  "aliases": ["current-block"]
 }

@@ -9,9 +9,14 @@ import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../interpreter/run/LibContext.sol";
-import "../../interpreter/run/IInterpreterCallerV1.sol";
+import "../../interpreter/caller/LibContext.sol";
+import "../../interpreter/caller/LibCallerMeta.sol";
+import "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
+);
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
@@ -32,8 +37,11 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
     Evaluable internal evaluable;
 
-    constructor() {
+    constructor(bytes memory callerMeta_) {
         _disableInitializers();
+
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     function initialize(EvaluableConfig calldata config_) external initializer {

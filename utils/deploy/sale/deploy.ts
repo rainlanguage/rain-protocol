@@ -10,6 +10,7 @@ import {
   SaleRedeemableERC20ConfigStruct,
 } from "../../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../../events";
+import { getRainContractMetaBytes } from "../../meta";
 import { redeemableERC20FactoryDeploy } from "../redeemableERC20/redeemableERC20Factory/deploy";
 import { readWriteTierDeploy } from "../tier/readWriteTier/deploy";
 import { saleFactoryDeploy } from "./saleFactory/deploy";
@@ -68,6 +69,7 @@ export const saleDependenciesDeploy = async () => {
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 10000,
     redeemableERC20Factory: redeemableERC20Factory.address,
+    callerMeta: getRainContractMetaBytes("sale"),
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

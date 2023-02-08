@@ -4,5 +4,5 @@
   "operand": 0,
   "outputs": 1,
   "inputs": 0,
-  "aliases": ["now", "blocktimestamp", "currenttime", "current-time"]
+  "aliases": ["now", "current-time", "current-timestamp"]
 }

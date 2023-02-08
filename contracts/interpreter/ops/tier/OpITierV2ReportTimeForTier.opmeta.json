@@ -3,7 +3,7 @@
   "desc": "Inserts the specified tier level report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[3], [4], [11]],
       "computation": "arg - 3"
@@ -13,23 +13,21 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "ITierV2 Address"
+        "name": "itierv2-address"
       },
       {
-        "name": "Account"
+        "name": "account"
       },
       {
-        "name": "Tier"
+        "name": "tier"
       },
       {
-        "name": "Context",
+        "name": "context",
         "desc": "The contextual values",
         "spread": true
       }
     ]
   },
   "outputs": 1,
-  "aliases": [
-    "tier-report-time-for-tier"
-  ]
+  "aliases": ["tier-report-time-for-tier"]
 }

@@ -2327,12 +2327,12 @@ describe("FlowERC721 flow tests", async function () {
       ME(),
       YOU(),
       // Setting a dynamic price which changes once a flow has been run
-            YOU(),
-          op(Opcode.get),
-          ZERO(),
-        op(Opcode.greaterThan),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
+      YOU(),
+      op(Opcode.get),
+      ZERO(),
+      op(Opcode.greaterThan),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
       op(Opcode.eagerIf),
 
       SENTINEL(), // NATIVE SKIP
@@ -2347,9 +2347,9 @@ describe("FlowERC721 flow tests", async function () {
         // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
         op(Opcode.blockNumber),
-      op(Opcode.set),
-    ])];
-
+        op(Opcode.set),
+      ]),
+    ];
 
     const expressionConfigStruct: ExpressionConfigStruct = {
       sources,

@@ -2420,8 +2420,9 @@ describe("FlowERC20 flow tests", async function () {
         // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
         op(Opcode.blockNumber),
-      op(Opcode.set),
-    ])];
+        op(Opcode.set),
+      ]),
+    ];
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",

@@ -3,7 +3,7 @@
   "desc": "Scale a fixed point up or down by operand.",
   "operand": [
     {
-      "name": "Scale",
+      "name": "scale",
       "desc": "determines the up/down scale as 2s complement",
       "bits": [0, 7]
     }
@@ -11,11 +11,10 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Value",
+        "name": "value",
         "desc": "The value to scale by"
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["scaleby"]
+  "outputs": 1
 }

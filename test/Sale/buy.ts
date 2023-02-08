@@ -921,10 +921,7 @@ describe("Sale buy", async function () {
       Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
-    const vStart = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const key = op(Opcode.context, 0x0000); // msg.sender
     const zero = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));

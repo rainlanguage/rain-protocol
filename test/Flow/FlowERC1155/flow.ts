@@ -2152,7 +2152,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
       op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
-      const FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT = () =>
+    const FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT = () =>
       op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT = () =>
       op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
@@ -2170,13 +2170,13 @@ describe("FlowERC1155 flow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
       ME(),
       YOU(),
-          // Setting a dynamic price which changes once a flow has been run
-          YOU(),
-          op(Opcode.get),
-          ZERO(),
-        op(Opcode.greaterThan),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
+      // Setting a dynamic price which changes once a flow has been run
+      YOU(),
+      op(Opcode.get),
+      ZERO(),
+      op(Opcode.greaterThan),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
       op(Opcode.eagerIf),
       SENTINEL(), // NATIVE SKIP
       SENTINEL_1155(),
@@ -2190,8 +2190,9 @@ describe("FlowERC1155 flow tests", async function () {
         // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
         op(Opcode.blockNumber),
-      op(Opcode.set),
-    ])];
+        op(Opcode.set),
+      ]),
+    ];
 
     const expressionConfigStruct: ExpressionConfigStruct = {
       sources,

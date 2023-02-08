@@ -6,12 +6,12 @@
   "inputs": {
     "parameters": [
       {
-        "name": "1st Value"
+        "name": "value1"
       },
       {
-        "name": "2nd Value"
+        "name": "value2"
       }
     ]
   },
-  "aliases": ["lt", "lessthan", "littlethan", "little-than"]
+  "aliases": ["lt"]
 }

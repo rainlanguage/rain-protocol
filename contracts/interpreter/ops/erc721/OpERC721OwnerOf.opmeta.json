@@ -5,13 +5,13 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Token Id"
+        "name": "token-id"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["erc721ownerof", "ierc721ownerof"]
+  "aliases": ["erc721-owner"]
 }

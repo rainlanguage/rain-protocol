@@ -6,12 +6,12 @@
   "inputs": {
     "parameters": [
       {
-        "name": "IVerifyV1 Address"
+        "name": "iverifyv1-address"
       },
       {
-        "name": "Account Address"
+        "name": "account-address"
       }
     ]
   },
-  "aliases": ["verify-account-status-at-time"]
+  "aliases": ["verify-status"]
 }

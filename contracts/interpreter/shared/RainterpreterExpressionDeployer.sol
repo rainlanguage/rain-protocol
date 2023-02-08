@@ -10,7 +10,15 @@ import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/u
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
 /// the interpreter it is constructed for. This WILL cause undefined expression
 /// behaviour so MUST REVERT.
+/// @param actualPointers The actual function pointers found at the interpreter
+/// address upon construction.
 error UnexpectedPointers(bytes actualPointers);
+
+/// Thrown when the `RainterpreterExpressionDeployer` is constructed with unknown
+/// interpreter bytecode.
+/// @param actualBytecodeHash The bytecode hash that was found at the interpreter
+/// address upon construction.
+error UnexpectedInterpreterBytecodeHash(bytes32 actualBytecodeHash);
 
 /// @dev There are more entrypoints defined by the minimum stack outputs than
 /// there are provided sources. This means the calling contract WILL attempt to
@@ -23,6 +31,11 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180ee21017104c106a10f21101110f111e112c113a11481156111e116411721181118f119d121512241233124212511260126f127e128d129c12ab12ba12c912d812e713301342135013821390139e13ac13bb13ca13d913e713f514031411141f142d143b144a1459146714d9";
+
+/// @dev Hash of the known interpreter bytecode.
+bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
+    0xc33f43e95e32fff7adb2974535459424ffb09f9c6ee22112e5b238145935dd06
+);
 
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
@@ -68,6 +81,16 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
             keccak256(functionPointers_) != keccak256(OPCODE_FUNCTION_POINTERS)
         ) {
             revert UnexpectedPointers(functionPointers_);
+        }
+        // Guard against an interpreter with unknown bytecode.
+        bytes32 interpreterHash_;
+        assembly ("memory-safe") {
+            interpreterHash_ := extcodehash(interpreter_)
+        }
+        if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
+            /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT
+            /// HONEST MISTAKES.
+            revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
         }
 
         emit ValidInterpreter(msg.sender, interpreter_);

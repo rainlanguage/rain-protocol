@@ -5,19 +5,19 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Orderbook Address",
+        "name": "orderbook-address",
         "desc": "The address of the IOrderbookV2"
       },
       {
-        "name": "Owner Address",
+        "name": "owner-address",
         "desc": "The address of the Owner of the vault"
       },
       {
-        "name": "Token Address",
+        "name": "token-address",
         "desc": "The address of the Token"
       },
       {
-        "name": "Vault ID"
+        "name": "vault-id"
       }
     ]
   },

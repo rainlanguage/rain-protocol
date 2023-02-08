@@ -6,7 +6,7 @@ import * as path from "path";
 import { format } from "prettier";
 import { argv } from "process";
 import { deflateSync } from "zlib";
-import OpmetaSchema from "../opmeta_schema.json";
+import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
 
 const readFile = (_path: string) => {
   try {
@@ -36,11 +36,13 @@ const main = async () => {
   ) {
     console.log(
       `
+      Get deployable bytes for series of opmeta files.
+      
       usage:
-        gen-opmeta [--opmeta] <path/to/files.json> [option1] <arg1> [option2] <arg2>
+        opmeta [--opmeta] <path/to/files.json> [option1] <arg1> [option2] <arg2>
 
       example:
-        gen-opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
+        opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
 
 
       options:
@@ -49,21 +51,23 @@ const main = async () => {
           Path to individual opmeta files.
 
         --dest, -d, -D <destination/path/name.json>
-          (optional) Destination of the output file. Writes to root of the current working directory if not provided.
+          (optional) Destination of the output file. Only loges the Deployable Bytes in the terminal if not provided.
 
         --schema, -s, -S <path/to/schema.json>
           (optional) Path to the opmeta schema, uses the default schema if not provided.
 
 
-      *** Path can be relative or absolute ***
+      *** Path can be relative(from the current working directory) or absolute:
           - relative path must start with letters or 1 or 2 dots ".", example: relative/path ./relative/path ../../relative/path
           - absolute path must start with slash "/", example: /absolute/path
       `
     );
   } else {
+    let toWrite = false;
     let dir = root;
     let schemaPath = "";
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
+      toWrite = true;
       const _i =
         args.indexOf("--dest") > -1
           ? args.indexOf("--dest")
@@ -116,9 +120,8 @@ const main = async () => {
         if (_tmp[i].endsWith(".json")) {
           const tmp = JSON.parse(readFile(path.resolve(root, _tmp[i])));
           if (validate(tmp)) opmetas.push(tmp);
-          else throw new Error(`invalid opmeta content at index ${i}`);
-        } else
-          throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
+          else throw new Error(`${_tmp[i]} has invalid content`);
+        } else throw new Error(`${_tmp[i]} is not valid, must be a valid json`);
       }
 
       let opmetaHexString = "0x";
@@ -142,17 +145,29 @@ const main = async () => {
       }
 
       const data = {
-        opmeta: opmetas,
         deployableOpmetaBytes: opmetaHexString,
         deployableSchemaBytes: schemaHexString,
+        opmeta: opmetas,
       };
-      const fileData = format(JSON.stringify(data, null, 4), {
-        parser: "json",
-      });
+      if (toWrite) {
+        const fileData = format(JSON.stringify(data, null, 4), {
+          parser: "json",
+        });
 
-      if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
+        if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
 
-      writeFile(dir, fileData);
+        writeFile(dir, fileData);
+      }
+      console.log(`
+Deployable Opmeta Bytes: 
+${opmetaHexString}
+
+`);
+      console.log(`
+Deployable Opmeta Schema Bytes: 
+${schemaHexString}
+
+`);
     } else
       console.log(
         `

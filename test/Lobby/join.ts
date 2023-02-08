@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { ContractFactory } from "ethers";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LobbyReentrantReceiver, ReserveToken18 } from "../../typechain";
@@ -6,10 +7,12 @@ import {
   ContextEvent,
   DepositEvent,
   JoinEvent,
+  Lobby,
   LobbyConfigStruct,
+  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError } from "../../utils";
+import { assertError, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
@@ -23,11 +26,15 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests join", async function () {
   const Opcode = RainterpreterOps;
-
+  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
+
+  before(async () => {
+    lobbyFactory = await ethers.getContractFactory("Lobby", {});
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -47,7 +54,12 @@ describe("Lobby Tests join", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
     await tokenA.connect(signers[0]).transfer(bob.address, depositAmount);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [0, depositAmount, leaveAmount, claimAmount];
 
@@ -146,7 +158,12 @@ describe("Lobby Tests join", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [0, depositAmount, leaveAmount, claimAmount];
 
@@ -259,7 +276,12 @@ describe("Lobby Tests join", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [1, depositAmount, leaveAmount, claimAmount];
 
@@ -357,7 +379,12 @@ describe("Lobby Tests join", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [1, depositAmount, leaveAmount, claimAmount];
 
@@ -506,7 +533,12 @@ describe("Lobby Tests join", async function () {
       .connect(signers[0])
       .transfer(alice.address, depositAmount);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [0, depositAmount, leaveAmount, claimAmount];
 

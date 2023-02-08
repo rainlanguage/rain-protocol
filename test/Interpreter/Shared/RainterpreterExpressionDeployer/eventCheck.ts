@@ -3,7 +3,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { RainterpreterStore } from "../../../../typechain";
 import {
-  OpMetaEvent,
+  InterpreterOpMetaEvent,
   Rainterpreter,
   RainterpreterConfigStruct,
   ValidStoreEvent,
@@ -23,7 +23,7 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getRainterpreterOpmetaBytes } from "../../../../utils/interpreter/ops/allStandardOpmeta";
+import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpmeta";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
   it("DeployExpression event should emit original NewExpressionConfig", async () => {
@@ -122,7 +122,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const opMeta = getRainterpreterOpmetaBytes();
+    const opMeta = getRainterpreterOpMetaBytes();
     const interpreterStore: RainterpreterStore =
       await rainterpreterStoreDeploy();
 
@@ -136,16 +136,16 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     ])) as Rainterpreter;
 
     // Checking OpMeta Event
-    const OpMetaEvent = (await getEventArgs(
+    const InterpreterOpMetaEvent = (await getEventArgs(
       interpreter.deployTransaction,
-      "OpMeta",
+      "InterpreterOpMeta",
       interpreter
-    )) as OpMetaEvent["args"];
+    )) as InterpreterOpMetaEvent["args"];
 
     const expectedString = ethers.utils.hexlify(opMeta);
 
-    assert(OpMetaEvent.sender === deployer.address, "wrong sender");
-    assert(OpMetaEvent.opMeta === expectedString, "incorrect bytes");
+    assert(InterpreterOpMetaEvent.sender === deployer.address, "wrong sender");
+    assert(InterpreterOpMetaEvent.opMeta === expectedString, "incorrect bytes");
 
     // Checking ValidStore Event
     const ValidStoreEvent = (await getEventArgs(

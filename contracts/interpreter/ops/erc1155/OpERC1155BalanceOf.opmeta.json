@@ -5,16 +5,16 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Account"
+        "name": "account"
       },
       {
-        "name": "Token Id"
+        "name": "token-id"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["erc1155balanceof", "ierc1155balanceof"]
+  "aliases": ["erc1155-balance"]
 }
