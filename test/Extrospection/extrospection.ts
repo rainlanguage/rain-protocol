@@ -72,62 +72,112 @@ describe("Extrospection tests", async function () {
     const IInterpreterStoreV1InterfaceId =
       await EIP165InterfaceIDs.IInterpreterStoreV1InterfaceId();
 
-    const interpreterTx = await extrospection.emitSupportsInterface(
-      rainInterpreter.address,
-      IInterpreterV1InterfaceId
-    );
-    const storeTx = await extrospection.emitSupportsInterface(
-      rainterpreterStore.address,
-      IInterpreterStoreV1InterfaceId
-    );
-    const externTx = await extrospection.emitSupportsInterface(
-      rainInterpreterExtern.address,
-      IInterpreterExternV1InterfaceId
-    );
-    const deployerTx = await extrospection.emitSupportsInterface(
-      expressionDeployer.address,
-      IExpressionDeployerV1InterfaceId
-    );
+    const interfaceIds = [
+      IExpressionDeployerV1InterfaceId,
+      IInterpreterExternV1InterfaceId,
+      IInterpreterV1InterfaceId,
+      IInterpreterStoreV1InterfaceId,
+    ];
 
-    const interpreterEvent = (await getEventArgs(
-      interpreterTx,
-      "SupportsInterface",
-      extrospection
-    )) as SupportsInterfaceEvent["args"];
+    // Expression Deployer
+    for (const interfaceId of interfaceIds) {
+      const deployerTx = await extrospection.emitSupportsInterface(
+        expressionDeployer.address,
+        interfaceId
+      );
 
-    const storeEvent = (await getEventArgs(
-      storeTx,
-      "SupportsInterface",
-      extrospection
-    )) as SupportsInterfaceEvent["args"];
+      const deployerEvent = (await getEventArgs(
+        deployerTx,
+        "SupportsInterface",
+        extrospection
+      )) as SupportsInterfaceEvent["args"];
 
-    const externEvent = (await getEventArgs(
-      externTx,
-      "SupportsInterface",
-      extrospection
-    )) as SupportsInterfaceEvent["args"];
+      if (interfaceId == IExpressionDeployerV1InterfaceId) {
+        assert(
+          deployerEvent.supportsInterface,
+          `Deployer does not support interface: ${interfaceId}`
+        );
+      } else {
+        assert(
+          !deployerEvent.supportsInterface,
+          `Deployer supports interface: ${interfaceId}`
+        );
+      }
+    }
 
-    const deployerEvent = (await getEventArgs(
-      deployerTx,
-      "SupportsInterface",
-      extrospection
-    )) as SupportsInterfaceEvent["args"];
+    // Extern
+    for (const interfaceId of interfaceIds) {
+      const externTx = await extrospection.emitSupportsInterface(
+        rainInterpreterExtern.address,
+        interfaceId
+      );
 
-    assert(
-      interpreterEvent.supportsInterface,
-      "Interpreter does not support interface IInterpreterV1"
-    );
-    assert(
-      storeEvent.supportsInterface,
-      "Store does not support interface IInterpreterStoreV1"
-    );
-    assert(
-      externEvent.supportsInterface,
-      "Extern does not support IInterpreterExternV1"
-    );
-    assert(
-      deployerEvent.supportsInterface,
-      "Deployer does not support IExpressionDeployerV1"
-    );
+      const externEvent = (await getEventArgs(
+        externTx,
+        "SupportsInterface",
+        extrospection
+      )) as SupportsInterfaceEvent["args"];
+
+      if (interfaceId == IInterpreterExternV1InterfaceId) {
+        assert(
+          externEvent.supportsInterface,
+          `Extern does not support interface: ${interfaceId}`
+        );
+      } else {
+        assert(
+          !externEvent.supportsInterface,
+          `Extern supports interface: ${interfaceId}`
+        );
+      }
+    }
+
+    // Interpreter
+    for (const interfaceId of interfaceIds) {
+      const interpreterTx = await extrospection.emitSupportsInterface(
+        rainInterpreter.address,
+        interfaceId
+      );
+
+      const interpreterEvent = (await getEventArgs(
+        interpreterTx,
+        "SupportsInterface",
+        extrospection
+      )) as SupportsInterfaceEvent["args"];
+
+      if (interfaceId == IInterpreterV1InterfaceId) {
+        assert(
+          interpreterEvent.supportsInterface,
+          `Interpreter does not support interface: ${interfaceId}`
+        );
+      } else {
+        assert(
+          !interpreterEvent.supportsInterface,
+          `Interpreter supports interface: ${interfaceId}`
+        );
+      }
+    }
+
+    // Store
+    for (const interfaceId of interfaceIds) {
+      const storeTx = await extrospection.emitSupportsInterface(
+        rainterpreterStore.address,
+        interfaceId
+      );
+
+      const storeEvent = (await getEventArgs(
+        storeTx,
+        "SupportsInterface",
+        extrospection
+      )) as SupportsInterfaceEvent["args"];
+
+      if (interfaceId == IInterpreterStoreV1InterfaceId) {
+        assert(
+          storeEvent.supportsInterface,
+          `Store does not support interface: ${interfaceId}`
+        );
+      } else {
+        assert(!storeEvent.supportsInterface, `Store supports interface: ${interfaceId}`);
+      }
+    }
   });
 });
