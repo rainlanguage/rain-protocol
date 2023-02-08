@@ -2292,7 +2292,7 @@ describe("FlowERC721 flow tests", async function () {
       flowTransfer.erc20[1].token,
       flowTransfer.erc20[1].amount, // Base Amount
       ethers.BigNumber.from(4 + eighteenZeros), // Bonus Amount
-      0
+      0,
     ];
 
     const SENTINEL = () =>
@@ -2327,12 +2327,12 @@ describe("FlowERC721 flow tests", async function () {
       ME(),
       YOU(),
       // Setting a dynamic price which changes once a flow has been run
-            YOU(),
-          op(Opcode.get),
-          ZERO(),
-        op(Opcode.greaterThan),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
+      YOU(),
+      op(Opcode.get),
+      ZERO(),
+      op(Opcode.greaterThan),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
       op(Opcode.eagerIf),
 
       SENTINEL(), // NATIVE SKIP
@@ -2340,15 +2340,16 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [concat([
-      CAN_TRANSFER(),
-      // Setting a value for msg.sender.
-      // This will only be set _afterTokenTransfer
+    const sources = [
+      concat([
+        CAN_TRANSFER(),
+        // Setting a value for msg.sender.
+        // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
         op(Opcode.blockNumber),
-      op(Opcode.set),
-    ])];
-
+        op(Opcode.set),
+      ]),
+    ];
 
     const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
@@ -2429,25 +2430,27 @@ describe("FlowERC721 flow tests", async function () {
       got       ${youBalanceOut0}`
     );
 
-
     // Flowing for second time, this time a bonus amount should be transferred from contract to msg.sender
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
-    await erc20Out.transfer(me.address, ethers.BigNumber.from(4 + eighteenZeros));
+    await erc20Out.transfer(
+      me.address,
+      ethers.BigNumber.from(4 + eighteenZeros)
+    );
 
     await erc20In
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], []);
+    await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
     const youBalanceIn1 = await erc20In.balanceOf(you.address);
     const youBalanceOut1 = await erc20Out.balanceOf(you.address);
 
-    const expectedMeBalanceIn = (flowERC721IO.flow.erc20[0].amount as BigNumber).mul(2);
+    const expectedMeBalanceIn = (
+      flowERC721IO.flow.erc20[0].amount as BigNumber
+    ).mul(2);
     const expectedMeBalanceOut = meBalanceOut1.add(meBalanceOut0);
 
     assert(

@@ -5,7 +5,7 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Contract Address"
+        "name": "contract-address"
       }
     ]
   },

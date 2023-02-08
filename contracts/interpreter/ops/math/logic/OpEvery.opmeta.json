@@ -3,7 +3,7 @@
   "desc": "Inserts the first value of all the values it checks if all of them are non-zero, else inserts zero into the stack.",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[2, 255]]
     }
@@ -12,7 +12,7 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]

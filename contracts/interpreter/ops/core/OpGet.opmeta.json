@@ -5,7 +5,7 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Key",
+        "name": "key",
         "desc": "the key of the key/value pair"
       }
     ]

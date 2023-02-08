@@ -5,19 +5,19 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Condition",
+        "name": "condition",
         "desc": "The condition to evaluate"
       },
       {
-        "name": "Pass Statement",
+        "name": "pass-statement",
         "desc": "The value to stack if the condition is non-zero/true"
       },
       {
-        "name": "Fail Statement",
+        "name": "fail-statement",
         "desc": "The value to stack if the condition is zero/false"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["eagerif", "if"]
+  "aliases": ["if"]
 }

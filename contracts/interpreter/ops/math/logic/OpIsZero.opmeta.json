@@ -5,10 +5,10 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Value"
+        "name": "value"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["iszero", "false", "is-false", "isfalse"]
+  "aliases": ["is-false"]
 }

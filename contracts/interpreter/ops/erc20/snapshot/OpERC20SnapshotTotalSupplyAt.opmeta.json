@@ -5,13 +5,13 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Snapshot Id"
+        "name": "snapshot-id"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["erc20snapshottotalsupplyat", "ierc20snapshottotalsupplyat"]
+  "aliases": ["erc20-snapshot-supply"]
 }

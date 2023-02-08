@@ -1,12 +1,15 @@
 import { assert } from "chai";
+import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
 import {
   InitializeEvent,
+  Lobby,
   LobbyConfigStruct,
+  LobbyConstructorConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { compareStructs } from "../../utils";
+import { compareStructs, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
@@ -20,8 +23,12 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
-
+  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
+
+  before(async () => {
+    lobbyFactory = await ethers.getContractFactory("Lobby", {});
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -32,7 +39,12 @@ describe("Lobby Tests Intialize", async function () {
     const signers = await ethers.getSigners();
 
     const timeoutDuration = 15000000;
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const constants = [0, 1, ONE];
 

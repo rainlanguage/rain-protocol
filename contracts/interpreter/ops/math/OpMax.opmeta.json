@@ -3,7 +3,7 @@
   "desc": "Inserts the maximum of N values taken from the stack into the stack",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[2, 255]]
     }
@@ -12,11 +12,11 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["maximum", "max-of", "maxof"]
+  "aliases": ["maximum", "max-of"]
 }

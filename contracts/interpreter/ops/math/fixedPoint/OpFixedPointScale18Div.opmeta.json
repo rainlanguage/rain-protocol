@@ -3,7 +3,7 @@
   "desc": "Inserts the result of dividing the 2 items of the stack by keeping the 18 fixed point decimals into the stack",
   "operand": [
     {
-      "name": "Decimals",
+      "name": "decimals",
       "desc": "decimals of the first value",
       "bits": [0, 7],
       "validRange": [[1, 255]]
@@ -12,15 +12,15 @@
   "inputs": {
     "parameters": [
       {
-        "name": "1st Value",
+        "name": "value1",
         "desc": "The first value"
       },
       {
-        "name": "2nd Value",
+        "name": "value2",
         "desc": "The second value"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["scale18div", "scale-18-div"]
+  "aliases": ["scale-18-div", "fp-div"]
 }

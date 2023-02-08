@@ -4,7 +4,9 @@ pragma solidity =0.8.17;
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibContext.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 
@@ -47,6 +49,10 @@ error ZeroWithdrawShares();
 
 /// @dev Thrown when a nonzero store is provided.
 error UnexpectedStore(IInterpreterStoreV1 store);
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
+);
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -132,7 +138,7 @@ struct DepositRecord {
 /// expressing inflationary tokenomics in the share token itself. Third party
 /// tokens may mint/burn themselves according to the share balances and ledger
 /// reports provided by `Stake`.
-contract Stake is ERC4626, TierV2, ReentrancyGuard {
+contract Stake is ERC4626, TierV2, ReentrancyGuard, IInterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;
@@ -152,10 +158,11 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     IInterpreterV1 internal interpreter;
     address internal expression;
 
-    /// Constructor does nothing but prevents accidental initialization of an
-    /// implementation template intended to be referenced by a cloning factory.
-    constructor() {
+    constructor(bytes memory callerMeta_) {
         _disableInitializers();
+
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     /// Initializes the `Stake` contract in a proxy compatible way to support

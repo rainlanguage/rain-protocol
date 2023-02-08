@@ -10,6 +10,8 @@ import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 /// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
+/// @param actualBytecodeHash The bytecode hash that was found at the store
+/// address upon construction.
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
 /// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
@@ -17,12 +19,12 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xbc52db76e944bf5245c516990668f268c9d2f24dc3aa1b06b4f9d128914df383
+    0xa4d4e9f33839d1680412394d00db5785f6e5f8c7ecacf3b42ae47e3edf9ee4c3
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0xda0b7aa3009c12cbc1c8f267676c1ef2d647c402fb508134e93732fac69992e7
+    0x2a6c09f4f6f06767c090f420a23ae6037eeb1f714835ec810ab1aa0e00292ead
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -57,15 +59,6 @@ contract Rainterpreter is IInterpreterV1 {
     /// The store is valid (has exact expected bytecode).
     event ValidStore(address sender, address store);
 
-    /// This is the literal OpMeta bytes to be used offchain to make sense of the
-    /// opcodes in this interpreter deployment, as a human. For formats like json
-    /// that make heavy use of boilerplate, repetition and whitespace, some kind
-    /// of compression such as gzip is recommended.
-    /// @param sender The `msg.sender` providing the op meta.
-    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
-    /// etc. and is intended for offchain consumption.
-    event OpMeta(address sender, bytes opMeta);
-
     /// Ensures the correct store bytecode and emits all opmeta.
     constructor(RainterpreterConfig memory config_) {
         // Guard against an store with unknown bytecode.
@@ -89,7 +82,7 @@ contract Rainterpreter is IInterpreterV1 {
         if (opMetaHash_ != OP_META_HASH) {
             revert UnexpectedOpMetaHash(opMetaHash_);
         }
-        emit OpMeta(msg.sender, config_.opMeta);
+        emit InterpreterOpMeta(msg.sender, config_.opMeta);
     }
 
     /// @inheritdoc IInterpreterV1

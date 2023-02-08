@@ -3,7 +3,7 @@
   "desc": "Rescale a fixed point number of N decimals to 18 decimals where N is taken from the stack.",
   "operand": [
     {
-      "name": "Rounding",
+      "name": "rounding",
       "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
       "bits": [1, 1],
       "validRange": [[0, 1]]
@@ -12,12 +12,13 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Current decimals"
+        "name": "current-decimals"
       },
       {
-        "name": "Value"
+        "name": "value"
       }
     ]
   },
-  "outputs": 1
+  "outputs": 1,
+  "aliases": ["scale-18-dynamic"]
 }

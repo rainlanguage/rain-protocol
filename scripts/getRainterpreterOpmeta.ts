@@ -5,8 +5,8 @@ import * as path from "path";
 import { argv } from "process";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
-import OpmetaSchema from "../opmeta_schema.json";
-import { rainterpreterOpmeta } from "../utils/interpreter/ops/allStandardOpmeta";
+import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
+import { rainterpreterOpmeta } from "../utils/meta/op/allStandardOpmeta";
 
 const writeFile = (_path: string, file: string) => {
   try {
@@ -23,10 +23,16 @@ const main = async () => {
   if (args.includes("--help") || args.includes("-h") || args.includes("-H")) {
     console.log(
       `
-      usage:
-        gen-rainterpreter-opmeta <destination/path/name.json>
+      Get deployable bytes for Rainterpreter opcodes.
 
-      ** Writes to root of the current workiing directory if no destination path provided.
+      usage:
+        rainterpreter-opmeta <destination/path/name.json>
+
+      ** Only logs the Deployable Bytes if no path was provided for the output file
+
+      *** Path can be relative(from the current working directory) or absolute:
+      - relative path must start with letters or 1 or 2 dots ".", example: relative/path ./relative/path ../../relative/path
+      - absolute path must start with slash "/", example: /absolute/path
       `
     );
   } else {
@@ -53,18 +59,28 @@ const main = async () => {
     }
 
     const data = {
-      opmeta: rainterpreterOpmeta,
       deployableOpmetaBytes: opmetaHexString,
       deployableSchemaBytes: schemaHexString,
+      opmeta: rainterpreterOpmeta,
     };
     const fileData = format(JSON.stringify(data, null, 4), { parser: "json" });
 
     if (args.length === 1) {
       dir = path.resolve(root, args[0]);
+      if (!dir.endsWith(".json")) dir = dir + "/RainterpreterOpmeta.json";
+      writeFile(dir, fileData);
     } else if (args.length > 1) throw new Error("invalid arguments");
-    if (!dir.endsWith(".json")) dir = dir + "/RainterpreterOpmeta.json";
 
-    writeFile(dir, fileData);
+    console.log(`
+Deployable Opmeta Bytes: 
+${opmetaHexString}
+
+`);
+    console.log(`
+Deployable Opmeta Schema Bytes: 
+${schemaHexString}
+
+`);
   }
 };
 

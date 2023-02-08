@@ -5,10 +5,10 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-sddress"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["erc20totalsupply", "ierc20totalsupply"]
+  "aliases": ["erc20-supply"]
 }

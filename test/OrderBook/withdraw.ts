@@ -8,6 +8,7 @@ import {
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { getRainContractMetaBytes } from "../../utils";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 
@@ -30,7 +31,9 @@ describe("OrderBook withdraw from vault", async function () {
   it("should allow withdrawals from vaults", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS

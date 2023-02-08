@@ -5,13 +5,13 @@
   "inputs": {
     "parameters": [
       {
-        "name": "1st Value"
+        "name": "value1"
       },
       {
-        "name": "2nd Value"
+        "name": "value2"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["sat-diff", "satdiff", "saturatingdiff"]
+  "aliases": ["sat-diff"]
 }

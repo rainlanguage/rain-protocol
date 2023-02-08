@@ -3,7 +3,7 @@
   "desc": "ABI encodes the entire stack and logs it to the hardhat console",
   "operand": [
     {
-      "name": "Mode",
+      "name": "mode",
       "desc": "debugging mode",
       "bits": [0, 0]
     }

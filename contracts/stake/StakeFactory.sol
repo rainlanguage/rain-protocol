@@ -13,8 +13,8 @@ contract StakeFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new Stake());
+    constructor(bytes memory callerMeta_) {
+        address implementation_ = address(new Stake(callerMeta_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

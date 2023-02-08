@@ -3,12 +3,12 @@
   "desc": "Takes an item from constants array or from stack items and insert it into the stack",
   "operand": [
     {
-      "name": "Type",
+      "name": "type",
       "desc": "type of the read, from constants or stack",
       "bits": [0, 0]
     },
     {
-      "name": "Index",
+      "name": "index",
       "desc": "index of the item to read",
       "bits": [1, 15]
     }
