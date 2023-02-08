@@ -8,9 +8,14 @@ import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/store/IInterpreterStoreV1.sol";
 
 contract EIP165InterfaceIds {
-    bytes4 public constant IInterpreterCallerV1InterfaceId = type(IInterpreterCallerV1).interfaceId;
-    bytes4 public constant IExpressionDeployerV1InterfaceId = type(IExpressionDeployerV1).interfaceId;
-    bytes4 public constant IInterpreterExternV1InterfaceId = type(IInterpreterExternV1).interfaceId;
-    bytes4 public constant IInterpreterV1InterfaceId = type(IInterpreterV1).interfaceId;
-    bytes4 public constant IInterpreterStoreV1InterfaceId = type(IInterpreterStoreV1).interfaceId;
+    bytes4 public constant IInterpreterCallerV1InterfaceId =
+        type(IInterpreterCallerV1).interfaceId;
+    bytes4 public constant IExpressionDeployerV1InterfaceId =
+        type(IExpressionDeployerV1).interfaceId;
+    bytes4 public constant IInterpreterExternV1InterfaceId =
+        type(IInterpreterExternV1).interfaceId;
+    bytes4 public constant IInterpreterV1InterfaceId =
+        type(IInterpreterV1).interfaceId;
+    bytes4 public constant IInterpreterStoreV1InterfaceId =
+        type(IInterpreterStoreV1).interfaceId;
 }
