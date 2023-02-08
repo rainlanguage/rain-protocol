@@ -14,6 +14,10 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4
+);
+
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -73,7 +77,11 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+    constructor(bytes memory callerMeta_) FlowCommon() {
+        _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+    }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(FlowERC20Config memory config_) external initializer {

@@ -6,6 +6,10 @@ import "../libraries/LibFlow.sol";
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4
+);
+
 struct FlowConfig {
     // https://github.com/ethereum/solidity/issues/13597
     EvaluableConfig dummyConfig;
@@ -18,7 +22,11 @@ contract Flow is ReentrancyGuard, FlowCommon {
 
     event Initialize(address sender, EvaluableConfig[] config);
 
-    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+    constructor(bytes memory callerMeta_) FlowCommon() {
+        _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+    }
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig memory config_) external initializer {

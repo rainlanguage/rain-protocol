@@ -23,10 +23,6 @@ error UnregisteredFlow(bytes32 unregisteredHash);
 /// Thrown when the min outputs for a flow is fewer than the sentinels.
 error BadMinStackLength(uint256 flowMinOutputs_);
 
-bytes32 constant CALLER_META_HASH = bytes32(
-    0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4
-);
-
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
@@ -55,10 +51,8 @@ contract FlowCommon is
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
-    constructor(bytes memory callerMeta_) {
+    constructor() {
         _disableInitializers();
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     // solhint-disable-next-line func-name-mixedcase
