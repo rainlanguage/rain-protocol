@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
 /// the interpreter it is constructed for. This WILL cause undefined expression
@@ -29,17 +30,17 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"09d709e50a3b0a8d0b0b0b370bd00d5b0e250f5a0f8f0fad1035104410521061106f107d108b1099106110a710b510c410d210e01158116711761185119411a311b211c111d011df11ee11fd120c121b122a12731285129312c512d312e112ef12fe130d131c132a13381346135413621370137e138d139c13aa141c";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180ee21017104c106a10f21101110f111e112c113a11481156111e116411721181118f119d121512241233124212511260126f127e128d129c12ab12ba12c912d812e713301342135013821390139e13ac13bb13ca13d913e713f514031411141f142d143b144a1459146714d9";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xc33f43e95e32fff7adb2974535459424ffb09f9c6ee22112e5b238145935dd06
+    0xb43aad29cc66acf5c60af7f0161e5042e82f28e33c348dbb3524b65d074f9109
 );
 
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
     using LibInterpreterState for ExpressionConfig;
     using LibStackPointer for StackPointer;
 
@@ -93,6 +94,15 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         }
 
         emit ValidInterpreter(msg.sender, interpreter_);
+    }
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IExpressionDeployerV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
     }
 
     /// Defines all the function pointers to integrity checks. This is the

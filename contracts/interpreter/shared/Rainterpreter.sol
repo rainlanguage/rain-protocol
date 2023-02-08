@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity =0.8.17;
 
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
@@ -8,6 +8,7 @@ import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
 /// @param actualBytecodeHash The bytecode hash that was found at the store
@@ -19,7 +20,7 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xa4d4e9f33839d1680412394d00db5785f6e5f8c7ecacf3b42ae47e3edf9ee4c3
+    0xeadcd57aeb73e17658c036f67c4a29dd2fe34476eecb43d59c409795df2f0143
 );
 
 /// @dev Hash of the known op meta.
@@ -44,7 +45,7 @@ struct RainterpreterConfig {
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1 {
+contract Rainterpreter is IInterpreterV1, ERC165 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -83,6 +84,15 @@ contract Rainterpreter is IInterpreterV1 {
             revert UnexpectedOpMetaHash(opMetaHash_);
         }
         emit InterpreterOpMeta(msg.sender, config_.opMeta);
+    }
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IInterpreterV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
     }
 
     /// @inheritdoc IInterpreterV1
