@@ -36,8 +36,8 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       constants: ["1", "2"],
       sources: [
         concat([
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(AllStandardOps.add, 2),
         ]),
       ],
@@ -56,11 +56,11 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     const mathExpressionConstants = [2, 3];
     const v2 = op(
-      AllStandardOps.readMemory,
+      AllStandardOps.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const v3 = op(
-      AllStandardOps.readMemory,
+      AllStandardOps.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 

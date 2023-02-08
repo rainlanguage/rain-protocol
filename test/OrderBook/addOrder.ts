@@ -63,8 +63,14 @@ describe("OrderBook add order", async function () {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -110,8 +116,14 @@ describe("OrderBook add order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const bOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const bRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_B = concat([
       bOpMax,

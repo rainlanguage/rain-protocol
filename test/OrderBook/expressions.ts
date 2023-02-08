@@ -91,17 +91,20 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, alice.address, bob.address];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedOwner = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
 
     const vExpectedCounterpart = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -109,11 +112,11 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             OWNER()  ,
             vExpectedOwner ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1) ,
             COUNTERPARTY() ,
             vExpectedCounterpart ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1)  ,
             vOutputMax,
             vRatio,
@@ -123,11 +126,11 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
                 OWNER()  ,
                 vExpectedOwner ,
-                op(Opcode.equalTo),
+                op(Opcode.equal_to),
                 op(Opcode.ensure, 1) ,
                 COUNTERPARTY() ,
                 vExpectedCounterpart ,
-                op(Opcode.equalTo),
+                op(Opcode.equal_to),
                 op(Opcode.ensure, 1)
         ]);
 
@@ -316,16 +319,19 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, depositAmountA, depositAmountB];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedInputTokenBalance = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputTokenBalance = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -336,11 +342,11 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedInputTokenBalance ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_BALANCE()  ,
                 vExpectedOutputTokenBalance ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
@@ -350,11 +356,11 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedInputTokenBalance ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedOutputTokenBalance ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1)
     ]);
 
@@ -513,12 +519,15 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, aliceVault];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedVaultId = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
 
@@ -529,11 +538,11 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
@@ -543,11 +552,11 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1)
     ]);
 
@@ -711,16 +720,19 @@ describe("OrderBook expression checks", async () => {
       tokenB06.address,
     ];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedInputToken = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputToken = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -731,11 +743,11 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             INPUT_TOKEN()  ,
             vExpectedInputToken ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN()  ,
             vExpectedOutputToken ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
@@ -745,11 +757,11 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN()  ,
             vExpectedInputToken ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN()  ,
             vExpectedOutputToken ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1)
     ]);
 
@@ -908,16 +920,19 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, tokenADecimals, tokenBDecimals];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedInputTokenDecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputTokenDecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -928,11 +943,11 @@ describe("OrderBook expression checks", async () => {
     const calculateSoruce = concat([
             INPUT_TOKEN_DECIMALS()  ,
             vExpectedInputTokenDecimals ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_DECIMALS()  ,
             vExpectedOutputTokenDecimals ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
@@ -942,11 +957,11 @@ describe("OrderBook expression checks", async () => {
     const handleIOSource = concat([
             INPUT_TOKEN_DECIMALS()  ,
             vExpectedInputTokenDecimals ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
             OUTPUT_TOKEN_DECIMALS()  ,
             vExpectedOutputTokenDecimals ,
-            op(Opcode.equalTo),
+            op(Opcode.equal_to),
             op(Opcode.ensure, 1)
     ]);
 
@@ -1116,30 +1131,33 @@ describe("OrderBook expression checks", async () => {
       tokenBDecimals,
     ];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     const compareKey = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const inputTokenKey = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
     const outputTokenKey = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 4)
     );
 
     const vExpectedInputTokenDecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 5)
     );
     const vExpectedOutputTokenDecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 6)
     );
 
@@ -1151,7 +1169,7 @@ describe("OrderBook expression checks", async () => {
         compareKey ,
            INPUT_TOKEN_DECIMALS() ,
            OUTPUT_TOKEN_DECIMALS() ,
-          op(Opcode.greaterThan),
+          op(Opcode.greater_than),
         op(Opcode.set),
 
         inputTokenKey ,
@@ -1174,13 +1192,13 @@ describe("OrderBook expression checks", async () => {
           inputTokenKey,
         op(Opcode.get),
         vExpectedInputTokenDecimals ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1) ,
 
           outputTokenKey,
         op(Opcode.get),
         vExpectedOutputTokenDecimals ,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         op(Opcode.ensure, 1)
 
     ]);
@@ -1318,16 +1336,19 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, aip, aop];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedInputDiff = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vExpectedOutputDiff = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -1346,11 +1367,11 @@ describe("OrderBook expression checks", async () => {
     const handleSource = concat([
         INPUT_BALANCE_DIFF()  ,
         vExpectedOutputDiff ,
-       op(Opcode.equalTo),
+       op(Opcode.equal_to),
       op(Opcode.ensure, 1) ,
         OUTPUT_BALANCE_DIFF()  ,
         vExpectedInputDiff ,
-       op(Opcode.equalTo),
+       op(Opcode.equal_to),
       op(Opcode.ensure, 1)
    ]);
 
@@ -1485,10 +1506,13 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, amountB];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     const OUTPUT_MAX = () => op(Opcode.context, 0x0100);
     const ORDER_RATIO = () => op(Opcode.context, 0x0101);
@@ -1620,12 +1644,15 @@ describe("OrderBook expression checks", async () => {
 
     const constants_A = [max_uint256, ratio_A, depositAmountB];
     const vOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vExpectedOutputMax = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     // prettier-ignore
@@ -1639,7 +1666,7 @@ describe("OrderBook expression checks", async () => {
     const handleSource = concat([
         vExpectedOutputMax,
         OUTPUT_MAX(),
-       op(Opcode.equalTo) ,
+       op(Opcode.equal_to) ,
       op(Opcode.ensure,1)
     ]);
 

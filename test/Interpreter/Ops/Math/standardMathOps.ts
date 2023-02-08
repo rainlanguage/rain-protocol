@@ -31,17 +31,17 @@ describe("RainInterpreter MathOps standard math", async () => {
   it("should perform a calculation using the block number as a value", async () => {
     const constants = [1, 2, 3, 4, 6];
 
-    const one = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const two = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const three = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const four = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
-    const six = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+    const one = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const two = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const three = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const four = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
+    const six = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     // prettier-ignore
     const sources = [
       concat([
         // (BLOCK_NUMBER (6 3 /) (3 4 (2 1 -) +) *)
-          op(Opcode.blockNumber),
+          op(Opcode.block_number),
             six,
             three,
           op(Opcode.div, 2),
@@ -117,9 +117,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
     const constants = [7, 4, 2];
-    const v7 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v7 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -158,8 +158,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
     const constants = [9, 3];
-    const v9 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v9 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -197,8 +197,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
     const constants = [5, 2];
-    const v5 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v5 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -236,9 +236,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation on a sequence of numbers", async () => {
     const constants = [2, 4, 3];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -277,8 +277,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation correctly", async () => {
     const constants = [2, 4];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -316,9 +316,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the maximum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v33 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -350,9 +350,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the minimum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v33 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -384,8 +384,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     const constants = [2, 3];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -429,9 +429,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 13];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v13 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v13 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -470,9 +470,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 12];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v12 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v12 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -511,9 +511,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should multiply a sequence of numbers together", async () => {
     const constants = [5, 4, 3];
-    const v5 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v5 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -552,9 +552,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should subtract a sequence of numbers from an initial number", async () => {
     const constants = [3, 2, 10];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v10 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -593,9 +593,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should add a sequence of numbers together", async () => {
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [

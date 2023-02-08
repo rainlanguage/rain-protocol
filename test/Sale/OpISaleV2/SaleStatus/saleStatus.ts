@@ -40,12 +40,12 @@ describe("ISaleV2 SaleStatus tests", async function () {
 
   it("should return correct saleStatus", async () => {
     const SALE_ADDRESS = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isaleV2SaleStatus),
+      op(Opcode.isale_v2_sale_status),
     ])];
     const constants = [fakeSale.address];
 

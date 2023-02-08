@@ -17,8 +17,8 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0x0f),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0x0f),
       ]),
     ];
 
@@ -47,8 +47,8 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [MAX_ROWS - 1];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
       ]),
     ];
 
@@ -76,8 +76,8 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [10];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
       ]),
     ];
 
@@ -107,26 +107,26 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0, 1, 2, 3];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 0), // context[0][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 0), // context[0][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 0), // context[0][3]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 1), // context[1][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 1), // context[1][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 1), // context[1][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 1), // context[1][3]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 2), // context[2][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 2), // context[2][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 0), // context[0][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 0), // context[0][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 0), // context[0][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 1), // context[1][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 1), // context[1][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 1), // context[1][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 1), // context[1][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 2), // context[2][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 2), // context[2][1]
       ]),
     ];
 
@@ -169,14 +169,14 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0, 1, 2, 3];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 0), // context[0][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 0), // context[0][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 0), // context[0][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 0), // context[0][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 0), // context[0][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 0), // context[0][3]
       ]),
     ];
 
@@ -213,8 +213,8 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 1), // context[1][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 1), // context[1][0]
       ]),
     ];
 

@@ -24,7 +24,7 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x2a6c09f4f6f06767c090f420a23ae6037eeb1f714835ec810ab1aa0e00292ead
+    0xa1b39319fbaeb141875c7f937bb15528b150912f56a29a7cdbc8a598dbac957e
 );
 
 /// All config required to construct a `Rainterpreter`.

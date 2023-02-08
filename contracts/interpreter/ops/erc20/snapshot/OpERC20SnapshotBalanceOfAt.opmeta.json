@@ -1,5 +1,5 @@
 {
-  "name": "erc20-snapshot-balance-of-at",
+  "name": "eip-20-snapshot-balance-of-at",
   "desc": "Get the snapshot balance of an ERC20 token of an account and insters it into the stack",
   "operand": 0,
   "inputs": {
@@ -16,5 +16,9 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["erc20-snapshot-balance"]
+  "aliases": [
+    "eip-20-snapshot-balance",
+    "erc-20-snapshot-balance-of-at",
+    "erc-20-snapshot-balance"
+  ]
 }

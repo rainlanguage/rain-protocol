@@ -49,7 +49,7 @@ describe("RainInterpreter ERC20 ops", async function () {
   it("should return ERC20 total supply", async () => {
     const constants = [tokenERC20.address];
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
 
@@ -57,7 +57,7 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.erc20TotalSupply)
+        op(Opcode.eip_20_total_supply)
       ]),
     ];
 
@@ -86,11 +86,11 @@ describe("RainInterpreter ERC20 ops", async function () {
   it("should return ERC20 balance", async () => {
     const constants = [signer1.address, tokenERC20.address];
     const vSigner1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -99,7 +99,7 @@ describe("RainInterpreter ERC20 ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.erc20BalanceOf)
+        op(Opcode.eip_20_balance_of)
       ]),
     ];
 

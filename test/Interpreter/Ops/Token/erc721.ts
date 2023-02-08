@@ -56,9 +56,12 @@ describe("RainInterpreter ERC721 ops", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const vNftId = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -67,7 +70,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       concat([
           vTokenAddr,
           vNftId,
-        op(Opcode.erc721OwnerOf)
+        op(Opcode.eip_721_owner_of)
       ]),
     ];
 
@@ -102,11 +105,11 @@ describe("RainInterpreter ERC721 ops", async function () {
   it("should return ERC721 balance of signer", async () => {
     const constants = [signer1.address, tokenERC721.address];
     const vSigner1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -115,7 +118,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.erc721BalanceOf)
+        op(Opcode.eip_721_balance_of)
       ]),
     ];
 

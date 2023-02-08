@@ -48,8 +48,8 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
             op(Opcode.context, 0x0001),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.equalTo),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -110,8 +110,8 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
             op(Opcode.context, 0x0001),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.equalTo),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -175,8 +175,8 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
             op(Opcode.context, 0x0001),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.equalTo),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -231,7 +231,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
@@ -279,7 +279,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
@@ -341,7 +341,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 

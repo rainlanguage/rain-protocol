@@ -32,9 +32,9 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.hash, 3),
     ]);
     const expression0 = await expressionConsumerDeploy(
@@ -106,7 +106,7 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.hash, 1),
     ]);
     const expression0 = await expressionConsumerDeploy(

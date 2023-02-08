@@ -30,7 +30,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should correctly combine reports with any and first selector where first report contains tier values which are greater than block timestamp", async () => {
@@ -45,7 +45,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const evaluableConfigFuture = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [
@@ -68,7 +68,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const evaluableConfigAlways = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [ALWAYS],
@@ -80,7 +80,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const evaluableConfigNever = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [NEVER],
@@ -98,31 +98,31 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const vFuture = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.blockTimestamp),
+        op(Opcode.block_timestamp),
         vFuture,
         vAlways,
         vNever,
       op(
-        Opcode.selectLte,
+        Opcode.select_lte,
         selectLte(SelectLteLogic.any, SelectLteMode.first, 3)
       ),
     ]);
@@ -161,7 +161,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const evaluableConfigAlways = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [ALWAYS],
@@ -173,7 +173,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const evaluableConfigNever = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [NEVER],
@@ -190,15 +190,15 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.blockTimestamp),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.block_timestamp),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report, 0),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.itier_v2_report, 0),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report, 0),
+        op(Opcode.itier_v2_report, 0),
       op(
-        Opcode.selectLte,
+        Opcode.select_lte,
         selectLte(SelectLteLogic.any, SelectLteMode.first, 2)
       ),
     ]);
@@ -238,15 +238,15 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.blockTimestamp),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.block_timestamp),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.itier_v2_report),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report),
+        op(Opcode.itier_v2_report),
       op(
-        Opcode.selectLte,
+        Opcode.select_lte,
         selectLte(SelectLteLogic.any, SelectLteMode.first, 2)
       ),
     ]);

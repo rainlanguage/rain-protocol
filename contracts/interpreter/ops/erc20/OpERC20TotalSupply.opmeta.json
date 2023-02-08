@@ -1,5 +1,5 @@
 {
-  "name": "erc20-total-supply",
+  "name": "eip-20-total-supply",
   "desc": "Get the supply of an ERC20 token and insert it into the stack",
   "operand": 0,
   "inputs": {
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["erc20-supply"]
+  "aliases": ["eip-20-supply", "erc-20-total-supply", "erc-20-supply"]
 }

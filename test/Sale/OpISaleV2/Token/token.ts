@@ -43,12 +43,12 @@ describe("ISaleV2 Token tests", async function () {
     fakeSale.token.returns(token);
 
     const SALE_ADDRESS = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isaleV2Token),
+      op(Opcode.isale_v2_token),
     ])];
     const constants = [fakeSale.address];
 

@@ -1,5 +1,5 @@
 {
-  "name": "erc721-balance-of",
+  "name": "eip-721-balance-of",
   "desc": "Get the balance of an ERC721 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["erc721-balance"]
+  "aliases": ["eip-721-balance", "erc-721-balance-of", "erc-721-balance"]
 }

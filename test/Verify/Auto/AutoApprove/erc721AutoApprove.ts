@@ -51,7 +51,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const cAccount = op(Opcode.context, 0x0000);
@@ -63,9 +63,9 @@ describe("AutoApprove ERC721 ownership", async function () {
         concat([
               vTokenAddr,
               cNftId,
-            op(Opcode.erc721OwnerOf),
+            op(Opcode.eip_721_owner_of),
             cAccount,
-          op(Opcode.equalTo),
+          op(Opcode.equal_to),
         ])],
       constants: [tokenERC721.address],
     };

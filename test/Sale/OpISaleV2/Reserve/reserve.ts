@@ -43,12 +43,12 @@ describe("ISaleV2 Reserve tests", async function () {
     fakeSale.reserve.returns(reserve);
 
     const SALE_ADDRESS = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isaleV2Reserve),
+      op(Opcode.isale_v2_reserve),
     ])];
     const constants = [fakeSale.address];
 

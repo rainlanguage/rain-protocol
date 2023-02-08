@@ -26,7 +26,7 @@ describe("EXPLODE32 Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
         op(Opcode.context, 0x0000), // Initial Value
-      op(Opcode.explode32),
+      op(Opcode.explode_32),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

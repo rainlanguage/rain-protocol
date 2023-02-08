@@ -40,14 +40,14 @@ describe("CombineTier ERC165 tests", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
     const evaluableConfig0 = await generateEvaluableConfig({
       sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [ALWAYS],
@@ -61,9 +61,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     const combineTierSourceConfig = {
@@ -96,8 +96,8 @@ describe("CombineTier ERC165 tests", async function () {
     const evaluableConfig0 = await generateEvaluableConfig(
       {
         sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
@@ -117,9 +117,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     const combineTierSourceConfig = {

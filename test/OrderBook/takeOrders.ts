@@ -382,10 +382,13 @@ describe("OrderBook take orders", async function () {
     const ratio = ethers.BigNumber.from("10").pow(18);
     const constants = [max_uint256, ratio];
     const vInfinity = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source = concat([
       vInfinity,
@@ -4101,8 +4104,14 @@ describe("OrderBook take orders", async function () {
     const ratio_A = ethers.BigNumber.from(102 + sixteenZeros);
 
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -4353,8 +4362,14 @@ describe("OrderBook take orders", async function () {
     const ratio_A = ethers.BigNumber.from(102 + sixteenZeros);
 
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_A = concat([
       aOpMax,
