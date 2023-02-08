@@ -15,7 +15,7 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4
+    0x5af34d3dc0f14f2540f115a682cb8daa1c3e213f2a24a8a0e91f3d61615b54b5
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
