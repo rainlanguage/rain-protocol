@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
@@ -34,7 +34,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180e
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xc33f43e95e32fff7adb2974535459424ffb09f9c6ee22112e5b238145935dd06
+    0xb43aad29cc66acf5c60af7f0161e5042e82f28e33c348dbb3524b65d074f9109
 );
 
 /// @title RainterpreterExpressionDeployer

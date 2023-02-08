@@ -20,9 +20,9 @@ describe("Extrospection tests", async function () {
 
   before(async () => {
     rainInterpreter = await rainterpreterDeploy();
-    extrospection = (await basicDeploy("Extrospection", {})) as Extrospection; 
-    rainInterpreterExtern = await rainterpreterExtern(); 
-    rainterpreterStore = await rainterpreterStoreDeploy() 
+    extrospection = (await basicDeploy("Extrospection", {})) as Extrospection;
+    rainInterpreterExtern = await rainterpreterExtern();
+    rainterpreterStore = await rainterpreterStoreDeploy()
     expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       rainInterpreter
     );
@@ -38,44 +38,44 @@ describe("Extrospection tests", async function () {
       extrospection
     )) as BytecodeHashEvent["args"];
 
-    
+
     const result = checkIfIncludesOps(event.bytecodeHash);
-    assert(result); 
+    assert(result);
 
-  });  
+  });
 
-  it("should check if contract supports interface", async () => {  
+  it("should check if contract supports interface", async () => {
 
     const interfaceId = "0x01ffc9a7" // interface ID
 
-    const interpreterTx = await extrospection.emitSupportsInterface(rainInterpreter.address,interfaceId)  
-    const storeTx = await extrospection.emitSupportsInterface(rainterpreterStore.address,interfaceId)  
-    const externTx = await extrospection.emitSupportsInterface(rainInterpreterExtern.address,interfaceId)  
-    const deployerTx = await extrospection.emitSupportsInterface(expressionDeployer.address,interfaceId)  
+    const interpreterTx = await extrospection.emitSupportsInterface(rainInterpreter.address,interfaceId)
+    const storeTx = await extrospection.emitSupportsInterface(rainterpreterStore.address,interfaceId)
+    const externTx = await extrospection.emitSupportsInterface(rainInterpreterExtern.address,interfaceId)
+    const deployerTx = await extrospection.emitSupportsInterface(expressionDeployer.address,interfaceId)
 
     const interpreterEvent = (await getEventArgs(
       interpreterTx,
       "SupportsInterface",
       extrospection
-    )) as SupportsInterfaceEvent["args"]; 
-    
+    )) as SupportsInterfaceEvent["args"];
+
     const storeEvent = (await getEventArgs(
       storeTx,
       "SupportsInterface",
       extrospection
     )) as SupportsInterfaceEvent["args"];
-    
+
     const externEvent = (await getEventArgs(
       externTx,
       "SupportsInterface",
       extrospection
-    )) as SupportsInterfaceEvent["args"]; 
+    )) as SupportsInterfaceEvent["args"];
 
     const deployerEvent = (await getEventArgs(
       deployerTx,
       "SupportsInterface",
       extrospection
-    )) as SupportsInterfaceEvent["args"]; 
+    )) as SupportsInterfaceEvent["args"];
 
     assert(interpreterEvent.supportsInterface , "Interpreter does support Interface");
     assert(storeEvent.supportsInterface , "Interpreter does support Interface");
@@ -83,7 +83,7 @@ describe("Extrospection tests", async function () {
     assert(deployerEvent.supportsInterface , "Interpreter does support Interface");
 
 
-  }); 
+  });
 
 
 });

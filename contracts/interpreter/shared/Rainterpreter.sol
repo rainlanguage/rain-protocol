@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity =0.8.17;
 
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
@@ -20,7 +20,7 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xa4d4e9f33839d1680412394d00db5785f6e5f8c7ecacf3b42ae47e3edf9ee4c3
+    0xeadcd57aeb73e17658c036f67c4a29dd2fe34476eecb43d59c409795df2f0143
 );
 
 /// @dev Hash of the known op meta.
