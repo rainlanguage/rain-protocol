@@ -93,7 +93,7 @@ export const metaFromBytes = (
     if (bytes.startsWith("0x")) bytes = bytes.slice(2);
     const _bytesArr = [];
     for (let i = 0; i < bytes.length; i += 2) {
-      _bytesArr.push(Number(bytes.slice(i, i + 2)));
+      _bytesArr.push(Number("0x" + bytes.slice(i, i + 2)));
     }
     _uint8Arr = Uint8Array.from(_bytesArr);
   } else {
