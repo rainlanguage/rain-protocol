@@ -57,6 +57,7 @@ interface IExpressionDeployerV1 {
     /// etc. and is intended for offchain consumption.
     event DISpair(
         address sender,
+        address deployer,
         address interpreter,
         address store,
         bytes opMeta

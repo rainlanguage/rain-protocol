@@ -155,6 +155,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
 
         emit DISpair(
             msg.sender,
+            address(this),
             config_.interpreter,
             config_.store,
             config_.opMeta
