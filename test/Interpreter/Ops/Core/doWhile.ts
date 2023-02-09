@@ -26,24 +26,24 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.LESS_THAN),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.lessThan),
 
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1)), // Source is on index 1
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.doWhile, doWhileOperand(2, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.LESS_THAN),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.lessThan),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -82,18 +82,18 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
+      op(Opcode.doWhile, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     // Will substract on every loop until get 0 in the stack
     const sourceSUB = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.SUB, 2),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.sub, 2),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -134,21 +134,21 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.lessThan),
+      op(Opcode.doWhile, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.LESS_THAN),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.lessThan),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -187,18 +187,18 @@ describe("DO_WHILE Opcode test", async function () {
 
     const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
 
-    const whileOP = op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1));
-    const callCheckAcc = op(Opcode.CALL, callOperand(1, 2, 2));
-    const callIncrease = op(Opcode.CALL, callOperand(2, 2, 3));
+    const whileOP = op(Opcode.doWhile, doWhileOperand(2, 0, 1));
+    const callCheckAcc = op(Opcode.call, callOperand(1, 2, 2));
+    const callIncrease = op(Opcode.call, callOperand(2, 2, 3));
 
     // The main source where flow the script
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
       callCheckAcc,
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
       whileOP,
     ]);
 
@@ -206,11 +206,11 @@ describe("DO_WHILE Opcode test", async function () {
     // prettier-ignore
     // counter, acc -> counter, acc, isNotMin
     const sourceWHILE = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
       callIncrease,
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
       callCheckAcc,
     ]);
 
@@ -218,9 +218,9 @@ describe("DO_WHILE Opcode test", async function () {
     // acc -> acc, isNonMin
     // prettier-ignore
     const sourceCHECK_ACC = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.LESS_THAN),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.lessThan),
     ]);
 
     // Source to increase the counter and accumalator
@@ -228,13 +228,13 @@ describe("DO_WHILE Opcode test", async function () {
     // counter, acc -> counter, acc
     const sourceIncrease = concat([
         // add counter
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.ADD, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.add, 2),
         // add acc
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.ADD, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.add, 2),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -285,21 +285,21 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.lessThan),
+      op(Opcode.doWhile, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.LESS_THAN),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.add, 2),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.lessThan),
     ]);
 
     await assertError(

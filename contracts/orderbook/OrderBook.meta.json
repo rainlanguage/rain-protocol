@@ -1,0 +1,145 @@
+{
+  "name": "Order Book",
+  "desc": "An orderbook that deploys _strategies_ represented as interpreter expressions rather than individual orders. The order book contract itself behaves similarly to an ERC4626 vault but with much more fine grained control over how tokens are allocated and moved internally by their owners, and without any concept of 'shares'. Token owners MAY deposit and withdraw their tokens under arbitrary vault IDs on a per-token basis, then define orders that specify how tokens move between vaults according to an expression. The expression returns a maximum amount and a token input/output ratio from the perpective of the order. When two expressions intersect, as in their ratios are the inverse of each other, then tokens can move between vaults.  \n For example, consider order A with input TKNA and output TKNB with a constant ratio of 100:1. This order in isolation has no ability to move tokens. If an order B appears with input TKNB and output TKNA and a ratio of 1:100 then this is a perfect match with order A. In this case 100 TKNA will move from order B to order A and 1 TKNB will move from order A to order B. \n IO ratios are always specified as input:output and are 18 decimal fixed point values. The maximum amount that can be moved in the current clearance is also set by the order expression as an 18 decimal fixed point value.  \n Typically orders will not clear when their match is exactly 1:1 as the clearer needs to pay gas to process the match. Each order will get exactly the ratio it calculates when it does clear so if there is _overlap_ in the ratios then the clearer keeps the difference. In our above example, consider order B asking a ratio of 1:110 instead of 1:100. In this case 100 TKNA will move from order B to order A and 10 TKNA will move to the clearer's vault and 1 TKNB will move from order A to order B. In the case of fixed prices this is not very interesting as order B could more simply take order A directly for cheaper rather than involving a third party. Indeed, Orderbook supports a direct 'take orders' method that works similar to a 'market buy'. In the case of dynamic expression based ratios, it allows both order A and order B to clear non-interactively according to their strategy, trading off active management, dealing with front-running, MEV, etc. for zero-gas and exact-ratio clearance.  \n The general invariant for clearing and take orders is:  \n ``` \n ratioA = InputA / OutputA \n ratioB = InputB / OutputB \n ratioA * ratioB = ( InputA * InputB ) / ( OutputA * OutputB ) \n OutputA >= InputB \n OutputB >= InputA \n ∴ ratioA * ratioB <= 1 \n ```  \n Orderbook is `IERC3156FlashLender` compliant with a 0 fee flash loan implementation to allow external liquidity from other onchain DEXes to match against orderbook expressions. All deposited tokens across all vaults are available for flashloan, the flashloan MAY BE REPAID BY CALLING TAKE ORDER such that Orderbook's liability to its vaults is decreased by an incoming trade from the flashloan borrower. See `ZeroExOrderBookFlashBorrower` for an example of how this works in practise.  \nOrderbook supports many to many input/output token relationship, for example some order can specify an array of stables it would be willing to accept in return for some ETH. This removes the need for a combinatorial explosion of order strategies between like assets but introduces the issue of token decimal handling. End users understand that 'one' USDT is roughly equal to 'one' DAI, but onchain this is incorrect by _12 orders of magnitude_. This is because 'one' DAI is `1e18` tokens and 'one' USDT is `1e6` tokens. The orderbook is allowing orders to deploy expressions that define _economic equivalence_ but this doesn't map 1:1 with numeric equivalence in a many to many setup behind token decimal convensions. The solution is to require that end users who place orders provide the decimals of each token they include in their valid IO lists, and to calculate all amounts and ratios in their expressions _as though they were 18 decimal fixed point values_. Orderbook will then automatically rescale the expression values before applying the final vault movements. If an order provides the 'wrong' decimal values for some token then it will simply calculate its own ratios and amounts incorrectly which will either lead to no matching orders or a very bad trade for the order owner. There is no way that misrepresenting decimals can attack some other order by a counterparty. Orderbook DOES NOT read decimals from tokens onchain because A. this would be gas for an external call to a cold token contract and B. the ERC20 standard specifically states NOT to read decimals from the interface onchain.  \nWhen two orders clear there are NO TOKEN MOVEMENTS, only internal vault balances are updated from the input and output vaults. Typically this results in less gas per clear than calling external token transfers and also avoids issues with reentrancy, allowances, external balances etc. This also means that REBASING TOKENS AND TOKENS WITH DYNAMIC BALANCE ARE NOT SUPPORTED. Orderbook ONLY WORKS IF TOKEN BALANCES ARE 1:1 WITH ADDITION/SUBTRACTION PER VAULT MOVEMENT.  \nDust due to rounding errors always favours the order. Output max is rounded down and IO ratios are rounded up. Input and output amounts are always converted to absolute values before applying to vault balances such that orderbook always retains fully collateralised inventory of underlying token balances to support withdrawals, with the caveat that dynamic token balanes are not supported.  \nWhen an order clears it is NOT removed. Orders remain active until the owner deactivates them. This is gas efficient as order owners MAY deposit more tokens in a vault with an order against it many times and the order strategy will continue to be clearable according to its expression. As vault IDs are `uint256` values there are effectively infinite possible vaults for any token so there is no limit to how many active orders any address can have at one time. This also allows orders to be daisy chained arbitrarily where output vaults for some order are the input vaults for some other order.  \nExpression storage is namespaced by order owner, so gets and sets are unique to each onchain address. Order owners MUST TAKE CARE not to override their storage sets globally across all their orders, which they can do most simply by hashing the order hash into their get/set keys inside the expression. This gives maximum flexibility for shared state across orders without allowing order owners to attack and overwrite values stored by orders placed by their counterparty.  \nNote that each order specifies its own interpreter and deployer so the owner is responsible for not corrupting their own calculations with bad interpreters. This also means the Orderbook MUST assume the interpreter, and notably the interpreter's store, is malicious and guard against reentrancy etc.  \nAs Orderbook supports any expression that can run on any `IInterpreterV1` and counterparties are available to the order, order strategies are free to implement KYC/membership, tracking, distributions, stock, buybacks, etc. etc.",
+  "alias": "orderbook",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "addOrder",
+      "desc": "Adds a new order",
+      "inputs": [
+        {
+          "name": "Valid inputs",
+          "desc": "Token address and vault ID combinations that are valid inputs for this Order.",
+          "path": "[19].inputs[0].components[0]"
+        },
+        {
+          "name": "Valid outputs",
+          "desc": "Token address and vault ID combinations that are valid outputs for this Order.",
+          "path": "[19].inputs[0].components[1]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "Order",
+          "desc": "An expression for the order. Orderbook context is actually fairly complex. The calling context column is populated before calculate order, but the remaining columns are only available to handle IO as they depend on the full evaluation of calculuate order, and cross referencing against the same from the counterparty, as well as accounting limits such as current vault balances, etc. The token address and decimals for vault inputs and outputs IS available to the calculate order entrypoint, but not the final vault balances/diff.",
+          "path": "[19].inputs[0].components[2]",
+          "signedContext": false,
+          "callerContext": false,
+          "contextColumns": [
+            {
+              "name": "Calling Context",
+              "desc": "Contextual data available to both calculate order and handle IO. The order hash, order owner and order counterparty. IMPORTANT NOTE that the typical base context of an order with the caller will often be an unrelated clearer of the order rather than the owner or counterparty.",
+              "alias": "calling-context",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Order hash",
+                  "desc": "The hash of this order",
+                  "alias": "order-hash",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "Order owner",
+                  "desc": "The address of the owner of this order",
+                  "alias": "order-owner",
+                  "cellIndex": 1
+                },
+                {
+                  "name": "Counterparty",
+                  "desc": "The address of the other party for this order when cleared",
+                  "alias": "counterparty",
+                  "cellIndex": 2
+                }
+              ]
+            },
+            {
+              "name": "Calculations",
+              "desc": "Calculations column contains the DECIMAL RESCALED calculations but otherwise provided as-is according to calculate order entrypoint",
+              "alias": "calculations",
+              "columnIndex": 1,
+              "cells": [
+                {
+                  "name": "Order output max",
+                  "desc": "The output max rescaled and vault capped",
+                  "alias": "output-max",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "Order IO ratio",
+                  "desc": "The rescaled ratio",
+                  "alias": "io-ratio",
+                  "cellIndex": 1
+                }
+              ]
+            },
+            {
+              "name": "Valid Inputs",
+              "desc": "Vault inputs are the literal token amounts and vault balances before and after for the input token from the perspective of the order. MAY be significantly different to the calculated amount due to insufficient vault balances from either the owner or counterparty, etc.",
+              "alias": "valid-inputs",
+              "columnIndex": 2,
+              "cells": [
+                {
+                  "name": "Input token",
+                  "desc": "The input token address",
+                  "alias": "input-token",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "Input token decimals",
+                  "desc": "The input token decimals",
+                  "alias": "input-token-decimals",
+                  "cellIndex": 1
+                },
+                {
+                  "name": "Input vault ID",
+                  "desc": "The input vault ID",
+                  "alias": "input-vault-id",
+                  "cellIndex": 2
+                },
+                {
+                  "name": "Input vault balance before",
+                  "desc": "The balance of the vault for this order's input token, before clearing",
+                  "alias": "intput-vault-balance-before",
+                  "cellIndex": 3
+                }
+              ]
+            },
+            {
+              "name": "Valid Outputs",
+              "desc": "Vault outputs are the same as vault inputs but for the output token from the perspective of the order.",
+              "alias": "valid-outputs",
+              "columnIndex": 3,
+              "cells": [
+                {
+                  "name": "Output token",
+                  "desc": "The output token address",
+                  "alias": "output-token",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "Output token decimals",
+                  "desc": "The output token decimals",
+                  "alias": "output-token-decimals",
+                  "cellIndex": 1
+                },
+                {
+                  "name": "Output vault ID",
+                  "desc": "The output vault ID",
+                  "alias": "output-vault-id",
+                  "cellIndex": 2
+                },
+                {
+                  "name": "Output vault balance before",
+                  "desc": "The balance of the vault for this order's output token, before clearing",
+                  "alias": "output-vault-balance-before",
+                  "cellIndex": 3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

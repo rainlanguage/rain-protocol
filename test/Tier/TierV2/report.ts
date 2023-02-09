@@ -1,7 +1,7 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer } from "../../../typechain";
-import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
+import { zeroPad32, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -36,9 +36,9 @@ describe("TierV2 report op", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0x0000), // signer1 address
-      op(Opcode.ITIERV2_REPORT)
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.context, 0x0000), // signer1 address
+      op(Opcode.itierV2Report)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -57,7 +57,7 @@ describe("TierV2 report op", async function () {
     );
     const result = await logic.stackTop();
 
-    const expectedReport = paddedUInt256(
+    const expectedReport = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(max_uint32).repeat(4) +
@@ -65,7 +65,7 @@ describe("TierV2 report op", async function () {
       )
     );
 
-    const actualReport = paddedUInt256(result);
+    const actualReport = zeroPad32(result);
 
     compareTierReports(expectedReport, actualReport);
   });

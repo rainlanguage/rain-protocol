@@ -14,16 +14,20 @@
   },
   "homepage": "http://rainprotocol.github.io/rain-protocol/",
   "bin": {
-    "gen-opmeta": "scripts/genOpmeta.ts",
-    "gen-rainterpreter-opmeta": "scripts/genRainterpreterOpmeta.ts"
+    "opmeta": "scripts/getOpmeta.ts",
+    "rainterpreter-opmeta": "scripts/getRainterpreterOpmeta.ts",
+    "rain-contract-meta": "scripts/getRainContractMeta.ts",
+    "contract-meta": "scripts/getContractMeta.ts"
   },
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
-    "gen-opmeta": "ts-node ./scripts/genOpmeta.ts",
-    "gen-rainterpreter-opmeta": "ts-node ./scripts/genRainterpreterOpmeta.ts"
+    "opmeta": "ts-node ./scripts/getOpmeta.ts",
+    "rainterpreter-opmeta": "ts-node ./scripts/getRainterpreterOpmeta.ts",
+    "contract-meta": "ts-node ./scripts/getContractMeta.ts",
+    "rain-contract-meta": "tsnode ./scripts/getRainContractMeta.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",
@@ -52,6 +56,8 @@
   },
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
+    "@ethereumjs/common": "=3.0.2",
+    "@ethereumjs/evm": "=1.2.3",
     "@openzeppelin/contracts-upgradeable": "=4.8.0",
     "@types/node": "=18.11.18",
     "ajv": "=8.12.0",

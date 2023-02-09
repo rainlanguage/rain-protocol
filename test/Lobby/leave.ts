@@ -1,16 +1,19 @@
 import { assert } from "chai";
+import { ContractFactory } from "ethers";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReserveToken18 } from "../../typechain";
+import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
 import {
   ContextEvent,
   DepositEvent,
   JoinEvent,
   LeaveEvent,
+  Lobby,
   LobbyConfigStruct,
+  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError } from "../../utils";
+import { assertError, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
@@ -24,10 +27,14 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
-
+  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
+
+  before(async () => {
+    lobbyFactory = await ethers.getContractFactory("Lobby", {});
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -39,7 +46,12 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
@@ -56,31 +68,31 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.ERC20_BALANCE_OF)  ,
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-            op(Opcode.DIV, 2),
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.erc20BalanceOf)  ,
+             op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.div, 2),
 
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET),
+             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // key
+             op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // val
+            op(Opcode.set),
 
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.GET),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.ADD, 2),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.get),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.add, 2),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -158,7 +170,12 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
@@ -175,31 +192,31 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.ERC20_BALANCE_OF)  ,
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-            op(Opcode.DIV, 2),
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.erc20BalanceOf)  ,
+             op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.div, 2),
 
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET),
+             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // key
+             op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // val
+            op(Opcode.set),
 
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.GET),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.SUB, 2),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.get),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.sub, 2),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -280,7 +297,12 @@ describe("Lobby Tests leave", async function () {
     const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -291,18 +313,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -386,7 +408,12 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -397,18 +424,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -486,7 +513,12 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -497,18 +529,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -613,5 +645,98 @@ describe("Lobby Tests leave", async function () {
         }
       }
     }
+  });
+
+  it("should ensure leave isn't reentrant", async function () {
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+
+    const maliciousReserveFactory = await ethers.getContractFactory(
+      "LobbyReentrantSender"
+    );
+    const maliciousReserve =
+      (await maliciousReserveFactory.deploy()) as LobbyReentrantSender;
+    await maliciousReserve.deployed();
+    await maliciousReserve.initialize();
+
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(alice.address, ONE.mul(100));
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: 15000000,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+
+    const truthyValue = 0;
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+
+    const constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
+        ]);
+
+    const leaveSource = concat([
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+    ]);
+    const claimSource = concat([
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+    ]);
+    const invalidSource = concat([
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    const lobbyExpressionConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      evaluableConfig: evaluableConfig,
+      token: maliciousReserve.address,
+      description: [],
+      timeoutDuration: 15000000,
+    };
+
+    await Lobby.initialize(initialConfig);
+    await maliciousReserve.connect(alice).approve(Lobby.address, ONE.mul(100));
+
+    const context0 = [1, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    await Lobby.connect(alice).join([1234], signedContexts0);
+
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [1234],
+      signedContexts0
+    );
+
+    await assertError(
+      async () => await Lobby.connect(alice).leave([1234], signedContexts0),
+      "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
+      "Leave Reentrant"
+    );
   });
 });

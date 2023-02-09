@@ -24,6 +24,7 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { compareStructs } from "../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -47,7 +48,9 @@ describe("OrderBook add order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -56,18 +59,12 @@ describe("OrderBook add order", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -90,9 +87,7 @@ describe("OrderBook add order", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(orderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
 
     const {
       sender: sender_A,
@@ -111,18 +106,12 @@ describe("OrderBook add order", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,

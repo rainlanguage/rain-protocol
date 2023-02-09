@@ -22,6 +22,7 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -45,21 +46,17 @@ describe("OrderBook remove order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -83,9 +80,7 @@ describe("OrderBook remove order", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: liveSender_A, order: LiveOrder_A } = (await getEventArgs(
       txOrder_A,
@@ -96,7 +91,7 @@ describe("OrderBook remove order", async function () {
     assert(liveSender_A === alice.address, "wrong sender");
     compareStructs(LiveOrder_A, OrderConfig_A);
 
-    // REMOVE ASK ORDER
+    // REMOVE Order_A
 
     await assertError(
       async () => await orderBook.connect(bob).removeOrder(LiveOrder_A),

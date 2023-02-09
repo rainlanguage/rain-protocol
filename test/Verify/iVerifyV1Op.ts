@@ -52,10 +52,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.CONTEXT, 0x0000), // CONTRACT
-        op(Opcode.CONTEXT, 0x0001), // ADDRESS
-        op(Opcode.CONTEXT, 0x0002), // TIMESTAMP
-      op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // STATUS
+        op(Opcode.context, 0x0000), // CONTRACT
+        op(Opcode.context, 0x0001), // ADDRESS
+        op(Opcode.context, 0x0002), // TIMESTAMP
+      op(Opcode.iverifyV1AccountStatusAtTime), // STATUS
     ]);
 
     const expression0 = await expressionConsumerDeploy(

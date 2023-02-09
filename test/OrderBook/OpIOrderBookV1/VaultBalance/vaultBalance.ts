@@ -48,13 +48,13 @@ describe("IOrderBookV1 vault balance tests", async function () {
     fakeOrderBook.vaultBalance.returns(vaultBalance);
 
     const ORDERBOOK_ADDRESS = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
     const OWNER = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const ID = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sources = [concat([
@@ -62,7 +62,7 @@ describe("IOrderBookV1 vault balance tests", async function () {
         OWNER(),
         TOKEN(),
         ID(),
-      op(Opcode.IORDERBOOKV1_VAULT_BALANCE),
+      op(Opcode.iorderbookV1VaultBalance),
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 

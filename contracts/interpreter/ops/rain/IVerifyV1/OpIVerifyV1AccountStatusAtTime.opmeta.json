@@ -1,0 +1,17 @@
+{
+  "name": "iverify-v1-account-status-at-time",
+  "desc": "Read and put the status of an account from the verify v1 contract into the stack",
+  "operand": 0,
+  "outputs": 1,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "iverifyv1-address"
+      },
+      {
+        "name": "account-address"
+      }
+    ]
+  },
+  "aliases": ["verify-status"]
+}

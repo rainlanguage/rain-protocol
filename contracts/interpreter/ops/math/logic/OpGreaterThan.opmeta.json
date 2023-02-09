@@ -1,0 +1,17 @@
+{
+  "name": "greater-than",
+  "desc": "Takes last 2 values from stack and puts true/1 into the stack if the first value is greater than the second value and false/0 if not.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "value1"
+      },
+      {
+        "name": "value2"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["gt"]
+}

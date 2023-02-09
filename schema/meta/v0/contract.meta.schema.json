@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ContractMetadata",
+  "$comment": "v0.0.1",
+  "definitions": {
+    "ContractMetadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Contract Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Contract Description",
+          "description": "A brief description about the contract."
+        },
+        "alias": {
+          "type": "string",
+          "title": "Contract Alias",
+          "description": "Alias of the contract used by RainLang, follows RainLang word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "source": {
+          "type": "string",
+          "title": "Contract Source",
+          "description": "Github repository URL where this contract belongs to."
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Method"
+          },
+          "title": "Contract Methods",
+          "description": "Methods of the contract that receive at least one expression (EvaluableConfig) from arguments.",
+          "minItems": 1
+        }
+      },
+      "required": ["name", "desc", "alias", "source", "methods"],
+      "additionalProperties": false,
+      "title": "Rain Contract Metadata",
+      "description": "Required info about a contract that receives expression in at least one of its methods."
+    },
+    "Method": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Method Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Method Description"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Input"
+          },
+          "title": "Method Inputs",
+          "minItems": 1
+        },
+        "expressions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Expression"
+          },
+          "title": "Method Expressions",
+          "minItems": 1
+        }
+      },
+      "required": ["name", "desc", "expressions"],
+      "additionalProperties": false
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Input Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Input Description"
+        },
+        "path": {
+          "type": "string",
+          "title": "Input Path",
+          "description": "Input's path in contract's ABI."
+        }
+      },
+      "required": ["name", "desc", "path"],
+      "additionalProperties": false
+    },
+    "Expression": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Expression Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Expression Description"
+        },
+        "path": {
+          "type": "string",
+          "title": "Expression Path",
+          "description": "Expression's path in contract's ABI."
+        },
+        "signedContext": {
+          "type": "boolean",
+          "title": "Expression Signed Context",
+          "description": "Determines if this expression has signedContext."
+        },
+        "callerContext": {
+          "type": "boolean",
+          "title": "Expression Signed Context",
+          "description": "Determines if this expression has callerContext."
+        },
+        "contextColumns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContextColumn"
+          },
+          "title": "Context Grid Columns",
+          "description": "Specifies the reserved context grid columns of this expression, context is a 256x256 matrix of unit256.",
+          "minItems": 1,
+          "maxItems": 256
+        }
+      },
+      "required": ["name", "desc", "path"],
+      "additionalProperties": false
+    },
+    "ContextColumn": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Context Column Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Context Column Description"
+        },
+        "alias": {
+          "type": "string",
+          "title": "Context Column Alias",
+          "description": "Alias for the context column used in RainLang, follows rainlang valid word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "columnIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "title": "Context Column Index",
+          "description": "Index of this context column grid, this value will be inside <> of associated interpreter's opcode, exxample: columnIndex: 0 -> context-column-opcode<0>."
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContextCell"
+          },
+          "title": "Context Grid Cells",
+          "description": "Specifies the reserved context grid cells of this expression, context is a 256x256 matrix of unit256.",
+          "minItems": 1,
+          "maxItems": 256
+        }
+      },
+      "required": ["name", "alias", "columnIndex"],
+      "additionalProperties": false
+    },
+    "ContextCell": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Context Cell Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Context Cell Description"
+        },
+        "alias": {
+          "type": "string",
+          "title": "Context Cell Alias",
+          "description": "Alias for the context cell used in RainLang, follows rainlang valid word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "cellIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "title": "Context Cell Index",
+          "description": "Index of this context cell grid, column index value and this value will be inside of <> of associated interpreter's opcode, example: columnIndex: 0, cellIndex: 1 -> context-cell-opcode<0 1>."
+        }
+      },
+      "required": ["name", "alias", "cellIndex"],
+      "additionalProperties": false
+    }
+  }
+}

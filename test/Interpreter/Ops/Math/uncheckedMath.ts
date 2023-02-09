@@ -32,16 +32,16 @@ describe("RainInterpreter unchecked math", async () => {
     const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vTwo = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
         vHalfMaxUInt256,
         vTwo,
-      op(Opcode.EXP, 2)
+      op(Opcode.exp, 2)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -69,19 +69,16 @@ describe("RainInterpreter unchecked math", async () => {
     const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vThree = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
         vHalfMaxUInt256,
         vThree,
-      op(Opcode.MUL, 2)
+      op(Opcode.mul, 2)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -108,14 +105,14 @@ describe("RainInterpreter unchecked math", async () => {
   it("should panic when accumulator underflows with subtraction op", async () => {
     const constants = [0, 1];
 
-    const vZero = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vZero = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
         vZero,
         vOne,
-      op(Opcode.SUB, 2)
+      op(Opcode.sub, 2)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -143,16 +140,16 @@ describe("RainInterpreter unchecked math", async () => {
     const constants = [max_uint256, 1];
 
     const vMaxUInt256 = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vOne = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
         vMaxUInt256,
         vOne,
-      op(Opcode.ADD, 2)
+      op(Opcode.add, 2)
     ]);
 
     const expression0 = await expressionConsumerDeploy(

@@ -1,18 +1,25 @@
 import { assert } from "chai";
+import { ContractFactory } from "ethers";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReserveToken18 } from "../../typechain";
+import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
 import {
   ClaimEvent,
   ContextEvent,
   DepositEvent,
   InvalidEvent,
   JoinEvent,
+  Lobby,
   LobbyConfigStruct,
+  LobbyConstructorConfigStruct,
   RefundEvent,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError, fixedPointMul } from "../../utils";
+import {
+  assertError,
+  fixedPointMul,
+  getRainContractMetaBytes,
+} from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
@@ -26,12 +33,15 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Invalid Refund", async function () {
   const Opcode = RainterpreterOps;
-
+  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
+  before(async () => {
+    lobbyFactory = await ethers.getContractFactory("Lobby", {});
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -45,7 +55,12 @@ describe("Lobby Invalid Refund", async function () {
     const bob = signers[2];
     const bot = signers[3];
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const depositAmount = ONE;
     const claimAmount = ONE;
@@ -58,20 +73,20 @@ describe("Lobby Invalid Refund", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.CONTEXT, 0x0200),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.EQUAL_TO),
+      op(Opcode.context, 0x0200),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equalTo),
     ]);
 
     const lobbyExpressionConfig = {
@@ -226,25 +241,31 @@ describe("Lobby Invalid Refund", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -408,7 +429,12 @@ describe("Lobby Invalid Refund", async function () {
     const bob = signers[2];
     const bot = signers[3];
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
     const depositAmount = ONE;
     const claimAmount = ONE;
@@ -421,20 +447,20 @@ describe("Lobby Invalid Refund", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.CONTEXT, 0x0200),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.EQUAL_TO),
+      op(Opcode.context, 0x0200),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equalTo),
     ]);
 
     const lobbyExpressionConfig = {
@@ -587,5 +613,145 @@ describe("Lobby Invalid Refund", async function () {
         }
       }
     }
+  });
+
+  it("should ensure refund is not reentrant", async function () {
+    const timeoutDuration = 15000000;
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bot = signers[3];
+
+    const maliciousReserveFactory = await ethers.getContractFactory(
+      "LobbyReentrantSender"
+    );
+    const maliciousReserve =
+      (await maliciousReserveFactory.deploy()) as LobbyReentrantSender;
+    await maliciousReserve.deployed();
+    await maliciousReserve.initialize();
+
+    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
+      maxTimeoutDuration: timeoutDuration,
+      callerMeta: getRainContractMetaBytes("lobby"),
+    };
+
+    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+
+    const depositAmount = ONE;
+    const claimAmount = ONE;
+    const leaveAmount = ONE;
+
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(alice.address, depositAmount);
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(bob.address, depositAmount);
+
+    const constants = [0, depositAmount, leaveAmount, claimAmount, bot.address];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+    ]);
+    const claimSource = concat([
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+    ]);
+    const invalidSource = concat([
+      op(Opcode.context, 0x0200),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equalTo),
+    ]);
+
+    const lobbyExpressionConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      evaluableConfig: evaluableConfig,
+      token: maliciousReserve.address,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    await Lobby.initialize(initialConfig);
+
+    await maliciousReserve.connect(alice).approve(Lobby.address, depositAmount);
+    await maliciousReserve.connect(bob).approve(Lobby.address, depositAmount);
+
+    const context0 = [0, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    await Lobby.connect(alice).join([1234], signedContexts0);
+
+    const context1 = [4, 5, 6];
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+
+    const signedContexts1: SignedContextStruct[] = [
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    await Lobby.connect(bob).join([1234], signedContexts1);
+
+    const context2 = [1];
+    const hash2 = solidityKeccak256(["uint256[]"], [context2]);
+    const goodSignature2 = await bot.signMessage(arrayify(hash2));
+
+    const claimContext = [1234];
+
+    const signedContexts2: SignedContextStruct[] = [
+      {
+        signer: bot.address,
+        signature: goodSignature2,
+        context: context2,
+      },
+    ];
+
+    await Lobby.connect(bot).invalid(claimContext, signedContexts2);
+
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [1234],
+      signedContexts2
+    );
+
+    await assertError(
+      async () => await Lobby.connect(alice).refund(),
+      "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
+      "Alice Refund Reentrant"
+    );
+
+    await assertError(
+      async () => await Lobby.connect(bob).refund(),
+      "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
+      "Bob Refund Reentrant"
+    );
   });
 });

@@ -49,8 +49,8 @@ describe("RainInterpreter ERC20 ops", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.IERC5313_OWNER)
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.erc5313Owner)
       ]),
     ];
 
@@ -84,8 +84,8 @@ describe("RainInterpreter ERC20 ops", async function () {
     // prettier-ignore
     const sources0 = [
       concat([
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.IERC5313_OWNER)
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.erc5313Owner)
       ]),
     ];
 
@@ -116,8 +116,8 @@ describe("RainInterpreter ERC20 ops", async function () {
     // prettier-ignore
     const sources1 = [
       concat([
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.IERC5313_OWNER)
+        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.erc5313Owner)
       ]),
     ];
 

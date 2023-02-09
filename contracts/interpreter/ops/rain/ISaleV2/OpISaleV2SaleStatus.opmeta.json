@@ -1,0 +1,14 @@
+{
+  "name": "isale-v2-sale-status",
+  "desc": "Insert the status of a Sale contract into the stack by taking its address from the stack",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "isale-address"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["sale-status"]
+}

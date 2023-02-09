@@ -33,11 +33,12 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 0x0002);
+  const cCounterparty = op(Opcode.context, 0x0002);
 
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
@@ -62,7 +63,9 @@ describe("OrderBook counterparty in context", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -73,7 +76,7 @@ describe("OrderBook counterparty in context", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const outputMax_A = max_uint256;
@@ -85,20 +88,14 @@ describe("OrderBook counterparty in context", async function () {
       ratio_A,
       carol.address,
     ];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
     const aOpMaxIfNotMatch = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 2)
-    );
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const expectedCounterparty = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -106,10 +103,10 @@ describe("OrderBook counterparty in context", async function () {
     const source_A = concat([
           cCounterparty,
           expectedCounterparty,
-        op(Opcode.EQUAL_TO),
+        op(Opcode.equalTo),
         aOpMax,
         aOpMaxIfNotMatch,
-      op(Opcode.EAGER_IF),
+      op(Opcode.eagerIf),
       aRatio,
     ]);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
@@ -130,9 +127,7 @@ describe("OrderBook counterparty in context", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -143,18 +138,12 @@ describe("OrderBook counterparty in context", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER - BAD MATCH
+    // Order_B - BAD MATCH
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,
@@ -187,18 +176,12 @@ describe("OrderBook counterparty in context", async function () {
     assert(sender_B === bob.address, "wrong sender");
     compareStructs(Order_B, OrderConfig_B);
 
-    // BID ORDER - GOOD MATCH
+    // Order_B - GOOD MATCH
 
     const ratio_C = fixedPointDiv(ONE, ratio_A);
     const constants_C = [max_uint256, ratio_C];
-    const cOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const cRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const cOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const cRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_C = concat([
       cOpMax,
@@ -220,16 +203,13 @@ describe("OrderBook counterparty in context", async function () {
       data: carolOrder,
     };
 
-    const txOrder_C = await orderBook
-      .connect(carol)
-      .addOrder(OrderConfig_C);
+    const txOrder_C = await orderBook.connect(carol).addOrder(OrderConfig_C);
 
-    const { sender: sender_C, order: Order_C } =
-      (await getEventArgs(
-        txOrder_C,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
+    const { sender: sender_C, order: Order_C } = (await getEventArgs(
+      txOrder_C,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
     assert(sender_C === carol.address, "wrong sender");
     compareStructs(Order_C, OrderConfig_C);

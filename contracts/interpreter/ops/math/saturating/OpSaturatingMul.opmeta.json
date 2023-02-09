@@ -1,0 +1,22 @@
+{
+  "name": "saturating-mul",
+  "desc": "Inserts multiplied result of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size",
+  "operand": [
+    {
+      "name": "inputs",
+      "bits": [0, 7],
+      "validRange": [[2, 255]]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 7],
+    "parameters": [
+      {
+        "name": "input",
+        "spread": true
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["sat-mul"]
+}

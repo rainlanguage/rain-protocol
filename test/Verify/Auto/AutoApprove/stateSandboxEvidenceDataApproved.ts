@@ -24,9 +24,8 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = RainterpreterOps;
 
 const FALSE = () =>
-  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-const TRUE = () =>
-  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+  op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+const TRUE = () => op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
 describe("AutoApprove evidence data approved", async function () {
   let autoApproveFactory: AutoApproveFactory;
@@ -52,27 +51,27 @@ describe("AutoApprove evidence data approved", async function () {
       sources: [
         concat([
             // has this evidence been used before?
-                op(Opcode.CONTEXT, 0x0001),
-              op(Opcode.HASH, 1),
-            op(Opcode.GET),
+                op(Opcode.context, 0x0001),
+              op(Opcode.hash, 1),
+            op(Opcode.get),
 
             // has it been 1 day since this evidence was last used for approval?
-                  op(Opcode.CONTEXT, 0x0001),
-                op(Opcode.HASH, 1),
-              op(Opcode.GET),
-                op(Opcode.BLOCK_TIMESTAMP),
-                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
-              op(Opcode.SUB, 2),
-            op(Opcode.LESS_THAN),
+                  op(Opcode.context, 0x0001),
+                op(Opcode.hash, 1),
+              op(Opcode.get),
+                op(Opcode.blockTimestamp),
+                op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+              op(Opcode.sub, 2),
+            op(Opcode.lessThan),
 
             // else, set new evidence and return true
-                op(Opcode.CONTEXT, 0x0001),
-              op(Opcode.HASH, 1), // k
-              op(Opcode.BLOCK_TIMESTAMP), // v
-            op(Opcode.SET),
+                op(Opcode.context, 0x0001),
+              op(Opcode.hash, 1), // k
+              op(Opcode.blockTimestamp), // v
+            op(Opcode.set),
             TRUE(),
 
-          op(Opcode.EAGER_IF),
+          op(Opcode.eagerIf),
         ])],
       constants: [0, 1, 86400],
     };
@@ -154,19 +153,19 @@ describe("AutoApprove evidence data approved", async function () {
       sources: [
         // approved ? deny : approve
         concat([
-                op(Opcode.CONTEXT, 0x0001),
-              op(Opcode.HASH, 1),
-            op(Opcode.GET),
+                op(Opcode.context, 0x0001),
+              op(Opcode.hash, 1),
+            op(Opcode.get),
 
             FALSE(), // deny
 
-                op(Opcode.CONTEXT, 0x0001),
-              op(Opcode.HASH, 1), // k
+                op(Opcode.context, 0x0001),
+              op(Opcode.hash, 1), // k
               TRUE(), // v
-            op(Opcode.SET),
+            op(Opcode.set),
             TRUE(), // approve
 
-          op(Opcode.EAGER_IF),
+          op(Opcode.eagerIf),
         ])],
       constants: [0, 1],
     };

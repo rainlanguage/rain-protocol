@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../../typechain";
-import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
+import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
@@ -12,8 +12,8 @@ import {
   MemoryType,
   op,
   selectLte,
-  selectLteLogic,
-  selectLteMode,
+  SelectLteLogic,
+  SelectLteMode,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
@@ -23,14 +23,14 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
+  const ctxAccount = op(Opcode.context, 0x0000);
 
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.CONTEXT, 0x0001),
+      op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.ITIERV2_REPORT),
+    op(Opcode.itierV2Report),
   ]);
 
   it("should correctly combine Always and Never tier reports with any and min selector", async () => {
@@ -38,7 +38,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     const evaluableConfigAlways = await generateEvaluableConfig({
       sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [ALWAYS],
@@ -49,7 +49,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
     })) as CombineTier;
     const evaluableConfigNever = await generateEvaluableConfig({
       sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       constants: [NEVER],
@@ -66,16 +66,16 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT, 0),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.blockTimestamp),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itierV2Report, 0),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itierV2Report, 0),
       op(
-        Opcode.SELECT_LTE,
-        selectLte(selectLteLogic.any, selectLteMode.min, 2)
+        Opcode.selectLte,
+        selectLte(SelectLteLogic.any, SelectLteMode.min, 2)
       ),
     ]);
 
@@ -115,16 +115,16 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.blockTimestamp),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itierV2Report),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itierV2Report),
       op(
-        Opcode.SELECT_LTE,
-        selectLte(selectLteLogic.any, selectLteMode.min, 2)
+        Opcode.selectLte,
+        selectLte(SelectLteLogic.any, SelectLteMode.min, 2)
       ),
     ]);
 
@@ -161,10 +161,10 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT);
 
-    const rightReport = paddedUInt256(
+    const rightReport = zeroPad32(
       await readWriteTierRight.report(signers[0].address, [])
     );
-    const expectedRightReport = paddedUInt256(
+    const expectedRightReport = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(startTimestamp + 13) +
@@ -184,10 +184,10 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
       got       ${rightReport}`
     );
 
-    const leftReport = paddedUInt256(
+    const leftReport = zeroPad32(
       await readWriteTierLeft.report(signers[0].address, [])
     );
-    const expectedLeftReport = paddedUInt256(
+    const expectedLeftReport = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
@@ -206,10 +206,10 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
       got       ${leftReport}`
     );
 
-    const resultOrOld = paddedUInt256(
+    const resultOrOld = zeroPad32(
       await combineTier.report(signers[0].address, [])
     );
-    const expectedOrOld = paddedUInt256(
+    const expectedOrOld = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(startTimestamp + 13) +

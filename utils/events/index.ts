@@ -2,6 +2,8 @@ import { Contract, ContractTransaction } from "ethers";
 import { Result } from "ethers/lib/utils";
 
 /**
+ * @public
+ * Retrieves events emitted within a contract transaction
  *
  * @param tx - transaction where event occurs
  * @param eventName - name of event
@@ -35,6 +37,8 @@ export const getEvents = async (
 };
 
 /**
+ * @public
+ * Retrieves arguments of first matching event emitted within a contract transaction
  *
  * @param tx - transaction where event occurs
  * @param eventName - name of event

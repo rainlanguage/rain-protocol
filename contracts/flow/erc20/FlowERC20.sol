@@ -14,6 +14,10 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x5af34d3dc0f14f2540f115a682cb8daa1c3e213f2a24a8a0e91f3d61615b54b5
+);
+
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -73,6 +77,12 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     Evaluable internal evaluable;
 
+    constructor(bytes memory callerMeta_) FlowCommon() {
+        _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+    }
+
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(FlowERC20Config memory config_) external initializer {
         emit Initialize(msg.sender, config_);
@@ -113,14 +123,17 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
-                uint256[][] memory context_ = LibUint256Array
-                    .arrayFrom(
-                        uint(uint160(msg.sender)),
+                uint256[][] memory context_ = LibContext.build(
+                    new uint256[][](0),
+                    // The transfer params are caller context because the caller
+                    // is triggering the transfer.
+                    LibUint256Array.arrayFrom(
                         uint256(uint160(from_)),
                         uint256(uint160(to_)),
                         amount_
-                    )
-                    .matrixFrom();
+                    ),
+                    new SignedContext[](0)
+                );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                     .interpreter
                     .eval(

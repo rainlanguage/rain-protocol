@@ -26,6 +26,7 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { assertError } from "../../utils/test/assertError";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -55,24 +56,20 @@ describe("OrderBook decimals", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
     const constants_A = [outputMax_A, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -153,7 +150,9 @@ describe("OrderBook decimals", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -162,7 +161,7 @@ describe("OrderBook decimals", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     // note 18 decimals for ratio
     // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
@@ -172,39 +171,28 @@ describe("OrderBook decimals", async function () {
     // 3e18 means that only 3 units of tokenB can be outputted per order
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
-    const constants_A = [
-      outputMax_A,
-      ratio_A,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const constants_A = [outputMax_A, ratio_A, tokenADecimals, tokenBDecimals];
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vTokenADecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vTokenBDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
     // prettier-ignore
     const source_A = concat([
-      op(Opcode.CONTEXT, 0x0201), // input decimals
+      op(Opcode.context, 0x0201), // input decimals
       vTokenADecimals,
-      op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.equalTo),
+      op(Opcode.ensure, 1),
 
-      op(Opcode.CONTEXT, 0x0301), // output decimals
+      op(Opcode.context, 0x0301), // output decimals
       vTokenBDecimals,
-      op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.equalTo),
+      op(Opcode.ensure, 1),
 
       aOpMax,
       aRatio,
@@ -234,9 +222,7 @@ describe("OrderBook decimals", async function () {
       data: [],
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -244,19 +230,13 @@ describe("OrderBook decimals", async function () {
       orderBook
     )) as AddOrderEvent["args"];
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A); // no need to account for decimals difference
 
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,

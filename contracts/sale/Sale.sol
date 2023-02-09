@@ -19,24 +19,26 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibContext.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
+);
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
 /// this. Avoids downstream escrows and similar trapping funds due to sales
 /// that never end, or perhaps never even start.
-/// @param maximumCooldownDuration The cooldown duration set in initialize
-/// cannot exceed this. Avoids the "no refunds" situation where someone sets an
-/// infinite cooldown, then accidentally or maliciously the sale ends up in a
-/// state where it cannot end (bad "can end" expression), leading to trapped
-/// funds.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
+/// @param callerMeta As per `IInterpreterCallerV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     RedeemableERC20Factory redeemableERC20Factory;
+    bytes callerMeta;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -251,10 +253,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     constructor(SaleConstructorConfig memory config_) {
         _disableInitializers();
 
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
+
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
+        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
         emit Construct(msg.sender, config_);
     }
 
@@ -514,10 +519,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             uint256[] memory kvs_
         ) = _previewCanLive();
         require(!canLive_, "LIVE");
+        _end();
         if (kvs_.length > 0) {
             store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
-        _end();
     }
 
     /// Timeout the sale (move from pending or active to fail).

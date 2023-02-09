@@ -1,0 +1,23 @@
+{
+  "name": "eager-if",
+  "desc": "Takes 3 items from the stack and check if the first item is non-zero the inserts the second item into the stack, else inserts the 3rd item",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "condition",
+        "desc": "The condition to evaluate"
+      },
+      {
+        "name": "pass-statement",
+        "desc": "The value to stack if the condition is non-zero/true"
+      },
+      {
+        "name": "fail-statement",
+        "desc": "The value to stack if the condition is zero/false"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["if"]
+}

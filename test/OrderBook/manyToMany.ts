@@ -33,6 +33,7 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
+import { getRainContractMetaBytes } from "../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -63,7 +64,9 @@ describe("OrderBook many-to-many", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -72,11 +75,11 @@ describe("OrderBook many-to-many", async function () {
     const constants = [max_uint256, threshold];
 
     const vMaxAmount = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vThreshold = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -119,7 +122,9 @@ describe("OrderBook many-to-many", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -128,18 +133,12 @@ describe("OrderBook many-to-many", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -165,9 +164,7 @@ describe("OrderBook many-to-many", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -178,18 +175,12 @@ describe("OrderBook many-to-many", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,
@@ -404,25 +395,21 @@ describe("OrderBook many-to-many", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy(
+      getRainContractMetaBytes("orderbook")
+    )) as OrderBook;
 
     const aliceVaultA = ethers.BigNumber.from(randomUint256());
     const aliceVaultB = ethers.BigNumber.from(randomUint256());
     const bobVaultB = ethers.BigNumber.from(randomUint256());
     const bobVaultA = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -448,9 +435,7 @@ describe("OrderBook many-to-many", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -461,18 +446,12 @@ describe("OrderBook many-to-many", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,

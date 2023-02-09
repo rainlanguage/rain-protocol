@@ -1,0 +1,41 @@
+{
+  "name": "Auto Approve Factory",
+  "desc": "",
+  "alias": "auto-approve-factory",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "createChildTyped",
+      "desc": "Deploys a new AutoApprove contract.",
+      "expressions": [
+        {
+          "name": "Can Approve",
+          "desc": "An expression that determines whether an address can be approved or not.",
+          "path": "[6].inputs[0].components[3]",
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This Contract",
+                  "desc": "The address of the AutoApprove contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
