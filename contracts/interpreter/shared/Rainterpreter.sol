@@ -10,33 +10,6 @@ import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
-/// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
-/// @param actualBytecodeHash The bytecode hash that was found at the store
-/// address upon construction.
-error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
-
-/// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
-error UnexpectedOpMetaHash(bytes32 actualOpMeta);
-
-/// @dev Hash of the known store bytecode.
-bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xeadcd57aeb73e17658c036f67c4a29dd2fe34476eecb43d59c409795df2f0143
-);
-
-/// @dev Hash of the known op meta.
-bytes32 constant OP_META_HASH = bytes32(
-    0x2a6c09f4f6f06767c090f420a23ae6037eeb1f714835ec810ab1aa0e00292ead
-);
-
-/// All config required to construct a `Rainterpreter`.
-/// @param store The `IInterpreterStoreV1`. MUST match known bytecode.
-/// @param opMeta All opmeta as binary data. MAY be compressed bytes etc. The
-/// opMeta describes the opcodes for this interpreter to offchain tooling.
-struct RainterpreterConfig {
-    address store;
-    bytes opMeta;
-}
-
 /// @title Rainterpreter
 /// @notice Minimal binding of the `IIinterpreterV1` interface to the
 /// `LibInterpreterState` library, including every opcode in `AllStandardOps`.
@@ -56,35 +29,6 @@ contract Rainterpreter is IInterpreterV1, ERC165 {
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
     using LibInterpreterState for StateNamespace;
-
-    /// The store is valid (has exact expected bytecode).
-    event ValidStore(address sender, address store);
-
-    /// Ensures the correct store bytecode and emits all opmeta.
-    constructor(RainterpreterConfig memory config_) {
-        // Guard against an store with unknown bytecode.
-        address store_ = config_.store;
-        bytes32 storeHash_;
-        assembly ("memory-safe") {
-            storeHash_ := extcodehash(store_)
-        }
-        if (storeHash_ != STORE_BYTECODE_HASH) {
-            /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT
-            /// HONEST MISTAKES.
-            revert UnexpectedStoreBytecodeHash(storeHash_);
-        }
-
-        emit ValidStore(msg.sender, store_);
-
-        /// This IS a security check. This prevents someone making an exact
-        /// bytecode copy of the interpreter and shipping different opmeta for
-        /// the copy to lie about what each op does.
-        bytes32 opMetaHash_ = keccak256(config_.opMeta);
-        if (opMetaHash_ != OP_META_HASH) {
-            revert UnexpectedOpMetaHash(opMetaHash_);
-        }
-        emit InterpreterOpMeta(msg.sender, config_.opMeta);
-    }
 
     // @inheritdoc ERC165
     function supportsInterface(

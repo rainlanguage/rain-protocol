@@ -5,6 +5,7 @@ import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
+import "../../ierc1820/LibIERC1820.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
@@ -26,6 +27,17 @@ error UnexpectedInterpreterBytecodeHash(bytes32 actualBytecodeHash);
 /// MUST REVERT.
 error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 
+/// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
+/// @param actualBytecodeHash The bytecode hash that was found at the store
+/// address upon construction.
+error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
+
+/// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
+error UnexpectedOpMetaHash(bytes32 actualOpMeta);
+
+/// Thrown when the ERC1820 registry did not accept our contracts as needed.
+error RegistryError(address account, bytes32 interfaceId);
+
 /// @dev The function pointers known to the expression deployer. These are
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
@@ -36,6 +48,26 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180e
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
     0xb43aad29cc66acf5c60af7f0161e5042e82f28e33c348dbb3524b65d074f9109
 );
+
+/// @dev Hash of the known store bytecode.
+bytes32 constant STORE_BYTECODE_HASH = bytes32(
+    0xeadcd57aeb73e17658c036f67c4a29dd2fe34476eecb43d59c409795df2f0143
+);
+
+/// @dev Hash of the known op meta.
+bytes32 constant OP_META_HASH = bytes32(
+    0x2a6c09f4f6f06767c090f420a23ae6037eeb1f714835ec810ab1aa0e00292ead
+);
+
+/// All config required to construct a `Rainterpreter`.
+/// @param store The `IInterpreterStoreV1`. MUST match known bytecode.
+/// @param opMeta All opmeta as binary data. MAY be compressed bytes etc. The
+/// opMeta describes the opcodes for this interpreter to offchain tooling.
+struct RainterpreterExpressionDeployerConstructionConfig {
+    address interpreter;
+    address store;
+    bytes opMeta;
+}
 
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
@@ -69,14 +101,19 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
     /// @param expression The address of the deployed expression.
     event ExpressionDeployed(address sender, address expression);
 
+    IInterpreterV1 public immutable interpreter;
+    IInterpreterStoreV1 public immutable store;
+
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
     /// MISTAKES. IT CANNOT PREVENT EITHER A MALICIOUS INTERPRETER OR DEPLOYER
     /// FROM BEING EXECUTED.
-    constructor(address interpreter_) {
+    constructor(
+        RainterpreterExpressionDeployerConstructionConfig memory config_
+    ) {
+        IInterpreterV1 interpreter_ = IInterpreterV1(config_.interpreter);
         // Guard against serializing incorrect function pointers, which would
         // cause undefined runtime behaviour for corrupted opcodes.
-        bytes memory functionPointers_ = IInterpreterV1(interpreter_)
-            .functionPointers();
+        bytes memory functionPointers_ = interpreter_.functionPointers();
         if (
             keccak256(functionPointers_) != keccak256(OPCODE_FUNCTION_POINTERS)
         ) {
@@ -93,7 +130,88 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
             revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
         }
 
-        emit ValidInterpreter(msg.sender, interpreter_);
+        // Guard against an store with unknown bytecode.
+        IInterpreterStoreV1 store_ = IInterpreterStoreV1(config_.store);
+        bytes32 storeHash_;
+        assembly ("memory-safe") {
+            storeHash_ := extcodehash(store_)
+        }
+        if (storeHash_ != STORE_BYTECODE_HASH) {
+            /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT
+            /// HONEST MISTAKES.
+            revert UnexpectedStoreBytecodeHash(storeHash_);
+        }
+
+        /// This IS a security check. This prevents someone making an exact
+        /// bytecode copy of the interpreter and shipping different opmeta for
+        /// the copy to lie about what each op does.
+        bytes32 opMetaHash_ = keccak256(config_.opMeta);
+        if (opMetaHash_ != OP_META_HASH) {
+            revert UnexpectedOpMetaHash(opMetaHash_);
+        }
+
+        interpreter = interpreter_;
+        store = store_;
+
+        emit DISpair(
+            msg.sender,
+            config_.interpreter,
+            config_.store,
+            config_.opMeta
+        );
+
+        IERC1820_REGISTRY.setInterfaceImplementer(
+            address(this),
+            IERC1820_REGISTRY.interfaceHash(
+                IERC1820_NAME_IEXPRESSION_DEPLOYER_V1
+            ),
+            address(this)
+        );
+        IERC1820_REGISTRY.updateERC165Cache(
+            address(this),
+            type(IExpressionDeployerV1).interfaceId
+        );
+        IERC1820_REGISTRY.updateERC165Cache(
+            config_.interpreter,
+            type(IInterpreterV1).interfaceId
+        );
+        IERC1820_REGISTRY.updateERC165Cache(
+            config_.store,
+            type(IInterpreterStoreV1).interfaceId
+        );
+        if (
+            !IERC1820_REGISTRY.implementsERC165Interface(
+                address(this),
+                type(IExpressionDeployerV1).interfaceId
+            )
+        ) {
+            revert RegistryError(
+                address(this),
+                type(IExpressionDeployerV1).interfaceId
+            );
+        }
+        if (
+            !IERC1820_REGISTRY.implementsERC165Interface(
+                config_.interpreter,
+                type(IInterpreterV1).interfaceId
+            )
+        ) {
+            revert RegistryError(
+                config_.interpreter,
+                type(IInterpreterV1).interfaceId
+            );
+        }
+        if (
+            !IERC1820_REGISTRY.implementsERC165Interface(
+                config_.store,
+                type(IInterpreterStoreV1).interfaceId
+            )
+        ) {
+            revert RegistryError(
+                config_.store,
+                type(IInterpreterStoreV1).interfaceId
+            );
+        }
     }
 
     // @inheritdoc ERC165

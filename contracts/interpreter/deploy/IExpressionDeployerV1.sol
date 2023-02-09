@@ -48,6 +48,20 @@ struct ExpressionConfig {
 /// interpreter, and the interpreter's responsibility to handle the expression
 /// deployer completely failing to do so.
 interface IExpressionDeployerV1 {
+    /// This is the literal InterpreterOpMeta bytes to be used offchain to make
+    /// sense of the opcodes in this interpreter deployment, as a human. For
+    /// formats like json that make heavy use of boilerplate, repetition and
+    /// whitespace, some kind of compression is recommended.
+    /// @param sender The `msg.sender` providing the op meta.
+    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
+    /// etc. and is intended for offchain consumption.
+    event DISpair(
+        address sender,
+        address interpreter,
+        address store,
+        bytes opMeta
+    );
+
     /// Expressions are expected to be deployed onchain as immutable contract
     /// code with a first class address like any other contract or account.
     /// Technically this is optional in the sense that all the tools required to
