@@ -1,5 +1,5 @@
 {
-  "name": "eip-20-snapshot-total-supply-at",
+  "name": "erc-20-snapshot-total-supply-at",
   "desc": "Get the snapshot supply of an ERC20 token and insert it into the stack",
   "operand": 0,
   "inputs": {
@@ -13,9 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": [
-    "eip-20-snapshot-supply",
-    "erc-20-snapshot-total-supply-at",
-    "erc-20-snapshot-supply"
-  ]
+  "aliases": ["erc-20-snapshot-supply"]
 }

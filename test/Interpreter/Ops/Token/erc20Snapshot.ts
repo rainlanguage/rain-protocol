@@ -63,7 +63,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       concat([
           vTokenAddr,
           op(Opcode.context, 0x0000),
-        op(Opcode.eip_20_snapshot_total_supply_at)
+        op(Opcode.erc_20_snapshot_total_supply_at)
       ]),
     ];
 
@@ -113,7 +113,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
           vTokenAddr,
           vSigner1,
           op(Opcode.context, 0x0000),
-        op(Opcode.eip_20_snapshot_balance_of_at)
+        op(Opcode.erc_20_snapshot_balance_of_at)
       ]),
     ];
 

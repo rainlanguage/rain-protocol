@@ -1,5 +1,5 @@
 {
-  "name": "eip-20-balance-of",
+  "name": "erc-20-balance-of",
   "desc": "Get the balance of an ERC20 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["eip-20-balance", "erc-20-balance-of", "erc-20-balance"]
+  "aliases": ["erc-20-balance"]
 }

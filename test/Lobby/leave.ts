@@ -72,7 +72,7 @@ describe("Lobby Tests leave", async function () {
 
               op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)) ,
               op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.eip_20_balance_of)  ,
+             op(Opcode.erc_20_balance_of)  ,
              op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)) ,
             op(Opcode.div, 2),
 
@@ -196,7 +196,7 @@ describe("Lobby Tests leave", async function () {
 
               op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)) ,
               op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)) ,
-             op(Opcode.eip_20_balance_of)  ,
+             op(Opcode.erc_20_balance_of)  ,
              op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)) ,
             op(Opcode.div, 2),
 

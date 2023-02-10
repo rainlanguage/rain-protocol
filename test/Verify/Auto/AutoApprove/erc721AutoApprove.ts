@@ -63,7 +63,7 @@ describe("AutoApprove ERC721 ownership", async function () {
         concat([
               vTokenAddr,
               cNftId,
-            op(Opcode.eip_721_owner_of),
+            op(Opcode.erc_721_owner_of),
             cAccount,
           op(Opcode.equal_to),
         ])],

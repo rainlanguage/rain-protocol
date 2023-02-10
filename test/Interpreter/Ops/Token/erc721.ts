@@ -70,7 +70,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       concat([
           vTokenAddr,
           vNftId,
-        op(Opcode.eip_721_owner_of)
+        op(Opcode.erc_721_owner_of)
       ]),
     ];
 
@@ -118,7 +118,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.eip_721_balance_of)
+        op(Opcode.erc_721_balance_of)
       ]),
     ];
 

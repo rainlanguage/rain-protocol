@@ -57,7 +57,7 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.eip_20_total_supply)
+        op(Opcode.erc_20_total_supply)
       ]),
     ];
 
@@ -99,7 +99,7 @@ describe("RainInterpreter ERC20 ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.eip_20_balance_of)
+        op(Opcode.erc_20_balance_of)
       ]),
     ];
 

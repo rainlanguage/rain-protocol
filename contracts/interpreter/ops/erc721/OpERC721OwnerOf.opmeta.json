@@ -1,5 +1,5 @@
 {
-  "name": "eip-721-owner-of",
+  "name": "erc-721-owner-of",
   "desc": "Get the owner of an ERC721 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["eip-721-owner", "erc-721-owner-of", "erc-721-owner"]
+  "aliases": ["erc-721-owner"]
 }

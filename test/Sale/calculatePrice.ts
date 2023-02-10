@@ -92,11 +92,11 @@ describe("Sale calculate price", async function () {
                   op(Opcode.context, 0x0001), // sale address
                 op(Opcode.isale_v2_token),
                 op(Opcode.context, 0x0000), // sender
-              op(Opcode.eip_20_balance_of),
+              op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
               op(Opcode.isale_v2_token),
-            op(Opcode.eip_20_total_supply),
+            op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
       ]),
@@ -244,11 +244,11 @@ describe("Sale calculate price", async function () {
                   op(Opcode.context, 0x0001), // sale address
                 op(Opcode.isale_v2_reserve),
                 op(Opcode.context, 0x0000), // sender
-              op(Opcode.eip_20_balance_of),
+              op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
               op(Opcode.isale_v2_reserve),
-            op(Opcode.eip_20_total_supply),
+            op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
       ]),

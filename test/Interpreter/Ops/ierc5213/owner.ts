@@ -50,7 +50,7 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources = [
       concat([
         op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.eip_5313_owner)
+        op(Opcode.erc_5313_owner)
       ]),
     ];
 
@@ -85,7 +85,7 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources0 = [
       concat([
         op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.eip_5313_owner)
+        op(Opcode.erc_5313_owner)
       ]),
     ];
 
@@ -117,7 +117,7 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources1 = [
       concat([
         op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.eip_5313_owner)
+        op(Opcode.erc_5313_owner)
       ]),
     ];
 

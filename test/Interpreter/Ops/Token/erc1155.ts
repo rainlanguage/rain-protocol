@@ -88,7 +88,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
           vSigner2,
           vTokenId,
           vTokenId,
-        op(Opcode.eip_1155_balance_of_batch, length)
+        op(Opcode.erc_1155_balance_of_batch, length)
       ]),
     ];
 
@@ -161,7 +161,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
           vTokenAddr,
           vSigner1,
           vTokenId,
-        op(Opcode.eip_1155_balance_of)
+        op(Opcode.erc_1155_balance_of)
       ]),
     ];
 

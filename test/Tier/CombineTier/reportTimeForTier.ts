@@ -165,7 +165,7 @@ describe("CombineTier report time for tier tests", async function () {
     const sourceTierContractAlice = concat([
       vTokenAddr,
       vAlice,
-      op(Opcode.eip_20_balance_of),
+      op(Opcode.erc_20_balance_of),
     ]);
     const evaluableConfigAlice = await generateEvaluableConfig({
       sources: [sourceReportDefault, sourceTierContractAlice],
@@ -181,7 +181,7 @@ describe("CombineTier report time for tier tests", async function () {
     const sourceTierContractBob = concat([
         vTokenAddr,
         vAlice,
-      op(Opcode.eip_20_balance_of),
+      op(Opcode.erc_20_balance_of),
     ]);
 
     const evaluableConfigBob = await generateEvaluableConfig({

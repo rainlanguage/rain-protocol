@@ -1,5 +1,5 @@
 {
-  "name": "eip-5313-owner",
+  "name": "erc-5313-owner",
   "desc": "Stack the owner of an ERC5313 compliant contract.",
   "operand": 0,
   "inputs": {
@@ -9,6 +9,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["erc-5313-owner"]
+  "outputs": 1
 }
