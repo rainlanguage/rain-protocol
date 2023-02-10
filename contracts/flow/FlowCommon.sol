@@ -67,17 +67,12 @@ contract FlowCommon is
             revert BadMinStackLength(flowMinOutputs_);
         }
         for (uint256 i_ = 0; i_ < evaluableConfigs_.length; i_++) {
-            address expression_ = evaluableConfigs_[i_]
+            Evaluable memory evaluable_ = evaluableConfigs_[i_]
                 .deployer
                 .deployExpression(
                     evaluableConfigs_[i_].expressionConfig,
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
-            Evaluable memory evaluable_ = Evaluable(
-                evaluableConfigs_[i_].interpreter,
-                evaluableConfigs_[i_].store,
-                expression_
-            );
             _flows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }

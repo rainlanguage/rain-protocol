@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.17;
 
+import "../run/IInterpreterV1.sol";
+
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim. These sources MUST be provided in their
 /// sequential/index opcode form as the deployment process will need to index
@@ -18,6 +20,12 @@ pragma solidity ^0.8.17;
 struct ExpressionConfig {
     bytes[] sources;
     uint256[] constants;
+}
+
+struct Evaluable {
+    IInterpreterV1 interpreter;
+    IInterpreterStoreV1 store;
+    address expression;
 }
 
 /// @title IExpressionDeployerV1
@@ -48,6 +56,21 @@ struct ExpressionConfig {
 /// interpreter, and the interpreter's responsibility to handle the expression
 /// deployer completely failing to do so.
 interface IExpressionDeployerV1 {
+    /// This is the literal InterpreterOpMeta bytes to be used offchain to make
+    /// sense of the opcodes in this interpreter deployment, as a human. For
+    /// formats like json that make heavy use of boilerplate, repetition and
+    /// whitespace, some kind of compression is recommended.
+    /// @param sender The `msg.sender` providing the op meta.
+    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
+    /// etc. and is intended for offchain consumption.
+    event DISpair(
+        address sender,
+        address deployer,
+        address interpreter,
+        address store,
+        bytes opMeta
+    );
+
     /// Expressions are expected to be deployed onchain as immutable contract
     /// code with a first class address like any other contract or account.
     /// Technically this is optional in the sense that all the tools required to
@@ -91,9 +114,10 @@ interface IExpressionDeployerV1 {
     /// minimum output for some entrypoint MAY be zero if the expectation is that
     /// the expression only applies checks and error logic. Non-entrypoint
     /// sources MUST NOT have a minimum outputs length specified.
-    /// @return expression The onchain address of the deployed expression.
+    /// @return evaluable The onchain addresses required to evaluate the
+    /// expression including interpreter and store.
     function deployExpression(
         ExpressionConfig memory config,
         uint256[] memory minOutputs
-    ) external returns (address expression);
+    ) external returns (Evaluable memory evaluable);
 }
