@@ -92,14 +92,13 @@ const main = async function () {
   const tx = {
     nonce: 0,
     type: 0,
-    gasPrice: txReq.gasPrice,
-    gasLimit: txReq.gasLimit,
+    gasPrice: "0x09184e72a000",
+    gasLimit: await signer.estimateGas(txReq),
     value: "0x00",
     data: ExtrospectionFactory.bytecode,
   };
 
   const txCalled = await provider.call(tx);
-  console.log(txCalled);
 
   const address = recoverAddress(txCalled, {
     r: "0x14ea1533817e09289270e277b490750d0624a05ebd671f3b3b81a5cd1b638bac",
@@ -107,14 +106,15 @@ const main = async function () {
     v: 27,
   });
 
+  // Send funds to the address
   await signer.sendTransaction({
     to: address,
     value: (await signer.getBalance()).div(2),
   });
 
-  tx.from = address;
+  const tx2 = { ...tx, from: address };
 
-  const aver = await provider.call(tx);
+  const aver = await provider.call(tx2);
   await provider.sendTransaction(aver);
 
   // const a = await provider.call(tx);
