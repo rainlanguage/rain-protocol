@@ -329,17 +329,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
 
         emit Initialize(msg.sender, config_, address(token_));
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
+        evaluable = config_.evaluableConfig.deployer.deployExpression(
                 config_.evaluableConfig.expressionConfig,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,
                     CALCULATE_BUY_MIN_OUTPUTS,
                     HANDLE_BUY_MIN_OUTPUTS
                 )
-            )
         );
     }
 

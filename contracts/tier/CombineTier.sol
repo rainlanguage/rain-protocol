@@ -87,15 +87,11 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
 
         emit Initialize(msg.sender, config_);
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
-                LibUint256Array.arrayFrom(
-                    REPORT_MIN_OUTPUTS,
-                    REPORT_FOR_TIER_MIN_OUTPUTS
-                )
+        evaluable = config_.evaluableConfig.deployer.deployExpression(
+            config_.evaluableConfig.expressionConfig,
+            LibUint256Array.arrayFrom(
+                REPORT_MIN_OUTPUTS,
+                REPORT_FOR_TIER_MIN_OUTPUTS
             )
         );
     }

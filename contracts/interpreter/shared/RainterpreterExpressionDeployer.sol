@@ -260,7 +260,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
     function deployExpression(
         ExpressionConfig memory config_,
         uint256[] memory minStackOutputs_
-    ) external returns (address) {
+    ) external returns (Evaluable memory) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
         if (minStackOutputs_.length > config_.sources.length) {
@@ -318,6 +318,6 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
         // Emit and return the address of the deployed expression.
         emit ExpressionDeployed(msg.sender, expression_);
 
-        return expression_;
+        return Evaluable(interpreter, store, expression_);
     }
 }

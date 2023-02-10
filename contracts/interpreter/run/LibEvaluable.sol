@@ -6,15 +6,7 @@ import "./IInterpreterV1.sol";
 
 struct EvaluableConfig {
     IExpressionDeployerV1 deployer;
-    IInterpreterV1 interpreter;
-    IInterpreterStoreV1 store;
     ExpressionConfig expressionConfig;
-}
-
-struct Evaluable {
-    IInterpreterV1 interpreter;
-    IInterpreterStoreV1 store;
-    address expression;
 }
 
 library LibEvaluable {

@@ -189,13 +189,6 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        address expression_ = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(
-                CALCULATE_ORDER_MIN_OUTPUTS,
-                HANDLE_IO_MIN_OUTPUTS
-            )
-        );
         Order memory order_ = Order(
             msg.sender,
             config_
@@ -203,10 +196,12 @@ contract OrderBook is
                 .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_IO_ENTRYPOINT)]
                 .length > 0,
-            Evaluable(
-                config_.evaluableConfig.interpreter,
-                config_.evaluableConfig.store,
-                expression_
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
+                LibUint256Array.arrayFrom(
+                    CALCULATE_ORDER_MIN_OUTPUTS,
+                    HANDLE_IO_MIN_OUTPUTS
+                )
             ),
             config_.validInputs,
             config_.validOutputs,
