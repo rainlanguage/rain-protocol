@@ -107,6 +107,11 @@ uint256 constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
 /// @dev Length of a vault IO column.
 uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 
+struct OrderBookConstructionConfig {
+    address deployer;
+    bytes callerMeta;
+}
+
 /// @title OrderBook
 /// See `IOrderBookV1` for more documentation.
 contract OrderBook is
@@ -144,12 +149,13 @@ contract OrderBook is
     /// Open Zeppelin upgradeable contracts. Orderbook itself does NOT support
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
-    constructor(bytes memory callerMeta_) initializer {
+    constructor(OrderBookConstructionConfig memory config_) initializer {
         __ReentrancyGuard_init();
         __Multicall_init();
 
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
+        LibCallerMeta.touchDeployer(config_.deployer);
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
+        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
     }
 
     /// @inheritdoc IOrderBookV1
