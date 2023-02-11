@@ -3,8 +3,9 @@ import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import {
   InitializeEvent,
-  ExpressionConfigStruct,
+  
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -26,7 +27,13 @@ describe("AutoApprove construction", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
-  before(async () => {
+  before(async () => { 
+
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+
+
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();
   });
@@ -36,7 +43,7 @@ describe("AutoApprove construction", async function () {
 
     const deployer = signers[1];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
@@ -44,7 +51,8 @@ describe("AutoApprove construction", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const { sender, config } = (await getEventArgs(
@@ -62,7 +70,7 @@ describe("AutoApprove construction", async function () {
     const deployer = signers[1];
     const admin = signers[2];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
@@ -70,7 +78,8 @@ describe("AutoApprove construction", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     await verifyDeploy(deployer, verifyFactory, {

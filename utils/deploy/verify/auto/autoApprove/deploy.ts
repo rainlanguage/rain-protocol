@@ -1,12 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
+import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
+import { PromiseOrValue } from "../../../../../typechain/common";
 import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
   ImplementationEvent as ImplementationEventAutoApproveFactory,
-  ExpressionConfigStruct,
-} from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
+  } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
@@ -35,7 +36,8 @@ export const autoApproveFactoryDeploy = async () => {
 export const autoApproveDeploy = async (
   deployer: SignerWithAddress,
   autoApproveFactory: AutoApproveFactory,
-  expressionConfig: ExpressionConfigStruct
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[]
 ) => {
   const { implementation } = (await getEventArgs(
     autoApproveFactory.deployTransaction,
@@ -48,7 +50,8 @@ export const autoApproveDeploy = async (
   );
 
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    expressionConfig
+    sources,
+    constants
   );
 
   const tx = await autoApproveFactory

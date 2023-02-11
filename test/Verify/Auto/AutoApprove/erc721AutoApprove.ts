@@ -5,9 +5,9 @@ import {
   ReserveTokenERC721,
   VerifyFactory,
 } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -29,9 +29,15 @@ describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
-  before(async () => {
+  before(async () => {  
+
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+
     autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    verifyFactory = await verifyFactoryDeploy(); 
+
   });
 
   beforeEach(async () => {
@@ -57,7 +63,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     const cAccount = op(Opcode.context, 0x0000);
     const cNftId = op(Opcode.context, 0x0001);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
@@ -73,7 +79,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
