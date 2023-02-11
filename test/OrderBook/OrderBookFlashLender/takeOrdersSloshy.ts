@@ -7,7 +7,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   ERC3156FlashBorrowerBuyTest,
-  OrderBook,
   ReserveToken18,
 } from "../../../typechain";
 import {
@@ -34,12 +33,13 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../../utils";
+import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook takeOrders sloshy tests", async function () {
-  let orderBookFactory: ContractFactory;
+
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
 
@@ -58,7 +58,9 @@ describe("OrderBook takeOrders sloshy tests", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should complete an e2e slosh with a loan", async function () {
@@ -66,9 +68,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -92,10 +92,10 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     ]);
 
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [source, []],
+    const evaluableConfig = await generateEvaluableConfig(
+       [source, []],
       constants,
-    });
+    );
 
     const orderConfig: OrderConfigStruct = {
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
@@ -266,9 +266,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const bob = signers[2];
     const uni = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
 
@@ -291,10 +289,10 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       vThreshold,
     ]);
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [source, []],
+    const evaluableConfig = await generateEvaluableConfig(
+       [source, []],
       constants,
-    });
+    );
 
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
     const orderConfig: OrderConfigStruct = {

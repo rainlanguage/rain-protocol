@@ -4,6 +4,8 @@ import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/depl
 import { ExpressionConfigStruct } from "../../../../typechain/contracts/orderbook/IOrderBookV1";
 import { libEncodedDispatchDeploy } from "../../interpreter/run/libEncodedDispatch/deploy";
 import { rainterpreterExpression } from "../../interpreter/shared/rainterpreterExpressionDeployer/deployExpression";
+import { PromiseOrValue } from "../../../../typechain/common";
+import { BigNumberish, BytesLike } from "ethers";
 
 const ENTRYPOINT = 0;
 
@@ -39,13 +41,15 @@ export const iinterpreterV1ConsumerDeploy = async (
 };
 
 export const expressionConsumerDeploy = async (
-  expressionConfig: ExpressionConfigStruct,
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[],
   interpreter: Rainterpreter,
   maxOutputs: number
 ) => {
   const expressionDeployer = await rainterpreterExpression(
     interpreter,
-    expressionConfig
+    sources, 
+    constants
   );
   const libEncodedDispatch = await libEncodedDispatchDeploy();
 
