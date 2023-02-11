@@ -1,11 +1,7 @@
 import { BigNumberish, BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
-import { RainterpreterStore } from "../../typechain";
 import { PromiseOrValue } from "../../typechain/common";
-import {
-  EvaluableConfigStruct
-} from "../../typechain/contracts/flow/basic/Flow";
-import { zeroAddress } from "../constants";
+import { EvaluableConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
@@ -245,11 +241,11 @@ export function foldContextOperand(
  * @returns operand
  */
 export async function generateEvaluableConfig(
-  sources: PromiseOrValue<BytesLike>[], 
+  sources: PromiseOrValue<BytesLike>[],
   constants: PromiseOrValue<BigNumberish>[]
 ): Promise<EvaluableConfigStruct> {
-  const interpreter = await rainterpreterDeploy(); 
-  const store = await rainterpreterStoreDeploy()
+  const interpreter = await rainterpreterDeploy();
+  const store = await rainterpreterStoreDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
     interpreter,
     store
@@ -257,7 +253,7 @@ export async function generateEvaluableConfig(
 
   return {
     deployer: expressionDeployer.address,
-    sources, 
-    constants
+    sources,
+    constants,
   };
 }

@@ -27,10 +27,10 @@ describe("Lobby Tests Intialize", async function () {
   let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
-  before(async () => { 
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0]) 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
@@ -73,7 +73,7 @@ describe("Lobby Tests Intialize", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 

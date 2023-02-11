@@ -1,7 +1,6 @@
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveTokenDecimals } from "../../typechain";
+import type { ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   ClearConfigStruct,
@@ -26,19 +25,17 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { assertError } from "../../utils/test/assertError";
-import { getRainContractMetaBytes } from "../../utils";
+
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook decimals", async function () {
-  
-
   before(async () => {
-   // Deploy ERC1820Registry 
-   const signers = await ethers.getSigners(); 
-   await deploy1820(signers[0])  
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should not be able to provide OOB decimals beyond uint8", async function () {
@@ -78,8 +75,8 @@ describe("OrderBook decimals", async function () {
       aRatio,
     ]);
     const EvaluableConfig_A0 = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     // IN BOUNDS
@@ -103,8 +100,8 @@ describe("OrderBook decimals", async function () {
     };
     await orderBook.connect(alice).addOrder(OrderConfig_A0);
     const EvaluableConfig_A1 = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     // OUT OF BOUNDS
@@ -199,8 +196,8 @@ describe("OrderBook decimals", async function () {
     ]);
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     const OrderConfig_A: OrderConfigStruct = {
@@ -243,8 +240,8 @@ describe("OrderBook decimals", async function () {
       bRatio,
     ]);
     const EvaluableConfig_B = await generateEvaluableConfig(
-       [source_B, []],
-       constants_B,
+      [source_B, []],
+      constants_B
     );
     const OrderConfig_B: OrderConfigStruct = {
       validInputs: [

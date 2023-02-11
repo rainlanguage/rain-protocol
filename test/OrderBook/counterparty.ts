@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -33,7 +33,7 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
@@ -42,7 +42,6 @@ const Opcode = AllStandardOps;
 describe("OrderBook counterparty in context", async function () {
   const cCounterparty = op(Opcode.context, 0x0002);
 
-  
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -53,12 +52,10 @@ describe("OrderBook counterparty in context", async function () {
     await tokenB.initialize();
   });
 
-  before(async () => { 
-
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0])   
-
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should expose counterparty context to RainInterpreter calculations (e.g. Order_A will noop if Order_B counterparty does not match Carol's address)", async function () {
@@ -116,8 +113,8 @@ describe("OrderBook counterparty in context", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     const OrderConfig_A: OrderConfigStruct = {
@@ -155,8 +152,8 @@ describe("OrderBook counterparty in context", async function () {
     ]);
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
     const EvaluableConfig_B = await generateEvaluableConfig(
-       [source_B, []],
-       constants_B,
+      [source_B, []],
+      constants_B
     );
     const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
@@ -193,8 +190,8 @@ describe("OrderBook counterparty in context", async function () {
     ]);
     const carolOrder = ethers.utils.toUtf8Bytes("Order_C");
     const EvaluableConfig_C = await generateEvaluableConfig(
-       [source_C, []],
-       constants_C,
+      [source_C, []],
+      constants_C
     );
     const OrderConfig_C: OrderConfigStruct = {
       validInputs: [

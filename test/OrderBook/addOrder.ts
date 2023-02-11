@@ -1,8 +1,7 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   OrderConfigStruct,
   AddOrderEvent,
@@ -38,11 +37,10 @@ describe("OrderBook add order", async function () {
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
-  before(async () => { 
-     // Deploy ERC1820Registry 
-     const signers = await ethers.getSigners(); 
-     await deploy1820(signers[0]) 
-
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should add orders", async function () {
@@ -51,7 +49,7 @@ describe("OrderBook add order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = await deployOrderBook()
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -70,10 +68,10 @@ describe("OrderBook add order", async function () {
     const source_A = concat([
       aOpMax,
       aRatio,
-    ]); 
+    ]);
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-      [source_A, []] ,
+      [source_A, []],
       constants_A
     );
 
@@ -119,7 +117,7 @@ describe("OrderBook add order", async function () {
       bRatio,
     ]);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B"); 
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [source_B, []],

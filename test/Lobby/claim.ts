@@ -41,10 +41,10 @@ describe("Lobby Tests claim", async function () {
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
 
-  before(async () => { 
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0]) 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
 
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
@@ -96,7 +96,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -271,7 +271,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -453,7 +453,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -651,7 +651,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -877,7 +877,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -1124,7 +1124,7 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 

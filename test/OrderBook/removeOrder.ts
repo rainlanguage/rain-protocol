@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   OrderConfigStruct,
@@ -36,11 +36,10 @@ describe("OrderBook remove order", async function () {
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
-  before(async () => { 
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0]) 
-    
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should support removing orders", async function () {
@@ -66,8 +65,8 @@ describe("OrderBook remove order", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     const OrderConfig_A: OrderConfigStruct = {

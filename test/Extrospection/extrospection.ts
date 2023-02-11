@@ -9,10 +9,7 @@ import {
   RainterpreterStore,
   EIP165InterfaceIds,
 } from "../../typechain";
-import {
-  BytecodeHashEvent,
-  SupportsInterfaceEvent,
-} from "../../typechain/contracts/extrospection/Extrospection";
+import { SupportsInterfaceEvent } from "../../typechain/contracts/extrospection/Extrospection";
 import { basicDeploy, getEventArgs } from "../../utils";
 import {
   rainterpreterDeploy,
@@ -31,10 +28,10 @@ describe("Extrospection tests", async function () {
   let rainterpreterStore: RainterpreterStore;
   let EIP165InterfaceIDs: EIP165InterfaceIds;
 
-  before(async () => {  
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0])
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
 
     // Deploy Extrospection
     extrospection = (await basicDeploy("Extrospection", {})) as Extrospection;
@@ -58,7 +55,7 @@ describe("Extrospection tests", async function () {
   });
 
   it("should check if bytecode has any opcode that change memory(stateless interpreter)", async () => {
-    const bytecode_ = await extrospection.bytecode(rainInterpreter.address);    
+    const bytecode_ = await extrospection.bytecode(rainInterpreter.address);
     const result = checkIfIncludesOps(bytecode_);
     assert(result);
   });

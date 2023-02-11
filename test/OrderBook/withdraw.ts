@@ -1,14 +1,14 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   DepositConfigStruct,
   DepositEvent,
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { getRainContractMetaBytes } from "../../utils";
+
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
@@ -26,9 +26,9 @@ describe("OrderBook withdraw from vault", async function () {
   });
 
   before(async () => {
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0]) 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should allow withdrawals from vaults", async function () {

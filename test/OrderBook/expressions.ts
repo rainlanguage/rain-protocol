@@ -1,12 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  ReserveToken18,
-  ReserveTokenDecimals,
-} from "../../typechain";
+import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   DepositConfigStruct,
@@ -38,14 +34,13 @@ import {
   op,
 } from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
- 
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -56,13 +51,10 @@ describe("OrderBook expression checks", async () => {
     await tokenB.initialize();
   });
 
-  before(async () => { 
-
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0])   
-
-    
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should ensure OWNER and COUNTERPARTY are visible in calculateIO and handleIO", async function () {
@@ -137,8 +129,8 @@ describe("OrderBook expression checks", async () => {
         ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
+      [calculateSoruce, handleIOSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -362,8 +354,8 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
+      [calculateSoruce, handleIOSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -553,9 +545,9 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
-     );
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -753,8 +745,8 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
+      [calculateSoruce, handleIOSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -948,8 +940,8 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
+      [calculateSoruce, handleIOSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1181,8 +1173,8 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-       [calculateSoruce, handleIOSource],
-       constants_A,
+      [calculateSoruce, handleIOSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1350,8 +1342,8 @@ describe("OrderBook expression checks", async () => {
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
 
     const EvaluableConfig = await generateEvaluableConfig(
-       [calculateSoruce, handleSource],
-       constants_A,
+      [calculateSoruce, handleSource],
+      constants_A
     );
 
     const OrderConfig: OrderConfigStruct = {
@@ -1494,8 +1486,8 @@ describe("OrderBook expression checks", async () => {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
     const EvaluableConfig = await generateEvaluableConfig(
-       [calculateSoruce, []],
-       constants_A,
+      [calculateSoruce, []],
+      constants_A
     );
 
     const OrderConfig: OrderConfigStruct = {
@@ -1633,8 +1625,8 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const EvaluableConfig = await generateEvaluableConfig(
-       [calculateSoruce, handleSource],
-       constants_A,
+      [calculateSoruce, handleSource],
+      constants_A
     );
 
     const OrderConfigAlice: OrderConfigStruct = {

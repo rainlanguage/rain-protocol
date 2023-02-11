@@ -33,10 +33,10 @@ describe("Lobby Tests join", async function () {
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
 
-  before(async () => { 
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0])  
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
 
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
@@ -90,7 +90,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -195,7 +195,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -314,7 +314,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -418,7 +418,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 
@@ -573,7 +573,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.sources,
       lobbyExpressionConfig.constants
     );
 

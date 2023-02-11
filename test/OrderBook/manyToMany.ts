@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -33,14 +33,12 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook many-to-many", async function () {
- 
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
   let tokenC: ReserveToken18;
@@ -58,9 +56,9 @@ describe("OrderBook many-to-many", async function () {
   });
 
   before(async () => {
-    // Deploy ERC1820Registry 
-    const signers = await ethers.getSigners(); 
-    await deploy1820(signers[0])  
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should support a 'slosh' many-to-many orders setup", async function () {
@@ -93,8 +91,8 @@ describe("OrderBook many-to-many", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
 
     const evaluableConfig = await generateEvaluableConfig(
-       [source, []],
-       constants,
+      [source, []],
+      constants
     );
 
     const orderConfig: OrderConfigStruct = {
@@ -147,8 +145,8 @@ describe("OrderBook many-to-many", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     const OrderConfig_A: OrderConfigStruct = {
@@ -189,8 +187,8 @@ describe("OrderBook many-to-many", async function () {
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
-       [source_B, []],
-       constants_B,
+      [source_B, []],
+      constants_B
     );
 
     const OrderConfig_B: OrderConfigStruct = {
@@ -416,8 +414,8 @@ describe("OrderBook many-to-many", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
-       [source_A, []],
-       constants_A,
+      [source_A, []],
+      constants_A
     );
 
     const OrderConfig_A: OrderConfigStruct = {
@@ -458,8 +456,8 @@ describe("OrderBook many-to-many", async function () {
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
-       [source_B, []],
-       constants_B,
+      [source_B, []],
+      constants_B
     );
 
     const OrderConfig_B: OrderConfigStruct = {
