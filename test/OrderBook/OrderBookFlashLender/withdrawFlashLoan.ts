@@ -6,7 +6,6 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
   ERC3156FlashBorrowerWithdrawTest,
-  OrderBook,
   ReserveToken18,
 } from "../../../typechain";
 import {
@@ -16,12 +15,10 @@ import {
 import { randomUint256 } from "../../../utils/bytes";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { getRainContractMetaBytes } from "../../../utils";
 import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 describe("OrderBook flash loan withdraw tests", async function () {
-
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
   let erc3156Bot: ERC3156FlashBorrowerWithdrawTest;

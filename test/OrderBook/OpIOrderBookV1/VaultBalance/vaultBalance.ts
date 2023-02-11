@@ -25,10 +25,10 @@ describe("IOrderBookV1 vault balance tests", async function () {
   let logic: IInterpreterV1Consumer;
   let fakeOrderBook: FakeContract<OrderBook>;
 
-  beforeEach(async () => { 
+  beforeEach(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     fakeOrderBook = await smock.fake("OrderBook");
   });
@@ -72,8 +72,8 @@ describe("IOrderBookV1 vault balance tests", async function () {
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 
     const expression0 = await expressionConsumerDeploy(
-        sources,
-        constants,
+      sources,
+      constants,
 
       rainInterpreter,
       1

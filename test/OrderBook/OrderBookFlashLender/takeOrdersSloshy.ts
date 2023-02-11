@@ -2,7 +2,6 @@
 // @ts-nocheck
 
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
@@ -39,7 +38,6 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 const Opcode = AllStandardOps;
 
 describe("OrderBook takeOrders sloshy tests", async function () {
-
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
 
@@ -93,8 +91,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
     const evaluableConfig = await generateEvaluableConfig(
-       [source, []],
-      constants,
+      [source, []],
+      constants
     );
 
     const orderConfig: OrderConfigStruct = {
@@ -290,8 +288,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     ]);
 
     const evaluableConfig = await generateEvaluableConfig(
-       [source, []],
-      constants,
+      [source, []],
+      constants
     );
 
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT

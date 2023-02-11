@@ -48,7 +48,7 @@ export const expressionConsumerDeploy = async (
 ) => {
   const expressionDeployer = await rainterpreterExpression(
     interpreter,
-    sources, 
+    sources,
     constants
   );
   const libEncodedDispatch = await libEncodedDispatchDeploy();
