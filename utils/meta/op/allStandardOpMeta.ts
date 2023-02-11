@@ -92,7 +92,7 @@ export const getRainterpreterOpMetaBytes = (): string => {
 
 /**
  * @public
- * Generate the JSON file of Rainterpreter opmeta
+ * Generate the JSON file of Rainterpsreter opmeta
  *
  * @param path - The path to write the file on, default is the current path
  * @param fileName - The name of the file, default is "RainterpreterOpmeta"
