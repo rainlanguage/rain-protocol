@@ -35,9 +35,6 @@ error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 /// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
 error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
-/// Thrown when the ERC1820 registry did not accept our contracts as needed.
-error RegistryError(address account, bytes32 interfaceId);
-
 /// @dev The function pointers known to the expression deployer. These are
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
@@ -168,51 +165,6 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
             ),
             address(this)
         );
-        IERC1820_REGISTRY.updateERC165Cache(
-            address(this),
-            type(IExpressionDeployerV1).interfaceId
-        );
-        IERC1820_REGISTRY.updateERC165Cache(
-            config_.interpreter,
-            type(IInterpreterV1).interfaceId
-        );
-        IERC1820_REGISTRY.updateERC165Cache(
-            config_.store,
-            type(IInterpreterStoreV1).interfaceId
-        );
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                address(this),
-                type(IExpressionDeployerV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                address(this),
-                type(IExpressionDeployerV1).interfaceId
-            );
-        }
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                config_.interpreter,
-                type(IInterpreterV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                config_.interpreter,
-                type(IInterpreterV1).interfaceId
-            );
-        }
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                config_.store,
-                type(IInterpreterStoreV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                config_.store,
-                type(IInterpreterStoreV1).interfaceId
-            );
-        }
     }
 
     // @inheritdoc ERC165
