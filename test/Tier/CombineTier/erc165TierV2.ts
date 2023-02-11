@@ -27,13 +27,13 @@ import { ALWAYS } from "../../../utils/tier";
 const Opcode = AllStandardOps;
 
 describe("CombineTier ERC165 tests", async function () {
-  let stakeFactory: StakeFactory; 
-  
+  let stakeFactory: StakeFactory;
+
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0])
-   }) 
+    await deploy1820(signers[0]);
+  });
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
@@ -53,11 +53,11 @@ describe("CombineTier ERC165 tests", async function () {
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
     const evaluableConfig0 = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [ALWAYS],
+      [ALWAYS]
     );
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -78,7 +78,7 @@ describe("CombineTier ERC165 tests", async function () {
       constants,
     };
     const evaluableConfig1 = await generateEvaluableConfig(
-      combineTierSourceConfig.sources ,
+      combineTierSourceConfig.sources,
       combineTierSourceConfig.constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
@@ -102,14 +102,11 @@ describe("CombineTier ERC165 tests", async function () {
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
     const evaluableConfig0 = await generateEvaluableConfig(
-      
-         [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-         [max_uint256],
-
-      
+      [
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

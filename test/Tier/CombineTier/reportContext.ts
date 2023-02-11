@@ -12,12 +12,12 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
-describe("CombineTier report context tests", async function () { 
+describe("CombineTier report context tests", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0])
-   })   
+    await deploy1820(signers[0]);
+  });
 
   // report time for tier context
   const ctxAccount = op(Opcode.context, 0x0000);
@@ -35,8 +35,8 @@ describe("CombineTier report context tests", async function () {
 
     const sourceReport = concat([op(Opcode.context, 0x0100)]);
     const evaluableConfig = await generateEvaluableConfig(
-       [sourceReport, sourceReportTimeForTierDefault],
-       [],
+      [sourceReport, sourceReportTimeForTierDefault],
+      []
     );
 
     const combineTier = (await combineTierDeploy(signers[0], {

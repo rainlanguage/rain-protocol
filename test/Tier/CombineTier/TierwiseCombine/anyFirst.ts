@@ -24,12 +24,12 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'any' logic and 'first' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.context, 0x0000); 
+  const ctxAccount = op(Opcode.context, 0x0000);
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0])
-   })
+    await deploy1820(signers[0]);
+  });
 
   // prettier-ignore
   // return default report
@@ -50,11 +50,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     const timestamp1 = (await getBlockTimestamp()) + 100;
 
     const evaluableConfigFuture = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [
+      [
         numArrayToReport([
           timestamp0,
           timestamp0,
@@ -65,7 +65,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
           timestamp1,
           timestamp1,
         ]),
-      ],
+      ]
     );
     const futureTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -73,11 +73,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
 
     const evaluableConfigAlways = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [ALWAYS],
+      [ALWAYS]
     );
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -85,11 +85,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
 
     const evaluableConfigNever = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [NEVER],
+      [NEVER]
     );
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -134,8 +134,8 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     ]);
 
     const evaluableConfigCombine = await generateEvaluableConfig(
-       [sourceReport, sourceReportTimeForTierDefault],
-      constants,
+      [sourceReport, sourceReportTimeForTierDefault],
+      constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
@@ -166,11 +166,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     const signers = await ethers.getSigners();
 
     const evaluableConfigAlways = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [ALWAYS],
+      [ALWAYS]
     );
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -178,11 +178,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
 
     const evaluableConfigNever = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [NEVER],
+      [NEVER]
     );
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -209,8 +209,8 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ),
     ]);
     const evaluableConfigCombine = await generateEvaluableConfig(
-       [sourceReport, sourceReportTimeForTierDefault],
-      constants,
+      [sourceReport, sourceReportTimeForTierDefault],
+      constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
@@ -258,8 +258,8 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     ]);
 
     const evaluableConfig = await generateEvaluableConfig(
-       [sourceReport, sourceReportTimeForTierDefault],
-      constants,
+      [sourceReport, sourceReportTimeForTierDefault],
+      constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,

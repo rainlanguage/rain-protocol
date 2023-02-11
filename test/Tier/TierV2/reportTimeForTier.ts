@@ -15,12 +15,12 @@ import {
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import { Tier } from "../../../utils/types/tier";
 
-describe("TierV2 report time for tier op", async function () { 
+describe("TierV2 report time for tier op", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0])
-   }) 
+    await deploy1820(signers[0]);
+  });
   it("should return ITierV2 report time for tier when using opcode", async () => {
     const signers = await ethers.getSigners();
 
@@ -47,10 +47,9 @@ describe("TierV2 report time for tier op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-         [readWriteTier.address, Tier.FOUR],
-      
+      [source],
+      [readWriteTier.address, Tier.FOUR],
+
       rainInterpreter,
       1
     );
