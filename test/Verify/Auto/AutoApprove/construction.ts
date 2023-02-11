@@ -1,10 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import {
-  InitializeEvent,
-  
-} from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { InitializeEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
@@ -27,12 +24,10 @@ describe("AutoApprove construction", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
-  before(async () => { 
-
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
-
+    await deploy1820(signers[0]);
 
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();

@@ -5,9 +5,7 @@ import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
 import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
-import {
-  ImplementationEvent as ImplementationEventAutoApproveFactory,
-  } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
+import { ImplementationEvent as ImplementationEventAutoApproveFactory } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";

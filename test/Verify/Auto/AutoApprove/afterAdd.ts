@@ -2,10 +2,7 @@ import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import {
-  ContextEvent,
-  
-} from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ContextEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
@@ -29,10 +26,10 @@ describe("AutoApprove afterAdd", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();

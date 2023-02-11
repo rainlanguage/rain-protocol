@@ -29,15 +29,13 @@ describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
-  before(async () => {  
-
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy(); 
-
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   beforeEach(async () => {
