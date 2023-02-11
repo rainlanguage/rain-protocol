@@ -20,10 +20,10 @@ describe("Stake maxRedeem", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
   });
@@ -65,12 +65,7 @@ describe("Stake maxRedeem", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      
-         source,
-         constants,
-      
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",

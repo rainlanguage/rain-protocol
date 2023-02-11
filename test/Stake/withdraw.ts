@@ -7,7 +7,6 @@ import {
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
-
   zeroAddress,
 } from "../../utils";
 import {
@@ -22,10 +21,7 @@ import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 
-
-
-import {  op, Opcode } from "../../utils";
-
+import { op, Opcode } from "../../utils";
 
 import { assertError } from "../../utils/test/assertError";
 
@@ -35,10 +31,10 @@ describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
   });
@@ -84,12 +80,7 @@ describe("Stake withdraw", async function () {
 
     const source = [depositSource, withdrawSource];
 
-    const evaluableConfig = await generateEvaluableConfig(
-      
-         source,
-         constants,
-      
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -145,12 +136,7 @@ describe("Stake withdraw", async function () {
 
     const source = [depositSource, withdrawSource]; // max_withdraw set to 10
 
-    const evaluableConfig = await generateEvaluableConfig(
-      
-         source,
-         constants,
-      
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -205,12 +191,7 @@ describe("Stake withdraw", async function () {
 
     const source = [max_deposit, max_withdraw]; // max_withdraw set to 10
 
-    const evaluableConfig = await generateEvaluableConfig(
-      
-         source,
-         constants,
-      
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -299,10 +280,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -350,10 +329,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -410,10 +387,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -475,10 +450,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -541,10 +514,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -637,10 +608,8 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-    
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -679,12 +648,7 @@ describe("Stake withdraw", async function () {
 
     const source = [max_deposit, max_withdraw];
 
-    const evaluableConfig = await generateEvaluableConfig(
-      
-         source,
-         constants,
-      
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -785,10 +749,8 @@ describe("Stake withdraw", async function () {
     const constants = [max_uint256];
     const source = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
     const evaluableConfig = await generateEvaluableConfig(
-      
-         [source, source],
-         constants,
-      
+      [source, source],
+      constants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

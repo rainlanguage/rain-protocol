@@ -21,10 +21,10 @@ describe("Stake many successive deposits and withdraws", async function () {
   let reportOMeter: ReportOMeter;
   let token: ReserveToken18;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
     reportOMeter = await reportOMeterDeploy();
@@ -57,10 +57,8 @@ describe("Stake many successive deposits and withdraws", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -166,10 +164,8 @@ describe("Stake many successive deposits and withdraws", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -238,10 +234,8 @@ describe("Stake many successive deposits and withdraws", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants,
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

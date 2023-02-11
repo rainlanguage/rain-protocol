@@ -36,10 +36,10 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
     rainInterpreter = await rainterpreterDeploy();
@@ -74,10 +74,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -105,10 +103,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-         [stake.address, Tier.ONE],
-      
+      [source0],
+      [stake.address, Tier.ONE],
+
       rainInterpreter,
       1
     );
@@ -132,10 +129,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-    
-         [source1],
-         [stake.address, Tier.TWO, THRESHOLDS[0]],
-     
+      [source1],
+      [stake.address, Tier.TWO, THRESHOLDS[0]],
+
       rainInterpreter,
       1
     );
@@ -159,10 +155,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source2],
-         [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
-            rainInterpreter,
+      [source2],
+      [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
+      rainInterpreter,
       1
     );
 
@@ -186,10 +181,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression3 = await expressionConsumerDeploy(
-      
-         [source3],
-         [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
-      
+      [source3],
+      [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
+
       rainInterpreter,
       1
     );
@@ -215,10 +209,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression4 = await expressionConsumerDeploy(
-      
-         [source4],
-         [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
-      
+      [source4],
+      [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
+
       rainInterpreter,
       1
     );
@@ -245,10 +238,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression5 = await expressionConsumerDeploy(
-      
-         [source5],
-         [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
-      
+      [source5],
+      [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
+
       rainInterpreter,
       1
     );
@@ -276,10 +268,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression6 = await expressionConsumerDeploy(
-      
-         [source6],
-         [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
-      
+      [source6],
+      [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
+
       rainInterpreter,
       1
     );
@@ -308,10 +299,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression7 = await expressionConsumerDeploy(
-      
-         [source7],
-         [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
-      
+      [source7],
+      [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
+
       rainInterpreter,
       1
     );
@@ -352,10 +342,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -376,10 +364,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-         [stake.address, Tier.ZERO],
-      
+      [source0],
+      [stake.address, Tier.ZERO],
+
       rainInterpreter,
       1
     );
@@ -413,10 +400,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -454,10 +439,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.ONE, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -494,10 +478,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -535,10 +517,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.ONE, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -585,10 +566,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const blockTime1_ = await getBlockTimestamp();
 
     const expression1 = await expressionConsumerDeploy(
-    
-         [source],
-         [stake.address, Tier.TWO, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.TWO, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -631,10 +611,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -671,10 +649,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.ONE, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -754,10 +731,8 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      
-         stakeExpressionConfigSources,
-         stakeExpressionConfigConstants
-      
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -793,10 +768,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.ONE, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -810,10 +784,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const timeOne0_ = await logic.stackTop();
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.EIGHT, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.EIGHT, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -846,10 +819,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const timeOne1_ = await logic.stackTop();
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source],
-         [stake.address, Tier.FOUR, ...THRESHOLDS],
-      
+      [source],
+      [stake.address, Tier.FOUR, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
