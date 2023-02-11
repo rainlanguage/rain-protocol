@@ -24,12 +24,12 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { compareStructs } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook add order", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -38,8 +38,11 @@ describe("OrderBook add order", async function () {
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
-  before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  before(async () => { 
+     // Deploy ERC1820Registry 
+     const signers = await ethers.getSigners(); 
+     await deploy1820(signers[0]) 
+
   });
 
   it("should add orders", async function () {
@@ -48,9 +51,7 @@ describe("OrderBook add order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook()
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -69,12 +70,12 @@ describe("OrderBook add order", async function () {
     const source_A = concat([
       aOpMax,
       aRatio,
-    ]);
+    ]); 
 
-    const EvaluableConfig_A = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A = await generateEvaluableConfig(
+      [source_A, []] ,
+      constants_A
+    );
 
     const orderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -118,12 +119,12 @@ describe("OrderBook add order", async function () {
       bRatio,
     ]);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B"); 
 
-    const EvaluableConfig_B = await generateEvaluableConfig({
-      sources: [source_B, []],
-      constants: constants_B,
-    });
+    const EvaluableConfig_B = await generateEvaluableConfig(
+      [source_B, []],
+      constants_B
+    );
 
     const orderConfig_B: OrderConfigStruct = {
       validInputs: [

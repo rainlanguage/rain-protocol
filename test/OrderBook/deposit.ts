@@ -13,9 +13,11 @@ import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 import { getRainContractMetaBytes } from "../../utils";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 describe("OrderBook vault deposit", async function () {
-  let orderBookFactory: ContractFactory;
+ 
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -26,8 +28,10 @@ describe("OrderBook vault deposit", async function () {
     await tokenB.initialize();
   });
 
-  before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  before(async () => { 
+    // Deploy ERC1820Registry 
+    const signers = await ethers.getSigners(); 
+    await deploy1820(signers[0])  
   });
 
   it("should allow deposits", async function () {
@@ -36,9 +40,7 @@ describe("OrderBook vault deposit", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());

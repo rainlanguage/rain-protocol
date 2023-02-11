@@ -22,6 +22,7 @@ import {
 } from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -39,7 +40,11 @@ describe("Lobby Invalid Refund", async function () {
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry 
+    const signers = await ethers.getSigners(); 
+    await deploy1820(signers[0])  
+
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
@@ -95,7 +100,8 @@ describe("Lobby Invalid Refund", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -274,7 +280,8 @@ describe("Lobby Invalid Refund", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -469,7 +476,8 @@ describe("Lobby Invalid Refund", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -675,7 +683,8 @@ describe("Lobby Invalid Refund", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources , 
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {

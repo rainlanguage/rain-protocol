@@ -34,13 +34,15 @@ import {
   compareStructs,
 } from "../../utils/test/compareStructs";
 import { getRainContractMetaBytes } from "../../utils";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook counterparty in context", async function () {
   const cCounterparty = op(Opcode.context, 0x0002);
 
-  let orderBookFactory: ContractFactory;
+  
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -51,8 +53,12 @@ describe("OrderBook counterparty in context", async function () {
     await tokenB.initialize();
   });
 
-  before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  before(async () => { 
+
+    // Deploy ERC1820Registry 
+    const signers = await ethers.getSigners(); 
+    await deploy1820(signers[0])   
+
   });
 
   it("should expose counterparty context to RainInterpreter calculations (e.g. Order_A will noop if Order_B counterparty does not match Carol's address)", async function () {
@@ -63,9 +69,7 @@ describe("OrderBook counterparty in context", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -111,10 +115,10 @@ describe("OrderBook counterparty in context", async function () {
     ]);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    const EvaluableConfig_A = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A = await generateEvaluableConfig(
+       [source_A, []],
+       constants_A,
+    );
 
     const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -150,10 +154,10 @@ describe("OrderBook counterparty in context", async function () {
       bRatio,
     ]);
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
-    const EvaluableConfig_B = await generateEvaluableConfig({
-      sources: [source_B, []],
-      constants: constants_B,
-    });
+    const EvaluableConfig_B = await generateEvaluableConfig(
+       [source_B, []],
+       constants_B,
+    );
     const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
@@ -188,10 +192,10 @@ describe("OrderBook counterparty in context", async function () {
       cRatio,
     ]);
     const carolOrder = ethers.utils.toUtf8Bytes("Order_C");
-    const EvaluableConfig_C = await generateEvaluableConfig({
-      sources: [source_C, []],
-      constants: constants_C,
-    });
+    const EvaluableConfig_C = await generateEvaluableConfig(
+       [source_C, []],
+       constants_C,
+    );
     const OrderConfig_C: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: carolInputVault },
