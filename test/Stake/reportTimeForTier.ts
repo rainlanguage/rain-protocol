@@ -16,6 +16,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -25,7 +26,10 @@ describe("Stake reportTimeForTier", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -53,11 +57,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -168,11 +171,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -260,11 +262,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -355,11 +356,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -409,11 +409,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -449,11 +448,10 @@ describe("Stake reportTimeForTier", async function () {
     const source = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

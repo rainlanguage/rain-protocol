@@ -13,6 +13,7 @@ import {
 } from "../../utils";
 import { max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 
@@ -20,7 +21,12 @@ describe("Stake maxMint", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
 
-  before(async () => {
+  before(async () => { 
+
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -63,11 +69,10 @@ describe("Stake maxMint", async function () {
 
     const source = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
+      
+         source,
+         constants,
+      
     );
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
