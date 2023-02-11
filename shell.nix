@@ -88,8 +88,8 @@ let
   '';
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
-    # Using mumbai as default
-    npx hardhat run deployment/interpreter.ts --network mumbai
+    # Deploying to mumbai network
+    npx hardhat run deployment/deployInterpreter.ts --network mumbai
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
