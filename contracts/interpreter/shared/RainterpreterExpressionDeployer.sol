@@ -168,51 +168,6 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
             ),
             address(this)
         );
-        IERC1820_REGISTRY.updateERC165Cache(
-            address(this),
-            type(IExpressionDeployerV1).interfaceId
-        );
-        IERC1820_REGISTRY.updateERC165Cache(
-            config_.interpreter,
-            type(IInterpreterV1).interfaceId
-        );
-        IERC1820_REGISTRY.updateERC165Cache(
-            config_.store,
-            type(IInterpreterStoreV1).interfaceId
-        );
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                address(this),
-                type(IExpressionDeployerV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                address(this),
-                type(IExpressionDeployerV1).interfaceId
-            );
-        }
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                config_.interpreter,
-                type(IInterpreterV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                config_.interpreter,
-                type(IInterpreterV1).interfaceId
-            );
-        }
-        if (
-            !IERC1820_REGISTRY.implementsERC165Interface(
-                config_.store,
-                type(IInterpreterStoreV1).interfaceId
-            )
-        ) {
-            revert RegistryError(
-                config_.store,
-                type(IInterpreterStoreV1).interfaceId
-            );
-        }
     }
 
     // @inheritdoc ERC165
