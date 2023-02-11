@@ -35,9 +35,6 @@ error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 /// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
 error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
-/// Thrown when the ERC1820 registry did not accept our contracts as needed.
-error RegistryError(address account, bytes32 interfaceId);
-
 /// @dev The function pointers known to the expression deployer. These are
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
