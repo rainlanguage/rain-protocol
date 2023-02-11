@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import type { CombineTier } from "../../../../typechain";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
@@ -22,7 +23,13 @@ import { Tier } from "../../../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
-describe("CombineTier tierwise combine report with 'every' logic and 'max' mode", async function () {
+describe("CombineTier tierwise combine report with 'every' logic and 'max' mode", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0])
+   }) 
+
   // report time for tier context
   const ctxAccount = op(Opcode.context, 0x0000);
 
@@ -37,24 +44,24 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
   it("should correctly combine Always and Never tier reports with every and max selector", async () => {
     const signers = await ethers.getSigners();
 
-    const evaluableConfigAlways = await generateEvaluableConfig({
-      sources: [
+    const evaluableConfigAlways = await generateEvaluableConfig(
+       [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [ALWAYS],
-    });
+       [ALWAYS],
+    );
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfigAlways,
     })) as CombineTier;
-    const evaluableConfigNever = await generateEvaluableConfig({
-      sources: [
+    const evaluableConfigNever = await generateEvaluableConfig(
+       [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [NEVER],
-    });
+       [NEVER],
+    );
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfigNever,
@@ -80,10 +87,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       ),
     ]);
 
-    const evaluableConfigCombine = await generateEvaluableConfig({
-      sources: [sourceReport, sourceReportTimeForTierDefault],
+    const evaluableConfigCombine = await generateEvaluableConfig(
+       [sourceReport, sourceReportTimeForTierDefault],
       constants,
-    });
+    );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       evaluableConfig: evaluableConfigCombine,
@@ -129,10 +136,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       ),
     ]);
 
-    const evaluableConfigCombine = await generateEvaluableConfig({
-      sources: [sourceReport, sourceReportTimeForTierDefault],
+    const evaluableConfigCombine = await generateEvaluableConfig(
+       [sourceReport, sourceReportTimeForTierDefault],
       constants,
-    });
+    );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       evaluableConfig: evaluableConfigCombine,

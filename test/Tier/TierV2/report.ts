@@ -4,6 +4,7 @@ import { IInterpreterV1Consumer } from "../../../typechain";
 import { zeroPad32, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
@@ -16,7 +17,12 @@ import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareTierReports } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
-describe("TierV2 report op", async function () {
+describe("TierV2 report op", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0])
+   }) 
   it("should return ITierV2 report when using opcode", async () => {
     const signers = await ethers.getSigners();
 
@@ -42,10 +48,10 @@ describe("TierV2 report op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [readWriteTier.address],
-      },
+      
+         [source],
+         [readWriteTier.address],
+    
       rainInterpreter,
       1
     );
