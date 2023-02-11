@@ -285,7 +285,6 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         if (
             config_
                 .evaluableConfig
-                .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)]
                 .length > 0
         ) {
@@ -329,14 +328,20 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
 
         emit Initialize(msg.sender, config_, address(token_));
 
-        evaluable = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(
-                CAN_LIVE_MIN_OUTPUTS,
-                CALCULATE_BUY_MIN_OUTPUTS,
-                HANDLE_BUY_MIN_OUTPUTS
-            )
-        );
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
+                LibUint256Array.arrayFrom(
+                    CAN_LIVE_MIN_OUTPUTS,
+                    CALCULATE_BUY_MIN_OUTPUTS,
+                    HANDLE_BUY_MIN_OUTPUTS
+                )
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function _dispatchCanLive(

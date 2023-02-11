@@ -175,18 +175,17 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard, IInterpreterCallerV1 {
         __ERC4626_init(config_.asset);
         __TierV2_init();
 
-        Evaluable memory evaluable_ = config_
+        (interpreter, , expression) = config_
             .evaluableConfig
             .deployer
             .deployExpression(
-                config_.evaluableConfig.expressionConfig,
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     MAX_DEPOSIT_MIN_OUTPUTS,
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
-        interpreter = evaluable_.interpreter;
-        expression = evaluable_.expression;
         emit Initialize(msg.sender, config_);
     }
 

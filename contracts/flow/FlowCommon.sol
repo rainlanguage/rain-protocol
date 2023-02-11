@@ -66,13 +66,20 @@ contract FlowCommon is
         if (flowMinOutputs_ < MIN_FLOW_SENTINELS) {
             revert BadMinStackLength(flowMinOutputs_);
         }
+        EvaluableConfig memory config_;
+        Evaluable memory evaluable_;
         for (uint256 i_ = 0; i_ < evaluableConfigs_.length; i_++) {
-            Evaluable memory evaluable_ = evaluableConfigs_[i_]
-                .deployer
-                .deployExpression(
-                    evaluableConfigs_[i_].expressionConfig,
+            config_ = evaluableConfigs_[i_];
+            (
+                IInterpreterV1 interpreter_,
+                IInterpreterStoreV1 store_,
+                address expression_
+            ) = config_.deployer.deployExpression(
+                    config_.sources,
+                    config_.constants,
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
+            evaluable_ = Evaluable(interpreter_, store_, expression_);
             _flows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }
