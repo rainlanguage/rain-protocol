@@ -1,18 +1,12 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
-const Opcode = AllStandardOps;
+import { Parser } from "rainlang";
+import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta";
 
 describe("RainInterpreter MathOps standard math", async () => {
   let rainInterpreter: Rainterpreter;
@@ -29,37 +23,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform a calculation using the block number as a value", async () => {
-    const constants = [1, 2, 3, 4, 6];
-
-    const one = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const two = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const three = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const four = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
-    const six = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (BLOCK_NUMBER (6 3 /) (3 4 (2 1 -) +) *)
-          op(Opcode.blockNumber),
-            six,
-            three,
-          op(Opcode.div, 2),
-            three,
-            four,
-              two,
-              one,
-            op(Opcode.sub, 2),
-          op(Opcode.add, 3),
-        op(Opcode.mul, 3),
-      ]),
-    ];
+    const expressionString = `_: mul(add(sub(2 1) 3 4) div(6 3) block-number());`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -116,27 +89,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
-    const constants = [7, 4, 2];
-    const v7 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (7 4 2 %)
-          v7,
-          v4, // -> r3
-          v2, // -> r1
-        op(Opcode.mod, 3),
-      ]),
-    ];
+    const expressionString = `_: mod(7 4 2);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -157,25 +119,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
-    const constants = [9, 3];
-    const v9 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (9 3 %)
-          v9,
-          v3,
-        op(Opcode.mod, 2),
-      ]),
-    ];
+    const expressionString = `_: mod(9 3);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -196,25 +149,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
-    const constants = [5, 2];
-    const v5 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (5 2 %)
-          v5,
-          v2,
-        op(Opcode.mod, 2),
-      ]),
-    ];
+    const expressionString = `_: mod(5 2);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -235,27 +179,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform exponentiation on a sequence of numbers", async () => {
-    const constants = [2, 4, 3];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (2 4 3 ^)
-          v2,
-          v4,
-          v3,
-        op(Opcode.exp, 3),
-      ]),
-    ];
+    const expressionString = `_: exp(2 4 3);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -276,25 +209,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform exponentiation correctly", async () => {
-    const constants = [2, 4];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
     // prettier-ignore
-    const sources = [
-      concat([
-        // (2 4 ^)
-          v2,
-          v4,
-        op(Opcode.exp, 2),
-      ]),
-    ];
+    const expressionString = `_: exp(2 4);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -315,25 +239,16 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return the maximum of a sequence of numbers", async () => {
-    const constants = [33, 11, 22];
-    const v33 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-
     // prettier-ignore
-    const source = concat([
-      // (22 11 33 max)
-        v22,
-        v11,
-        v33,
-      op(Opcode.max, 3),
-    ]);
+    const expressionString = `_: max(22 11 33);`;
+
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -349,25 +264,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return the minimum of a sequence of numbers", async () => {
-    const constants = [33, 11, 22];
-    const v33 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: min(22 11 33);`;
 
-    // prettier-ignore
-    const source = concat([
-      // (22 11 33 min)
-        v22,
-        v11,
-        v33,
-      op(Opcode.min, 3),
-    ]);
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -383,31 +288,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
-    const constants = [2, 3];
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const expressionString = `_: div(mul(add(2 2 2) 3) 2 3);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (((2 2 2 +) 3 *) 2 3 /)
-              v2,
-              v2,
-              v2,
-            op(Opcode.add, 3),
-            v3,
-          op(Opcode.mul, 2),
-          v2,
-          v3,
-        op(Opcode.div, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -428,27 +317,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
-    const constants = [3, 2, 13];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v13 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: mod(13 2 3);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (13 2 3 %)
-          v13,
-          v2,
-          v3,
-        op(Opcode.mod, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -469,27 +346,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
-    const constants = [3, 2, 12];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v12 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: div(12 2 3);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (12 2 3 /)
-          v12,
-          v2,
-          v3,
-        op(Opcode.div, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -510,27 +375,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should multiply a sequence of numbers together", async () => {
-    const constants = [5, 4, 3];
-    const v5 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: mul(3 4 5);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (3 4 5 *)
-          v3,
-          v4,
-          v5,
-        op(Opcode.mul, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -551,27 +404,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should subtract a sequence of numbers from an initial number", async () => {
-    const constants = [3, 2, 10];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: sub(10 2 3);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (10 2 3 -)
-          v10,
-          v2,
-          v3,
-        op(Opcode.sub, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
@@ -592,27 +433,15 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should add a sequence of numbers together", async () => {
-    const constants = [3, 2, 1];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const expressionString = `_: add(1 2 3);`;
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        // (1 2 3 +)
-          v1,
-          v2,
-          v3,
-        op(Opcode.add, 3),
-      ]),
-    ];
+    const stateConfig = Parser.getStateConfig(
+      expressionString,
+      getRainterpreterOpMetaBytes()
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      stateConfig,
       rainInterpreter,
       1
     );
