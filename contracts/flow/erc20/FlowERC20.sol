@@ -88,13 +88,9 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
-                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            )
+        evaluable = config_.evaluableConfig.deployer.deployExpression(
+            config_.evaluableConfig.expressionConfig,
+            LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
         );
 
         __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);

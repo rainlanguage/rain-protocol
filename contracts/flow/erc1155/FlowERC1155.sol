@@ -67,13 +67,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
-                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            )
+        evaluable = config_.evaluableConfig.deployer.deployExpression(
+            config_.evaluableConfig.expressionConfig,
+            LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
         );
 
         __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);

@@ -49,14 +49,9 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
         _transferOwnership(msg.sender);
         emit Initialize(msg.sender, config_);
-
-        evaluable = Evaluable(
-            IInterpreterV1(config_.interpreter),
-            IInterpreterStoreV1(config_.store),
-            config_.deployer.deployExpression(
-                config_.expressionConfig,
-                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-            )
+        evaluable = config_.deployer.deployExpression(
+            config_.expressionConfig,
+            LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
         );
     }
 

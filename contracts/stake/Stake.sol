@@ -47,9 +47,6 @@ error ZeroWithdrawAssets();
 /// @dev Thrown when the amount of shares being burned on withdrawal is zero.
 error ZeroWithdrawShares();
 
-/// @dev Thrown when a nonzero store is provided.
-error UnexpectedStore(IInterpreterStoreV1 store);
-
 bytes32 constant CALLER_META_HASH = bytes32(
     0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
 );
@@ -172,23 +169,24 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard, IInterpreterCallerV1 {
         if (address(config_.asset) == address(0)) {
             revert ZeroAsset();
         }
-        if (config_.evaluableConfig.store != NO_STORE) {
-            revert UnexpectedStore(config_.evaluableConfig.store);
-        }
 
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
         __TierV2_init();
 
-        interpreter = config_.evaluableConfig.interpreter;
-        expression = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(
-                MAX_DEPOSIT_MIN_OUTPUTS,
-                MAX_WITHDRAW_MIN_OUTPUTS
-            )
-        );
+        Evaluable memory evaluable_ = config_
+            .evaluableConfig
+            .deployer
+            .deployExpression(
+                config_.evaluableConfig.expressionConfig,
+                LibUint256Array.arrayFrom(
+                    MAX_DEPOSIT_MIN_OUTPUTS,
+                    MAX_WITHDRAW_MIN_OUTPUTS
+                )
+            );
+        interpreter = evaluable_.interpreter;
+        expression = evaluable_.expression;
         emit Initialize(msg.sender, config_);
     }
 

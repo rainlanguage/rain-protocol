@@ -73,15 +73,6 @@ StateNamespace constant DEFAULT_STATE_NAMESPACE = StateNamespace.wrap(0);
 /// caller because the delegatee contract can write arbitrarily to the state of
 /// the delegator, which severely limits the generality of contract composition.
 interface IInterpreterV1 {
-    /// This is the literal InterpreterOpMeta bytes to be used offchain to make
-    /// sense of the opcodes in this interpreter deployment, as a human. For
-    /// formats like json that make heavy use of boilerplate, repetition and
-    /// whitespace, some kind of compression is recommended.
-    /// @param sender The `msg.sender` providing the op meta.
-    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
-    /// etc. and is intended for offchain consumption.
-    event InterpreterOpMeta(address sender, bytes opMeta);
-
     /// Exposes the function pointers as `uint16` values packed into a single
     /// `bytes` in the same order as they would be indexed into by opcodes. For
     /// example, if opcode `2` should dispatch function at position `0x1234` then
