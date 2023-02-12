@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../../utils/constants/bigNumber";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -29,7 +30,11 @@ describe("Sale redeemableERC20 token", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);   
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -74,10 +79,10 @@ describe("Sale redeemableERC20 token", async function () {
     ];
     const minimumTier = Tier.FOUR;
 
-    const evaluableConfig = await generateEvaluableConfig({
+    const evaluableConfig = await generateEvaluableConfig(
       sources,
       constants,
-    });
+    );
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -189,10 +194,10 @@ describe("Sale redeemableERC20 token", async function () {
       concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
+    const evaluableConfig = await generateEvaluableConfig(
       sources,
       constants,
-    });
+    );
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -292,10 +297,10 @@ describe("Sale redeemableERC20 token", async function () {
       concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
+    const evaluableConfig = await generateEvaluableConfig(
       sources,
       constants,
-    });
+    );
     const [, token] = await saleDeploy(
       signers,
       deployer,

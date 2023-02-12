@@ -7,6 +7,7 @@ import { TimeoutEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -32,7 +33,11 @@ describe("Sale timeout", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -74,10 +79,10 @@ describe("Sale timeout", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
+    const evaluableConfig = await generateEvaluableConfig(
       sources,
       constants,
-    });
+    );
     await assertError(
       async () =>
         await saleDeploy(
