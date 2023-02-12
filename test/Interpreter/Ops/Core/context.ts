@@ -1,6 +1,8 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
@@ -8,17 +10,23 @@ import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe("RainInterpreter context", async function () {
+describe("RainInterpreter context", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+  })  
+
   it("should support context height [COLUMN] up to 16", async () => {
     const constants = [];
     const sources = [concat([op(Opcode.context, 0x0f00)])];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -39,10 +47,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -63,10 +71,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -104,10 +112,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -148,10 +156,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         10
       );
 
@@ -193,10 +201,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         3
       );
 
@@ -226,10 +234,10 @@ describe("RainInterpreter context", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 

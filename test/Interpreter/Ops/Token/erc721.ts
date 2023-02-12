@@ -9,6 +9,7 @@ import type {
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -29,7 +30,10 @@ describe("RainInterpreter ERC721 ops", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -72,10 +76,10 @@ describe("RainInterpreter ERC721 ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
+      
         sources,
         constants,
-      },
+      
       rainInterpreter,
       1
     );
@@ -120,10 +124,10 @@ describe("RainInterpreter ERC721 ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
+      
         sources,
         constants,
-      },
+      
       rainInterpreter,
       1
     );

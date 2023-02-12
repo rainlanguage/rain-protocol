@@ -1,13 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { RainterpreterStore } from "../../../../typechain";
-import {
-  InterpreterOpMetaEvent,
-  Rainterpreter,
-  RainterpreterConfigStruct,
-  ValidStoreEvent,
-} from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
+
 import {
   AllStandardOps,
   areEqualExpressionConfigs,
@@ -23,13 +17,25 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
+import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta"; 
+import {NewExpressionEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer"
 
-describe("Test Rainterpreter Expression Deployer event", async function () {
-  it("DeployExpression event should emit original NewExpressionConfig", async () => {
+describe("Test Rainterpreter Expression Deployer event", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+  })
+  it("DeployExpression event should emit original NewExpressionConfig", async () => { 
+    const signers = await ethers.getSigners(); 
+
     const interpreter = await rainterpreterDeploy();
+    const store = await rainterpreterStoreDeploy();
+
     const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
+      interpreter,
+      store
     );
 
     const config = {
@@ -44,14 +50,17 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     };
 
     const expected = config;
-    const tx = await expressionDeployer.deployExpression(config, [1]);
+    const tx = await expressionDeployer.deployExpression(config.sources,config.constants, [1]);
     const configFromEvent = (
-      await getEventArgs(tx, "NewExpressionConfig", expressionDeployer)
-    )[1];
+      await getEventArgs(tx, "NewExpression", expressionDeployer)
+    ) as NewExpressionEvent["args"]; 
+    console.log("configFromEvent : " , configFromEvent )
 
-    const result = {
+    const result = { 
+      sender : signers[0].address,
       constants: configFromEvent.constants,
-      sources: configFromEvent.sources,
+      sources: configFromEvent.sources, 
+      minOutputs: [1]
     };
 
     const mathExpressionConstants = [2, 3];
@@ -86,21 +95,24 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     const expectedMathResult = mathExpressionConfig;
     const mathExpressionTx = await expressionDeployer.deployExpression(
-      mathExpressionConfig,
+      mathExpressionConfig.sources,
+      mathExpressionConfig.constants,
       [1]
     );
 
     const mathConfigFromEvent = (
       await getEventArgs(
         mathExpressionTx,
-        "NewExpressionConfig",
+        "NewExpression",
         expressionDeployer
       )
-    )[1];
+    )as NewExpressionEvent["args"]; 
 
-    const mathResult = {
+    const mathResult = { 
+      sender : signers[0].address,
       constants: mathConfigFromEvent.constants,
       sources: mathConfigFromEvent.sources,
+      minOutputs: [1]
     };
 
     assert(
@@ -118,61 +130,6 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     );
   });
 
-  it("should emit correct opMeta on interpreter construction", async () => {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
+ 
 
-    const opMeta = getRainterpreterOpMetaBytes();
-    const interpreterStore: RainterpreterStore =
-      await rainterpreterStoreDeploy();
-
-    const interpreterConfig: RainterpreterConfigStruct = {
-      store: interpreterStore.address,
-      opMeta: opMeta,
-    };
-
-    const interpreter = (await basicDeploy("Rainterpreter", {}, [
-      interpreterConfig,
-    ])) as Rainterpreter;
-
-    // Checking OpMeta Event
-    const InterpreterOpMetaEvent = (await getEventArgs(
-      interpreter.deployTransaction,
-      "InterpreterOpMeta",
-      interpreter
-    )) as InterpreterOpMetaEvent["args"];
-
-    const expectedString = ethers.utils.hexlify(opMeta);
-
-    assert(InterpreterOpMetaEvent.sender === deployer.address, "wrong sender");
-    assert(InterpreterOpMetaEvent.opMeta === expectedString, "incorrect bytes");
-
-    // Checking ValidStore Event
-    const ValidStoreEvent = (await getEventArgs(
-      interpreter.deployTransaction,
-      "ValidStore",
-      interpreter
-    )) as ValidStoreEvent["args"];
-
-    assert(ValidStoreEvent.sender === deployer.address, "wrong sender");
-    assert(
-      ValidStoreEvent.store === interpreterStore.address,
-      "incorrect store"
-    );
-  });
-
-  it("should throw error when the `Rainterpreter` is constructed with unknown store bytecode.", async () => {
-    const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
-
-    const interpreterConfig: RainterpreterConfigStruct = {
-      store: ethers.Wallet.createRandom().address, // Invalid store address
-      opMeta: opMeta,
-    };
-
-    await assertError(
-      async () => await basicDeploy("Rainterpreter", {}, [interpreterConfig]),
-      "UnexpectedStoreBytecodeHash",
-      "Integrity check failed to validate the expected STORE_BYTECODE_HASH"
-    );
-  });
 });

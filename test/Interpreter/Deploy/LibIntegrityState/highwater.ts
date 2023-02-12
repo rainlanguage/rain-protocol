@@ -1,4 +1,6 @@
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
@@ -9,7 +11,17 @@ import {
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("LibIntegrityCheck highwater tests", async function () {
+describe("LibIntegrityCheck highwater tests", async function () {  
+
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+
+    
+  });
+
+
   it("should prevent nested multioutput on the stack", async () => {
     const constants = [1, 2, 3, 4];
 
@@ -28,10 +40,10 @@ describe("LibIntegrityCheck highwater tests", async function () {
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          {
-            sources: [sourceMAIN, sourceONE],
+          
+             [sourceMAIN, sourceONE],
             constants,
-          },
+          
           1
         ),
       "StackPopUnderflow(3, 0)",
@@ -58,10 +70,10 @@ describe("LibIntegrityCheck highwater tests", async function () {
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          {
-            sources: [sourceMAIN],
+          
+             [sourceMAIN],
             constants,
-          },
+          
           1
         ),
       "StackPopUnderflow(0, 0)",

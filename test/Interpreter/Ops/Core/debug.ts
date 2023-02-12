@@ -1,5 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
@@ -14,7 +16,12 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 
 const Opcode = AllStandardOps;
 
-describe("RainInterpreter debug op", async function () {
+describe("RainInterpreter debug op", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+  }) 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const constants = [10, 20];
 
@@ -28,10 +35,10 @@ describe("RainInterpreter debug op", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -57,10 +64,10 @@ describe("RainInterpreter debug op", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
+        
           sources,
-          constants,
-        },
+          constants
+        ,
         1
       );
 
@@ -95,10 +102,10 @@ describe("RainInterpreter debug op", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source, checkValue],
+        
+           [source, checkValue],
           constants,
-        },
+        
         1
       );
 
@@ -134,10 +141,10 @@ describe("RainInterpreter debug op", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceWHILE],
+        
+           [sourceMAIN, sourceWHILE],
           constants,
-        },
+        
         1
       );
 
@@ -171,10 +178,10 @@ describe("RainInterpreter debug op", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
+        
+           [sourceMAIN, sourceADD],
           constants,
-        },
+        
         1
       );
 

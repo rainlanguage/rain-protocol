@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
 
 import {
   memoryOperand,
@@ -8,11 +9,18 @@ import {
   op,
   RainterpreterOps,
 } from "../../../../utils";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
 
-describe("Rainterpreter maxOutputs test", async function () {
+describe("Rainterpreter maxOutputs test", async function () { 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+  }) 
+
   it("ensure that max outputs caps the number of values that can be returned from the interpreter so that longer stacks are truncated to their ends", async () => {
     // basic check
     let maxOutputs = 3;
@@ -30,10 +38,10 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     let { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source1],
+        
+           [source1],
           constants,
-        },
+        
         maxOutputs
       );
 
@@ -76,10 +84,10 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source2],
+        
+           [source2],
           constants,
-        },
+        
         maxOutputs
       ));
 
@@ -115,10 +123,10 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source3],
-          constants: maxConstants,
-        },
+        
+           [source3],
+           maxConstants,
+        
         maxOutputs
       ));
 

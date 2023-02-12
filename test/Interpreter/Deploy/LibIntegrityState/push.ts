@@ -5,7 +5,9 @@ import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libI
 describe("LibIntegrityCheck push tests", async function () {
   let libIntegrityCheckState: LibIntegrityCheckTest;
 
-  before(async () => {
+  before(async () => { 
+   
+
     libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
@@ -20,8 +22,8 @@ describe("LibIntegrityCheck push tests", async function () {
     const n = 3;
 
     const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
-      "push((bytes[],uint256[]),uint256,uint256,uint256)"
-    ]({ sources, constants: [] }, stackMaxTop, stackTop, n);
+      "push(bytes[],uint256[],uint256,uint256,uint256)"
+    ](sources,  [] , stackMaxTop, stackTop, n);
 
     assert(
       stackTopAfter_.eq(stackTop + 32 * n),
@@ -44,8 +46,8 @@ describe("LibIntegrityCheck push tests", async function () {
     const stackTop = 0;
 
     const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
-      "push((bytes[],uint256[]),uint256,uint256)"
-    ]({ sources, constants: [] }, stackMaxTop, stackTop);
+      "push(bytes[],uint256[],uint256,uint256)"
+    ](sources,  [] , stackMaxTop, stackTop);
 
     assert(stackTopAfter_.eq(stackTop + 32), "did not push up correct bytes");
 
@@ -66,7 +68,7 @@ describe("LibIntegrityCheck push tests", async function () {
 
     const { stackTopAfter_, newStackMaxTop } =
       await libIntegrityCheckState.pushIgnoreHighwater(
-        { sources, constants: [] },
+         sources,  [] ,
         stackMaxTop,
         stackTop
       );
