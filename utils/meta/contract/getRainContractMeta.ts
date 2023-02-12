@@ -8,10 +8,11 @@ import Sale from "../../../contracts/sale/SaleFactory.meta.json";
 import Stake from "../../../contracts/stake/StakeFactory.meta.json";
 import CombineTier from "../../../contracts/tier/CombineTierFactory.meta.json";
 import AutoApprove from "../../../contracts/verify/auto/AutoApproveFactory.meta.json";
-import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
+import ContractMetaSchema from "../../../schema/meta/v0/contract.meta.schema.json";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
-import { metaFromBytes } from "../general";
+import { metaFromBytes, validateMeta } from "../general";
+
 
 /**
  * @public
@@ -44,7 +45,7 @@ export const getRainContractMetaBytes = (
   if (contract === "lobby") meta = Lobby;
   if (contract === "autoapprove") meta = AutoApprove;
   if (contract === "combinetier") meta = CombineTier;
-
+  if (!validateMeta(meta, ContractMetaSchema)) throw new Error("invalid contract meta")
   const content = format(JSON.stringify(meta, null, 4), { parser: "json" });
   const bytes = Uint8Array.from(deflateSync(content));
   let hex = "0x";

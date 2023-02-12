@@ -3,25 +3,121 @@ import Ajv from "ajv";
 import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
+import stringMath from "string-math";
 import { deflateSync, inflateSync } from "zlib";
+
 
 /**
  * @public
  * Validate a meta or array of metas against a schema
  *
- * @param meta - A meta object or array of meta objects (JSON.parsed from meta json file)
- * @param schema - Json schema as object (JSON.parsed) to validate
+ * @param meta - A meta object or array of meta objects or stringified format of them
+ * @param schema - Json schema to validate as object (JSON.parsed) or stringified format
  * @returns boolean
  */
-export const validateMeta = (meta: any, schema: any): boolean => {
-  const ajv = new Ajv();
-  const validate = ajv.compile(schema);
-  if (meta.length) {
-    for (let i = 0; i < meta.length; i++) {
-      if (!validate(meta[i])) return false;
+export const validateMeta = (
+  meta: object | object[] | string,
+  schema: object | string
+): boolean => {
+  const _expandBits = (bits: [number, number]) => {
+    const _len = bits[1] - bits[0] + 1
+    const _result = []
+    for (let i = 0; i < _len; i++) {
+      _result.push(bits[0] + i)
     }
-  } else {
-    if (!validate(meta)) return false;
+    return _result
+  }
+  let _meta
+  let _schema
+  if (typeof meta === "string") _meta = JSON.parse(meta)
+  else _meta = meta
+  if (typeof schema === "string") _schema = JSON.parse(schema)
+  else _schema = schema
+  const ajv = new Ajv();
+  const validate = ajv.compile(_schema);
+  if (!Array.isArray(_meta)) _meta = [_meta]
+
+  const _allAliases = []
+  for (let i = 0; i < _meta.length; i++) {
+    if (!validate(_meta[i])) return false;
+
+    // in-depth validation for op meta
+    if ("operand" in _meta[i] && "inputs" in _meta[i] && "outputs" in _meta[i]) {
+
+      // recursively check for duplicated liases
+      const _names = [_meta[i].name]
+      if (_meta[i].aliases) _names.push(..._meta[i].aliases)
+      let _namesTmp = [..._names]
+      _allAliases.push(..._names)     // cache all aliases for check across all ops
+      for (let j = 0; j < _names.length; j++) {
+        _namesTmp.splice(j, 1)
+        if (_namesTmp.includes(_names[j])) return false;
+        _namesTmp = [..._names]
+      }
+
+      // check for operand args validity
+      if (typeof _meta[i].operand !== "number") {
+        let check = true
+        for (let j = 0; j < _meta[i].operand.length; j++) {
+          // check computation validity
+          if ("computation" in _meta[i].operand[j]) {
+            let _comp = _meta[i].operand[j].computation
+            while (_comp.includes("arg")) _comp = _comp.replace("arg", "30")
+            try { stringMath(_comp) }
+            catch { return false }
+          }
+          // bits range validity
+          if (_meta[i].operand[j].bits[0] > _meta[i].operand[j].bits[1]) return false
+          // check bits overlap
+          const _range1 = _expandBits(_meta[i].operand[j].bits)
+          for (let k = j + 1; k < _meta[i].operand.length; k++) {
+            const _range2 = _expandBits(_meta[i].operand[k].bits)
+            _range1.forEach(v => {
+              if (_range2.includes(v)) check = false
+            })
+            if (!check) return false
+          }
+        }
+      }
+
+      // check for inputs bits and computation validity
+      if (typeof _meta[i].inputs !== "number") {
+        // check bits range validity
+        if ("bits" in _meta[i].inputs) {
+          if (_meta[i].inputs.bits[0] > _meta[i].inputs.bits[1]) return false
+        }
+        // check computation validity
+        if ("computation" in _meta[i].inputs) {
+          let _comp = _meta[i].inputs.computation
+          while (_comp.includes("bits")) _comp = _comp.replace("bits", "30")
+          try { stringMath(_comp) }
+          catch { return false }
+        }
+      }
+
+      // check for outputs bits and computation validity
+      if (typeof _meta[i].outputs !== "number") {
+        // check bits range validity
+        if (_meta[i].outputs.bits[0] > _meta[i].outputs.bits[1]) return false
+        // check computation validity
+        if ("computation" in _meta[i].outputs) {
+          let _comp = _meta[i].outputs.computation
+          while (_comp.includes("bits")) _comp = _comp.replace("bits", "30")
+          try { stringMath(_comp) }
+          catch { return false }
+        }
+      }
+    }
+  }
+
+  // check for overlap among all aliases
+  if (_allAliases.length) {
+    let _allAliasesTmp = [..._allAliases]
+    for (let i = 0; i < _allAliases.length; i++) {
+      _allAliasesTmp.splice(i, 1)
+      if (_allAliasesTmp.includes(_allAliases[i])) return false;
+      _allAliasesTmp = [..._allAliases]
+    }
   }
   return true;
 };

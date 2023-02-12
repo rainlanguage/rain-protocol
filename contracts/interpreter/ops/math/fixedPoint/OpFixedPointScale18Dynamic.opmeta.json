@@ -5,7 +5,7 @@
     {
       "name": "rounding",
       "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
-      "bits": [1, 1],
+      "bits": [0, 0],
       "validRange": [[0, 1]]
     }
   ],
@@ -19,6 +19,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["scale-18-dynamic"]
+  "outputs": 1
 }
