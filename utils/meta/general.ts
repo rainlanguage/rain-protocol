@@ -127,13 +127,13 @@ export const validateMeta = (
  * Convert meta or array of metas or a schema to bytes and compress them for on-chain deployment
  *
  * @param meta - A meta object or array of meta objects or stringified format of them
- * @param schema - Json schema to validate as object (JSON.parsed) or stringified format
+ * @param schema - (optional) Json schema to validate as object (JSON.parsed) or stringified format
  * @param path - (optional) The path to write the file to if generating an output json file is desired, example: path/to/name.json
  * @returns Bytes as HexString
  */
 export const bytesFromMeta = (
   meta: object | object[] | string,
-  schema: object | string,
+  schema?: object | string,
   path?: string
 ): string => {
   const _write = (_meta) => {
@@ -166,13 +166,13 @@ export const bytesFromMeta = (
  * Decompress and convert bytes to meta
  *
  * @param bytes - Bytes to decompress and convert to json
- * @param schema - Json schema to validate as object (JSON.parsed) or stringified format
+ * @param schema - (optional) Json schema to validate as object (JSON.parsed) or stringified format
  * @param path - (optional) The path to write the file to if generating an output json file is desired, example: path/to/name.json
  * @returns meta content as object
  */
 export const metaFromBytes = (
   bytes: string | Uint8Array,
-  schema: object | string,
+  schema?: object | string,
   path?: string
 ) => {
   const _write = (_meta) => {
