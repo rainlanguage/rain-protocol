@@ -24,7 +24,7 @@ export const keylessDeploy = async (
     gasPrice: "0x09184e72a000",
     gasLimit: gasLimit,
     value: "0x00",
-    data: factory.bytecode,
+    data: txReq.data,
     type: 0,
   };
 
