@@ -43,10 +43,10 @@ describe("Sale minimum raise", async function () {
     redeemableERC20Factory: RedeemableERC20Factory,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     ({ redeemableERC20Factory, readWriteTier, saleFactory } =
       await saleDependenciesDeploy());
@@ -91,10 +91,7 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -321,10 +318,7 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const saleConfig = {
       evaluableConfig,
       recipient: recipient.address,

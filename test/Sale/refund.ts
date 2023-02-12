@@ -31,10 +31,10 @@ describe("Sale refund", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
@@ -77,10 +77,7 @@ describe("Sale refund", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -199,10 +196,7 @@ describe("Sale refund", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -325,10 +319,7 @@ describe("Sale refund", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -432,10 +423,7 @@ describe("Sale refund", async function () {
       concat([]),
     ];
     const cooldownDuration = 5;
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,

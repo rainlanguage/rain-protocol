@@ -28,10 +28,10 @@ describe("ISaleV2 Token tests", async function () {
     fakeSale = await smock.fake("Sale");
   });
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -58,10 +58,9 @@ describe("ISaleV2 Token tests", async function () {
     const constants = [fakeSale.address];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants,
-      
+      sources,
+      constants,
+
       rainInterpreter,
       1
     );
