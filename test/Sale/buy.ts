@@ -36,10 +36,10 @@ describe("Sale buy", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
@@ -82,10 +82,7 @@ describe("Sale buy", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -233,10 +230,7 @@ describe("Sale buy", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -348,10 +342,7 @@ describe("Sale buy", async function () {
     await maliciousReserve.deployed();
     await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
-    const evaluableConfig1 = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig1 = await generateEvaluableConfig(sources, constants);
 
     await assertError(
       async () =>
@@ -378,10 +369,7 @@ describe("Sale buy", async function () {
       "COOLDOWN_0",
       "did not prevent configuring a cooldown of 0 blocks"
     );
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -483,10 +471,7 @@ describe("Sale buy", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -591,10 +576,7 @@ describe("Sale buy", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -683,10 +665,7 @@ describe("Sale buy", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -955,10 +934,7 @@ describe("Sale buy", async function () {
         op(Opcode.set),
       ]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,

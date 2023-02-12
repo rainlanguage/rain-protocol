@@ -26,10 +26,10 @@ describe("Sale construction", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
@@ -71,10 +71,7 @@ describe("Sale construction", async function () {
       concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
         await saleDeploy(
@@ -136,10 +133,7 @@ describe("Sale construction", async function () {
       concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants,
-    );
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
         await saleDeploy(
