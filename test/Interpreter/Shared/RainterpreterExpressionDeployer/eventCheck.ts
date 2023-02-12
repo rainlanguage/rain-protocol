@@ -5,8 +5,6 @@ import { ethers } from "hardhat";
 import {
   AllStandardOps,
   areEqualExpressionConfigs,
-  assertError,
-  basicDeploy,
   getEventArgs,
   memoryOperand,
   MemoryType,
@@ -18,17 +16,17 @@ import {
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta"; 
-import {NewExpressionEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer"
 
-describe("Test Rainterpreter Expression Deployer event", async function () { 
+import { NewExpressionEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+
+describe("Test Rainterpreter Expression Deployer event", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-  })
-  it("DeployExpression event should emit original NewExpressionConfig", async () => { 
-    const signers = await ethers.getSigners(); 
+    await deploy1820(signers[0]);
+  });
+  it("DeployExpression event should emit original NewExpressionConfig", async () => {
+    const signers = await ethers.getSigners();
 
     const interpreter = await rainterpreterDeploy();
     const store = await rainterpreterStoreDeploy();
@@ -50,17 +48,23 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     };
 
     const expected = config;
-    const tx = await expressionDeployer.deployExpression(config.sources,config.constants, [1]);
-    const configFromEvent = (
-      await getEventArgs(tx, "NewExpression", expressionDeployer)
-    ) as NewExpressionEvent["args"]; 
-    console.log("configFromEvent : " , configFromEvent )
+    const tx = await expressionDeployer.deployExpression(
+      config.sources,
+      config.constants,
+      [1]
+    );
+    const configFromEvent = (await getEventArgs(
+      tx,
+      "NewExpression",
+      expressionDeployer
+    )) as NewExpressionEvent["args"];
+    console.log("configFromEvent : ", configFromEvent);
 
-    const result = { 
-      sender : signers[0].address,
+    const result = {
+      sender: signers[0].address,
       constants: configFromEvent.constants,
-      sources: configFromEvent.sources, 
-      minOutputs: [1]
+      sources: configFromEvent.sources,
+      minOutputs: [1],
     };
 
     const mathExpressionConstants = [2, 3];
@@ -100,19 +104,17 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       [1]
     );
 
-    const mathConfigFromEvent = (
-      await getEventArgs(
-        mathExpressionTx,
-        "NewExpression",
-        expressionDeployer
-      )
-    )as NewExpressionEvent["args"]; 
+    const mathConfigFromEvent = (await getEventArgs(
+      mathExpressionTx,
+      "NewExpression",
+      expressionDeployer
+    )) as NewExpressionEvent["args"];
 
-    const mathResult = { 
-      sender : signers[0].address,
+    const mathResult = {
+      sender: signers[0].address,
       constants: mathConfigFromEvent.constants,
       sources: mathConfigFromEvent.sources,
-      minOutputs: [1]
+      minOutputs: [1],
     };
 
     assert(
@@ -129,7 +131,4 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       got       ${mathResult}`
     );
   });
-
- 
-
 });

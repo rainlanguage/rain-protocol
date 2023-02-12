@@ -21,10 +21,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -55,10 +55,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-         sourcesUnsat,
-        constants
-      ,
+      sourcesUnsat,
+      constants,
       rainInterpreter,
       1
     );
@@ -85,10 +83,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression1 = await expressionConsumerDeploy(
-      
-         sourcesSat,
-        constants
-      ,
+      sourcesSat,
+      constants,
       rainInterpreter,
       1
     );
@@ -123,10 +119,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-         sourcesUnsat,
-        constants
-      ,
+      sourcesUnsat,
+      constants,
       rainInterpreter,
       1
     );
@@ -153,10 +147,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression1 = await expressionConsumerDeploy(
-      
-         sourcesSat,
-        constants
-      ,
+      sourcesSat,
+      constants,
       rainInterpreter,
       1
     );
@@ -194,10 +186,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-         sourcesUnsat,
-        constants
-      ,
+      sourcesUnsat,
+      constants,
       rainInterpreter,
       1
     );
@@ -224,10 +214,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
     ];
 
     const expression1 = await expressionConsumerDeploy(
-      
-         sourcesSat,
-        constants
-      ,
+      sourcesSat,
+      constants,
       rainInterpreter,
       1
     );

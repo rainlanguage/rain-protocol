@@ -21,10 +21,10 @@ describe("LOOP_N Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -59,10 +59,8 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN, sourceADD],
-        constants
-     ,
+      [sourceMAIN, sourceADD],
+      constants,
       rainInterpreter,
       1
     );
@@ -105,10 +103,8 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN, sourceADD],
-        constants
-     ,
+      [sourceMAIN, sourceADD],
+      constants,
       rainInterpreter,
       1
     );
@@ -151,10 +147,8 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN, sourceADD],
-        constants
-     ,
+      [sourceMAIN, sourceADD],
+      constants,
       rainInterpreter,
       1
     );
@@ -205,10 +199,9 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN, sourceADDOuter, sourceADDInner],
-        constants,
-      
+      [sourceMAIN, sourceADDOuter, sourceADDInner],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -305,15 +298,9 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [
-          sourceMAIN,
-          sourceADD,
-          sourceAddAndShiftRight,
-          sourceShiftRight,
-        ],
-        constants,
-      
+      [sourceMAIN, sourceADD, sourceAddAndShiftRight, sourceShiftRight],
+      constants,
+
       rainInterpreter,
       8
     );
@@ -428,16 +415,15 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [
-          sourceMAIN,
-          sourceADDUsingFunction,
-          sourceAddAndShiftRight,
-          sourceShiftRight,
-          sourceADD,
-        ],
-        constants,
-      
+      [
+        sourceMAIN,
+        sourceADDUsingFunction,
+        sourceAddAndShiftRight,
+        sourceShiftRight,
+        sourceADD,
+      ],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -486,10 +472,8 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN, sourceADD],
-        constants
-     ,
+      [sourceMAIN, sourceADD],
+      constants,
       rainInterpreter,
       1
     );
@@ -533,10 +517,9 @@ describe("LOOP_N Opcode test", async function () {
     await assertError(
       async () =>
         await expressionConsumerDeploy(
-          
-             [sourceMAIN, sourceADD],
-            constants,
-          
+          [sourceMAIN, sourceADD],
+          constants,
+
           rainInterpreter,
           1
         ),
@@ -571,10 +554,9 @@ describe("LOOP_N Opcode test", async function () {
     await assertError(
       async () =>
         await expressionConsumerDeploy(
-          
-             [sourceMAIN, sourceADD],
-            constants,
-          
+          [sourceMAIN, sourceADD],
+          constants,
+
           rainInterpreter,
           1
         ),

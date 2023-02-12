@@ -22,10 +22,10 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
-     // Deploy ERC1820Registry
-     const signers = await ethers.getSigners();
-     await deploy1820(signers[0]);  
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -61,10 +61,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceAdd],
-        constants
-      ,
+      [sourceMain, sourceAdd],
+      constants,
       rainInterpreter,
       1
     );
@@ -126,10 +124,9 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceCount],
-        constants,
-      
+      [sourceMain, sourceCount],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -185,10 +182,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceAdd],
-        constants
-      ,
+      [sourceMain, sourceAdd],
+      constants,
       rainInterpreter,
       1
     );
@@ -233,10 +228,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceAdd],
-        constants
-      ,
+      [sourceMain, sourceAdd],
+      constants,
       rainInterpreter,
       1
     );
@@ -283,10 +276,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceAdd],
-        constants
-      ,
+      [sourceMain, sourceAdd],
+      constants,
       rainInterpreter,
       1
     );
@@ -415,10 +406,9 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMain, sourceCalculate, sourceCountEven],
-        constants,
-      
+      [sourceMain, sourceCalculate, sourceCountEven],
+      constants,
+
       rainInterpreter,
       2
     );

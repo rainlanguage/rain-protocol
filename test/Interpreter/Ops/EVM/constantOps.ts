@@ -15,11 +15,11 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
-     // Deploy ERC1820Registry
-     const signers = await ethers.getSigners();
-     await deploy1820(signers[0]);  
-     
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -38,10 +38,8 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-        constants
-      ,
+      [source],
+      constants,
       rainInterpreter,
       1
     );
@@ -69,10 +67,8 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source],
-        constants
-      ,
+      [source],
+      constants,
       rainInterpreter,
       1
     );

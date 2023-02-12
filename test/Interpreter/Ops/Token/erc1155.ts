@@ -31,10 +31,10 @@ describe("RainInterpreter ERC1155 ops", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -97,10 +97,9 @@ describe("RainInterpreter ERC1155 ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants,
-      
+      sources,
+      constants,
+
       rainInterpreter,
       2
     );
@@ -170,10 +169,9 @@ describe("RainInterpreter ERC1155 ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants,
-      
+      sources,
+      constants,
+
       rainInterpreter,
       1
     );

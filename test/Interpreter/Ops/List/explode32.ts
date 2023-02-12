@@ -13,10 +13,10 @@ describe("EXPLODE32 Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -35,10 +35,9 @@ describe("EXPLODE32 Opcode test", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [sourceMAIN],
-         [],
-      
+      [sourceMAIN],
+      [],
+
       rainInterpreter,
       8
     );

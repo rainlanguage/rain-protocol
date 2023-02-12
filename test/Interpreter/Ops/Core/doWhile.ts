@@ -15,12 +15,12 @@ import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iint
 
 const Opcode = AllStandardOps;
 
-describe("DO_WHILE Opcode test", async function () { 
+describe("DO_WHILE Opcode test", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-  }) 
+    await deploy1820(signers[0]);
+  });
 
   // TODO: OP_DO_WHILE_INPUTS
 
@@ -54,13 +54,7 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, sourceADD],
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy([sourceMAIN, sourceADD], constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -105,10 +99,9 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, sourceSUB],
-          constants,
-        
+        [sourceMAIN, sourceSUB],
+        constants,
+
         1
       );
 
@@ -159,13 +152,7 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, sourceADD],
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy([sourceMAIN, sourceADD], constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -246,10 +233,9 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
-          constants,
-        
+        [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
+        constants,
+
         2
       );
 
@@ -312,10 +298,9 @@ describe("DO_WHILE Opcode test", async function () {
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          
-             [sourceMAIN, sourceADD],
-            constants,
-          
+          [sourceMAIN, sourceADD],
+          constants,
+
           1
         ),
       "DoWhileMaxInputs(20)",

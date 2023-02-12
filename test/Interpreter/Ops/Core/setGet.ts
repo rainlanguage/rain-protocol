@@ -27,12 +27,12 @@ import {
 
 const Opcode = RainterpreterOps;
 
-describe("SET/GET Opcode tests", async function () { 
-  before(async () => { 
+describe("SET/GET Opcode tests", async function () {
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);    
-  })
+    await deploy1820(signers[0]);
+  });
   it("should update the key in kvs array when same key is set more than once", async () => {
     const key1 = 100;
     const val1 = ethers.constants.MaxUint256;
@@ -63,13 +63,7 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [source],
-          constants
-        ,
-        2
-      );
+      await iinterpreterV1ConsumerDeploy([source], constants, 2);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -121,13 +115,7 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [source],
-          constants
-        ,
-        2
-      );
+      await iinterpreterV1ConsumerDeploy([source], constants, 2);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -183,13 +171,7 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [source],
-          constants
-        ,
-        3
-      );
+      await iinterpreterV1ConsumerDeploy([source], constants, 3);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -225,10 +207,9 @@ describe("SET/GET Opcode tests", async function () {
 
     let { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source1],
-           constants1,
-        
+        [source1],
+        constants1,
+
         1
       );
 
@@ -264,10 +245,9 @@ describe("SET/GET Opcode tests", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source2],
-           constants2,
-        
+        [source2],
+        constants2,
+
         1
       ));
 
@@ -306,10 +286,9 @@ describe("SET/GET Opcode tests", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source3],
-           constants3,
-        
+        [source3],
+        constants3,
+
         1
       ));
 
@@ -348,10 +327,9 @@ describe("SET/GET Opcode tests", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source4],
-           constants4,
-        
+        [source4],
+        constants4,
+
         1
       ));
 
@@ -387,13 +365,7 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-           [source],
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy([source], constants, 1);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -445,10 +417,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constants
-      ,
+      [sourceA],
+      constants,
       rainInterpreter,
       1
     );
@@ -498,10 +468,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constantsA
-      ,
+      [sourceA],
+      constantsA,
       rainInterpreter,
       1
     );
@@ -545,10 +513,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constantsB
-      ,
+      [sourceB],
+      constantsB,
       rainInterpreter,
       2
     );
@@ -581,10 +547,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constants
-      ,
+      [sourceA],
+      constants,
       rainInterpreter,
       1
     );
@@ -621,10 +585,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constants
-      ,
+      [sourceB],
+      constants,
       rainInterpreter,
       1
     );
@@ -660,10 +622,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constants
-      ,
+      [sourceA],
+      constants,
       rainInterpreter,
       1
     );
@@ -704,10 +664,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constants
-      ,
+      [sourceB],
+      constants,
       rainInterpreter,
       1
     );
@@ -736,10 +694,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionC = await expressionConsumerDeploy(
-      
-         [sourceC],
-         constants,
-      
+      [sourceC],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -777,10 +734,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constantsA
-      ,
+      [sourceA],
+      constantsA,
       rainInterpreter,
       1
     );
@@ -812,10 +767,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
   ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constantsB
-      ,
+      [sourceB],
+      constantsB,
       rainInterpreter,
       1
     );
@@ -865,10 +818,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constantsA
-      ,
+      [sourceA],
+      constantsA,
       rainInterpreter,
       1
     );
@@ -897,10 +848,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constantsB
-      ,
+      [sourceB],
+      constantsB,
       rainInterpreter,
       1
     );
@@ -943,10 +892,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionA = await expressionConsumerDeploy(
-      
-         [sourceA],
-         constantsA
-      ,
+      [sourceA],
+      constantsA,
       rainInterpreter,
       1
     );
@@ -982,10 +929,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
   ]);
 
     const expressionB = await expressionConsumerDeploy(
-      
-         [sourceB],
-         constantsB
-      ,
+      [sourceB],
+      constantsB,
       rainInterpreter,
       1
     );
@@ -1017,10 +962,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     ]);
 
     const expressionC = await expressionConsumerDeploy(
-      
-         [sourceC],
-         constantsC,
-      
+      [sourceC],
+      constantsC,
+
       rainInterpreter,
       1
     );

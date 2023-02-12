@@ -11,16 +11,12 @@ import {
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("LibIntegrityCheck highwater tests", async function () {  
-
-  before(async () => { 
+describe("LibIntegrityCheck highwater tests", async function () {
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-
-    
+    await deploy1820(signers[0]);
   });
-
 
   it("should prevent nested multioutput on the stack", async () => {
     const constants = [1, 2, 3, 4];
@@ -40,10 +36,9 @@ describe("LibIntegrityCheck highwater tests", async function () {
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          
-             [sourceMAIN, sourceONE],
-            constants,
-          
+          [sourceMAIN, sourceONE],
+          constants,
+
           1
         ),
       "StackPopUnderflow(3, 0)",
@@ -70,10 +65,9 @@ describe("LibIntegrityCheck highwater tests", async function () {
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          
-             [sourceMAIN],
-            constants,
-          
+          [sourceMAIN],
+          constants,
+
           1
         ),
       "StackPopUnderflow(0, 0)",

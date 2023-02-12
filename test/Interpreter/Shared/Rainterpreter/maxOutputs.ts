@@ -14,12 +14,12 @@ import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iint
 
 const Opcode = RainterpreterOps;
 
-describe("Rainterpreter maxOutputs test", async function () { 
+describe("Rainterpreter maxOutputs test", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-  }) 
+    await deploy1820(signers[0]);
+  });
 
   it("ensure that max outputs caps the number of values that can be returned from the interpreter so that longer stacks are truncated to their ends", async () => {
     // basic check
@@ -38,10 +38,9 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     let { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source1],
-          constants,
-        
+        [source1],
+        constants,
+
         maxOutputs
       );
 
@@ -84,10 +83,9 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source2],
-          constants,
-        
+        [source2],
+        constants,
+
         maxOutputs
       ));
 
@@ -123,10 +121,9 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [source3],
-           maxConstants,
-        
+        [source3],
+        maxConstants,
+
         maxOutputs
       ));
 

@@ -37,10 +37,10 @@ describe("RainInterpreter update tier range op", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
-     // Deploy ERC1820Registry
-     const signers = await ethers.getSigners();
-     await deploy1820(signers[0]);  
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -70,10 +70,9 @@ describe("RainInterpreter update tier range op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-         constants0,
-      
+      [source0],
+      constants0,
+
       rainInterpreter,
       1
     );
