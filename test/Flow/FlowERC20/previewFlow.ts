@@ -8,8 +8,7 @@ import {
 } from "../../../typechain";
 import {
   FlowERC20IOStruct,
-  FlowTransferStruct,
-  ExpressionConfigStruct,
+  FlowTransferStruct
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -20,6 +19,7 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
 import {
@@ -38,7 +38,11 @@ describe("FlowERC20 previewFlow tests", async function () {
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
@@ -130,7 +134,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -323,7 +327,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -497,7 +501,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -690,7 +694,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -837,7 +841,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -974,7 +978,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -1132,7 +1136,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -1194,7 +1198,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
@@ -1290,7 +1294,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };

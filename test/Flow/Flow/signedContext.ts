@@ -6,6 +6,7 @@ import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowComm
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -21,7 +22,11 @@ const Opcode = AllStandardOps;
 describe("Flow signed context tests", async function () {
   let flowFactory: FlowFactory;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+
     flowFactory = await flowFactoryDeploy();
   });
 
