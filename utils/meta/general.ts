@@ -39,21 +39,16 @@ export const validateMeta = (
 
   const _allAliases = []
   for (let i = 0; i < _meta.length; i++) {
+
+    // validate by schema
     if (!validate(_meta[i])) return false;
 
     // in-depth validation for op meta
     if ("operand" in _meta[i] && "inputs" in _meta[i] && "outputs" in _meta[i]) {
 
-      // recursively check for duplicated liases
-      const _names = [_meta[i].name]
-      if (_meta[i].aliases) _names.push(..._meta[i].aliases)
-      let _namesTmp = [..._names]
-      _allAliases.push(..._names)     // cache all aliases for check across all ops
-      for (let j = 0; j < _names.length; j++) {
-        _namesTmp.splice(j, 1)
-        if (_namesTmp.includes(_names[j])) return false;
-        _namesTmp = [..._names]
-      }
+      // cache all aliases for check across all ops
+      _allAliases.push(_meta[i].name)
+      if (_meta[i].aliases) _allAliases.push(..._meta[i].aliases)
 
       // check for operand args validity
       if (typeof _meta[i].operand !== "number") {
@@ -112,11 +107,9 @@ export const validateMeta = (
 
   // check for overlap among all aliases
   if (_allAliases.length) {
-    let _allAliasesTmp = [..._allAliases]
-    for (let i = 0; i < _allAliases.length; i++) {
-      _allAliasesTmp.splice(i, 1)
-      if (_allAliasesTmp.includes(_allAliases[i])) return false;
-      _allAliasesTmp = [..._allAliases]
+    while (_allAliases.length) {
+      const _item = _allAliases.splice(0, 1)[0]
+      if (_allAliases.includes(_item)) return false;
     }
   }
   return true;
