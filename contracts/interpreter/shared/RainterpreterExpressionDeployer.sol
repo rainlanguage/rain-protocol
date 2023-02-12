@@ -36,7 +36,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180e
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
     0x8574a6cce30e63149a300a53d4bf6afe9ba9216bb14eb92db30de9bada9cf796
 );
-    
+
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
