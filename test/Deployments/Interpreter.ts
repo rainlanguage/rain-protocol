@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import deploy1820 from "../../utils/deploy/registryErc1820/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
