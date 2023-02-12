@@ -21,7 +21,10 @@ export const flowDeploy = async (
 
   // Building config
   for (let i = 0; i < flowConfig.flows.length; i++) {
-    const evaluableConfig = await generateEvaluableConfig(flowConfig.flows[i].sources,flowConfig.flows[i].constants );
+    const evaluableConfig = await generateEvaluableConfig(
+      flowConfig.flows[i].sources,
+      flowConfig.flows[i].constants
+    );
     evaluableConfigs.push(evaluableConfig);
   }
 
