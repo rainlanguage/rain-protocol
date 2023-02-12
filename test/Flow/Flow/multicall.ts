@@ -42,10 +42,10 @@ describe("Flow multiCall tests", async function () {
     )
   );
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     flowFactory = await flowFactoryDeploy();
   });

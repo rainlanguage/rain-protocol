@@ -29,11 +29,11 @@ describe("FlowERC20 flowTime tests", async function () {
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-     
+    await deploy1820(signers[0]);
+
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 

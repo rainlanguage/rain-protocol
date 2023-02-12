@@ -11,7 +11,7 @@ import {
 } from "../../../typechain";
 import {
   FlowERC721IOStruct,
-  FlowTransferStruct
+  FlowTransferStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -45,10 +45,10 @@ describe("FlowERC721 multicall tests", async function () {
       "utf-8"
     )
   );
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     flowERC721Factory = await flowERC721FactoryDeploy();
   });

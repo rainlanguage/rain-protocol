@@ -21,10 +21,10 @@ const Opcode = AllStandardOps;
 describe("FlowERC721 construction tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     flowERC721Factory = await flowERC721FactoryDeploy();
   });

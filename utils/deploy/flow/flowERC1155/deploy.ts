@@ -29,7 +29,6 @@ export const flowERC1155Deploy = async (
     const evaluableConfig = await generateEvaluableConfig(
       flowERC1155Config.flows[i].sources,
       flowERC1155Config.flows[i].constants
-
     );
     flowConfig.push(evaluableConfig);
   }

@@ -26,10 +26,10 @@ const Opcode = AllStandardOps;
 describe("FlowERC20 expressions test", async function () {
   let flowERC20Factory: FlowERC20Factory;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
