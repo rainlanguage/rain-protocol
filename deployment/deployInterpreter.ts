@@ -1,4 +1,4 @@
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 import deploy1820 from "../utils/deploy/registryErc1820/deploy";
 import {
   rainterpreterDeploy,
@@ -11,8 +11,6 @@ const main = async function () {
 
   // This will deploy the registry only if does not exist in the network (like localhost/hardhat)
   await deploy1820(signer);
-
-  console.log("here: ", network.name);
 
   const interpreter = await rainterpreterDeploy();
   const store = await rainterpreterStoreDeploy();

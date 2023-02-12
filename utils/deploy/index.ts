@@ -1,4 +1,5 @@
 export * from "./basicDeploy";
+export * from "./keylessDeploy";
 export * from "./escrow/redeemableERC20ClaimEscrow/deploy";
 export * from "./redeemableERC20/deploy";
 export * from "./sale/deploy";
