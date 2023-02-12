@@ -3,7 +3,7 @@ import { keylessDeploy } from "../../utils";
 import { expect } from "chai";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
-describe.only("Keyless deployment method", async function () {
+describe("Keyless deployment method", async function () {
   it("should deploy correctly the contract with the correct bytecode", async function () {
     const [signer] = await ethers.getSigners();
 
