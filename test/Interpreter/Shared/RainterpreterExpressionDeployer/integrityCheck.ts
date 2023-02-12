@@ -1,14 +1,12 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
-import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { RainterpreterStore } from "../../../../typechain";
 import { Rainterpreter } from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
-import { ValidInterpreterEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+
 import {
   AllStandardOps,
   assertError,
-  getEventArgs,
   memoryOperand,
   MemoryType,
   op,
@@ -69,32 +67,6 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
     );
   });
 
-  // TODO : update test to check for event
-
-  // it("should not revert if interpreter bytecode and function pointers are as expected", async () => {
-  //   const signers = await ethers.getSigners();
-
-  //   const rainterpreter = await rainterpreterDeploy();
-  //   const store = await rainterpreterStoreDeploy();
-
-  //   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-  //     rainterpreter, store
-  //   );
-  //   console.log("expressionDeployer : " , expressionDeployer.address )
-
-  //   // const event_ = (await getEventArgs(
-  //   //   expressionDeployer.deployTransaction,
-  //   //   "ValidInterpreter",
-  //   //   expressionDeployer
-  //   // )) as ValidInterpreterEvent["args"];
-
-  //   //  console.log("event : " , event_)
-  //   // console.log("signers[0].address : " , signers[0].address)
-  //   // console.log("rainterpreter.address : " , rainterpreter.address)
-
-  //   // assert(sender === signers[0].address);
-  //   // assert(interpreter === rainterpreter.address);
-  // });
 
   it("should not revert if interpreter bytecode and function pointers are as expected", async () => {
     const interpreter = await rainterpreterDeploy();
