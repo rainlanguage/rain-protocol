@@ -32,10 +32,10 @@ describe("LibInterpreterState serialize tests", async function () {
 
     const serialized_ = await libInterpreterState.callStatic.serialize(
       interpreter.address,
-      
-        sources,
-        constants,
-      
+
+      sources,
+      constants,
+
       stackLength
     );
 

@@ -19,11 +19,11 @@ describe("RainInterpreter unchecked math", async () => {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
-    
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -50,10 +50,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -87,10 +85,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -121,10 +117,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -158,10 +152,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );

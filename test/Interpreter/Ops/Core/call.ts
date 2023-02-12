@@ -19,12 +19,12 @@ import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iint
 
 const Opcode = AllStandardOps;
 
-describe("CALL Opcode test", async function () { 
+describe("CALL Opcode test", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-  }) 
+    await deploy1820(signers[0]);
+  });
 
   it("should change the eval's scope using CALL opcode", async () => {
     const constants = [0, 1];
@@ -64,10 +64,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, sourceADD],
-          constants,
-        
+        [sourceMAIN, sourceADD],
+        constants,
+
         1
       );
 
@@ -108,10 +107,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN, source1],
-          constants,
-        
+        [sourceMAIN, source1],
+        constants,
+
         1
       );
 
@@ -159,10 +157,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN0, source1],
-          constants,
-        
+        [sourceMAIN0, source1],
+        constants,
+
         1
       );
 
@@ -200,10 +197,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-       
-           [sourceMAIN0, source1],
-          constants,
-        
+        [sourceMAIN0, source1],
+        constants,
+
         1
       );
 
@@ -244,10 +240,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceMAIN0, source1],
-          constants,
-        
+        [sourceMAIN0, source1],
+        constants,
+
         maxOutput
       );
 
@@ -344,19 +339,18 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [
-            sourceMAIN,
-            sourceADD,
-            sourceSUB,
-            sourceMUL,
-            sourceDIV,
-            sourceEXP,
-            sourceADD10,
-            sourceADD1,
-          ],
-          constants,
-        
+        [
+          sourceMAIN,
+          sourceADD,
+          sourceSUB,
+          sourceMUL,
+          sourceDIV,
+          sourceEXP,
+          sourceADD10,
+          sourceADD1,
+        ],
+        constants,
+
         1
       );
 
@@ -491,10 +485,9 @@ describe("CALL Opcode test", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-           [sourceGetDiscountedPrice, sourceGetDiscount],
-          constants,
-        
+        [sourceGetDiscountedPrice, sourceGetDiscount],
+        constants,
+
         1
       );
 

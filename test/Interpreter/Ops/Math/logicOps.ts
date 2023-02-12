@@ -21,10 +21,10 @@ describe("RainInterpreter logic ops", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);     
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -52,10 +52,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -76,10 +74,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -101,10 +97,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source2],
-        constants
-      ,
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -135,10 +129,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -160,10 +152,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -184,10 +174,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source2],
-        constants
-      ,
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -219,10 +207,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -245,10 +231,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -271,10 +255,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source2],
-        constants
-      ,
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -299,10 +281,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -323,10 +303,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -351,10 +329,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -375,10 +351,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -405,10 +379,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -429,10 +401,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -453,10 +423,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      
-         [source2],
-        constants
-      ,
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -480,10 +448,9 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression3 = await expressionConsumerDeploy(
-      
-         [source3],
-        constants,
-      
+      [source3],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -510,10 +477,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      
-         [source0],
-        constants
-      ,
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -534,10 +499,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      
-         [source1],
-        constants
-      ,
+      [source1],
+      constants,
       rainInterpreter,
       1
     );

@@ -25,8 +25,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM.add(32);
 
     await libIntegrityCheckState.popUnderflowCheck(
-     sources, 
-      [] ,
+      sources,
+      [],
       stackBottom,
       stackHighwater,
       stackMaxTop,
@@ -50,7 +50,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityCheckState.popUnderflowCheck(
           sources,
-            [] ,
+          [],
           stackBottom,
           stackHighwater,
           stackMaxTop,
@@ -78,7 +78,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityCheckState.popUnderflowCheck(
           sources,
-            [] ,
+          [],
           stackBottom,
           stackHighwater,
           stackMaxTop,
@@ -106,7 +106,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityCheckState.popUnderflowCheck(
           sources,
-            [] ,
+          [],
           stackBottom,
           stackHighwater,
           stackMaxTop,
@@ -131,8 +131,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM.add(32);
 
     await libIntegrityCheckState.popUnderflowCheck(
-      sources, 
-       [] ,
+      sources,
+      [],
       stackBottom,
       stackHighwater,
       stackMaxTop,

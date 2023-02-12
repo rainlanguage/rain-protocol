@@ -38,10 +38,10 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let redeemableERC20Config: ERC20ConfigStruct;
   let stakeFactory: StakeFactory;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
 
@@ -71,11 +71,11 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
     const evaluableConfig = await generateEvaluableConfig(
-       [
+      [
         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-       [0],
+      [0]
     );
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -113,13 +113,11 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     )) as ReserveToken;
 
     const evaluableConfig = await generateEvaluableConfig(
-      
-         [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-         [max_uint256],
-      
+      [
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

@@ -29,10 +29,10 @@ describe("RainInterpreter fixed point math ops", async function () {
   const ROUNDING_UP = 1;
   const ROUNDING_DOWN = 0;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);    
+    await deploy1820(signers[0]);
 
     rainInterpreter = await rainterpreterDeploy();
 
@@ -59,10 +59,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -100,10 +98,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -140,10 +136,8 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -181,10 +175,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -224,10 +216,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -268,10 +258,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -309,10 +297,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -349,10 +335,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -389,10 +373,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -431,10 +413,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -474,10 +454,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -517,10 +495,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -560,10 +536,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -604,10 +578,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      
-        sources,
-        constants
-      ,
+      sources,
+      constants,
       rainInterpreter,
       1
     );

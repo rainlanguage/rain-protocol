@@ -26,8 +26,8 @@ describe("chainlink-price Opcode tests", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-  })
+    await deploy1820(signers[0]);
+  });
   beforeEach(async () => {
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
@@ -63,10 +63,9 @@ describe("chainlink-price Opcode tests", async function () {
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        
-          sources,
-          constants,
-        
+        sources,
+        constants,
+
         1
       );
 
@@ -121,13 +120,7 @@ describe("chainlink-price Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-          sources,
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await assertError(
       async () =>
@@ -168,13 +161,7 @@ describe("chainlink-price Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-          sources,
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -212,13 +199,7 @@ describe("chainlink-price Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        
-          sources,
-          constants
-        ,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
