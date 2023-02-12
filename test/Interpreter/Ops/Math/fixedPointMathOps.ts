@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
@@ -11,19 +10,9 @@ import {
 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-  scale18Operand,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
 import { Parser } from "rainlang";
 import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta";
-import { hexlify } from "@ethersproject/bytes";
-
-const Opcode = AllStandardOps;
 
 describe("RainInterpreter fixed point math ops", async function () {
   let rainInterpreter: Rainterpreter;
@@ -455,13 +444,9 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   });
 
-  it.only("should scale a number DOWN to 18 OOM on a dynamic scale with ROUNDING UP", async () => {
+  it("should scale a number DOWN to 18 OOM on a dynamic scale with ROUNDING UP", async () => {
     const decimals = 22;
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
-
-    const constants = [decimals, value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const expressionString = `_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`;
@@ -470,20 +455,6 @@ describe("RainInterpreter fixed point math ops", async function () {
       expressionString,
       getRainterpreterOpMetaBytes()
     );
-    const sources = [
-      concat([
-        v1,
-        v2,
-        op(Opcode.scale18Dynamic, ROUNDING_UP), // Rounding Up
-      ]),
-    ];
-
-    const expectedSource = sources.map(v => hexlify(v, { allowMissingPrefix: false }));
-    assert(expectedSource == stateConfig.sources,
-      `wrong source
-      expected  ${expectedSource}
-      got       ${stateConfig.sources}`
-      );
 
     const expression0 = await expressionConsumerDeploy(
       stateConfig,
