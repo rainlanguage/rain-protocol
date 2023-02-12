@@ -126,14 +126,14 @@ export const validateMeta = (
  * @public
  * Convert meta or array of metas or a schema to bytes and compress them for on-chain deployment
  *
- * @param meta - A meta object or array of meta objects (JSON.parsed from meta json file)
- * @param schema - (optional) Json schema as object (JSON.parsed) to validate
+ * @param meta - A meta object or array of meta objects or stringified format of them
+ * @param schema - Json schema to validate as object (JSON.parsed) or stringified format
  * @param path - (optional) The path to write the file to if generating an output json file is desired, example: path/to/name.json
  * @returns Bytes as HexString
  */
 export const bytesFromMeta = (
-  meta: any,
-  schema?: any,
+  meta: object | object[] | string,
+  schema: object | string,
   path?: string
 ): string => {
   const _write = (_meta) => {
@@ -147,16 +147,15 @@ export const bytesFromMeta = (
       }
     }
   };
-
+  if (schema) {
+    if (!validateMeta(meta, schema))
+      throw new Error("provided meta object is not valid");
+  }
   const formatted = format(JSON.stringify(meta, null, 4), { parser: "json" });
   const bytes = Uint8Array.from(deflateSync(formatted));
   let hex = "0x";
   for (let i = 0; i < bytes.length; i++) {
     hex = hex + bytes[i].toString(16).padStart(2, "0");
-  }
-  if (schema) {
-    if (!validateMeta(meta, schema))
-      throw new Error("provided meta object is not valid");
   }
   if (path && path.length) _write(formatted);
   return hex;
@@ -167,13 +166,13 @@ export const bytesFromMeta = (
  * Decompress and convert bytes to meta
  *
  * @param bytes - Bytes to decompress and convert to json
- * @param schema - (optional) Json schema as object (JSON.parsed) to validate
+ * @param schema - Json schema to validate as object (JSON.parsed) or stringified format
  * @param path - (optional) The path to write the file to if generating an output json file is desired, example: path/to/name.json
  * @returns meta content as object
  */
 export const metaFromBytes = (
   bytes: string | Uint8Array,
-  schema?: any,
+  schema: object | string,
   path?: string
 ) => {
   const _write = (_meta) => {
