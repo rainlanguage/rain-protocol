@@ -9,6 +9,7 @@ import {
 } from "../../../utils/constants/sentinel";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -24,7 +25,11 @@ const Opcode = AllStandardOps;
 describe("FlowERC20 signed context tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+    
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
