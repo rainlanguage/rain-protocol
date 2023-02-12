@@ -6,7 +6,7 @@ import { argv } from "process";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
 import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
-import { rainterpreterOpmeta } from "../utils/meta/op/allStandardOpmeta";
+import { rainterpreterOpmeta } from "../utils/meta/op/allStandardOpMeta";
 
 const writeFile = (_path: string, file: string) => {
   try {

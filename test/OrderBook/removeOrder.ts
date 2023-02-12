@@ -1,8 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   OrderConfigStruct,
@@ -22,12 +22,12 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook remove order", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -37,7 +37,9 @@ describe("OrderBook remove order", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should support removing orders", async function () {
@@ -46,9 +48,7 @@ describe("OrderBook remove order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -64,10 +64,10 @@ describe("OrderBook remove order", async function () {
     ]);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    const EvaluableConfig_A = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     const OrderConfig_A: OrderConfigStruct = {
       validInputs: [

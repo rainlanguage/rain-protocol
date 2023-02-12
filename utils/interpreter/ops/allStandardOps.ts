@@ -1,5 +1,5 @@
 import { camelize } from "../../format/camelize";
-import { getAllStandardOpsEnum } from "../../meta/op/allStandardOpmeta";
+import { getAllStandardOpsEnum } from "../../meta/op/allStandardOpMeta";
 
 export enum AllStandardOps {
   chainlinkPrice,

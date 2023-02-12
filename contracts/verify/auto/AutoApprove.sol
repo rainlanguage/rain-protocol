@@ -49,10 +49,16 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
         _transferOwnership(msg.sender);
         emit Initialize(msg.sender, config_);
-        evaluable = config_.deployer.deployExpression(
-            config_.expressionConfig,
-            LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-        );
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.deployer.deployExpression(
+                config_.sources,
+                config_.constants,
+                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function afterAdd(

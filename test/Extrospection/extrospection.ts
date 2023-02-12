@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { ethers } from "hardhat";
 
 import {
   Rainterpreter,
@@ -8,10 +9,7 @@ import {
   RainterpreterStore,
   EIP165InterfaceIds,
 } from "../../typechain";
-import {
-  BytecodeHashEvent,
-  SupportsInterfaceEvent,
-} from "../../typechain/contracts/extrospection/Extrospection";
+import { SupportsInterfaceEvent } from "../../typechain/contracts/extrospection/Extrospection";
 import { basicDeploy, getEventArgs } from "../../utils";
 import {
   rainterpreterDeploy,
@@ -19,6 +17,7 @@ import {
   rainterpreterStoreDeploy,
 } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { checkIfIncludesOps } from "../../utils/exstrospection";
 
 describe("Extrospection tests", async function () {
@@ -30,6 +29,10 @@ describe("Extrospection tests", async function () {
   let EIP165InterfaceIDs: EIP165InterfaceIds;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     // Deploy Extrospection
     extrospection = (await basicDeploy("Extrospection", {})) as Extrospection;
     // Deploy Interpreter
@@ -37,34 +40,23 @@ describe("Extrospection tests", async function () {
     // Deploy Extern
     rainInterpreterExtern = await rainterpreterExtern();
     // Deploy Store
-    rainterpreterStore = await rainterpreterStoreDeploy(); 
+    rainterpreterStore = await rainterpreterStoreDeploy();
 
     //Deploy Expression Deployer
     expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       rainInterpreter,
       rainterpreterStore
-      
     );
 
     EIP165InterfaceIDs = (await basicDeploy(
       "EIP165InterfaceIds",
       {}
-    )) as EIP165InterfaceIds; 
-
-
-  }); 
- 
+    )) as EIP165InterfaceIds;
+  });
 
   it("should check if bytecode has any opcode that change memory(stateless interpreter)", async () => {
-    const tx = await extrospection.emitBytecodeHash(rainInterpreter.address);
-
-    const event = (await getEventArgs(
-      tx,
-      "BytecodeHash",
-      extrospection
-    )) as BytecodeHashEvent["args"];
-
-    const result = checkIfIncludesOps(event.bytecodeHash);
+    const bytecode_ = await extrospection.bytecode(rainInterpreter.address);
+    const result = checkIfIncludesOps(bytecode_);
     assert(result);
   });
 
@@ -188,7 +180,5 @@ describe("Extrospection tests", async function () {
         );
       }
     }
-  }); 
-
-
+  });
 });

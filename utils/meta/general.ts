@@ -41,12 +41,14 @@ export const bytesFromMeta = (
   path?: string
 ): string => {
   const _write = (_meta) => {
-    let _path = resolve(path);
-    if (!_path.endsWith(".json")) _path = _path + "Meta.json";
-    try {
-      fs.writeFileSync(_path, _meta);
-    } catch (error) {
-      console.log(error);
+    if (path) {
+      let _path = resolve(path);
+      if (!_path.endsWith(".json")) _path = _path + "Meta.json";
+      try {
+        fs.writeFileSync(_path, _meta);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -79,12 +81,14 @@ export const metaFromBytes = (
   path?: string
 ) => {
   const _write = (_meta) => {
-    let _path = resolve(path);
-    if (!_path.endsWith(".json")) _path = _path + "Meta.json";
-    try {
-      fs.writeFileSync(_path, _meta);
-    } catch (error) {
-      console.log(error);
+    if (path) {
+      let _path = resolve(path);
+      if (!_path.endsWith(".json")) _path = _path + "Meta.json";
+      try {
+        fs.writeFileSync(_path, _meta);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -93,7 +97,7 @@ export const metaFromBytes = (
     if (bytes.startsWith("0x")) bytes = bytes.slice(2);
     const _bytesArr = [];
     for (let i = 0; i < bytes.length; i += 2) {
-      _bytesArr.push(Number(bytes.slice(i, i + 2)));
+      _bytesArr.push(Number("0x" + bytes.slice(i, i + 2)));
     }
     _uint8Arr = Uint8Array.from(_bytesArr);
   } else {

@@ -1,12 +1,8 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  ReserveToken18,
-  ReserveTokenDecimals,
-} from "../../typechain";
+import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   DepositConfigStruct,
@@ -38,12 +34,13 @@ import {
   op,
 } from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -55,7 +52,9 @@ describe("OrderBook expression checks", async () => {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should ensure OWNER and COUNTERPARTY are visible in calculateIO and handleIO", async function () {
@@ -77,9 +76,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
     //  ORDERS
@@ -131,10 +128,10 @@ describe("OrderBook expression checks", async () => {
                 op(Opcode.ensure, 1)
         ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -276,9 +273,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -358,10 +353,10 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ensure, 1)
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -485,9 +480,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -551,10 +544,10 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ensure, 1)
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -678,9 +671,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -753,10 +744,10 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ensure, 1)
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -880,9 +871,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -950,10 +939,10 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ensure, 1)
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -1077,9 +1066,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -1185,10 +1172,10 @@ describe("OrderBook expression checks", async () => {
 
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleIOSource],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [calculateSoruce, handleIOSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -1299,9 +1286,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1356,10 +1341,10 @@ describe("OrderBook expression checks", async () => {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
 
-    const EvaluableConfig = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleSource],
-      constants: constants_A,
-    });
+    const EvaluableConfig = await generateEvaluableConfig(
+      [calculateSoruce, handleSource],
+      constants_A
+    );
 
     const OrderConfig: OrderConfigStruct = {
       validInputs: [
@@ -1472,9 +1457,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1502,10 +1485,10 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
-    const EvaluableConfig = await generateEvaluableConfig({
-      sources: [calculateSoruce, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig = await generateEvaluableConfig(
+      [calculateSoruce, []],
+      constants_A
+    );
 
     const OrderConfig: OrderConfigStruct = {
       validInputs: [
@@ -1602,9 +1585,7 @@ describe("OrderBook expression checks", async () => {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1643,10 +1624,10 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ensure,1)
     ]);
 
-    const EvaluableConfig = await generateEvaluableConfig({
-      sources: [calculateSoruce, handleSource],
-      constants: constants_A,
-    });
+    const EvaluableConfig = await generateEvaluableConfig(
+      [calculateSoruce, handleSource],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
