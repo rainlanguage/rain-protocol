@@ -14,7 +14,9 @@ import { assertError } from "../../../../utils/test/assertError";
 describe("LibIntegrityCheck ensureIntegrity tests", async function () {
   let libIntegrityCheckState: LibIntegrityCheckTest;
 
-  before(async () => {
+  before(async () => { 
+    
+
     libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
@@ -32,12 +34,12 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 0;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [],
-      },
+         [],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -60,12 +62,12 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [],
-      },
+         [],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -101,12 +103,12 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [1, 2],
-      },
+         [1, 2],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -142,24 +144,24 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const _stackTop_ = await libIntegrityCheckState.callStatic[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [1, 2, 3],
-      },
+         [1, 2, 3],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
     );
 
     const tx_ = await libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [1, 2, 3],
-      },
+         [1, 2, 3],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -183,12 +185,12 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [],
-      },
+         [],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -212,24 +214,24 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 0;
 
     const stackTop_ = await libIntegrityCheckState.callStatic[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [],
-      },
+         [],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
     );
 
     const tx_ = await libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
+      
         sources,
-        constants: [],
-      },
+         [],
+      
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -257,12 +259,12 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     await assertError(
       async () =>
         await libIntegrityCheckState.callStatic[
-          "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256,uint256)"
+          "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256,uint256)"
         ](
-          {
+          
             sources,
-            constants: [],
-          },
+             [],
+          
           sourceIndex,
           stackTop,
           minimumFinalStackIndex,

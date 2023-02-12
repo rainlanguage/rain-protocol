@@ -44,7 +44,7 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+         sources, constants ,
         stackLength,
         context,
         debugStyle,
@@ -71,7 +71,7 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+         sources, constants ,
         stackLength,
         context,
         debugStyle,
@@ -99,7 +99,7 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+         sources, constants ,
         stackLength,
         context,
         debugStyle,
@@ -127,7 +127,7 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+         sources, constants ,
         stackLength,
         context,
         debugStyle,
@@ -157,7 +157,7 @@ describe("LibInterpreterState debug tests", async function () {
 
   //   const { stackTop_, stackTopAfter_ } =
   //     await libInterpreterState.callStatic.debug(
-  //       { sources, constants },
+  //        sources, constants ,
   //       context,
   //       debugStyle,
   //       sourceIndex,
@@ -201,7 +201,7 @@ describe("LibInterpreterState debug tests", async function () {
 
   //   const { stackTop_, stackTopAfter_ } =
   //     await libInterpreterState.callStatic.debug(
-  //       { sources, constants },
+  //        sources, constants ,
   //       context,
   //       debugStyle,
   //       sourceIndex,

@@ -7,7 +7,7 @@ describe("LibInterpreterState eval tests", async function () {
   let _libInterpreterState: LibInterpreterStateTest;
 
   before(async () => {
-    libInterpreterState = await libInterpreterStateDeploy();
+    _libInterpreterState = await libInterpreterStateDeploy();
   });
 
   // it("should eval state for specified sourceIndex 1 when StackPointer is specified", async () => {

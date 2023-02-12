@@ -5,6 +5,7 @@ import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { noticeboardDeploy } from "../../utils/deploy/noticeboard/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -28,7 +29,11 @@ describe("Sale noticeboard", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -70,10 +75,10 @@ describe("Sale noticeboard", async function () {
       concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
+    const evaluableConfig = await generateEvaluableConfig(
       sources,
       constants,
-    });
+    );
     const [sale] = await saleDeploy(
       signers,
       deployer,
