@@ -42,21 +42,21 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     /// token => receiver => active debt
     mapping(address => mapping(address => uint256)) internal activeFlashDebts;
 
-    /// Always increase the active debts before sending tokens to avoid potential
-    /// reentrancy issues. As long as the debt is increased on the `Orderbook`
-    /// before the tokens are transferred then any reentrancy will always face
-    /// the increased debt.
-    /// @param token_ The token to lend and send.
-    /// @param receiver_ The receiver of the token and debt.
-    /// @param amount_ The amount to lend and send.
-    function _increaseFlashDebtThenSendToken(
-        address token_,
-        address receiver_,
-        uint256 amount_
-    ) internal {
-        activeFlashDebts[token_][receiver_] += amount_;
-        IERC20(token_).safeTransfer(receiver_, amount_);
-    }
+    // /// Always increase the active debts before sending tokens to avoid potential
+    // /// reentrancy issues. As long as the debt is increased on the `Orderbook`
+    // /// before the tokens are transferred then any reentrancy will always face
+    // /// the increased debt.
+    // /// @param token_ The token to lend and send.
+    // /// @param receiver_ The receiver of the token and debt.
+    // /// @param amount_ The amount to lend and send.
+    // function _increaseFlashDebtThenSendToken(
+    //     address token_,
+    //     address receiver_,
+    //     uint256 amount_
+    // ) internal {
+    //     activeFlashDebts[token_][receiver_] += amount_;
+    //     IERC20(token_).safeTransfer(receiver_, amount_);
+    // }
 
     /// Whenever `Orderbook` sends tokens to any address it MUST first attempt
     /// to decrease any outstanding flash loans for that address. Consider the
@@ -112,33 +112,33 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         }
     }
 
-    /// Before a `flashLoan` call can return ALL current debts MUST be finalized.
-    /// This means that the tokens MUST be returned from the receiver back to
-    /// `Orderbook`. If the token has a dynamic balance these calculations MAY
-    /// be wrong so dynamic balances and rebasing tokens are NOT SUPPORTED.
-    /// @param token_ The token the debt is being finalized for.
-    /// @param receiver_ The receiver of the token and holder of the outstanding
-    /// debt who must now immediately pay the tokens back.
-    function _finalizeDebt(address token_, address receiver_) internal {
-        uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
-        if (activeFlashDebt_ > 0) {
-            // Take tokens from receiver before decreasing debt balance.
-            IERC20(token_).safeTransferFrom(
-                receiver_,
-                address(this),
-                activeFlashDebt_
-            );
-            // Once we have the tokens safely in hand decrease the debt.
-            activeFlashDebts[token_][receiver_] -= activeFlashDebt_;
-        }
+    // /// Before a `flashLoan` call can return ALL current debts MUST be finalized.
+    // /// This means that the tokens MUST be returned from the receiver back to
+    // /// `Orderbook`. If the token has a dynamic balance these calculations MAY
+    // /// be wrong so dynamic balances and rebasing tokens are NOT SUPPORTED.
+    // /// @param token_ The token the debt is being finalized for.
+    // /// @param receiver_ The receiver of the token and holder of the outstanding
+    // /// debt who must now immediately pay the tokens back.
+    // function _finalizeDebt(address token_, address receiver_) internal {
+    //     uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
+    //     if (activeFlashDebt_ > 0) {
+    //         // Take tokens from receiver before decreasing debt balance.
+    //         IERC20(token_).safeTransferFrom(
+    //             receiver_,
+    //             address(this),
+    //             activeFlashDebt_
+    //         );
+    //         // Once we have the tokens safely in hand decrease the debt.
+    //         activeFlashDebts[token_][receiver_] -= activeFlashDebt_;
+    //     }
 
-        // This should be impossible but there is a potential reentrancy above
-        // so guard against an unclean debt finalization anyway.
-        uint256 finalDebt_ = activeFlashDebts[token_][receiver_];
-        if (finalDebt_ > 0) {
-            revert BadDebt(token_, receiver_, finalDebt_);
-        }
-    }
+    //     // This should be impossible but there is a potential reentrancy above
+    //     // so guard against an unclean debt finalization anyway.
+    //     uint256 finalDebt_ = activeFlashDebts[token_][receiver_];
+    //     if (finalDebt_ > 0) {
+    //         revert BadDebt(token_, receiver_, finalDebt_);
+    //     }
+    // }
 
     /// @inheritdoc IERC3156FlashLender
     function flashLoan(
@@ -147,7 +147,14 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         uint256 amount_,
         bytes calldata data_
     ) external override returns (bool) {
-        _increaseFlashDebtThenSendToken(token_, address(receiver_), amount_);
+        // _increaseFlashDebtThenSendToken(token_, address(receiver_), amount_);
+
+        // Increase flash debt THEN send token.
+        {
+            activeFlashDebts[token_][receiver_] += amount_;
+            IERC20(token_).safeTransfer(receiver_, amount_);
+        }
+
         bytes32 result_ = receiver_.onFlashLoan(
             // initiator
             msg.sender,
@@ -164,7 +171,29 @@ contract OrderBookFlashLender is IERC3156FlashLender {
             revert FlashLenderCallbackFailed(result_);
         }
 
-        _finalizeDebt(token_, address(receiver_));
+        // _finalizeDebt(token_, address(receiver_));
+
+        // Finalize the debt.
+        {
+            uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
+            if (activeFlashDebt_ > 0) {
+                // Take tokens from receiver before decreasing debt balance.
+                IERC20(token_).safeTransferFrom(
+                    receiver_,
+                    address(this),
+                    activeFlashDebt_
+                );
+                // Once we have the tokens safely in hand decrease the debt.
+                activeFlashDebts[token_][receiver_] -= activeFlashDebt_;
+            }
+
+            // This should be impossible but there is a potential reentrancy above
+            // so guard against an unclean debt finalization anyway.
+            uint256 finalDebt_ = activeFlashDebts[token_][receiver_];
+            if (finalDebt_ > 0) {
+                revert BadDebt(token_, receiver_, finalDebt_);
+            }
+        }
         return true;
     }
 

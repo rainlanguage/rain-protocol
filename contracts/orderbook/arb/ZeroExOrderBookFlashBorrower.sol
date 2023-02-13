@@ -139,6 +139,9 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         orderBook.flashLoan(this, flashLoanToken_, flashLoanAmount_, data_);
 
         // Send all unspent 0x protocol fees to the sender.
+        // Slither false positive here. This is near verbatim from the reference
+        // implementation. We want to send everything to the sender because the
+        // borrower contract should be empty of all gas and tokens between uses.
         payable(msg.sender).transfer(address(this).balance);
 
         // Send all unspent input tokens to the sender.

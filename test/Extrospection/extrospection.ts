@@ -176,7 +176,10 @@ describe("Extrospection tests", async function () {
           `Store does not support interface: ${interfaceId}`
         );
       } else {
-        assert(!storeEvent.supportsInterface, `Store supports interface: ${interfaceId}`);
+        assert(
+          !storeEvent.supportsInterface,
+          `Store supports interface: ${interfaceId}`
+        );
       }
     }
   });
