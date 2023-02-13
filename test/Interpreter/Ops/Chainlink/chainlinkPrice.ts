@@ -54,9 +54,9 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -112,9 +112,9 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -153,9 +153,9 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -191,9 +191,9 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];

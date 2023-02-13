@@ -24,8 +24,9 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = RainterpreterOps;
 
 const FALSE = () =>
-  op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-const TRUE = () => op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+const TRUE = () =>
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
 describe("AutoApprove evidence data approved", async function () {
   let autoApproveFactory: AutoApproveFactory;
@@ -63,19 +64,19 @@ describe("AutoApprove evidence data approved", async function () {
                   op(Opcode.context, 0x0001),
                 op(Opcode.hash, 1),
               op(Opcode.get),
-                op(Opcode.blockTimestamp),
-                op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.block_timestamp),
+                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.sub, 2),
-            op(Opcode.lessThan),
+            op(Opcode.less_than),
 
             // else, set new evidence and return true
                 op(Opcode.context, 0x0001),
               op(Opcode.hash, 1), // k
-              op(Opcode.blockTimestamp), // v
+              op(Opcode.block_timestamp), // v
             op(Opcode.set),
             TRUE(),
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1, 86400],
     };
@@ -170,7 +171,7 @@ describe("AutoApprove evidence data approved", async function () {
             op(Opcode.set),
             TRUE(), // approve
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1],
     };

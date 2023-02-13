@@ -18,8 +18,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should pop n if stackTop == stackBottom after pop", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -38,8 +38,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should fail underflow check for pop n if stackTop < stackBottom after pop n", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -62,8 +62,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should pop n on the good path", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
@@ -84,8 +84,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should pop if stackTop == stackBottom after pop", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -103,8 +103,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should fail underflow check for pop if stackTop < stackBottom after pop", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -126,8 +126,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should fail underflow check for pop if stackTop < stackHighwater after pop", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
@@ -149,8 +149,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should fail underflow check for pop if stackTop == stackHighwater after pop", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
@@ -172,8 +172,8 @@ describe("LibIntegrityCheck pop tests", async function () {
   it("should pop on the good path", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);

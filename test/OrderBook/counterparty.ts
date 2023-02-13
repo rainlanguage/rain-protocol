@@ -89,14 +89,20 @@ describe("OrderBook counterparty in context", async function () {
       ratio_A,
       carol.address,
     ];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const aOpMaxIfNotMatch = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
     const expectedCounterparty = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -104,10 +110,10 @@ describe("OrderBook counterparty in context", async function () {
     const source_A = concat([
           cCounterparty,
           expectedCounterparty,
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
         aOpMax,
         aOpMaxIfNotMatch,
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
       aRatio,
     ]);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
@@ -143,8 +149,14 @@ describe("OrderBook counterparty in context", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const bOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const bRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_B = concat([
       bOpMax,
@@ -181,8 +193,14 @@ describe("OrderBook counterparty in context", async function () {
 
     const ratio_C = fixedPointDiv(ONE, ratio_A);
     const constants_C = [max_uint256, ratio_C];
-    const cOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const cRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const cOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const cRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_C = concat([
       cOpMax,

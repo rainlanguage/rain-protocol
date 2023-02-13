@@ -1,5 +1,5 @@
 {
-  "name": "explode32",
+  "name": "explode-32",
   "desc": "Part an uint256 value into 8 seperate 1 byte size values.",
   "operand": 0,
   "inputs": {
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 8,
-  "aliases": ["explode"]
+  "aliases": ["explode32", "explode"]
 }
