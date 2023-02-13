@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { ethers } from "hardhat";
 
 import {
   Rainterpreter,
@@ -8,10 +9,7 @@ import {
   RainterpreterStore,
   EIP165InterfaceIds,
 } from "../../typechain";
-import {
-  BytecodeHashEvent,
-  SupportsInterfaceEvent,
-} from "../../typechain/contracts/extrospection/Extrospection";
+import { SupportsInterfaceEvent } from "../../typechain/contracts/extrospection/Extrospection";
 import { basicDeploy, getEventArgs } from "../../utils";
 import {
   rainterpreterDeploy,
@@ -19,7 +17,8 @@ import {
   rainterpreterStoreDeploy,
 } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { checkIfIncludesOps } from "../../utils/exstrospection";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { checkIfIncludesNonStaticOps } from "../../utils/exstrospection";
 
 describe("Extrospection tests", async function () {
   let rainInterpreter: Rainterpreter;
@@ -30,17 +29,23 @@ describe("Extrospection tests", async function () {
   let EIP165InterfaceIDs: EIP165InterfaceIds;
 
   before(async () => {
-    // Deploy Interpreter
-    rainInterpreter = await rainterpreterDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     // Deploy Extrospection
     extrospection = (await basicDeploy("Extrospection", {})) as Extrospection;
+    // Deploy Interpreter
+    rainInterpreter = await rainterpreterDeploy();
     // Deploy Extern
     rainInterpreterExtern = await rainterpreterExtern();
     // Deploy Store
     rainterpreterStore = await rainterpreterStoreDeploy();
-    // Deploy Expression Deployer
+
+    //Deploy Expression Deployer
     expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      rainInterpreter
+      rainInterpreter,
+      rainterpreterStore
     );
 
     EIP165InterfaceIDs = (await basicDeploy(
@@ -50,19 +55,13 @@ describe("Extrospection tests", async function () {
   });
 
   it("should check if bytecode has any opcode that change memory(stateless interpreter)", async () => {
-    const tx = await extrospection.emitBytecodeHash(rainInterpreter.address);
-
-    const event = (await getEventArgs(
-      tx,
-      "BytecodeHash",
-      extrospection
-    )) as BytecodeHashEvent["args"];
-
-    const result = checkIfIncludesOps(event.bytecodeHash);
-    assert(result);
+    const bytecode_ = await extrospection.bytecode(rainInterpreter.address);
+    const result = checkIfIncludesNonStaticOps(bytecode_);
+    assert(result, "there were non static ops in bytecode");
   });
 
   it("should check if contract supports interface", async () => {
+    const IERC165InterfaceId = await EIP165InterfaceIDs.IERC165InterfaceId();
     const IExpressionDeployerV1InterfaceId =
       await EIP165InterfaceIDs.IExpressionDeployerV1InterfaceId();
     const IInterpreterExternV1InterfaceId =
@@ -73,6 +72,7 @@ describe("Extrospection tests", async function () {
       await EIP165InterfaceIDs.IInterpreterStoreV1InterfaceId();
 
     const interfaceIds = [
+      IERC165InterfaceId,
       IExpressionDeployerV1InterfaceId,
       IInterpreterExternV1InterfaceId,
       IInterpreterV1InterfaceId,
@@ -92,7 +92,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IExpressionDeployerV1InterfaceId) {
+      if (
+        interfaceId == IExpressionDeployerV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           deployerEvent.supportsInterface,
           `Deployer does not support interface: ${interfaceId}`
@@ -118,7 +121,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterExternV1InterfaceId) {
+      if (
+        interfaceId == IInterpreterExternV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           externEvent.supportsInterface,
           `Extern does not support interface: ${interfaceId}`
@@ -144,7 +150,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterV1InterfaceId) {
+      if (
+        interfaceId == IInterpreterV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           interpreterEvent.supportsInterface,
           `Interpreter does not support interface: ${interfaceId}`
@@ -170,7 +179,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterStoreV1InterfaceId) {
+      if (
+        interfaceId == IInterpreterStoreV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           storeEvent.supportsInterface,
           `Store does not support interface: ${interfaceId}`

@@ -2,17 +2,20 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
-
-import { Parser } from "rainlang";
-import { getRainterpreterOpMetaBytes } from "../../../../utils/meta/op/allStandardOpMeta";
+import { standardEvaluableConfig } from "../../../../utils";
 
 describe("RainInterpreter MathOps standard math", async () => {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -23,16 +26,13 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform a calculation using the block number as a value", async () => {
-    // prettier-ignore
-    const expressionString = `_: mul(add(sub(2 1) 3 4) div(6 3) block-number());`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
+    const { sources, constants } = standardEvaluableConfig(
+      `_: mul(add(sub(2 1) 3 4) div(6 3) block-number());`
     );
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -89,16 +89,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
-    // prettier-ignore
-    const expressionString = `_: mod(7 4 2);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: mod(7 4 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -119,16 +114,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
-    // prettier-ignore
-    const expressionString = `_: mod(9 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: mod(9 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -149,16 +139,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
-    // prettier-ignore
-    const expressionString = `_: mod(5 2);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: mod(5 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -179,16 +164,10 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform exponentiation on a sequence of numbers", async () => {
-    // prettier-ignore
-    const expressionString = `_: exp(2 4 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
-
+    const { sources, constants } = standardEvaluableConfig(`_: exp(2 4 3);`);
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -209,16 +188,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should perform exponentiation correctly", async () => {
-    // prettier-ignore
-    const expressionString = `_: exp(2 4);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: exp(2 4);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -239,16 +213,12 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return the maximum of a sequence of numbers", async () => {
-    // prettier-ignore
-    const expressionString = `_: max(22 11 33);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: max(22 11 33);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
+
       rainInterpreter,
       1
     );
@@ -264,15 +234,12 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return the minimum of a sequence of numbers", async () => {
-    const expressionString = `_: min(22 11 33);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: min(22 11 33);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
+
       rainInterpreter,
       1
     );
@@ -288,15 +255,13 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
-    const expressionString = `_: div(mul(add(2 2 2) 3) 2 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
+    const { sources, constants } = standardEvaluableConfig(
+      `_: div(mul(add(2 2 2) 3) 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -317,15 +282,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
-    const expressionString = `_: mod(13 2 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: mod(13 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -346,15 +307,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
-    const expressionString = `_: div(12 2 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: div(12 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -375,15 +332,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should multiply a sequence of numbers together", async () => {
-    const expressionString = `_: mul(3 4 5);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: mul(3 4 5);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -404,15 +357,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should subtract a sequence of numbers from an initial number", async () => {
-    const expressionString = `_: sub(10 2 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: sub(10 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -433,15 +382,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   });
 
   it("should add a sequence of numbers together", async () => {
-    const expressionString = `_: add(1 2 3);`;
-
-    const stateConfig = Parser.getStateConfig(
-      expressionString,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources, constants } = standardEvaluableConfig(`_: add(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig,
+      sources,
+      constants,
       rainInterpreter,
       1
     );

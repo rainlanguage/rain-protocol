@@ -38,7 +38,8 @@ describe("LibInterpreterState deserialize tests", async function () {
 
     // test fn serializes and then deserialises
     const state_ = await libInterpreterState.callStatic.serDeserialize(
-      { sources, constants },
+      sources,
+      constants,
       stackLength,
       context,
       interpreter.address

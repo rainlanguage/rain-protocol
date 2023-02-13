@@ -1,17 +1,16 @@
-import { BytesLike } from "ethers";
+import { BigNumberish, BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
-import { RainterpreterStore } from "../../typechain";
-import {
-  EvaluableConfigStruct,
-  ExpressionConfigStruct,
-} from "../../typechain/contracts/flow/basic/Flow";
-import { zeroAddress } from "../constants";
+import { PromiseOrValue } from "../../typechain/common";
+import { EvaluableConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
+import { partialRight } from "lodash";
+import { Parser } from "rainlang";
+import { getRainterpreterOpMetaBytes } from "../meta";
 
 export enum MemoryType {
   Stack,
@@ -245,22 +244,31 @@ export function foldContextOperand(
  * @returns operand
  */
 export async function generateEvaluableConfig(
-  expressionConfig: ExpressionConfigStruct,
-  isStore = true
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[]
 ): Promise<EvaluableConfigStruct> {
   const interpreter = await rainterpreterDeploy();
+  const store = await rainterpreterStoreDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+    interpreter,
+    store
   );
-
-  let interpreterStore: RainterpreterStore = null;
-
-  interpreterStore = await rainterpreterStoreDeploy();
 
   return {
     deployer: expressionDeployer.address,
-    interpreter: interpreter.address,
-    store: isStore ? interpreterStore.address : zeroAddress,
-    expressionConfig: expressionConfig,
+    sources,
+    constants,
   };
 }
+
+/**
+ * @public
+ * Builds sources and constants from a rainlang expression.
+ *
+ * @param expressionString - rainlang expression
+ * @returns sources and constants
+ */
+export const standardEvaluableConfig = partialRight(
+  Parser.getStateConfig.bind(Parser),
+  getRainterpreterOpMetaBytes()
+);

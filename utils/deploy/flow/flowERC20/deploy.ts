@@ -19,14 +19,16 @@ export const flowERC20Deploy = async (
 ) => {
   // Building evaluableConfig
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    flowERC20Config.expressionConfig
+    flowERC20Config.expressionConfig.sources,
+    flowERC20Config.expressionConfig.constants
   );
 
   // Building flowConfig
   const flowConfig: EvaluableConfigStruct[] = [];
   for (let i = 0; i < flowERC20Config.flows.length; i++) {
     const evaluableConfig = await generateEvaluableConfig(
-      flowERC20Config.flows[i]
+      flowERC20Config.flows[i].sources,
+      flowERC20Config.flows[i].constants
     );
     flowConfig.push(evaluableConfig);
   }

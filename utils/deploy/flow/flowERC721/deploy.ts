@@ -20,14 +20,16 @@ export const flowERC721Deploy = async (
 ) => {
   // Building evaluableConfig
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    flowERC721Config.expressionConfig
+    flowERC721Config.expressionConfig.sources,
+    flowERC721Config.expressionConfig.constants
   );
 
   // Building flowConfig
   const flowConfig: EvaluableConfigStruct[] = [];
   for (let i = 0; i < flowERC721Config.flows.length; i++) {
     const evaluableConfig = await generateEvaluableConfig(
-      flowERC721Config.flows[i]
+      flowERC721Config.flows[i].sources,
+      flowERC721Config.flows[i].constants
     );
     flowConfig.push(evaluableConfig);
   }

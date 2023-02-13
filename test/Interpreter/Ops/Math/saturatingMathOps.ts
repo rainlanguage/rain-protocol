@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { Parser } from "rainlang";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { getRainterpreterOpMetaBytes } from "../../../../utils";
+import { standardEvaluableConfig } from "../../../../utils";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { assertError } from "../../../../utils/test/assertError";
 
@@ -14,6 +14,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -24,17 +28,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
   });
 
   it("should perform saturating multiplication", async () => {
-    // test case with normal multiplication
-    // prettier-ignore
-    const expressionString0 = `_: mul(${max_uint256} 2);`;
-
-    const stateConfigUnsat = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      standardEvaluableConfig(`_: mul(${max_uint256} 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfigUnsat,
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -50,16 +49,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal multiplication overflow did not error"
     );
 
-    // prettier-ignore
-    const expressionString1 = `_: saturating-mul(${max_uint256} 2);`;
-
-    const stateConfigSat = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesSat, constants: constantsSat } =
+      standardEvaluableConfig(`_: saturating-mul(${max_uint256} 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfigSat,
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );
@@ -79,16 +74,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating subtraction", async () => {
     // test case with normal subtraction
-    // prettier-ignore
-    const expressionString0 = `_: sub(10 20);`;
-
-    const stateConfigUnSat = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      standardEvaluableConfig(`_: sub(10 20);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfigUnSat,
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -104,16 +95,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal subtraction overflow did not error"
     );
 
-    // prettier-ignore
-    const expressionString1 = `_: saturating-sub(10 20);`;
-
-    const stateConfigSat = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesSat, constants: constantsSat } =
+      standardEvaluableConfig(`_: saturating-sub(10 20);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfigSat,
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );
@@ -133,15 +120,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating addition", async () => {
     // test case with normal addition
-    const expressionString0 = `_: add(${max_uint256} 10);`;
-
-    const stateConfigUnsat = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      standardEvaluableConfig(`_: add(${max_uint256} 10);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfigUnsat,
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -157,16 +141,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal addition overflow did not error"
     );
 
-    // prettier-ignore
-    const expressionString1 = `_: saturating-add(${max_uint256} 10);`;
-
-    const stateConfigSat = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sourcesSat, constants: constantsSat } =
+      standardEvaluableConfig(`_: saturating-add(${max_uint256} 10);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfigSat,
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );

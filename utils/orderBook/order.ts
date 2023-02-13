@@ -29,10 +29,10 @@ export const getOrderConfig = async (
       vOpMax,
       vRatio,
     ]);
-  const evaluableConfig = await generateEvaluableConfig({
-    sources: [source, []],
-    constants: constants,
-  });
+  const evaluableConfig = await generateEvaluableConfig(
+    [source, []],
+    constants
+  );
   const orderConfig: OrderConfigStruct = {
     validInputs: [
       {

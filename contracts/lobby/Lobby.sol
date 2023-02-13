@@ -211,18 +211,20 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     JOIN_MIN_OUTPUTS,
                     LEAVE_MIN_OUTPUTS,
                     CLAIM_MIN_OUTPUTS
                 )
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function _joinEncodedDispatch(

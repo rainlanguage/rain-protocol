@@ -6,6 +6,7 @@ import { FlowFactory } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
@@ -22,6 +23,10 @@ describe("Flow construction tests", async function () {
   let flowFactory: FlowFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowFactory = await flowFactoryDeploy();
   });
 

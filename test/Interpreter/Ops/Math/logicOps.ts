@@ -2,11 +2,11 @@ import { assert } from "chai";
 import type { BigNumber } from "ethers";
 import { hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { Parser } from "rainlang";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { getRainterpreterOpMetaBytes } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { standardEvaluableConfig } from "../../../../utils";
 
 const isTruthy = (interpreterValue: BigNumber) => !interpreterValue.isZero();
 
@@ -15,6 +15,10 @@ describe("RainInterpreter logic ops", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -25,16 +29,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check whether any value in a list is non-zero", async () => {
-    // prettier-ignore
-    const expressionString0 = `_: any(1 2 3);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: any(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -47,16 +47,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
 
-    // prettier-ignore
-    const expressionString1 = `_: any(0 0);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: any(0 0);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -69,16 +65,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
 
-    // prettier-ignore
-    const expressionString2 = `_: any(0 0 3);`;
-
-    const stateConfig2 = Parser.getStateConfig(
-      expressionString2,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: any(0 0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      stateConfig2,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -94,15 +86,13 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check whether every value in a list is non-zero", async () => {
     // prettier-ignore
-    const expressionString0 = `_: every(1 2 3);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
+    const { sources: sources0, constants: constants0 } = standardEvaluableConfig(
+      `_: every(1 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -115,16 +105,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
 
-    // prettier-ignore
-    const expressionString1 = `_: every(0 1 2);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: every(0 1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -137,16 +123,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
 
-    // prettier-ignore
-    const expressionString2 = `_: every(0 3);`;
-
-    const stateConfig2 = Parser.getStateConfig(
-      expressionString2,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: every(0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      stateConfig2,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -161,16 +143,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
-    // prettier-ignore
-    const expressionString0 = `_: eager-if(1 2 3);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: eager-if(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -183,16 +161,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
 
-    // prettier-ignore
-    const expressionString1 = `_: eager-if(2 2 3);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: eager-if(2 2 3);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -205,16 +179,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
 
-    // prettier-ignore
-    const expressionString2 = `_: eager-if(0 2 3);`;
-
-    const stateConfig2 = Parser.getStateConfig(
-      expressionString2,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: eager-if(0 2 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      stateConfig2,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -229,16 +199,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that value is greater than another value", async () => {
-    // prettier-ignore
-    const expressionString0 = `_: greater-than(2 1);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: greater-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -251,16 +217,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
 
-    // prettier-ignore
-    const expressionString1 = `_: greater-than(1 2);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: greater-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -275,16 +237,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that value is less than another value", async () => {
-    // prettier-ignore
-    const expressionString0 = `_: less-than(2 1);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: less-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -298,16 +256,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
 
-    // prettier-ignore
-    const expressionString1 = `_: less-than(1 2);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: less-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -324,17 +278,12 @@ describe("RainInterpreter logic ops", async function () {
   it("should check that values are equal to each other", async () => {
     const id = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const constants = [1, 2, 2, id];
-
-    const expressionString0 = `_: equal-to(2 2);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: equal-to(2 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -348,15 +297,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
 
-    const expressionString1 = `_: equal-to(1 2);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: equal-to(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -369,15 +315,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
 
-    const expressionString2 = `_: equal-to(1 context<0 0>());`;
-
-    const stateConfig2 = Parser.getStateConfig(
-      expressionString2,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: equal-to(1 context<0 0>());`);
 
     const expression2 = await expressionConsumerDeploy(
-      stateConfig2,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -393,15 +336,12 @@ describe("RainInterpreter logic ops", async function () {
       "wrongly says constant 1 is not equal to context 1"
     );
 
-    const expressionString3 = `_: equal-to(${id} context<0 0>());`;
-
-    const stateConfig3 = Parser.getStateConfig(
-      expressionString3,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources3, constants: constants3 } =
+      standardEvaluableConfig(`_: equal-to(${id} context<0 0>());`);
 
     const expression3 = await expressionConsumerDeploy(
-      stateConfig3,
+      sources3,
+      constants3,
       rainInterpreter,
       1
     );
@@ -419,17 +359,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that a value is zero", async () => {
-    const constants = [0, 1];
-
-    const expressionString0 = `_: is-zero(0);`;
-
-    const stateConfig0 = Parser.getStateConfig(
-      expressionString0,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: is-zero(0);`);
 
     const expression0 = await expressionConsumerDeploy(
-      stateConfig0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -443,15 +378,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
 
-    const expressionString1 = `_: is-zero(1);`;
-
-    const stateConfig1 = Parser.getStateConfig(
-      expressionString1,
-      getRainterpreterOpMetaBytes()
-    );
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: is-zero(1);`);
 
     const expression1 = await expressionConsumerDeploy(
-      stateConfig1,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
