@@ -49,10 +49,10 @@ describe("FactoryCurator createChild", async function () {
   let reserve: ReserveToken;
   let stakeFactory: StakeFactory;
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     stakeFactory = await stakeFactoryDeploy();
   });
@@ -298,13 +298,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        
-           [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-           [max_uint256],
-       
+        [
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
@@ -423,13 +421,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        
-           [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-           [max_uint256],
-       
+        [
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
 
     // Stake contract
@@ -505,8 +501,8 @@ describe("FactoryCurator createChild", async function () {
     ]);
 
     const evaluableConfigCombineTier = await generateEvaluableConfig(
-       [sourceReportDefault, sourceMain],
-       [stake0.address, stake1.address, max_uint32],
+      [sourceReportDefault, sourceMain],
+      [stake0.address, stake1.address, max_uint32]
     );
 
     const combineTierMain = (await combineTierDeploy(deployer, {

@@ -32,7 +32,8 @@ contract RainterpreterStore is IInterpreterStoreV1, IERC165 {
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {
         return
-            interfaceId_ == type(IInterpreterStoreV1).interfaceId || interfaceId_ == type(IERC165).interfaceId;
+            interfaceId_ == type(IInterpreterStoreV1).interfaceId ||
+            interfaceId_ == type(IERC165).interfaceId;
     }
 
     /// @inheritdoc IInterpreterStoreV1

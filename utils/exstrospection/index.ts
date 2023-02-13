@@ -82,7 +82,7 @@ export function checkIfIncludesNonStaticOps(bytecode: string) {
       return false;
     }
     if (pushOps.includes(byte)) {
-      const jump = byte - 0x5F;
+      const jump = byte - 0x5f;
       i += jump;
     }
   }

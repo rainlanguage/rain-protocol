@@ -67,7 +67,6 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
     );
   });
 
-
   it("should not revert if interpreter bytecode and function pointers are as expected", async () => {
     const interpreter = await rainterpreterDeploy();
     const store = await rainterpreterStoreDeploy();
