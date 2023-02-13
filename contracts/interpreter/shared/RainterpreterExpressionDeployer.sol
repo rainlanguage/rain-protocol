@@ -39,11 +39,11 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180ee21017104c106a10f21101110f111e112c113a11481156111e116411721181118f119d121512241233124212511260126f127e128d129c12ab12ba12c912d812e713301342135013821390139e13ac13bb13ca13d913e713f514031411141f142d143b144a1459146714d9";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0a430a510aa70af90b770ba30c3c0dc70e910fc60ffb101910a110b010be10cd10db10e910f7110510cd111311211130113e114c11c411d311e211f11200120f121e122d123c124b125a126912781287129612df12f112ff1331133f134d135b136a13791388139613a413b213c013ce13dc13ea13f9140814161488";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x5f57e9485592b51c8c210e1b8122e517e5434f7943967863c7b03e70a7a6bb5e
+    0xcdbea0a71524924db19d438207123ccbdcad555bf12b748e12b6193930c53ef6
 );
 
 /// @dev Hash of the known store bytecode.

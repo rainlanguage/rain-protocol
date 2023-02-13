@@ -57,7 +57,7 @@ describe("Extrospection tests", async function () {
   it("should check if bytecode has any opcode that change memory(stateless interpreter)", async () => {
     const bytecode_ = await extrospection.bytecode(rainInterpreter.address);
     const result = checkIfIncludesNonStaticOps(bytecode_);
-    assert(result, 'there were non static ops in bytecode');
+    assert(result, "there were non static ops in bytecode");
   });
 
   it("should check if contract supports interface", async () => {
