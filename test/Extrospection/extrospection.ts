@@ -18,7 +18,7 @@ import {
 } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { checkIfIncludesOps } from "../../utils/exstrospection";
+import { checkIfIncludesNonStaticOps } from "../../utils/exstrospection";
 
 describe("Extrospection tests", async function () {
   let rainInterpreter: Rainterpreter;
@@ -56,8 +56,8 @@ describe("Extrospection tests", async function () {
 
   it("should check if bytecode has any opcode that change memory(stateless interpreter)", async () => {
     const bytecode_ = await extrospection.bytecode(rainInterpreter.address);
-    const result = checkIfIncludesOps(bytecode_);
-    assert(result);
+    const result = checkIfIncludesNonStaticOps(bytecode_);
+    assert(result, 'there were non static ops in bytecode');
   });
 
   it("should check if contract supports interface", async () => {

@@ -55,10 +55,11 @@ export function roundLog(num: number, base: number) {
   return Math.ceil(log(num, base));
 }
 
-export function checkIfIncludesOps(bytecode: string) {
+export function checkIfIncludesNonStaticOps(bytecode: string) {
   const data = bytecode.split("x")[1];
   const ops = nameOpCodes(Buffer.from(data, "hex"));
-  const opArray = ["CREATE", "CREATE2", "SSTORE", "SELFDESTRUCT", "CALL"];
+  // https://eips.ethereum.org/EIPS/eip-214#specification
+  const opArray = ["CREATE", "CREATE2", "LOG0", "LOG1", "LOG2", "LOG3", "LOG4", "SSTORE", "SELFDESTRUCT", "CALL"];
 
   for (let i = 0; i < ops.length; i++) {
     if (opArray.includes(ops[i].opcode)) {
