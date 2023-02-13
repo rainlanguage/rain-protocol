@@ -34,7 +34,7 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
     function supportsInterface(
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {
-        return interfaceId_ == type(IInterpreterV1).interfaceId;
+        return interfaceId_ == type(IInterpreterV1).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
     /// @inheritdoc IInterpreterV1

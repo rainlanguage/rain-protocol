@@ -6,7 +6,7 @@ import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
-import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
 /// the interpreter it is constructed for. This WILL cause undefined expression
@@ -39,16 +39,16 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a430a510aa70af90b770ba30c3c0dc70e910fc60ffb101910a110b010be10cd10db10e910f7110510cd111311211130113e114c11c411d311e211f11200120f121e122d123c124b125a126912781287129612df12f112ff1331133f134d135b136a13791388139613a413b213c013ce13dc13ea13f9140814161488";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180ee21017104c106a10f21101110f111e112c113a11481156111e116411721181118f119d121512241233124212511260126f127e128d129c12ab12ba12c912d812e713301342135013821390139e13ac13bb13ca13d913e713f514031411141f142d143b144a1459146714d9";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xcdbea0a71524924db19d438207123ccbdcad555bf12b748e12b6193930c53ef6
+    0x83705a3bb85647eb6098a51942fd15db022a85a0053e10c500a0bf9c5eb0dbcb
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x4721232eb29a68d00cfe415ce266f1b03728b2bed7284de805f5ad0fda335051
+    0xa46f33a493a51571d1f9a7a40f7c40a75b8a9da6534bc31c6fb0f415380647e9
 );
 
 /// @dev Hash of the known op meta.
@@ -69,7 +69,7 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
     using LibStackPointer for StackPointer;
 
     /// The config of the deployed expression including uncompiled sources. Will
@@ -161,13 +161,12 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
         );
     }
 
-    // @inheritdoc ERC165
+    // @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {
         return
-            interfaceId_ == type(IExpressionDeployerV1).interfaceId ||
-            super.supportsInterface(interfaceId_);
+            interfaceId_ == type(IExpressionDeployerV1).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
     /// Defines all the function pointers to integrity checks. This is the
