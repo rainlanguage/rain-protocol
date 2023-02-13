@@ -109,9 +109,6 @@ export const estimateFeeData = async (
     });
 
     const data = await fetchFeeData();
-    console.log("fetchFeeData");
-    console.log(data);
-    console.log("==============");
     const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = data;
 
     return {
