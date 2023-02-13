@@ -67,8 +67,8 @@ describe("EXTERN Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
@@ -116,8 +116,8 @@ describe("EXTERN Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
@@ -164,8 +164,8 @@ describe("EXTERN Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
@@ -275,8 +275,8 @@ describe("EXTERN Opcode tests", async function () {
       .shl(160)
       .add(extr);
     const constants = [num, 1337, 1339];
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([

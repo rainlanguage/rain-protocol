@@ -49,12 +49,12 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
     fakeSale.remainingTokenInventory.returns(remainingTokenInventory);
 
     const SALE_ADDRESS = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isaleV2RemainingTokenInventory),
+      op(Opcode.isale_v2_remaining_token_inventory),
     ])];
     const constants = [fakeSale.address];
 

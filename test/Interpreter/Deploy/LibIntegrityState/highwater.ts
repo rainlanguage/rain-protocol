@@ -22,10 +22,10 @@ describe("LibIntegrityCheck highwater tests", async function () {
     const constants = [1, 2, 3, 4];
 
     const sourceONE = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
     ]);
 
     const sourceMAIN = concat([
@@ -52,13 +52,13 @@ describe("LibIntegrityCheck highwater tests", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       // _: 1
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
 
       // _: add<3>(add(1 stack(0)) stack(0));
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.add, 2),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.add, 3),
     ]);
 

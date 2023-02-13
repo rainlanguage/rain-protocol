@@ -14,11 +14,11 @@ describe("LibInterpreterState eval tests", async function () {
   //   // prettier-ignore
   //   const sources = [
   //     concat([ // sourceIndex 0
-  //       op(Opcode.BLOCK_NUMBER)
+  //       op(Opcode.block_number)
   //     ]),
   //     concat([ // sourceIndex 1
-  //         op(Opcode.BLOCK_NUMBER),
-  //       op(Opcode.EXPLODE32),
+  //         op(Opcode.block_number),
+  //       op(Opcode.explode_32),
   //     ])
   //   ];
   //   const constants = [];
@@ -42,11 +42,11 @@ describe("LibInterpreterState eval tests", async function () {
   //   // prettier-ignore
   //   const sources = [
   //     concat([ // sourceIndex 0
-  //       op(Opcode.BLOCK_NUMBER)
+  //       op(Opcode.block_number)
   //     ]),
   //     concat([ // sourceIndex 1
-  //         op(Opcode.BLOCK_NUMBER),
-  //       op(Opcode.EXPLODE32),
+  //         op(Opcode.block_number),
+  //       op(Opcode.explode_32),
   //     ])
   //   ];
   //   const constants = [];
@@ -68,11 +68,11 @@ describe("LibInterpreterState eval tests", async function () {
   //   // prettier-ignore
   //   const sources = [
   //     concat([ // sourceIndex 0
-  //       op(Opcode.BLOCK_NUMBER)
+  //       op(Opcode.block_number)
   //     ]),
   //     concat([ // sourceIndex 1
-  //         op(Opcode.BLOCK_NUMBER),
-  //       op(Opcode.EXPLODE32),
+  //         op(Opcode.block_number),
+  //       op(Opcode.explode_32),
   //     ])
   //   ];
   //   const constants = [];
@@ -92,12 +92,12 @@ describe("LibInterpreterState eval tests", async function () {
   //   );
   // });
 
-  // it("should eval state for default sourceIndex 0 (EXPLODE32(BLOCK_NUMBER))", async () => {
+  // it("should eval state for default sourceIndex 0 (explode_32(block_number))", async () => {
   //   // prettier-ignore
   //   const sources = [
   //     concat([ // sourceIndex 0
-  //         op(Opcode.BLOCK_NUMBER),
-  //       op(Opcode.EXPLODE32),
+  //         op(Opcode.block_number),
+  //       op(Opcode.explode_32),
   //     ])
   //   ];
   //   const constants = [];
@@ -121,11 +121,11 @@ describe("LibInterpreterState eval tests", async function () {
   //   );
   // });
 
-  // it("should eval state for default sourceIndex 0 (BLOCK_NUMBER)", async () => {
+  // it("should eval state for default sourceIndex 0 (block_number)", async () => {
   //   // prettier-ignore
   //   const sources = [
   //     concat([ // sourceIndex 0
-  //       op(Opcode.BLOCK_NUMBER)
+  //       op(Opcode.block_number)
   //     ])
   //   ];
   //   const constants = [];

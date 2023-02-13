@@ -6,7 +6,7 @@ import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
-import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
 /// the interpreter it is constructed for. This WILL cause undefined expression
@@ -43,12 +43,12 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0a940aa20af80b4a0bc80bf40c8d0e180e
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x5f57e9485592b51c8c210e1b8122e517e5434f7943967863c7b03e70a7a6bb5e
+    0x2d1cf087af0d73e9a308d42157b4379262a5848dd771d9b1250d192fd765a700
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x4721232eb29a68d00cfe415ce266f1b03728b2bed7284de805f5ad0fda335051
+    0xf968c3941e35db24dbf3ce43f8beb7bd5e6070969d50ef898fe1c5dd9ab9a53d
 );
 
 /// @dev Hash of the known op meta.
@@ -69,20 +69,8 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
     using LibStackPointer for StackPointer;
-
-    /// The interpreter passed in construction is valid. ANY interpreter with
-    /// the same function pointers will be considered valid. It is the
-    /// responsibility of the caller to decide whether they trust the _bytecode_
-    /// of the interpreter as many possible bytecodes compile to the same set of
-    /// function pointers.
-    /// @param sender The account that constructed the expression deployer.
-    /// @param interpreter The address of the interpreter that the expression
-    /// deployer agrees to perform integrity checks for. Note that the pairing
-    /// between interpreter and expression deployer needs to be checked and
-    /// enforced elsewhere offchain and/or onchain.
-    event ValidInterpreter(address sender, address interpreter);
 
     /// The config of the deployed expression including uncompiled sources. Will
     /// only be emitted after the config passes the integrity check.
@@ -173,13 +161,13 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
         );
     }
 
-    // @inheritdoc ERC165
+    // @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {
         return
             interfaceId_ == type(IExpressionDeployerV1).interfaceId ||
-            super.supportsInterface(interfaceId_);
+            interfaceId_ == type(IERC165).interfaceId;
     }
 
     /// Defines all the function pointers to integrity checks. This is the

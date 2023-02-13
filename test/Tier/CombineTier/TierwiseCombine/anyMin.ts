@@ -37,7 +37,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should correctly combine Always and Never tier reports with any and min selector", async () => {
@@ -45,7 +45,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     const evaluableConfigAlways = await generateEvaluableConfig(
       [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       [ALWAYS]
@@ -56,7 +56,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
     })) as CombineTier;
     const evaluableConfigNever = await generateEvaluableConfig(
       [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       [NEVER]
@@ -73,15 +73,15 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.blockTimestamp),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.block_timestamp),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report, 0),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.itier_v2_report, 0),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report, 0),
+        op(Opcode.itier_v2_report, 0),
       op(
-        Opcode.selectLte,
+        Opcode.select_lte,
         selectLte(SelectLteLogic.any, SelectLteMode.min, 2)
       ),
     ]);
@@ -122,15 +122,15 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.blockTimestamp),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.block_timestamp),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.itier_v2_report),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.context, 0x0000),
-        op(Opcode.itierV2Report),
+        op(Opcode.itier_v2_report),
       op(
-        Opcode.selectLte,
+        Opcode.select_lte,
         selectLte(SelectLteLogic.any, SelectLteMode.min, 2)
       ),
     ]);

@@ -64,11 +64,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -96,10 +96,10 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time0
     const source0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itierV2ReportTimeForTier)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -121,11 +121,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time1
     const source1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // context - TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.itierV2ReportTimeForTier, 1),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // context - TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.itier_v2_report_time_for_tier, 1),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
@@ -147,11 +147,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time2
     const source2 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.context, 0x0000), // Address
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 1).length),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 1).length),
     ]);
 
     const expression2 = await expressionConsumerDeploy(
@@ -172,12 +172,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time3
     const source3 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 2).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 2).length),
     ]);
 
     const expression3 = await expressionConsumerDeploy(
@@ -199,13 +199,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time4
     const source4 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 3).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 3).length),
     ]);
 
     const expression4 = await expressionConsumerDeploy(
@@ -227,14 +227,14 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time5
     const source5 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 4).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 4).length),
     ]);
 
     const expression5 = await expressionConsumerDeploy(
@@ -256,15 +256,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time6
     const source6 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 5).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 5).length),
     ]);
 
     const expression6 = await expressionConsumerDeploy(
@@ -286,16 +286,16 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time7
     const source7 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 6).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 6).length),
     ]);
 
     const expression7 = await expressionConsumerDeploy(
@@ -332,11 +332,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -357,10 +357,10 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itierV2ReportTimeForTier),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -390,11 +390,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -424,18 +424,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -468,11 +468,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -502,18 +502,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -601,11 +601,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -634,18 +634,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -721,11 +721,11 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -753,18 +753,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

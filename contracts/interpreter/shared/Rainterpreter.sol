@@ -8,7 +8,7 @@ import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @title Rainterpreter
 /// @notice Minimal binding of the `IIinterpreterV1` interface to the
@@ -18,7 +18,7 @@ import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/u
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1, ERC165 {
+contract Rainterpreter is IInterpreterV1, IERC165 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -30,13 +30,13 @@ contract Rainterpreter is IInterpreterV1, ERC165 {
     using LibMemoryKV for MemoryKVPtr;
     using LibInterpreterState for StateNamespace;
 
-    // @inheritdoc ERC165
+    // @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {
         return
             interfaceId_ == type(IInterpreterV1).interfaceId ||
-            super.supportsInterface(interfaceId_);
+            interfaceId_ == type(IERC165).interfaceId;
     }
 
     /// @inheritdoc IInterpreterV1

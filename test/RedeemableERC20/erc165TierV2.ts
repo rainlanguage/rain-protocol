@@ -65,14 +65,14 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
     const evaluableConfig = await generateEvaluableConfig(
       [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
       [0]
@@ -114,8 +114,8 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(
       [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
       ],
       [max_uint256]
     );

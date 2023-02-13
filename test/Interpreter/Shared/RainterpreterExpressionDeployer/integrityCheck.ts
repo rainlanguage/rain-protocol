@@ -67,7 +67,6 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
     );
   });
 
-
   it("should not revert if interpreter bytecode and function pointers are as expected", async () => {
     const interpreter = await rainterpreterDeploy();
     const store = await rainterpreterStoreDeploy();
@@ -80,8 +79,8 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
       constants: ["1", "2"],
       sources: [
         concat([
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(AllStandardOps.add, 2),
         ]),
       ],
