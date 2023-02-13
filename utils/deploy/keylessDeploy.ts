@@ -81,7 +81,7 @@ export const keylessDeploy = async (
   return contract;
 };
 
-const estimateFeeData = async (
+export const estimateFeeData = async (
   chainId: number
 ): Promise<{
   gasPrice: BigNumber;
@@ -107,8 +107,10 @@ const estimateFeeData = async (
       provider,
       webSocketProvider,
     });
-    const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } =
-      await fetchFeeData();
+
+    const data = await fetchFeeData();
+    // console.log(data);
+    const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = data;
 
     return {
       gasPrice,
