@@ -12,6 +12,7 @@ import {
 import { compareStructs, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -27,6 +28,9 @@ describe("Lobby Tests Intialize", async function () {
   let tokenA: ReserveToken18;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
@@ -69,7 +73,8 @@ describe("Lobby Tests Intialize", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {

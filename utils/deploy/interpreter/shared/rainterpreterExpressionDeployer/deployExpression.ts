@@ -1,22 +1,32 @@
+import { BigNumberish, BytesLike } from "ethers";
 import { Rainterpreter } from "../../../../../typechain";
-import { ExpressionDeployedEvent } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { ExpressionConfigStruct } from "../../../../../typechain/contracts/orderbook/IOrderBookV1";
+import { PromiseOrValue } from "../../../../../typechain/common";
+import { ExpressionAddressEvent } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+
 import { getEvents } from "../../../../events";
+import { rainterpreterStoreDeploy } from "../rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "./deploy";
 
 export const rainterpreterExpression = async (
   interpreter: Rainterpreter,
-  expressionConfig: ExpressionConfigStruct
+  sources_: PromiseOrValue<BytesLike>[],
+  constants_: PromiseOrValue<BigNumberish>[]
 ) => {
-  const expression = await rainterpreterExpressionDeployerDeploy(interpreter);
+  const store = await rainterpreterStoreDeploy();
+  const expression = await rainterpreterExpressionDeployerDeploy(
+    interpreter,
+    store
+  );
 
-  const expressionTx = await expression.deployExpression(expressionConfig, [0]);
+  const expressionTx = await expression.deployExpression(sources_, constants_, [
+    0,
+  ]);
 
   const eventData = (await getEvents(
     expressionTx,
-    "ExpressionDeployed",
+    "ExpressionAddress",
     expression
-  )) as ExpressionDeployedEvent["args"][];
+  )) as ExpressionAddressEvent["args"][];
 
   return eventData[0].expression;
 };

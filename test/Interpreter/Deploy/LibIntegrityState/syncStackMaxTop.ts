@@ -18,14 +18,16 @@ describe("LibIntegrityCheck syncStackMaxTop tests", async function () {
 
     const newStackMaxTop_ =
       await libIntegrityCheckState.callStatic.syncStackMaxTop(
-        { sources, constants: [] },
+        sources,
+        [],
 
         stackMaxTop,
         stackTop
       );
 
     const tx_ = await libIntegrityCheckState.syncStackMaxTop(
-      { sources, constants: [] },
+      sources,
+      [],
 
       stackMaxTop,
       stackTop
@@ -54,14 +56,16 @@ describe("LibIntegrityCheck syncStackMaxTop tests", async function () {
 
     const newStackMaxTop_ =
       await libIntegrityCheckState.callStatic.syncStackMaxTop(
-        { sources, constants: [] },
+        sources,
+        [],
 
         stackMaxTop,
         stackTop
       );
 
     const tx_ = await libIntegrityCheckState.syncStackMaxTop(
-      { sources, constants: [] },
+      sources,
+      [],
 
       stackMaxTop,
       stackTop

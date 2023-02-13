@@ -20,6 +20,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = RainterpreterOps;
 
@@ -29,6 +30,10 @@ describe("FlowERC20 flowTime tests", async function () {
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 

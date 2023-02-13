@@ -8,6 +8,7 @@ import {
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -33,6 +34,10 @@ describe("Sale unchecked math", async function () {
     saleFactory: SaleFactory,
     signers: SignerWithAddress[];
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -88,10 +93,7 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleDeploy(
       signers,
@@ -176,10 +178,7 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleDeploy(
       signers,
@@ -256,10 +255,7 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleDeploy(
       signers,
@@ -344,10 +340,7 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleDeploy(
       signers,
