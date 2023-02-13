@@ -72,18 +72,6 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
     using LibStackPointer for StackPointer;
 
-    /// The interpreter passed in construction is valid. ANY interpreter with
-    /// the same function pointers will be considered valid. It is the
-    /// responsibility of the caller to decide whether they trust the _bytecode_
-    /// of the interpreter as many possible bytecodes compile to the same set of
-    /// function pointers.
-    /// @param sender The account that constructed the expression deployer.
-    /// @param interpreter The address of the interpreter that the expression
-    /// deployer agrees to perform integrity checks for. Note that the pairing
-    /// between interpreter and expression deployer needs to be checked and
-    /// enforced elsewhere offchain and/or onchain.
-    event ValidInterpreter(address sender, address interpreter);
-
     /// The config of the deployed expression including uncompiled sources. Will
     /// only be emitted after the config passes the integrity check.
     /// @param sender The caller of `deployExpression`.
