@@ -58,5 +58,10 @@ export const keylessDeploy = async (
   const txResp = await provider.sendTransaction(rawTx);
   const txReceipt = await txResp.wait();
 
-  return factory.attach(txReceipt.contractAddress);
+  const contract = factory.attach(txReceipt.contractAddress);
+
+  // @ts-expect-error Using attach does not add the deploy transaction
+  contract.deployTransaction = txResp;
+
+  return contract;
 };
