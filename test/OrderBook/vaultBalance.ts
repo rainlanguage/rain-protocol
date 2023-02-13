@@ -1,15 +1,15 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import { DepositConfigStruct } from "../../typechain/contracts/orderbook/OrderBook";
 import { randomUint256 } from "../../utils/bytes";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { getRainContractMetaBytes } from "../../utils";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 describe("OrderBook vaultBalance", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -21,7 +21,9 @@ describe("OrderBook vaultBalance", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should record vault balance and allow reading balance via getter", async function () {
@@ -29,9 +31,7 @@ describe("OrderBook vaultBalance", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());

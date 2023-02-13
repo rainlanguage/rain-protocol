@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -19,6 +20,10 @@ describe("RainInterpreter unchecked math", async () => {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -45,10 +50,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -85,10 +88,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -119,10 +120,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -156,10 +155,8 @@ describe("RainInterpreter unchecked math", async () => {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );

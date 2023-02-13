@@ -12,7 +12,6 @@ import {
 import {
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -23,6 +22,7 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import {
@@ -46,6 +46,10 @@ describe("FlowERC1155 multiCall tests", async function () {
     )
   );
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC1155Factory = await flowERC1155FactoryDeploy();
   });
 
@@ -216,7 +220,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants: constants_A,
     };

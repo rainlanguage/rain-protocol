@@ -13,7 +13,6 @@ import "hardhat/console.sol";
 contract LibInterpreterStateTest {
     using LibInterpreterState for InterpreterState;
     using LibInterpreterState for bytes;
-    using LibInterpreterState for ExpressionConfig;
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -25,7 +24,8 @@ contract LibInterpreterStateTest {
     constructor() {}
 
     function debug(
-        ExpressionConfig memory config_,
+        bytes[] memory sources_,
+        uint256[] memory constants_,
         uint256 stackLength_,
         uint256[][] memory context_,
         DebugStyle debugStyle_,
@@ -38,7 +38,8 @@ contract LibInterpreterStateTest {
         InterpreterState memory state_;
         bytes memory serialized_ = serialize(
             interpreter_,
-            config_,
+            sources_,
+            constants_,
             stackLength_
         );
         state_ = serialized_.deserialize();
@@ -48,7 +49,8 @@ contract LibInterpreterStateTest {
     }
 
     function serDeserialize(
-        ExpressionConfig memory config_,
+        bytes[] memory sources_,
+        uint256[] memory constants_,
         uint256 stackLength_,
         uint256[][] memory context_,
         IInterpreterV1 interpreter_
@@ -60,7 +62,8 @@ contract LibInterpreterStateTest {
 
         bytes memory serialized_ = serialize(
             interpreter_,
-            config_,
+            sources_,
+            constants_,
             stackLength_
         );
         state_ = serialized_.deserialize();
@@ -69,10 +72,13 @@ contract LibInterpreterStateTest {
 
     function serialize(
         IInterpreterV1 interpreter_,
-        ExpressionConfig memory config_,
+        bytes[] memory sources_,
+        uint256[] memory constants_,
         uint256 stackLength_
     ) public view returns (bytes memory) {
-        bytes memory serialized_ = config_.serialize(
+        bytes memory serialized_ = LibInterpreterState.serialize(
+            sources_,
+            constants_,
             stackLength_,
             interpreter_.functionPointers()
         );

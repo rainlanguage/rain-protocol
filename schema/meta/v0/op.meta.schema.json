@@ -18,15 +18,7 @@
           "description": "Describes what the opcode does briefly."
         },
         "operand": {
-          "anyOf": [
-            {
-              "type": "integer",
-              "const": 0
-            },
-            {
-              "$ref": "#/definitions/OperandArgs"
-            }
-          ],
+          "$ref": "#/definitions/OperandMeta",
           "title": "Opcode Operand",
           "description": "Data required in order to calculate and format the operand."
         },
@@ -54,6 +46,17 @@
       "additionalProperties": false,
       "title": "Opcode Metadata",
       "description": "Schema for opcodes metadata used by RainLang."
+    },
+    "OperandMeta": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "const": 0
+        },
+        {
+          "$ref": "#/definitions/OperandArgs"
+        }
+      ]
     },
     "OperandArgs": {
       "type": "array",
@@ -130,58 +133,61 @@
           "const": 0
         },
         {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "title": "Input Parameter Name",
-                    "description": "Name of the input parameter.",
-                    "pattern": "^[a-z][0-9a-z-]*$"
-                  },
-                  "desc": {
-                    "type": "string",
-                    "title": "Input Parameter Description",
-                    "description": "Description of the input parameter."
-                  },
-                  "spread": {
-                    "type": "boolean",
-                    "title": "Parameter Spread",
-                    "description": "Specifies if an argument is dynamic in length, default is false, so only needs to be defined if an argument is spread."
-                  }
-                },
-                "required": ["name"],
-                "additionalProperties": false
-              },
-              "title": "Parameters",
-              "description": "Data type for opcode's inputs parameters, the length determines the number of inputs for constant (non-computed) inputs."
-            },
-            "bits": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 15
-              },
-              "minItems": 2,
-              "maxItems": 2,
-              "title": "Inputs-Allocated Operand Bits",
-              "description": "Specifies bits of the operand allocated for number of inputs. Determines the number of inputs for a computed opcode inputs. Required only for computed (non-constant) inputs."
-            },
-            "computation": {
-              "type": "string",
-              "title": "Inputs-Allocated Operand Bits Computation",
-              "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) inputs."
-            }
-          },
-          "required": ["parameters"],
-          "additionalProperties": false
+          "$ref": "#/definitions/InputArgs"
         }
       ]
+    },
+    "InputArgs": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Input Parameter Name",
+                "description": "Name of the input parameter.",
+                "pattern": "^[a-z][0-9a-z-]*$"
+              },
+              "desc": {
+                "type": "string",
+                "title": "Input Parameter Description",
+                "description": "Description of the input parameter."
+              },
+              "spread": {
+                "type": "boolean",
+                "title": "Parameter Spread",
+                "description": "Specifies if an argument is dynamic in length, default is false, so only needs to be defined if an argument is spread."
+              }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+          },
+          "title": "Parameters",
+          "description": "Data type for opcode's inputs parameters, the length determines the number of inputs for constant (non-computed) inputs."
+        },
+        "bits": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "title": "Inputs-Allocated Operand Bits",
+          "description": "Specifies bits of the operand allocated for number of inputs. Determines the number of inputs for a computed opcode inputs. Required only for computed (non-constant) inputs."
+        },
+        "computation": {
+          "type": "string",
+          "title": "Inputs-Allocated Operand Bits Computation",
+          "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) inputs."
+        }
+      },
+      "required": ["parameters"],
+      "additionalProperties": false
     },
     "OutputMeta": {
       "anyOf": [
@@ -190,29 +196,33 @@
           "minimum": 0
         },
         {
-          "type": "object",
-          "properties": {
-            "bits": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 15
-              },
-              "minItems": 2,
-              "maxItems": 2,
-              "title": "Outputs-Allocated Operand Bits",
-              "description": "Specifies bits of the operand allocated for number of outputs. Determines the number of outputs for a computed opcode outputs. Required only for computed (non-constant) outputs."
-            },
-            "computation": {
-              "type": "string",
-              "title": "Outputs-Allocated Operand Bits Computation",
-              "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) outputs."
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/definitions/ComputedOutput"
         }
       ]
+    },
+    "ComputedOutput": {
+      "type": "object",
+      "properties": {
+        "bits": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "title": "Outputs-Allocated Operand Bits",
+          "description": "Specifies bits of the operand allocated for number of outputs. Determines the number of outputs for a computed opcode outputs. Required only for computed (non-constant) outputs."
+        },
+        "computation": {
+          "type": "string",
+          "title": "Outputs-Allocated Operand Bits Computation",
+          "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) outputs."
+        }
+      },
+      "required": ["bits"],
+      "additionalProperties": false
     }
   }
 }

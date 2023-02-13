@@ -82,11 +82,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -106,10 +103,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address],
-      },
+      [source0],
+      [stake.address],
+
       rainInterpreter,
       1
     );
@@ -144,11 +140,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -167,10 +160,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -212,11 +204,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -237,10 +226,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -291,11 +279,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -316,10 +301,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp0 = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -402,11 +386,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -427,10 +408,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -481,11 +461,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -506,10 +483,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const blockTime0_ = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -624,11 +600,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -649,10 +622,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const blockTime0_ = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -761,11 +733,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -807,10 +776,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address, ...thresholds0],
-      },
+      [source0],
+      [stake.address, ...thresholds0],
+
       rainInterpreter,
       1
     );
@@ -839,10 +807,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants: [stake.address, ...thresholds1],
-      },
+      [source1],
+      [stake.address, ...thresholds1],
+
       rainInterpreter,
       1
     );

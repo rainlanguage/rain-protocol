@@ -10,6 +10,7 @@ import {
   RESERVE_ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -35,6 +36,10 @@ describe("Sale calculate price", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -102,10 +107,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -254,10 +256,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -372,10 +371,7 @@ describe("Sale calculate price", async function () {
       concat([op(99)]),
       concat([]),
     ]; // bad source
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
         await saleDeploy(
@@ -456,10 +452,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -597,10 +590,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -741,10 +731,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -846,10 +833,7 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,

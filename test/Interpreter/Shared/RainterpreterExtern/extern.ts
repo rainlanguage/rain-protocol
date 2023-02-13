@@ -24,6 +24,7 @@ import {
   rainterpreterExtern,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { ethers } from "hardhat";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -32,6 +33,11 @@ describe("EXTERN Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
   let rainInterpreterExtern: RainterpreterExtern;
 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
   beforeEach(async () => {
     rainInterpreter = await rainterpreterDeploy();
     rainInterpreterExtern = await rainterpreterExtern();
@@ -72,10 +78,9 @@ describe("EXTERN Opcode tests", async function () {
       ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -122,10 +127,9 @@ describe("EXTERN Opcode tests", async function () {
       ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -171,10 +175,9 @@ describe("EXTERN Opcode tests", async function () {
       ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -283,10 +286,9 @@ describe("EXTERN Opcode tests", async function () {
       ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
+
       rainInterpreter,
       1
     );

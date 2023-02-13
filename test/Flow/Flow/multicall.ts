@@ -27,6 +27,7 @@ import { FlowConfig } from "../../../utils/types/flow";
 
 import fs from "fs";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -42,6 +43,10 @@ describe("Flow multiCall tests", async function () {
   );
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowFactory = await flowFactoryDeploy();
   });
 

@@ -13,6 +13,7 @@ import {
 } from "../../utils";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -23,6 +24,10 @@ describe("Stake direct ledger analysis", async function () {
   let token: ReserveToken18;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -48,13 +53,7 @@ describe("Stake direct ledger analysis", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -144,13 +143,7 @@ describe("Stake direct ledger analysis", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -267,13 +260,7 @@ describe("Stake direct ledger analysis", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -343,13 +330,7 @@ describe("Stake direct ledger analysis", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",

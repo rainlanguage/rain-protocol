@@ -1,8 +1,8 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -33,6 +33,10 @@ describe("AutoApprove evidence data approved", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();
   });
@@ -47,7 +51,7 @@ describe("AutoApprove evidence data approved", async function () {
     const signer2 = signers[5];
     const signer3 = signers[6];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
@@ -80,7 +84,8 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -149,7 +154,7 @@ describe("AutoApprove evidence data approved", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         // approved ? deny : approve
@@ -174,7 +179,8 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

@@ -1,4 +1,4 @@
-import { getAllStandardOpsEnum } from "../../meta/op/allStandardOpmeta";
+import { getAllStandardOpsEnum } from "../../meta/op/allStandardOpMeta";
 
 export enum AllStandardOps {
   chainlink_price,

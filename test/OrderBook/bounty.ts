@@ -1,8 +1,7 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -34,12 +33,12 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook bounty", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -51,7 +50,9 @@ describe("OrderBook bounty", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
@@ -61,9 +62,7 @@ describe("OrderBook bounty", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -92,10 +91,10 @@ describe("OrderBook bounty", async function () {
       aRatio,
     ]);
 
-    const EvaluableConfig_A = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     const orderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -143,10 +142,10 @@ describe("OrderBook bounty", async function () {
 
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    const EvaluableConfig_B = await generateEvaluableConfig({
-      sources: [bidSource, []],
-      constants: constants_B,
-    });
+    const EvaluableConfig_B = await generateEvaluableConfig(
+      [bidSource, []],
+      constants_B
+    );
 
     const orderConfig_B: OrderConfigStruct = {
       validInputs: [

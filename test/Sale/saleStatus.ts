@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -28,6 +29,10 @@ describe("Sale saleStatus", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -72,10 +77,7 @@ describe("Sale saleStatus", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,

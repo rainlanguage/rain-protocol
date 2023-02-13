@@ -15,6 +15,7 @@ import {
 } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -43,6 +44,10 @@ describe("Sale minimum raise", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ redeemableERC20Factory, readWriteTier, saleFactory } =
       await saleDependenciesDeploy());
   });
@@ -89,10 +94,7 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -322,10 +324,7 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const saleConfig = {
       evaluableConfig,
       recipient: recipient.address,

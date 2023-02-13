@@ -5,6 +5,7 @@ import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -30,6 +31,10 @@ describe("Sale distribution on failed sale", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -75,10 +80,7 @@ describe("Sale distribution on failed sale", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -250,10 +252,7 @@ describe("Sale distribution on failed sale", async function () {
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,

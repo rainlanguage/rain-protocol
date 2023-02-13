@@ -1,12 +1,7 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  ReserveToken18,
-  ReserveTokenDecimals,
-} from "../../typechain";
+import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   ContextEvent,
@@ -46,12 +41,13 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { getOrderConfig } from "../../utils/orderBook/order";
 import { compareStructs } from "../../utils/test/compareStructs";
-import { getRainContractMetaBytes } from "../../utils";
+
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("OrderBook take orders", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
@@ -63,7 +59,9 @@ describe("OrderBook take orders", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should respect output maximum of a given order", async function () {
@@ -73,9 +71,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -201,9 +197,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -369,9 +363,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const vaultId = ethers.BigNumber.from(randomUint256());
 
@@ -395,10 +387,10 @@ describe("OrderBook take orders", async function () {
       vRatio,
     ]);
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [source, []],
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(
+      [source, []],
+      constants
+    );
 
     const orderConfig: OrderConfigStruct = {
       validInputs: [
@@ -527,9 +519,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -779,9 +769,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1031,9 +1019,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1283,9 +1269,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1535,9 +1519,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -1787,9 +1769,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -2041,9 +2021,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -2245,9 +2223,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -2449,9 +2425,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -2653,9 +2627,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -2857,9 +2829,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3061,9 +3031,7 @@ describe("OrderBook take orders", async function () {
       const bob = signers[2];
       const carol = signers[3];
 
-      const orderBook = (await orderBookFactory.deploy(
-        getRainContractMetaBytes("orderbook")
-      )) as OrderBook;
+      const orderBook = await deployOrderBook();
 
       const aliceInputVault = ethers.BigNumber.from(randomUint256());
       const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3254,9 +3222,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3394,9 +3360,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3529,9 +3493,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3656,9 +3618,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3768,9 +3728,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -3946,9 +3904,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -4092,9 +4048,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -4118,10 +4072,10 @@ describe("OrderBook take orders", async function () {
       aRatio,
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -4350,9 +4304,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
@@ -4376,10 +4328,10 @@ describe("OrderBook take orders", async function () {
       aRatio,
     ]);
 
-    const EvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfigAlice = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -4492,9 +4444,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -4681,9 +4631,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -4816,9 +4764,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
