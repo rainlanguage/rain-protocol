@@ -57,7 +57,7 @@ export const validateMeta = (
           // check computation validity
           if ("computation" in _meta[i].operand[j]) {
             let _comp = _meta[i].operand[j].computation
-            while (_comp.includes("arg")) _comp = _comp.replace("arg", "30")
+            _comp = _comp.replace(/arg/g, "30")
             try { stringMath(_comp) }
             catch { return false }
           }
@@ -84,7 +84,7 @@ export const validateMeta = (
         // check computation validity
         if ("computation" in _meta[i].inputs) {
           let _comp = _meta[i].inputs.computation
-          while (_comp.includes("bits")) _comp = _comp.replace("bits", "30")
+          _comp = _comp.replace(/bits/g, "30")
           try { stringMath(_comp) }
           catch { return false }
         }
@@ -97,7 +97,7 @@ export const validateMeta = (
         // check computation validity
         if ("computation" in _meta[i].outputs) {
           let _comp = _meta[i].outputs.computation
-          while (_comp.includes("bits")) _comp = _comp.replace("bits", "30")
+          _comp = _comp.replace(/bits/g, "30")
           try { stringMath(_comp) }
           catch { return false }
         }
