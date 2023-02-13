@@ -38,6 +38,7 @@ import {
   sixZeros,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -48,7 +49,11 @@ describe("FactoryCurator createChild", async function () {
   let reserve: ReserveToken;
   let stakeFactory: StakeFactory;
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]); 
+
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -293,14 +298,13 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
+        
+           [
             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
           ],
-          constants: [max_uint256],
-        },
-        false
+           [max_uint256],
+       
       );
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
@@ -419,14 +423,13 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
+        
+           [
             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
             op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
           ],
-          constants: [max_uint256],
-        },
-        false
+           [max_uint256],
+       
       );
 
     // Stake contract
@@ -501,10 +504,10 @@ describe("FactoryCurator createChild", async function () {
       op(Opcode.eagerIf)
     ]);
 
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants: [stake0.address, stake1.address, max_uint32],
-    });
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+       [sourceReportDefault, sourceMain],
+       [stake0.address, stake1.address, max_uint32],
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,

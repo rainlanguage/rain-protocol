@@ -12,7 +12,6 @@ import {
 import {
   FlowERC721IOStruct,
   FlowTransferStruct,
-  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -23,6 +22,7 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
 import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import {
@@ -46,6 +46,10 @@ describe("FlowERC721 multicall tests", async function () {
     )
   );
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
@@ -218,7 +222,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants: constants_A,
     };
