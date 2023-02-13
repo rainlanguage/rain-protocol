@@ -44,19 +44,19 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
       op(
-        Opcode.foldContext,
+        Opcode.fold_context,
         foldContextOperand(sourceIndex, column, width, inputSize)
       ),
     ]);
 
     const sourceAdd = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
       op(Opcode.add, width + inputSize),
     ]);
 
@@ -96,29 +96,29 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.foldContext, foldContextOperand(sourceIndex, column, width, inputSize)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
+        op(Opcode.fold_context, foldContextOperand(sourceIndex, column, width, inputSize)),
     ]);
 
     // prettier-ignore
     const sourceCount = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // acc
 
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // context[0][]
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equalTo),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // context[0][]
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.equal_to),
 
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // context[1][]
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equalTo),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // context[1][]
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.equal_to),
 
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)), // context[2][]
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equalTo),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // context[2][]
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.equal_to),
 
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 4)), // context[3][]
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equalTo),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)), // context[3][]
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.equal_to),
 
       op(Opcode.add, 5),
     ]);
@@ -165,19 +165,19 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
       op(
-        Opcode.foldContext,
+        Opcode.fold_context,
         foldContextOperand(sourceIndex, column, width, inputSize)
       ),
     ]);
 
     const sourceAdd = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
       op(Opcode.add, width + inputSize),
     ]);
 
@@ -215,15 +215,15 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
       op(
-        Opcode.foldContext,
+        Opcode.fold_context,
         foldContextOperand(sourceIndex, column, width, inputSize)
       ),
     ]);
 
     const sourceAdd = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.add, width + inputSize),
     ]);
 
@@ -259,19 +259,19 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
       op(
-        Opcode.foldContext,
+        Opcode.fold_context,
         foldContextOperand(sourceIndex, column, width, inputSize)
       ),
     ]);
 
     const sourceAdd = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
       op(Opcode.add, width + inputSize),
     ]);
 
@@ -354,30 +354,30 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const constants = [0, 2, width];
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // even count acc
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // odd count acc
-      op(Opcode.foldContext, foldContextOperand(sourceIndex, column, width, inputSize)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // even count acc
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // odd count acc
+      op(Opcode.fold_context, foldContextOperand(sourceIndex, column, width, inputSize)),
     ]);
 
     // prettier-ignore
     // even odd a b c d => even odd
     const sourceCalculate = concat([
         // counting EVEN numbers
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 5)),
       op(Opcode.call, callOperand(width, 1, 2)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 6)), // Duplicating the returned value from call [i.e EVEN count]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)), // Duplicating the returned value from call [i.e EVEN count]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.add, 2),
       op(Opcode.debug),
 
           // counting ODD numbers [Total elements - EVEN number count = ODD number count]
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // Total width
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 6)), // number of even numbers in this context iteration
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // Total width
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)), // number of even numbers in this context iteration
         op(Opcode.sub, 2),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.add, 2),
       op(Opcode.debug, Debug.StatePacked)
     ]);
@@ -386,22 +386,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceCountEven = concat([
       // since the width is predetermined and is static, we can read fixed number of values from the stack
         // (contextVal % 2) == 0 ?
-            op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.mod, 2),
-        op(Opcode.isZero),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.is_zero),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.mod, 2),
-        op(Opcode.isZero),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.is_zero),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.mod, 2),
-        op(Opcode.isZero),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.is_zero),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.mod, 2),
-        op(Opcode.isZero),
+        op(Opcode.is_zero),
       op(Opcode.add, 4), // Adding all the mod values
     ]);
 

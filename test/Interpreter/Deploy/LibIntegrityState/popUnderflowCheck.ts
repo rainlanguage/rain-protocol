@@ -15,8 +15,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
   it("should pass check for stack underflow if stackTop == stackBottom", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -37,8 +37,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
   it("should fail check for stack underflow if stackTop < stackBottom", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
@@ -65,8 +65,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
   it("should fail check for stack underflow if stackTop < stackHighwater", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
@@ -93,8 +93,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
   it("should fail check for stack underflow if stackTop == stackHighwater", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
@@ -121,8 +121,8 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
   it("should pass check for stack underflow on good path", async function () {
     // prettier-ignore
     const sources = [
-      op(Opcode.blockNumber, 0),
-      op(Opcode.blockNumber, 0),
+      op(Opcode.block_number, 0),
+      op(Opcode.block_number, 0),
     ];
 
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);

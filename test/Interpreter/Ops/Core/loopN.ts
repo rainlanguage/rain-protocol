@@ -47,15 +47,15 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.add, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -91,15 +91,15 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.add, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -135,15 +135,15 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-         op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.add, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -180,21 +180,21 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
     ]);
     // prettier-ignore
     const sourceADDOuter = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.add, 2),
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 2))
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 2))
     ]);
 
     // prettier-ignore
     const sourceADDInner = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.add, 2),
     ]);
 
@@ -249,52 +249,52 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceShiftRight = concat([
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
+              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
+              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.mul, 2), // 32 * LEVEL
           op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.mul, 2),
 
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.add, 2),
     ]);
 
     // prettier-ignore
     const sourceAddAndShiftRight = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.add, 2),
 
           // Right Shifting
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.call, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturatingSub, 2), // LEVEL - 1
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
+        op(Opcode.saturating_sub, 2), // LEVEL - 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.call, callOperand(3, 3, 2)),
     ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.loopN, loopNOperand(n, 3, 3, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
-      op(Opcode.explode32),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
+      op(Opcode.loop_n, loopNOperand(n, 3, 3, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
+      op(Opcode.explode_32),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -356,62 +356,62 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceShiftRight = concat([
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
+              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
+              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.mul, 2), // 32 * LEVEL
           op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.mul, 2),
 
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.add, 2),
     ]);
 
     // prettier-ignore
     const sourceAddAndShiftRight = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.add, 2),
 
           // Right Shifting
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.call, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturatingSub, 2), // LEVEL - 1
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
+        op(Opcode.saturating_sub, 2), // LEVEL - 1
     ]);
 
     // prettier-ignore
     const sourceADDUsingFunction = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.call, callOperand(3, 3, 2)),
     ]);
 
     const sourceADD = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.add, 2),
     ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.loopN, loopNOperand(n, 3, 3, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
-      op(Opcode.explode32), // EXPLODING the Value
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
+      op(Opcode.loop_n, loopNOperand(n, 3, 3, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
+      op(Opcode.explode_32), // EXPLODING the Value
       // explode is multioutput so the highwater has moved
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 9)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 10)),
-      op(Opcode.loopN, loopNOperand(7, 2, 2, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 9)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 10)),
+      op(Opcode.loop_n, loopNOperand(7, 2, 2, 4)),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -458,17 +458,17 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
         op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loopN, loopNOperand(n, 2, 2, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.loop_n, loopNOperand(n, 2, 2, 1))
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -501,17 +501,17 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
         op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loopN, loopNOperand(n, 1, 1, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
     ]);
 
     await assertError(
@@ -538,17 +538,17 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
         op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loopN, loopNOperand(n, 2, 1, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.loop_n, loopNOperand(n, 2, 1, 1))
     ]);
 
     await assertError(

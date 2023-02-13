@@ -68,19 +68,19 @@ describe("RainInterpreter ERC1155 ops", async function () {
       tokenId,
     ];
     const vSigner1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vSigner2 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vTokenId = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -92,7 +92,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
           vSigner2,
           vTokenId,
           vTokenId,
-        op(Opcode.erc1155BalanceOfBatch, length)
+        op(Opcode.erc_1155_balance_of_batch, length)
       ]),
     ];
 
@@ -146,15 +146,15 @@ describe("RainInterpreter ERC1155 ops", async function () {
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];
     const vSigner1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
     const vTokenId = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
 
@@ -164,7 +164,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
           vTokenAddr,
           vSigner1,
           vTokenId,
-        op(Opcode.erc1155BalanceOf)
+        op(Opcode.erc_1155_balance_of)
       ]),
     ];
 

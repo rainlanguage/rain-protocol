@@ -1,5 +1,5 @@
 {
-  "name": "erc1155-balance-of-batch",
+  "name": "erc-1155-balance-of-batch",
   "desc": "Get the balances of an ERC1155 token for batches of accounts and token ids and insert it into the stack",
   "operand": [
     {
@@ -29,5 +29,5 @@
       }
     ]
   },
-  "aliases": ["erc1155-batch-balance"]
+  "aliases": ["erc-1155-batch-balance"]
 }

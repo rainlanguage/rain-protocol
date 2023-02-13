@@ -37,22 +37,22 @@ describe("FlowERC1155 construction tests", async function () {
 
     // prettier-ignore
     const sourceCanTransfer = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // outputNative
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // inputNative
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
     ]);
 
     const sources = [sourceCanTransfer];

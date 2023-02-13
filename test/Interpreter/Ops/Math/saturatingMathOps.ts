@@ -38,10 +38,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating multiplication", async () => {
     const constants = [max_uint256, 2];
     const vMaxUInt256 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal multiplication
     // prettier-ignore
@@ -78,7 +78,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
         // (max_uint256 2 SAT_MUL)
           vMaxUInt256,
           v2,
-        op(Opcode.saturatingMul, 2),
+        op(Opcode.saturating_mul, 2),
       ]),
     ];
 
@@ -104,8 +104,8 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating subtraction", async () => {
     const constants = [10, 20];
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v20 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v10 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v20 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal subtraction
     // prettier-ignore
@@ -142,7 +142,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
         // (10 20 SAT_SUB)
           v10,
           v20,
-        op(Opcode.saturatingSub, 2),
+        op(Opcode.saturating_sub, 2),
       ]),
     ];
 
@@ -169,10 +169,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating addition", async () => {
     const constants = [max_uint256, 10];
     const vMaxUInt256 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v10 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal addition
     // prettier-ignore
@@ -209,7 +209,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
         // (max_uint256 1 SAT_ADD)
           vMaxUInt256,
           v10,
-        op(Opcode.saturatingAdd, 2),
+        op(Opcode.saturating_add, 2),
       ]),
     ];
 

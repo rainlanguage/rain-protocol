@@ -38,7 +38,7 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -66,10 +66,10 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.blockTimestamp),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.block_timestamp),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -104,9 +104,9 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.blockTimestamp),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // Reading an OOB value
+        op(Opcode.block_timestamp),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // Reading an OOB value
     ]);
 
     await assertError(
@@ -126,8 +126,8 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // Reading an OOB value
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // Reading an OOB value
     ]);
 
     await assertError(
@@ -148,10 +148,10 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ])];
 
     await assertError(
@@ -167,10 +167,10 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
     ])];
 
     await assertError(
@@ -188,11 +188,11 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.add, 3),
     ])];
 
@@ -223,11 +223,11 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.add, 3),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
     ])];
 
     const expression0 = await expressionConsumerDeploy(
@@ -255,10 +255,10 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
     ])];
 
     const expression0 = await expressionConsumerDeploy(
@@ -296,7 +296,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
-    const vOOB = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vOOB = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     const sources = [concat([vOOB])];
 
@@ -310,15 +310,15 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should prevent bad RainInterpreter script attempting to access stack index out of bounds (underflow)", async () => {
     const constants = [0, 1];
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v0,
           v1,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       ]),
     ];
 
@@ -332,9 +332,9 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should prevent bad RainInterpreter script attempting to access stack index out of bounds (overflow)", async () => {
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [

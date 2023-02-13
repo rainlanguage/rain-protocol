@@ -43,21 +43,21 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source = concat([
         // SET key1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
 
         // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
 
         // SET key1 again
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
       op(Opcode.set),
 
         // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0 )), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0 )), // key
       op(Opcode.get),
 
     ]);
@@ -95,21 +95,21 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source = concat([
         // SET key1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
 
         // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
 
         // SET key1 again
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
       op(Opcode.set),
 
         // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0 )), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0 )), // key
       op(Opcode.get),
 
     ]);
@@ -143,30 +143,30 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source = concat([
         // SET key1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
 
         // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
 
         // SET key2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // val
       op(Opcode.set),
 
         // GET KEY 2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
       op(Opcode.get),
 
         // SET key3
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // val
       op(Opcode.set),
 
         // GET KEY 3
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
       op(Opcode.get),
     ]);
 
@@ -197,11 +197,11 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source1 = concat([
         // SET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
         // GET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
     ]);
 
@@ -235,11 +235,11 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source2 = concat([
         // SET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
         // GET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
     ]);
 
@@ -276,11 +276,11 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source3 = concat([
         // SET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
         // GET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
     ]);
 
@@ -317,11 +317,11 @@ describe("SET/GET Opcode tests", async function () {
     // prettier-ignore
     const source4 = concat([
         // SET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
         // GET
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get),
     ]);
 
@@ -359,8 +359,8 @@ describe("SET/GET Opcode tests", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set),
     ]);
 
@@ -410,8 +410,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set)
 
     ]);
@@ -457,12 +457,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
         op(Opcode.set) ,
 
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // val
         op(Opcode.set)
 
     ]);
@@ -503,11 +503,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceB = concat([
       // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // key
         op(Opcode.get),
 
         // GET KEY 2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.get)
 
     ]);
@@ -541,8 +541,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set)
     ]);
 
@@ -579,7 +579,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceB = concat([
       // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.get),
 
     ]);
@@ -615,8 +615,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set)
 
     ]);
@@ -658,7 +658,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceB = concat([
       // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.get),
 
     ]);
@@ -688,7 +688,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceC = concat([
       // GET KEY 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.get),
 
     ]);
@@ -727,8 +727,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set)
 
     ]);
@@ -760,8 +760,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceB = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
     op(Opcode.set)
 
   ]);
@@ -811,8 +811,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // prettier-ignore
     const sourceA = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set)
 
     ]);
@@ -843,7 +843,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceB = concat([
         // GET KEY 2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.get),
     ]);
 
@@ -880,13 +880,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceA = concat([
       // set key1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
       op(Opcode.set) ,
 
       // override previous set
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // val
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
       op(Opcode.set)
 
     ]);
@@ -922,8 +922,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceB = concat([
       // override set again by different expression
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
     op(Opcode.set)
 
   ]);
@@ -957,7 +957,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // prettier-ignore
     const sourceC = concat([
       // GET latest SET value
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.get)
     ]);
 

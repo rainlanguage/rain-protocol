@@ -79,19 +79,19 @@ describe("Lobby Invalid Refund", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
       op(Opcode.context, 0x0200),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.equalTo),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equal_to),
     ]);
 
     const lobbyExpressionConfig = {
@@ -261,17 +261,17 @@ describe("Lobby Invalid Refund", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -455,19 +455,19 @@ describe("Lobby Invalid Refund", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
       op(Opcode.context, 0x0200),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.equalTo),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equal_to),
     ]);
 
     const lobbyExpressionConfig = {
@@ -662,19 +662,19 @@ describe("Lobby Invalid Refund", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
       op(Opcode.context, 0x0200),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.equalTo),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.equal_to),
     ]);
 
     const lobbyExpressionConfig = {
