@@ -40,7 +40,8 @@ contract OrderBookFlashLender is IERC3156FlashLender {
 
     /// Tracks all active flash debts
     /// token => receiver => active debt
-    mapping(address => mapping(IERC3156FlashBorrower => uint256)) internal activeFlashDebts;
+    mapping(address => mapping(IERC3156FlashBorrower => uint256))
+        internal activeFlashDebts;
 
     // /// Always increase the active debts before sending tokens to avoid potential
     // /// reentrancy issues. As long as the debt is increased on the `Orderbook`
@@ -100,15 +101,21 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         address receiver_,
         uint256 amount_
     ) internal {
-        uint256 activeFlashDebt_ = activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)];
+        uint256 activeFlashDebt_ = activeFlashDebts[token_][
+            IERC3156FlashBorrower(receiver_)
+        ];
         if (amount_ > activeFlashDebt_) {
             if (activeFlashDebt_ > 0) {
-                activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)] -= activeFlashDebt_;
+                activeFlashDebts[token_][
+                    IERC3156FlashBorrower(receiver_)
+                ] -= activeFlashDebt_;
             }
 
             IERC20(token_).safeTransfer(receiver_, amount_ - activeFlashDebt_);
         } else {
-            activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)] -= amount_;
+            activeFlashDebts[token_][
+                IERC3156FlashBorrower(receiver_)
+            ] -= amount_;
         }
     }
 
