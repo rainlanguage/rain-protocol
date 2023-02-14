@@ -167,7 +167,8 @@ contract OrderBookFlashLender is IERC3156FlashLender {
                 _amount = 0;
             }
 
-            // Both of these are required to fully clear the active debt.
+            // Both of these are required to fully clear the active debt and
+            // allow new debts.
             _receiver = IERC3156FlashBorrower(address(0));
             _token = address(0);
         }
