@@ -16,12 +16,18 @@ import { assert } from "chai";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 import { ethers } from "hardhat";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("chainlink-price Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
   beforeEach(async () => {
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
@@ -48,19 +54,18 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
+        sources,
+        constants,
+
         1
       );
 
@@ -107,21 +112,15 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await assertError(
       async () =>
@@ -154,21 +153,15 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -198,21 +191,15 @@ describe("chainlink-price Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.chainlinkPrice),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlink_price),
       ]),
     ];
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,

@@ -72,13 +72,7 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
             require(
                 ERC165Checker.supportsInterface(
-                    address(
-                        uint160(
-                            config_.evaluableConfig.expressionConfig.constants[
-                                i_
-                            ]
-                        )
-                    ),
+                    address(uint160(config_.evaluableConfig.constants[i_])),
                     type(ITierV2).interfaceId
                 ),
                 "ERC165_TIERV2"
@@ -87,17 +81,19 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
 
         emit Initialize(msg.sender, config_);
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     REPORT_MIN_OUTPUTS,
                     REPORT_FOR_TIER_MIN_OUTPUTS
                 )
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     /// @inheritdoc ITierV2

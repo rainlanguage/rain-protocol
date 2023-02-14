@@ -12,6 +12,7 @@ import {
   max_uint256,
   stakeDeploy,
 } from "../../../utils";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
@@ -29,6 +30,12 @@ describe("CombineTier ERC165 tests", async function () {
   let stakeFactory: StakeFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
+  before(async () => {
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -40,18 +47,18 @@ describe("CombineTier ERC165 tests", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-    const evaluableConfig0 = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+    const evaluableConfig0 = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [ALWAYS],
-    });
+      [ALWAYS]
+    );
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfig0,
@@ -61,9 +68,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     const combineTierSourceConfig = {
@@ -71,7 +78,8 @@ describe("CombineTier ERC165 tests", async function () {
       constants,
     };
     const evaluableConfig1 = await generateEvaluableConfig(
-      combineTierSourceConfig
+      combineTierSourceConfig.sources,
+      combineTierSourceConfig.constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
@@ -94,14 +102,11 @@ describe("CombineTier ERC165 tests", async function () {
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
     const evaluableConfig0 = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -117,9 +122,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.context, 0x0000),
-      op(Opcode.itierV2Report, 0),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     const combineTierSourceConfig = {
@@ -128,7 +133,8 @@ describe("CombineTier ERC165 tests", async function () {
     };
 
     const evaluableConfig1 = await generateEvaluableConfig(
-      combineTierSourceConfig
+      combineTierSourceConfig.sources,
+      combineTierSourceConfig.constants
     );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,

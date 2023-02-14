@@ -16,6 +16,14 @@ contract Extrospection {
         bool supportsInterface
     );
 
+    /// This is probably only useful in general for offchain processing/indexing
+    /// as the bytes MAY be large and cost much gas to retrieve onchain.
+    /// @param account_ The account to get bytecode for.
+    /// @return The bytecode.
+    function bytecode(address account_) external view returns (bytes memory) {
+        return account_.code;
+    }
+
     function bytecodeHash(address account_) public view returns (bytes32) {
         bytes32 hash_;
         assembly ("memory-safe") {

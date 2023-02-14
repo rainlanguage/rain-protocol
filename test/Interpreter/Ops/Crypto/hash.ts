@@ -9,6 +9,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -18,6 +19,9 @@ describe("HASH Opcode test", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -32,16 +36,15 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.hash, 3),
     ]);
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      [source],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -76,10 +79,8 @@ describe("HASH Opcode test", async function () {
       op(Opcode.hash, 2),
     ]);
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      [source],
+      constants,
       rainInterpreter,
       1
     );
@@ -106,14 +107,12 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.hash, 1),
     ]);
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      [source],
+      constants,
       rainInterpreter,
       1
     );

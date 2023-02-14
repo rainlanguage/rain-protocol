@@ -1,6 +1,8 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -13,23 +15,23 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter CONTEXT_ROW", async function () {
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
   it("should support context height [COLUMN] up to 16", async () => {
     const constants = [0];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0x0f),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0x0f),
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
@@ -47,19 +49,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [MAX_ROWS - 1];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     const row: number[] = new Array<number>(MAX_ROWS).fill(1, 0, MAX_ROWS);
     const context = [row];
@@ -76,19 +72,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [10];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     // OOB check for row is being made at runtime
     await assertError(
@@ -107,37 +97,31 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0, 1, 2, 3];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 0), // context[0][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 0), // context[0][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 0), // context[0][3]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 1), // context[1][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 1), // context[1][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 1), // context[1][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 1), // context[1][3]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 2), // context[2][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 2), // context[2][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 0), // context[0][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 0), // context[0][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 0), // context[0][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 1), // context[1][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 1), // context[1][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 1), // context[1][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 1), // context[1][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 2), // context[2][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 2), // context[2][1]
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        20
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 20);
 
     const context = [
       [0, 1, 2, 3],
@@ -169,25 +153,19 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0, 1, 2, 3];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 0), // context[0][0]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.contextRow, 0), // context[0][1]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.contextRow, 0), // context[0][2]
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.contextRow, 0), // context[0][3]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 0), // context[0][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.context_row, 0), // context[0][1]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.context_row, 0), // context[0][2]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.context_row, 0), // context[0][3]
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        8
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 8);
 
     const context = [[10, 20, 30, 40]];
 
@@ -213,19 +191,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const constants = [0];
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.contextRow, 1), // context[1][0]
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.context_row, 1), // context[1][0]
       ]),
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     const data = [
       [422, 213, 123, 413],

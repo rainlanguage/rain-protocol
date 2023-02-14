@@ -10,11 +10,18 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("DO_WHILE Opcode test", async function () {
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
   // TODO: OP_DO_WHILE_INPUTS
 
   it("should not loop if the conditional is zero/false value", async () => {
@@ -26,34 +33,28 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.lessThan),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.less_than),
 
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.doWhile, doWhileOperand(2, 0, 1)), // Source is on index 1
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.do_while, doWhileOperand(2, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.add, 2),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.lessThan),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.less_than),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy([sourceMAIN, sourceADD], constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -82,26 +83,25 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
-      op(Opcode.doWhile, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
+      op(Opcode.do_while, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     // Will substract on every loop until get 0 in the stack
     const sourceSUB = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.sub, 2),
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceSUB],
-          constants,
-        },
+        [sourceMAIN, sourceSUB],
+        constants,
+
         1
       );
 
@@ -134,31 +134,25 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.lessThan),
-      op(Opcode.doWhile, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.less_than),
+      op(Opcode.do_while, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.add, 2),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.lessThan),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.less_than),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy([sourceMAIN, sourceADD], constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -187,18 +181,18 @@ describe("DO_WHILE Opcode test", async function () {
 
     const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
 
-    const whileOP = op(Opcode.doWhile, doWhileOperand(2, 0, 1));
+    const whileOP = op(Opcode.do_while, doWhileOperand(2, 0, 1));
     const callCheckAcc = op(Opcode.call, callOperand(1, 2, 2));
     const callIncrease = op(Opcode.call, callOperand(2, 2, 3));
 
     // The main source where flow the script
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       callCheckAcc,
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
       whileOP,
     ]);
 
@@ -206,11 +200,11 @@ describe("DO_WHILE Opcode test", async function () {
     // prettier-ignore
     // counter, acc -> counter, acc, isNotMin
     const sourceWHILE = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
       callIncrease,
-      op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
       callCheckAcc,
     ]);
 
@@ -218,9 +212,9 @@ describe("DO_WHILE Opcode test", async function () {
     // acc -> acc, isNonMin
     // prettier-ignore
     const sourceCHECK_ACC = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.lessThan),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.less_than),
     ]);
 
     // Source to increase the counter and accumalator
@@ -228,21 +222,20 @@ describe("DO_WHILE Opcode test", async function () {
     // counter, acc -> counter, acc
     const sourceIncrease = concat([
         // add counter
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.add, 2),
         // add acc
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.add, 2),
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
-          constants,
-        },
+        [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
+        constants,
+
         2
       );
 
@@ -285,30 +278,29 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.lessThan),
-      op(Opcode.doWhile, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.less_than),
+      op(Opcode.do_while, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.add, 2),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.lessThan),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.less_than),
     ]);
 
     await assertError(
       async () =>
         await iinterpreterV1ConsumerDeploy(
-          {
-            sources: [sourceMAIN, sourceADD],
-            constants,
-          },
+          [sourceMAIN, sourceADD],
+          constants,
+
           1
         ),
       "DoWhileMaxInputs(20)",

@@ -3,6 +3,7 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -19,6 +20,10 @@ describe("RainInterpreter tier report saturating diff op", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -37,11 +42,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -49,14 +54,12 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.saturatingDiff),
+      op(Opcode.saturating_diff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: constants0,
-      },
+      [source0],
+      constants0,
       rainInterpreter,
       1
     );
@@ -89,11 +92,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -101,14 +104,12 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.saturatingDiff),
+      op(Opcode.saturating_diff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: constants0,
-      },
+      [source0],
+      constants0,
       rainInterpreter,
       1
     );
@@ -138,11 +139,11 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const vReport0 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReport1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -150,14 +151,12 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     const source0 = concat([
         vReport0,
         vReport1,
-      op(Opcode.saturatingDiff),
+      op(Opcode.saturating_diff),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: constants0,
-      },
+      [source0],
+      constants0,
       rainInterpreter,
       1
     );

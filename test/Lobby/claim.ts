@@ -23,6 +23,7 @@ import {
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -41,6 +42,10 @@ describe("Lobby Tests claim", async function () {
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
@@ -72,17 +77,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -91,7 +96,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -246,17 +252,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -265,7 +271,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -427,17 +434,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -446,7 +453,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -624,17 +632,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -643,7 +651,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -849,17 +858,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -868,7 +877,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -1095,17 +1105,17 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.context, 0x0300) ,
-        op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -1114,7 +1124,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {

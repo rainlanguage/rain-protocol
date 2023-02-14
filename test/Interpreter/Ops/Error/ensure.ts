@@ -10,6 +10,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -19,6 +20,11 @@ describe("ENSURE Opcode test", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    rainInterpreter = await rainterpreterDeploy();
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -31,10 +37,10 @@ describe("ENSURE Opcode test", async function () {
   it("should execute the transaction if it passes the ensure opcode condition", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -42,16 +48,14 @@ describe("ENSURE Opcode test", async function () {
             v1,
             v2,
             v3,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v1,
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -71,16 +75,14 @@ describe("ENSURE Opcode test", async function () {
             v2,
             v2,
             v3,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v3
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -100,16 +102,14 @@ describe("ENSURE Opcode test", async function () {
             v0,
             v2,
             v3,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v0
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -127,10 +127,10 @@ describe("ENSURE Opcode test", async function () {
   it("should revert the transaction if it fails ensure opcode condition", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -138,16 +138,14 @@ describe("ENSURE Opcode test", async function () {
             v0,
             v2,
             v0,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v1,
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -167,16 +165,14 @@ describe("ENSURE Opcode test", async function () {
       v2,
       v0,
       v3,
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v3,
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -198,16 +194,14 @@ describe("ENSURE Opcode test", async function () {
             v0,
             v2,
             v0,
-        op(Opcode.eagerIf),
+        op(Opcode.eager_if),
       op(Opcode.ensure, 1),
       v0
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );

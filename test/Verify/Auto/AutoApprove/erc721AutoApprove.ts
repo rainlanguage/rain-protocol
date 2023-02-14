@@ -5,9 +5,9 @@ import {
   ReserveTokenERC721,
   VerifyFactory,
 } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -30,6 +30,10 @@ describe("AutoApprove ERC721 ownership", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();
   });
@@ -51,21 +55,21 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const cAccount = op(Opcode.context, 0x0000);
     const cNftId = op(Opcode.context, 0x0001);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
               vTokenAddr,
               cNftId,
-            op(Opcode.erc721OwnerOf),
+            op(Opcode.erc_721_owner_of),
             cAccount,
-          op(Opcode.equalTo),
+          op(Opcode.equal_to),
         ])],
       constants: [tokenERC721.address],
     };
@@ -73,7 +77,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

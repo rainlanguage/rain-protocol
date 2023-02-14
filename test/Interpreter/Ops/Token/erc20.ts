@@ -9,6 +9,7 @@ import type {
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -29,6 +30,10 @@ describe("RainInterpreter ERC20 ops", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -49,7 +54,7 @@ describe("RainInterpreter ERC20 ops", async function () {
   it("should return ERC20 total supply", async () => {
     const constants = [tokenERC20.address];
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
 
@@ -57,15 +62,13 @@ describe("RainInterpreter ERC20 ops", async function () {
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.erc20TotalSupply)
+        op(Opcode.erc_20_total_supply)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -86,11 +89,11 @@ describe("RainInterpreter ERC20 ops", async function () {
   it("should return ERC20 balance", async () => {
     const constants = [signer1.address, tokenERC20.address];
     const vSigner1 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -99,15 +102,13 @@ describe("RainInterpreter ERC20 ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.erc20BalanceOf)
+        op(Opcode.erc_20_balance_of)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );

@@ -10,6 +10,7 @@ import {
   tenZeros,
 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
@@ -29,6 +30,10 @@ describe("RainInterpreter fixed point math ops", async function () {
   const ROUNDING_DOWN = 0;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -43,21 +48,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 0xfc; // -4
 
     const constants = [value1];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scaleBy, n)
+        op(Opcode.scale_by, n)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -84,21 +87,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 0x04; // 4
 
     const constants = [value1];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scaleBy, n)
+        op(Opcode.scale_by, n)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -125,20 +126,18 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 20;
 
     const constants = [value1];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scaleN, n)
+        op(Opcode.scale_n, n)
       ]),
     ];
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -165,21 +164,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 6;
 
     const constants = [value1];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scaleN, n)
+        op(Opcode.scale_n, n)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -206,23 +203,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Div)
+        op(Opcode.scale_18_div)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -250,23 +245,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ONE.mul(2);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Mul)
+        op(Opcode.scale_18_mul)
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -293,21 +286,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from("100245700");
 
     const constants = [value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scale18 , scale18Operand(8,ROUNDING_UP)) // decimals 8, Rounding Up
+        op(Opcode.scale_18 , scale18Operand(8,ROUNDING_UP)) // decimals 8, Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -333,21 +324,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const constants = [value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scale18 , scale18Operand(24,ROUNDING_UP)) // decimals 24, Rounding Up
+        op(Opcode.scale_18 , scale18Operand(24,ROUNDING_UP)) // decimals 24, Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -373,21 +362,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
     const constants = [value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scale18 , scale18Operand(20,ROUNDING_UP)) // decimals 20, Rounding Up
+        op(Opcode.scale_18 , scale18Operand(20,ROUNDING_UP)) // decimals 20, Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -415,21 +402,19 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
     const constants = [value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
-        op(Opcode.scale18 , scale18Operand(20,ROUNDING_DOWN)) // decimals 20, Rounding Down
+        op(Opcode.scale_18 , scale18Operand(20,ROUNDING_DOWN)) // decimals 20, Rounding Down
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -456,23 +441,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from("100245700");
 
     const constants = [decimals, value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Dynamic , ROUNDING_UP) // Rounding Up
+        op(Opcode.scale_18_dynamic , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -499,23 +482,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const constants = [decimals, value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Dynamic , ROUNDING_UP) // Rounding Up
+        op(Opcode.scale_18_dynamic , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -542,23 +523,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
     const constants = [decimals, value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Dynamic , ROUNDING_UP) // Rounding Up
+        op(Opcode.scale_18_dynamic , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -586,23 +565,21 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
     const constants = [decimals, value];
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           v1,
           v2,
-        op(Opcode.scale18Dynamic , ROUNDING_DOWN) // Rounding Down
+        op(Opcode.scale_18_dynamic , ROUNDING_DOWN) // Rounding Down
       ]),
     ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );

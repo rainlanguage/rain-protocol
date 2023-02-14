@@ -10,6 +10,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -21,6 +22,10 @@ describe("RainInterpreter logic ops", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -33,10 +38,10 @@ describe("RainInterpreter logic ops", async function () {
   it("should check whether any value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -47,10 +52,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -71,10 +74,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -96,10 +97,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -116,10 +115,10 @@ describe("RainInterpreter logic ops", async function () {
   it("should check whether every value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -130,10 +129,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -155,10 +152,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -179,10 +174,8 @@ describe("RainInterpreter logic ops", async function () {
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -199,10 +192,10 @@ describe("RainInterpreter logic ops", async function () {
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -210,14 +203,12 @@ describe("RainInterpreter logic ops", async function () {
         v1,
         v2,
         v3,
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -236,14 +227,12 @@ describe("RainInterpreter logic ops", async function () {
         v2,
         v2,
         v3,
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -262,14 +251,12 @@ describe("RainInterpreter logic ops", async function () {
         v0,
         v2,
         v3,
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -288,16 +275,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.greaterThan),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.greater_than),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -312,16 +297,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.greaterThan),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.greater_than),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -340,16 +323,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.lessThan),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.less_than),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -364,16 +345,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.lessThan),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.less_than),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -394,16 +373,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // also 2
-      op(Opcode.equalTo),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // also 2
+      op(Opcode.equal_to),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -418,16 +395,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.equalTo),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.equal_to),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
@@ -442,16 +417,14 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
       op(Opcode.context, 0x0000), // 1
-      op(Opcode.equalTo),
+      op(Opcode.equal_to),
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants,
-      },
+      [source2],
+      constants,
       rainInterpreter,
       1
     );
@@ -469,16 +442,15 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source3 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // id
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // id
       op(Opcode.context, 0x0000), // id
-      op(Opcode.equalTo),
+      op(Opcode.equal_to),
     ]);
 
     const expression3 = await expressionConsumerDeploy(
-      {
-        sources: [source3],
-        constants,
-      },
+      [source3],
+      constants,
+
       rainInterpreter,
       1
     );
@@ -500,15 +472,13 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.isZero),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.is_zero),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
+      [source0],
+      constants,
       rainInterpreter,
       1
     );
@@ -524,15 +494,13 @@ describe("RainInterpreter logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.isZero),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.is_zero),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants,
-      },
+      [source1],
+      constants,
       rainInterpreter,
       1
     );
