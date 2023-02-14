@@ -4,6 +4,7 @@ pragma solidity =0.8.17;
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "../../ierc3156/IERC3156FlashLender.sol";
 import "../../ierc3156/IERC3156FlashBorrower.sol";
@@ -48,7 +49,7 @@ struct ZeroExOrderBookFlashBorrowerConfig {
 /// - Sell the 100 USDT for 102 DAI on 0x
 /// - Take the order, giving 101 DAI and having 100 USDT loan forgiven
 /// - Keep 1 DAI profit
-contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
+contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower, ReentrancyGuard {
     using Address for address;
     using SafeERC20 for IERC20;
 
@@ -112,7 +113,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         TakeOrdersConfig calldata takeOrders_,
         address zeroExSpender_,
         bytes calldata zeroExData_
-    ) external {
+    ) external nonReentrant {
         // This data needs to be encoded so that it can be passed to the
         // `onFlashLoan` callback.
         bytes memory data_ = abi.encode(takeOrders_, zeroExData_);
@@ -142,6 +143,13 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // Slither false positive here. This is near verbatim from the reference
         // implementation. We want to send everything to the sender because the
         // borrower contract should be empty of all gas and tokens between uses.
+        // Issue also seems related https://github.com/crytic/slither/issues/1658
+        // as here we assume all balances of `ZeroExOrderBookFlashBorrower` were
+        // first either sent by `msg.sender` or the result of a successful arb
+        // via. the `flashLoan` call above.
+        // If for some strange reason you send tokens or ETH directly to this
+        // contract other than for the intended purpose, expect your funds to be
+        // immediately drained by the next caller.
         payable(msg.sender).transfer(address(this).balance);
 
         // Send all unspent input tokens to the sender.
