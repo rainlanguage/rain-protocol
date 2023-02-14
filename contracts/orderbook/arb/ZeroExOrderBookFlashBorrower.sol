@@ -49,7 +49,10 @@ struct ZeroExOrderBookFlashBorrowerConfig {
 /// - Sell the 100 USDT for 102 DAI on 0x
 /// - Take the order, giving 101 DAI and having 100 USDT loan forgiven
 /// - Keep 1 DAI profit
-contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower, ReentrancyGuard {
+contract ZeroExOrderBookFlashBorrower is
+    IERC3156FlashBorrower,
+    ReentrancyGuard
+{
     using Address for address;
     using SafeERC20 for IERC20;
 
