@@ -19,10 +19,4 @@ dumpfile
 .DS_Store
 
 # Echidna
-crytic-export 
-
-#Code-Coverage
-coverage
-coverage.json
-testMatrix.json
-mochaOutput.json
+crytic-export
