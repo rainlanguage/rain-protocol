@@ -9,6 +9,7 @@ import { getEventArgs, getEvents } from "../../../utils";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -23,6 +24,10 @@ describe("Flow deployExpression tests", async function () {
   let flowFactory: FlowFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowFactory = await flowFactoryDeploy();
   });
 
@@ -33,7 +38,7 @@ describe("Flow deployExpression tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -58,7 +63,7 @@ describe("Flow deployExpression tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

@@ -16,6 +16,7 @@ import {
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getEventArgs } from "../../utils/events";
@@ -27,6 +28,10 @@ describe("Stake construction", async function () {
   let token: ReserveToken;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -41,22 +46,16 @@ describe("Stake construction", async function () {
     const constants = [max_uint256, max_uint16];
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStructZeroToken: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -79,22 +78,16 @@ describe("Stake construction", async function () {
     const constants = [max_uint256, max_uint16];
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",

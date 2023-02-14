@@ -2,6 +2,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import {
@@ -37,6 +38,9 @@ describe("RainInterpreter update tier range op", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -53,23 +57,25 @@ describe("RainInterpreter update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const vBlock = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
-        Opcode.updateTimesForTierRange,
+        Opcode.update_times_for_tier_range,
         tierRangeUnrestricted(Tier.ZERO, 9) // beyond max tier of Tier.EIGHT
       ),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: constants0,
-      },
+      [source0],
+      constants0,
+
       rainInterpreter,
       1
     );

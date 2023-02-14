@@ -38,6 +38,7 @@ import {
   sixZeros,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -49,6 +50,10 @@ describe("FactoryCurator createChild", async function () {
   let stakeFactory: StakeFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     stakeFactory = await stakeFactoryDeploy();
   });
 
@@ -293,14 +298,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-          constants: [max_uint256],
-        },
-        false
+        [
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
@@ -419,14 +421,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-          constants: [max_uint256],
-        },
-        false
+        [
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
 
     // Stake contract
@@ -449,7 +448,7 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLD
@@ -460,12 +459,12 @@ describe("FactoryCurator createChild", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLD
@@ -476,13 +475,13 @@ describe("FactoryCurator createChild", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     const sourceReportDefault = concat([
       op(Opcode.context, 0x0201),
       op(Opcode.context, 0x0200),
-      op(Opcode.itierV2Report),
+      op(Opcode.itier_v2_report),
     ]);
 
     // MAIN
@@ -490,21 +489,21 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceMain = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.less_than),
         op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // FALSE
-      op(Opcode.eagerIf)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants: [stake0.address, stake1.address, max_uint32],
-    });
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      [stake0.address, stake1.address, max_uint32]
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,

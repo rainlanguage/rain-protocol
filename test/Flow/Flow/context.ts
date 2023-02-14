@@ -10,6 +10,7 @@ import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
@@ -31,6 +32,9 @@ describe("Flow context tests", async function () {
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
     flowFactory = await flowFactoryDeploy();
   });
 
@@ -100,19 +104,19 @@ describe("Flow context tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const ONE_DAY = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
@@ -134,17 +138,17 @@ describe("Flow context tests", async function () {
       ME(),
       YOU(),
           ...FLOW_TIME(),
-        op(Opcode.isZero),
+        op(Opcode.is_zero),
         FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
-            op(Opcode.blockTimestamp),
+            op(Opcode.block_timestamp),
               ...FLOW_TIME(),
               ONE_DAY(),
             op(Opcode.add, 2),
-          op(Opcode.lessThan), // is current timestamp within 24 hour window?
+          op(Opcode.less_than), // is current timestamp within 24 hour window?
           FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
           FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(), // else full
-        op(Opcode.eagerIf),
-      op(Opcode.eagerIf),
+        op(Opcode.eager_if),
+      op(Opcode.eager_if),
       // 1) if no flow time, default amount
       // 2) else if within 24 hours of last flow time, throttle amount
       // 3) else default amount
@@ -152,7 +156,7 @@ describe("Flow context tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // Key
-      op(Opcode.blockTimestamp), // on stack for debugging // Value
+      op(Opcode.block_timestamp), // on stack for debugging // Value
       op(Opcode.set),
 
     ]);
@@ -414,15 +418,15 @@ describe("Flow context tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
@@ -433,7 +437,7 @@ describe("Flow context tests", async function () {
 
     const sourceFlowIO = concat([
       ...FLOW_TIME(),
-      op(Opcode.isZero), // can flow if no registered flow time
+      op(Opcode.is_zero), // can flow if no registered flow time
       op(Opcode.ensure, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -450,7 +454,7 @@ describe("Flow context tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // Key
-      op(Opcode.blockTimestamp), // on stack for debugging // Value
+      op(Opcode.block_timestamp), // on stack for debugging // Value
       op(Opcode.set),
     ]);
 

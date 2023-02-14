@@ -1,7 +1,6 @@
-import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveTokenDecimals } from "../../typechain";
+import type { ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   ClearConfigStruct,
@@ -26,15 +25,17 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { assertError } from "../../utils/test/assertError";
-import { getRainContractMetaBytes } from "../../utils";
+
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("OrderBook decimals", async function () {
-  let orderBookFactory: ContractFactory;
-
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should not be able to provide OOB decimals beyond uint8", async function () {
@@ -56,9 +57,7 @@ describe("OrderBook decimals", async function () {
 
     const alice = signers[1];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -68,17 +67,23 @@ describe("OrderBook decimals", async function () {
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
     const constants_A = [outputMax_A, ratio_A];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_A = concat([
       aOpMax,
       aRatio,
     ]);
-    const EvaluableConfig_A0 = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A0 = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     // IN BOUNDS
     const OrderConfig_A0: OrderConfigStruct = {
@@ -100,10 +105,10 @@ describe("OrderBook decimals", async function () {
       data: [],
     };
     await orderBook.connect(alice).addOrder(OrderConfig_A0);
-    const EvaluableConfig_A1 = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A1 = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     // OUT OF BOUNDS
     const OrderConfig_A1: OrderConfigStruct = {
@@ -150,9 +155,7 @@ describe("OrderBook decimals", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      getRainContractMetaBytes("orderbook")
-    )) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
@@ -172,36 +175,42 @@ describe("OrderBook decimals", async function () {
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
     const constants_A = [outputMax_A, ratio_A, tokenADecimals, tokenBDecimals];
-    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const aOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const aRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vTokenADecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vTokenBDecimals = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
     // prettier-ignore
     const source_A = concat([
       op(Opcode.context, 0x0201), // input decimals
       vTokenADecimals,
-      op(Opcode.equalTo),
+      op(Opcode.equal_to),
       op(Opcode.ensure, 1),
 
       op(Opcode.context, 0x0301), // output decimals
       vTokenBDecimals,
-      op(Opcode.equalTo),
+      op(Opcode.equal_to),
       op(Opcode.ensure, 1),
 
       aOpMax,
       aRatio,
     ]);
 
-    const EvaluableConfig_A = await generateEvaluableConfig({
-      sources: [source_A, []],
-      constants: constants_A,
-    });
+    const EvaluableConfig_A = await generateEvaluableConfig(
+      [source_A, []],
+      constants_A
+    );
 
     const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -235,17 +244,23 @@ describe("OrderBook decimals", async function () {
     const ratio_B = fixedPointDiv(ONE, ratio_A); // no need to account for decimals difference
 
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const bOpMax = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const bRatio = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const source_B = concat([
       bOpMax,
       bRatio,
     ]);
-    const EvaluableConfig_B = await generateEvaluableConfig({
-      sources: [source_B, []],
-      constants: constants_B,
-    });
+    const EvaluableConfig_B = await generateEvaluableConfig(
+      [source_B, []],
+      constants_B
+    );
     const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
         {

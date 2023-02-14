@@ -1,8 +1,8 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -24,14 +24,19 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = RainterpreterOps;
 
 const FALSE = () =>
-  op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-const TRUE = () => op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+const TRUE = () =>
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
 describe("AutoApprove evidence data approved", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();
   });
@@ -46,7 +51,7 @@ describe("AutoApprove evidence data approved", async function () {
     const signer2 = signers[5];
     const signer3 = signers[6];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
@@ -59,19 +64,19 @@ describe("AutoApprove evidence data approved", async function () {
                   op(Opcode.context, 0x0001),
                 op(Opcode.hash, 1),
               op(Opcode.get),
-                op(Opcode.blockTimestamp),
-                op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.block_timestamp),
+                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.sub, 2),
-            op(Opcode.lessThan),
+            op(Opcode.less_than),
 
             // else, set new evidence and return true
                 op(Opcode.context, 0x0001),
               op(Opcode.hash, 1), // k
-              op(Opcode.blockTimestamp), // v
+              op(Opcode.block_timestamp), // v
             op(Opcode.set),
             TRUE(),
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1, 86400],
     };
@@ -79,7 +84,8 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -148,7 +154,7 @@ describe("AutoApprove evidence data approved", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         // approved ? deny : approve
@@ -165,7 +171,7 @@ describe("AutoApprove evidence data approved", async function () {
             op(Opcode.set),
             TRUE(), // approve
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1],
     };
@@ -173,7 +179,8 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
