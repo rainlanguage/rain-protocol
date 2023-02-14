@@ -269,6 +269,6 @@ export async function generateEvaluableConfig(
  * @returns sources and constants
  */
 export const standardEvaluableConfig = partialRight(
-  Parser.getStateConfig.bind(Parser),
+  Parser.getExpressionConfig.bind(Parser),
   getRainterpreterOpMetaBytes()
 );
