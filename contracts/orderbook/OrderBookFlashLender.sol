@@ -17,7 +17,7 @@ error FlashLenderCallbackFailed(bytes32 result);
 /// @param receiver The receiver of the debt that failed to finalize.
 /// @param amount The amount of the token that was outstanding after attempting
 /// final repayment.
-error BadDebt(address token, address receiver, uint256 amount);
+error BadDebt(address token, IERC3156FlashBorrower receiver, uint256 amount);
 
 /// @dev The ERC3156 spec mandates this hash be returned by `onFlashLoan`.
 bytes32 constant ON_FLASH_LOAN_CALLBACK_SUCCESS = keccak256(
@@ -40,7 +40,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
 
     /// Tracks all active flash debts
     /// token => receiver => active debt
-    mapping(address => mapping(address => uint256)) internal activeFlashDebts;
+    mapping(address => mapping(IERC3156FlashBorrower => uint256)) internal activeFlashDebts;
 
     // /// Always increase the active debts before sending tokens to avoid potential
     // /// reentrancy issues. As long as the debt is increased on the `Orderbook`
@@ -100,15 +100,15 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         address receiver_,
         uint256 amount_
     ) internal {
-        uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
+        uint256 activeFlashDebt_ = activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)];
         if (amount_ > activeFlashDebt_) {
             if (activeFlashDebt_ > 0) {
-                delete activeFlashDebts[token_][receiver_];
+                activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)] -= activeFlashDebt_;
             }
 
             IERC20(token_).safeTransfer(receiver_, amount_ - activeFlashDebt_);
         } else {
-            activeFlashDebts[token_][receiver_] -= amount_;
+            activeFlashDebts[token_][IERC3156FlashBorrower(receiver_)] -= amount_;
         }
     }
 
@@ -152,7 +152,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         // Increase flash debt THEN send token.
         {
             activeFlashDebts[token_][receiver_] += amount_;
-            IERC20(token_).safeTransfer(receiver_, amount_);
+            IERC20(token_).safeTransfer(address(receiver_), amount_);
         }
 
         bytes32 result_ = receiver_.onFlashLoan(
@@ -179,7 +179,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
             if (activeFlashDebt_ > 0) {
                 // Take tokens from receiver before decreasing debt balance.
                 IERC20(token_).safeTransferFrom(
-                    receiver_,
+                    address(receiver_),
                     address(this),
                     activeFlashDebt_
                 );
