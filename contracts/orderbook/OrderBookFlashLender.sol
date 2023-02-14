@@ -140,9 +140,6 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         // This means that the tokens MUST be returned from the receiver back to
         // `Orderbook`. If the token has a dynamic balance these calculations MAY
         // be wrong so dynamic balances and rebasing tokens are NOT SUPPORTED.
-        // @param token_ The token the debt is being finalized for.
-        // @param receiver_ The receiver of the token and holder of the
-        // outstanding debt who must now immediately pay the tokens back.
         {
             uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
             if (activeFlashDebt_ > 0) {
