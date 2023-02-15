@@ -5,7 +5,7 @@
   "inputs": {
     "parameters": [
       {
-        "name": "token-sddress"
+        "name": "token-address"
       }
     ]
   },
