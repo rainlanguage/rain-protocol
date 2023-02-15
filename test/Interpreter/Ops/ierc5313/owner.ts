@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
@@ -10,18 +9,11 @@ import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 
-const Opcode = AllStandardOps;
+let tokenWithOwner: ReserveTokenOwner;
 
-let tokenERC20: ReserveTokenOwner;
-
-describe("RainInterpreter ERC20 ops", async function () {
+describe("RainInterpreter EIP5313 ops", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
@@ -40,24 +32,19 @@ describe("RainInterpreter ERC20 ops", async function () {
   });
 
   beforeEach(async () => {
-    tokenERC20 = (await basicDeploy(
+    tokenWithOwner = (await basicDeploy(
       "ReserveTokenOwner",
       {}
     )) as ReserveTokenOwner;
-    await tokenERC20.initialize();
+    await tokenWithOwner.initialize();
   });
 
   it("should return owner", async () => {
     const signers = await ethers.getSigners();
-    const constants = [tokenERC20.address];
 
-    // prettier-ignore
-    const sources = [
-      concat([
-        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.erc_5313_owner)
-      ]),
-    ];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: erc-5313-owner(${tokenWithOwner.address});`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,
@@ -82,20 +69,13 @@ describe("RainInterpreter ERC20 ops", async function () {
   it("should return updated owner", async () => {
     const signers = await ethers.getSigners();
     const signer2 = signers[2];
-    const constants = [tokenERC20.address];
 
-    // prettier-ignore
-    const sources0 = [
-      concat([
-        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.erc_5313_owner)
-      ]),
-    ];
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
-      constants,
-
+      constants0,
       rainInterpreter,
       1
     );
@@ -113,20 +93,14 @@ describe("RainInterpreter ERC20 ops", async function () {
     );
 
     // Update Owner
-    await tokenERC20.connect(signers[0]).transferOwnerShip(signer2.address);
+    await tokenWithOwner.connect(signers[0]).transferOwnerShip(signer2.address);
 
-    // prettier-ignore
-    const sources1 = [
-      concat([
-        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.erc_5313_owner)
-      ]),
-    ];
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
-      constants,
-
+      constants1,
       rainInterpreter,
       1
     );
