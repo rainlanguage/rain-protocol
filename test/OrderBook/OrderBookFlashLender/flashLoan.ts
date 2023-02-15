@@ -157,7 +157,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
     );
   });
 
-  it("should ensure flashLoan() is not reentrant", async function () {
+  it("should ensure flashLoan() does not process active debt", async function () {
     // deposit amount for lending
     const amount = ethers.BigNumber.from(123 + eighteenZeros);
     await tokenA.transfer(lender.address, amount.mul(2));
@@ -171,7 +171,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
           amount,
           []
         ),
-      "VM Exception while processing transaction: reverted with reason string 'ERC20: insufficient allowance'",
+      "ActiveDebt",
       "Flash Loan Reentrant"
     );
   });
