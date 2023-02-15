@@ -11,6 +11,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
@@ -22,16 +23,14 @@ describe("RainInterpreter debug op", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
   });
-  it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
-    const constants = [10, 20];
 
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.add, 2),
-      op(Opcode.debug, Debug.Stack),
-    ])];
+  it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
+    const { sources, constants } = standardEvaluableConfig(
+      `_: add(10 20), 
+      : debug<1>();`
+    );
+
+    console.log(sources);
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -46,15 +45,10 @@ describe("RainInterpreter debug op", async function () {
   });
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
-    const constants = [10, 20];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.add, 2),
-      op(Opcode.debug, Debug.StatePacked),
-    ])];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: add(10 20), 
+      : debug<0>();`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -88,11 +82,26 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.debug, Debug.Stack), // Should show the stack here
     ]);
 
+    const { sources } = standardEvaluableConfig(
+      `
+      a: read-memory<1 0>(),
+      b: read-memory<1 1>(),
+      : debug<0>(),
+      _: call<1 1 1>(a b),
+      : debug<0>();
+
+      c: read-memory<0 0>(),
+      d: read-memory<1 2>(),
+      : debug<0>(),
+      _: less-than(c d);`
+    );
+    // _: less-than(read-memory<0>(0) 20); 
+    console.log(sources);
+    // [source, checkValue],
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        [source, checkValue],
+        sources,
         constants,
-
         1
       );
 

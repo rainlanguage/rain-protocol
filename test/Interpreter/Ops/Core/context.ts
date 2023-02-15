@@ -1,17 +1,10 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  op,
-  standardEvaluableConfig,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
-
-const Opcode = AllStandardOps;
 
 describe("RainInterpreter context", async function () {
   before(async () => {
@@ -89,6 +82,7 @@ describe("RainInterpreter context", async function () {
       _: context<3 1>(),
       _: context<0 2>(),
       _: context<1 2>(),
+      _: context<2 2>(),
      `
     );
     const { consumerLogic, interpreter, dispatch } =
