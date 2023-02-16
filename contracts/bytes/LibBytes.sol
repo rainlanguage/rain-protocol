@@ -35,6 +35,8 @@ library LibBytes {
             }
 
             if gt(remaining_, 0) {
+                // Slither false positive here due to the variable shift of a
+                // constant value to create a mask.
                 let mask_ := shr(
                     mul(remaining_, 8),
                     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF

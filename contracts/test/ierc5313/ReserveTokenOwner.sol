@@ -5,11 +5,13 @@ import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/tok
 import {ERC20BurnableUpgradeable as ERC20Burnable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import {EIP5313} from "../../ierc5313/IERC5313.sol";
 
-/// @title ReserveToken
+/// @title ReserveTokenOwner
 /// A test token that can be used as a reserve asset.
 /// On mainnet this would likely be some brand of stablecoin but can be
 /// anything.
 /// Notably mimics 6 decimals commonly used by stables in production.
+/// Additionally implements EIP5313 interface requiring `owner()` which
+/// returns the address of the owner of this contract.
 contract ReserveTokenOwner is ERC20, ERC20Burnable, EIP5313 {
     /// Accounts to freeze during testing.
     mapping(address => bool) public freezables;

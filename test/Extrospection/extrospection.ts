@@ -61,8 +61,7 @@ describe("Extrospection tests", async function () {
   });
 
   it("should check if contract supports interface", async () => {
-    const IERC165InterfaceId =
-      await EIP165InterfaceIDs.IERC165InterfaceId();
+    const IERC165InterfaceId = await EIP165InterfaceIDs.IERC165InterfaceId();
     const IExpressionDeployerV1InterfaceId =
       await EIP165InterfaceIDs.IExpressionDeployerV1InterfaceId();
     const IInterpreterExternV1InterfaceId =
@@ -70,7 +69,7 @@ describe("Extrospection tests", async function () {
     const IInterpreterV1InterfaceId =
       await EIP165InterfaceIDs.IInterpreterV1InterfaceId();
     const IInterpreterStoreV1InterfaceId =
-      await EIP165InterfaceIDs.IInterpreterStoreV1InterfaceId(); 
+      await EIP165InterfaceIDs.IInterpreterStoreV1InterfaceId();
 
     const interfaceIds = [
       IERC165InterfaceId,
@@ -78,7 +77,7 @@ describe("Extrospection tests", async function () {
       IInterpreterExternV1InterfaceId,
       IInterpreterV1InterfaceId,
       IInterpreterStoreV1InterfaceId,
-    ]; 
+    ];
 
     // Expression Deployer
     for (const interfaceId of interfaceIds) {
@@ -93,7 +92,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IExpressionDeployerV1InterfaceId || interfaceId == IERC165InterfaceId ) {
+      if (
+        interfaceId == IExpressionDeployerV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           deployerEvent.supportsInterface,
           `Deployer does not support interface: ${interfaceId}`
@@ -119,7 +121,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterExternV1InterfaceId || interfaceId == IERC165InterfaceId ) {
+      if (
+        interfaceId == IInterpreterExternV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           externEvent.supportsInterface,
           `Extern does not support interface: ${interfaceId}`
@@ -145,7 +150,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterV1InterfaceId || interfaceId == IERC165InterfaceId ) {
+      if (
+        interfaceId == IInterpreterV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           interpreterEvent.supportsInterface,
           `Interpreter does not support interface: ${interfaceId}`
@@ -171,7 +179,10 @@ describe("Extrospection tests", async function () {
         extrospection
       )) as SupportsInterfaceEvent["args"];
 
-      if (interfaceId == IInterpreterStoreV1InterfaceId || interfaceId == IERC165InterfaceId ) {
+      if (
+        interfaceId == IInterpreterStoreV1InterfaceId ||
+        interfaceId == IERC165InterfaceId
+      ) {
         assert(
           storeEvent.supportsInterface,
           `Store does not support interface: ${interfaceId}`
@@ -182,7 +193,6 @@ describe("Extrospection tests", async function () {
           `Store supports interface: ${interfaceId}`
         );
       }
-    } 
-
+    }
   });
 });

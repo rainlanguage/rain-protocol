@@ -1,19 +1,12 @@
 import { assert } from "chai";
 import type { BigNumber } from "ethers";
-import { concat, hexZeroPad } from "ethers/lib/utils";
+import { hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import {
-  AllStandardOps,
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
+import { standardEvaluableConfig } from "../../../../utils";
 
 const isTruthy = (interpreterValue: BigNumber) => !interpreterValue.isZero();
 
@@ -36,24 +29,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check whether any value in a list is non-zero", async () => {
-    const constants = [0, 1, 2, 3];
-
-    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-
-    // prettier-ignore
-    const source0 = concat([
-        v1,
-        v2,
-        v3,
-      op(Opcode.any, 3),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: any(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -66,16 +47,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
 
-    // prettier-ignore
-    const source1 = concat([
-        v0,
-        v0,
-      op(Opcode.any, 2),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: any(0 0);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -88,17 +65,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
 
-    // prettier-ignore
-    const source2 = concat([
-        v0,
-        v0,
-        v3,
-      op(Opcode.any, 3),
-    ]);
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: any(0 0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      [source2],
-      constants,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -113,24 +85,14 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check whether every value in a list is non-zero", async () => {
-    const constants = [0, 1, 2, 3];
-
-    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-
     // prettier-ignore
-    const source0 = concat([
-        v1,
-        v2,
-        v3,
-      op(Opcode.every, 3),
-    ]);
+    const { sources: sources0, constants: constants0 } = standardEvaluableConfig(
+      `_: every(1 2 3);`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -143,17 +105,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
 
-    // prettier-ignore
-    const source1 = concat([
-        v0,
-        v1,
-        v2,
-      op(Opcode.every, 3),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: every(0 1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -166,16 +123,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
 
-    // prettier-ignore
-    const source2 = concat([
-        v0,
-        v3,
-      op(Opcode.every, 2),
-    ]);
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: every(0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      [source2],
-      constants,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -190,25 +143,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
-    const constants = [0, 1, 2, 3];
-
-    const v0 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-
-    // prettier-ignore
-    const source0 = concat([
-      // 1 ? 2 : 3
-        v1,
-        v2,
-        v3,
-      op(Opcode.eager_if),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: eager-if(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -221,18 +161,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
 
-    // prettier-ignore
-    const source1 = concat([
-      // 2 ? 2 : 3
-        v2,
-        v2,
-        v3,
-      op(Opcode.eager_if),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: eager-if(2 2 3);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -245,18 +179,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
 
-    // prettier-ignore
-    const source2 = concat([
-      // 0 ? 2 : 3
-        v0,
-        v2,
-        v3,
-      op(Opcode.eager_if),
-    ]);
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: eager-if(0 2 3);`);
 
     const expression2 = await expressionConsumerDeploy(
-      [source2],
-      constants,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -271,18 +199,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that value is greater than another value", async () => {
-    const constants = [1, 2];
-
-    // prettier-ignore
-    const source0 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.greater_than),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: greater-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -295,16 +217,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
 
-    // prettier-ignore
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.greater_than),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: greater-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -319,21 +237,16 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that value is less than another value", async () => {
-    const constants = [1, 2];
-
-    // prettier-ignore
-    const source0 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.less_than),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: less-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
+
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expression0.dispatch,
@@ -343,16 +256,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
 
-    // prettier-ignore
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.less_than),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: less-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -369,21 +278,16 @@ describe("RainInterpreter logic ops", async function () {
   it("should check that values are equal to each other", async () => {
     const id = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const constants = [1, 2, 2, id];
-
-    // prettier-ignore
-    const source0 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // also 2
-      op(Opcode.equal_to),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: equal-to(2 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
+
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expression0.dispatch,
@@ -393,16 +297,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
 
-    // prettier-ignore
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.equal_to),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: equal-to(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
@@ -415,16 +315,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
 
-    // prettier-ignore
-    const source2 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.context, 0x0000), // 1
-      op(Opcode.equal_to),
-    ]);
+    const { sources: sources2, constants: constants2 } =
+      standardEvaluableConfig(`_: equal-to(1 context<0 0>());`);
 
     const expression2 = await expressionConsumerDeploy(
-      [source2],
-      constants,
+      sources2,
+      constants2,
       rainInterpreter,
       1
     );
@@ -440,17 +336,12 @@ describe("RainInterpreter logic ops", async function () {
       "wrongly says constant 1 is not equal to context 1"
     );
 
-    // prettier-ignore
-    const source3 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // id
-      op(Opcode.context, 0x0000), // id
-      op(Opcode.equal_to),
-    ]);
+    const { sources: sources3, constants: constants3 } =
+      standardEvaluableConfig(`_: equal-to(${id} context<0 0>());`);
 
     const expression3 = await expressionConsumerDeploy(
-      [source3],
-      constants,
-
+      sources3,
+      constants3,
       rainInterpreter,
       1
     );
@@ -468,17 +359,12 @@ describe("RainInterpreter logic ops", async function () {
   });
 
   it("should check that a value is zero", async () => {
-    const constants = [0, 1];
-
-    // prettier-ignore
-    const source0 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.is_zero),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(`_: is-zero(0);`);
 
     const expression0 = await expressionConsumerDeploy(
-      [source0],
-      constants,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -492,15 +378,12 @@ describe("RainInterpreter logic ops", async function () {
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
 
-    // prettier-ignore
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.is_zero),
-    ]);
+    const { sources: sources1, constants: constants1 } =
+      standardEvaluableConfig(`_: is-zero(1);`);
 
     const expression1 = await expressionConsumerDeploy(
-      [source1],
-      constants,
+      sources1,
+      constants1,
       rainInterpreter,
       1
     );
