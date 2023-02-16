@@ -1,18 +1,10 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import {
-  AllStandardOps,
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils";
+import { standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
 
 describe("HASH Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
@@ -32,19 +24,13 @@ describe("HASH Opcode test", async function () {
   });
 
   it("should hash a list of values from constant", async () => {
-    const constants = [100, 200, 300];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: hash<3>(100 200 300);`
+    );
 
-    // prettier-ignore
-    const source = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.hash, 3),
-    ]);
     const expression0 = await expressionConsumerDeploy(
-      [source],
+      sources,
       constants,
-
       rainInterpreter,
       1
     );
@@ -69,17 +55,16 @@ describe("HASH Opcode test", async function () {
   it("should hash a list of values from context", async () => {
     const alice = (await ethers.getSigners())[0];
 
-    const constants = [];
     const context = [[alice.address, 0x12031]];
 
-    // prettier-ignore
-    const source = concat([
-        op(Opcode.context, 0x0000),
-        op(Opcode.context, 0x0001),
-      op(Opcode.hash, 2),
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `value0: context<0 0>(),
+      value1: context<1 0>(),
+      _: hash<2>(value0 value1);`
+    );
+
     const expression0 = await expressionConsumerDeploy(
-      [source],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -103,15 +88,11 @@ describe("HASH Opcode test", async function () {
   });
 
   it("should hash a single value", async () => {
-    const constants = [ethers.constants.MaxUint256];
-
-    // prettier-ignore
-    const source = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.hash, 1),
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `_: hash<1>(${ethers.constants.MaxUint256})`
+    );
     const expression0 = await expressionConsumerDeploy(
-      [source],
+      sources,
       constants,
       rainInterpreter,
       1
