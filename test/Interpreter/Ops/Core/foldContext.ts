@@ -13,6 +13,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
@@ -36,32 +37,52 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     await logic.deployed();
   });
 
-  it("should add all the elements in the context", async () => {
-    const constants = [0];
+  it.only("should add all the elements in the context", async () => {
+    // const constants = [0];
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
     const inputSize = 1; // Accummulator size
     // prettier-ignore
-    const sourceMain = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-      op(
-        Opcode.fold_context,
-        foldContextOperand(sourceIndex, column, width, inputSize)
-      ),
-    ]);
+    // const sourceMain = concat([
+    //     op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
+    //   op(
+    //     Opcode.fold_context,
+        // foldContextOperand(sourceIndex, column, width, inputSize)
+    //   ),
+    // ]);
 
-    const sourceAdd = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.add, width + inputSize),
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* 
+        sources[0] 
+      */
+      _: fold-context<${inputSize} ${width} ${column} ${sourceIndex}>(0);
 
+      /* 
+        sources[1] 
+      */
+      a: read-memory<0 0>(),
+      b: read-memory<0 1>(),
+      c: read-memory<0 2>(),
+      d: read-memory<0 3>(),
+      e: read-memory<0 4>(),
+      _: add(a b c d e);
+      `
+    );
+
+    // const sourceAdd = concat([
+    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
+    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
+    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
+    //   op(Opcode.add, width + inputSize),
+    // ]);
+
+    // [sourceMain, sourceAdd],
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceAdd],
+      sources,
       constants,
       rainInterpreter,
       1

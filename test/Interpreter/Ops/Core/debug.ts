@@ -86,13 +86,10 @@ describe("RainInterpreter debug op", async function () {
       `
       a: read-memory<1 0>(),
       b: read-memory<1 1>(),
-      : debug<0>(),
-      _: call<1 1 1>(a b),
-      : debug<0>();
+      _: call<1 1>(b);
 
       c: read-memory<0 0>(),
       d: read-memory<1 2>(),
-      : debug<0>(),
       _: less-than(c d);`
     );
     // _: less-than(read-memory<0>(0) 20); 
