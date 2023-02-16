@@ -1,7 +1,11 @@
 import { ethers } from "hardhat";
 import deploy1820 from "../utils/deploy/registry1820/deploy";
 
-import { getRainterpreterOpMetaBytes, keylessDeploy } from "../utils";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 const main = async function () {
   const [signer] = await ethers.getSigners();
@@ -10,24 +14,17 @@ const main = async function () {
   await deploy1820(signer);
 
   // Rainterpreter
-  const interpreter = await keylessDeploy("Rainterpreter", signer);
+  const interpreter = await rainterpreterDeploy();
+
+  console.log("Rainterpreter deployed at: ", interpreter.address);
 
   // RainterpreterStore
-  const store = await keylessDeploy("RainterpreterStore", signer);
+  const store = await rainterpreterStoreDeploy();
+  console.log("RainterpreterStore deployed at: ", interpreter.address);
 
-  // RainterpreterExpressionDeployer
-  const bytes_ = getRainterpreterOpMetaBytes();
-
-  const args = {
-    interpreter: interpreter.address,
-    store: store.address,
-    opMeta: bytes_,
-  };
-
-  const expressionDeployer = await keylessDeploy(
-    "RainterpreterExpressionDeployer",
-    signer,
-    args
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter,
+    store
   );
 
   console.log("ExpressionDeployer deployed at: ", expressionDeployer.address);
