@@ -1,13 +1,10 @@
 import { expect } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { AllStandardOps, op } from "../../../../utils";
+import { standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
 
 describe("EXPLODE32 Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
@@ -28,16 +25,14 @@ describe("EXPLODE32 Opcode test", async function () {
   });
 
   it("should explode a single value into 8x 32 bit integers", async () => {
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.context, 0x0000), // Initial Value
-      op(Opcode.explode_32),
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `value: context<0 0>(), /* initial value */
+      _ _ _ _ _ _ _ _: explode-32(value);`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN],
-      [],
-
+      sources,
+      constants,
       rainInterpreter,
       8
     );

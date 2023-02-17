@@ -8,6 +8,9 @@ import {
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
+import { partialRight } from "lodash";
+import { Parser } from "rainlang";
+import { getRainterpreterOpMetaBytes } from "../meta";
 
 export enum MemoryType {
   Stack,
@@ -257,3 +260,15 @@ export async function generateEvaluableConfig(
     constants,
   };
 }
+
+/**
+ * @public
+ * Builds sources and constants from a rainlang expression.
+ *
+ * @param expressionString - rainlang expression
+ * @returns sources and constants
+ */
+export const standardEvaluableConfig = partialRight(
+  Parser.getExpressionConfig.bind(Parser),
+  getRainterpreterOpMetaBytes()
+);
