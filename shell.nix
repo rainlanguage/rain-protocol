@@ -85,6 +85,12 @@ let
     npm install
     hardhat compile --force
     hardhat test
+  ''; 
+
+  code-coverage = pkgs.writeShellScriptBin "code-coverage" ''
+    hardhat compile --force 
+    configFile=conifg.solcover.js
+    hardhat coverage --solcoverjs $configFile
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
@@ -187,7 +193,8 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
-    run-echidna
+    run-echidna 
+    code-coverage
     ci-test
     ci-lint
     cut-dist
