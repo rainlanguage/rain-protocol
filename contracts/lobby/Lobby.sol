@@ -8,8 +8,7 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
@@ -43,7 +42,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param callerMeta caller meta as per `IInterpreterCallerV1`.
 struct LobbyConstructorConfig {
     uint256 maxTimeoutDuration;
-    bytes callerMeta;
+    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
 }
 
 /// Configuration for a `Lobby` to initialize.
@@ -128,7 +127,7 @@ uint256 constant PHASE_INVALID = 4;
 
 // Phased is a contract in the rain repo that allows contracts to move sequentially
 // through phases and restrict logic by phase.
-contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
+contract Lobby is Phased, ReentrancyGuard, InterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -181,10 +180,10 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     uint256 internal totalShares;
     mapping(address => uint256) internal withdrawals;
 
-    constructor(LobbyConstructorConfig memory config_) {
+    constructor(
+        LobbyConstructorConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
         maxTimeoutDuration = config_.maxTimeoutDuration;
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
-        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
     }
 
     function initialize(LobbyConfig calldata config_) external initializer {

@@ -7,9 +7,8 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -33,16 +32,11 @@ uint256 constant MIN_FLOW_SENTINELS = 4;
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
-struct FlowCommonConstructionConfig {
-    bytes callerMeta;
-    address deployer;
-}
-
 contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    IInterpreterCallerV1
+    InterpreterCallerV1
 {
     using LibInterpreterState for InterpreterState;
     using LibStackPointer for StackPointer;
@@ -56,11 +50,11 @@ contract FlowCommon is
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
-    constructor(bytes32 metaHash_, FlowCommonConstructionConfig memory config_) {
+    constructor(
+        bytes32 metaHash_,
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(metaHash_, config_) {
         _disableInitializers();
-        LibCallerMeta.checkCallerMeta(metaHash_, config_.callerMeta);
-        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
-        LibCallerMeta.touchDeployer(config_.deployer);
     }
 
     // solhint-disable-next-line func-name-mixedcase

@@ -20,9 +20,8 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
@@ -38,7 +37,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     RedeemableERC20Factory redeemableERC20Factory;
-    bytes callerMeta;
+    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -160,7 +159,7 @@ uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
 uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
+contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -250,16 +249,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) {
+    constructor(SaleConstructorConfig memory config_) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
         _disableInitializers();
-
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
 
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
-        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
         emit Construct(msg.sender, config_);
     }
 

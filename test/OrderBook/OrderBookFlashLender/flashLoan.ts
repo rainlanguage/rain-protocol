@@ -5,8 +5,8 @@ import { ReserveToken18 } from "../../../typechain/contracts/test/testToken/Rese
 import {
   ERC3156FlashBorrowerTest,
   ERC3156FlashBorrowerTestReentrancy,
-  IERC3156FlashBorrower, 
-  ERC3156FlashBorrowerMaxLoan
+  IERC3156FlashBorrower,
+  ERC3156FlashBorrowerMaxLoan,
 } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
@@ -40,7 +40,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
     erc3156FlashBorrowerReentrancy = (await basicDeploy(
       "ERC3156FlashBorrowerTestReentrancy",
       {}
-    )) as ERC3156FlashBorrowerTestReentrancy; 
+    )) as ERC3156FlashBorrowerTestReentrancy;
 
     erc3156FlashBorrowerMaxLoan = (await basicDeploy(
       "ERC3156FlashBorrowerMaxLoan",
@@ -181,7 +181,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
       "ActiveDebt",
       "Flash Loan Reentrant"
     );
-  });  
+  });
 
   it("should ensure maxFlashLoan is zero if there is an active debt", async function () {
     // deposit amount for lending
@@ -189,22 +189,22 @@ describe("OrderBookFlashLender flashLoan test", async function () {
     await tokenA.transfer(lender.address, amount.mul(2));
     assert((await tokenA.balanceOf(lender.address)).eq(amount.mul(2)));
 
-    // should not revert. 
+    // should not revert.
     await lender.flashLoan(
       erc3156FlashBorrowerMaxLoan.address,
       tokenA.address,
       amount,
       []
-    ); 
+    );
 
     // Max Loan equal balance of lender after repayment
     const maxFlashLoanA_ = await lender.maxFlashLoan(tokenA.address);
-    assert(maxFlashLoanA_.eq(amount.mul(2))); 
-    
-    const maxFlashLoanB0_ = await lender.maxFlashLoan(tokenB.address);
-    assert(maxFlashLoanB0_.eq(0)); 
+    assert(maxFlashLoanA_.eq(amount.mul(2)));
 
-    await tokenB.transfer(lender.address, amount.mul(3));  
+    const maxFlashLoanB0_ = await lender.maxFlashLoan(tokenB.address);
+    assert(maxFlashLoanB0_.eq(0));
+
+    await tokenB.transfer(lender.address, amount.mul(3));
 
     await lender.flashLoan(
       erc3156FlashBorrowerMaxLoan.address,
@@ -212,11 +212,9 @@ describe("OrderBookFlashLender flashLoan test", async function () {
       amount,
       []
     );
-    
+
     // Max Loan equal balance of lender after repayment
     const maxFlashLoanB1_ = await lender.maxFlashLoan(tokenB.address);
     assert(maxFlashLoanB1_.eq(amount.mul(3)));
-  });  
-
-
+  });
 });

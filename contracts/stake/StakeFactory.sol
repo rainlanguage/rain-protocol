@@ -2,7 +2,7 @@
 pragma solidity =0.8.17;
 
 import {Factory} from "../factory/Factory.sol";
-import {Stake, StakeConfig} from "./Stake.sol";
+import "./Stake.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title StakeFactory
@@ -13,8 +13,8 @@ contract StakeFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory callerMeta_) {
-        address implementation_ = address(new Stake(callerMeta_));
+    constructor(InterpreterCallerV1ConstructionConfig memory config_) {
+        address implementation_ = address(new Stake(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

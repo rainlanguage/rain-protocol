@@ -9,9 +9,8 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -45,7 +44,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, IInterpreterCallerV1 {
+contract CombineTier is TierV2, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -56,11 +55,8 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) {
+    constructor(InterpreterCallerV1ConstructionConfig memory config_) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
-
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     function initialize(

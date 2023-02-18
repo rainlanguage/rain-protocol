@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {Factory} from "../factory/Factory.sol";
-import {CombineTier, CombineTierConfig} from "./CombineTier.sol";
+import "./CombineTier.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
@@ -13,8 +13,8 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory callerMeta_) {
-        address implementation_ = address(new CombineTier(callerMeta_));
+    constructor(InterpreterCallerV1ConstructionConfig memory config_) {
+        address implementation_ = address(new CombineTier(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
