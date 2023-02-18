@@ -120,7 +120,6 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         uint256 amount_,
         bytes calldata data_
     ) external override returns (bool) {
-
         // This prevents reentrancy, loans can be taken sequentially within a
         // transaction but not simultanously.
         _checkActiveDebt();

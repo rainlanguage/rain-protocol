@@ -6,7 +6,6 @@ const common = new Common({
   chain: Chain.Mainnet,
   hardfork: Hardfork.Istanbul,
 });
-const opcodes = getOpcodesForHF(common).opcodes;
 
 export function pad(num: number, size: number) {
   let s = num + "";
