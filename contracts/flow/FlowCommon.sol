@@ -33,6 +33,11 @@ uint256 constant MIN_FLOW_SENTINELS = 4;
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
+struct FlowCommonConstructionConfig {
+    bytes callerMeta;
+    address deployer;
+}
+
 contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
@@ -51,8 +56,11 @@ contract FlowCommon is
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
-    constructor() {
+    constructor(bytes32 metaHash_, FlowCommonConstructionConfig memory config_) {
         _disableInitializers();
+        LibCallerMeta.checkCallerMeta(metaHash_, config_.callerMeta);
+        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
+        LibCallerMeta.touchDeployer(config_.deployer);
     }
 
     // solhint-disable-next-line func-name-mixedcase

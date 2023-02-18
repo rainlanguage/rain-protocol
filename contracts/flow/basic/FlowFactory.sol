@@ -2,6 +2,7 @@
 pragma solidity =0.8.17;
 
 import {Factory} from "../../factory/Factory.sol";
+import {FlowCommonConstructionConfig} from "../FlowCommon.sol";
 import {Flow, FlowConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {LibInterpreterState} from "../../interpreter/run/LibInterpreterState.sol";
@@ -15,8 +16,8 @@ contract FlowFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory callerMeta_) {
-        address implementation_ = address(new Flow(callerMeta_));
+    constructor(FlowCommonConstructionConfig memory config_) {
+        address implementation_ = address(new Flow(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
