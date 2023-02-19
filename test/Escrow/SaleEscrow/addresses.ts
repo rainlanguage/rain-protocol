@@ -13,6 +13,7 @@ import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { Status } from "../../../utils/types/sale";
@@ -25,7 +26,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
     reserve = await reserveDeploy();
   });
 
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);   
+
     readWriteTier = await readWriteTierDeploy();
   });
 

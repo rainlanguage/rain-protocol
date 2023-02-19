@@ -12,6 +12,7 @@ import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC2
 import * as Util from "../../../utils";
 import { basicDeploy } from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { Status } from "../../../utils/types/sale";
 
@@ -20,11 +21,17 @@ let claim: RedeemableERC20ClaimEscrow,
   readWriteTier: ReadWriteTier;
 
 describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
-  before(async () => {
+  before(async () => { 
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);  
+    
     ({ claim, readWriteTier } = await escrowDeploy());
   });
 
-  beforeEach(async () => {
+  beforeEach(async () => { 
+    
+
     // some other token to put into the escrow
     reserve = await reserveDeploy();
   });

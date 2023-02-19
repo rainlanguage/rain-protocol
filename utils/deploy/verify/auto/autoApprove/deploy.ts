@@ -4,17 +4,24 @@ import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ImplementationEvent as ImplementationEventAutoApproveFactory } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
 import { getRainContractMetaBytes } from "../../../../meta";
+import { getTouchDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const autoApproveFactoryDeploy = async () => {
-  const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
+  const factoryFactory = await ethers.getContractFactory("AutoApproveFactory"); 
+  const touchDeployer = await getTouchDeployer() ;
+  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("autoapprove"), 
+    deployer: touchDeployer.address
+  };
   const autoApproveFactory = (await factoryFactory.deploy(
-    getRainContractMetaBytes("autoapprove")
+    config_
   )) as AutoApproveFactory;
   await autoApproveFactory.deployed();
 
