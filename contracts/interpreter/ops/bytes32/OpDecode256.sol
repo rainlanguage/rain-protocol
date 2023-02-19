@@ -5,12 +5,7 @@ import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
-
-/// Thrown during integrity check when the encoding is truncated due to the end
-/// bit being over 256.
-/// @param startBit The start of the OOB encoding.
-/// @param length The length of the OOB encoding.
-error TruncatedEncoding(uint256 startBit, uint256 length);
+import "./OpEncode256.sol";
 
 /// @title OpDecode256
 /// @notice Opcode for decoding binary data from a 256 bit value that was encoded
@@ -24,8 +19,8 @@ library OpDecode256 {
         uint256 source_
     ) internal pure returns (uint256) {
         unchecked {
-            uint256 startBit_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint256 length_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
+            uint256 startBit_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
+            uint256 length_ = Operand.unwrap(operand_) & MASK_8BIT;
 
             // Build a bitmask of desired length. Max length is uint8 max which
             // is 255. A 256 length doesn't really make sense as that isn't an
@@ -42,8 +37,9 @@ library OpDecode256 {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         unchecked {
-            uint256 startBit_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint256 length_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
+            uint256 startBit_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
+            uint256 length_ = Operand.unwrap(operand_) & MASK_8BIT;
+
             if (startBit_ + length_ > 256) {
                 revert TruncatedEncoding(startBit_, length_);
             }
