@@ -1,9 +1,9 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LobbyReentrantSender, RainterpreterExpressionDeployer, ReserveToken18 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
+
 import {
   ContextEvent,
   DepositEvent,
@@ -11,13 +11,12 @@ import {
   LeaveEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError, getRainContractMetaBytes } from "../../utils";
+import { assertError } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+
 import { deployLobby } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
@@ -32,16 +31,13 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
   let tokenA: ReserveToken18;
-  
-
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-
+    await deploy1820(signers[0]);
   });
 
   beforeEach(async () => {
@@ -53,7 +49,7 @@ describe("Lobby Tests leave", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
 
-    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100)); 
+    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
     const Lobby: Lobby = await deployLobby(15000000);
 
@@ -175,7 +171,7 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    
+
     const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
@@ -299,7 +295,7 @@ describe("Lobby Tests leave", async function () {
     const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    
+
     const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
@@ -407,7 +403,7 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    
+
     const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
@@ -509,7 +505,7 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    
+
     const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
@@ -655,7 +651,7 @@ describe("Lobby Tests leave", async function () {
     await maliciousReserve
       .connect(signers[0])
       .transfer(alice.address, ONE.mul(100));
-    
+
     const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;

@@ -36,7 +36,9 @@ contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
 
     Evaluable internal evaluable;
 
-    constructor(InterpreterCallerV1ConstructionConfig memory config_) InterpreterCallerV1(CALLER_META_HASH, config_) {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

@@ -155,7 +155,9 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard, InterpreterCallerV1 {
     IInterpreterV1 internal interpreter;
     address internal expression;
 
-    constructor(InterpreterCallerV1ConstructionConfig memory config_) InterpreterCallerV1(CALLER_META_HASH, config_) {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

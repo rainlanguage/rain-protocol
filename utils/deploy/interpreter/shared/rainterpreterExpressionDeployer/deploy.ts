@@ -5,7 +5,10 @@ import {
   RainterpreterStore,
 } from "../../../../../typechain";
 import { RainterpreterExpressionDeployerConstructionConfigStruct } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { rainterpreterDeploy, rainterpreterStoreDeploy } from "../rainterpreter/deploy";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../rainterpreter/deploy";
 
 export const rainterpreterExpressionDeployerDeploy = async (
   interpreter: Rainterpreter,
@@ -29,16 +32,14 @@ export const rainterpreterExpressionDeployerDeploy = async (
   )) as RainterpreterExpressionDeployer;
 
   return expressionDeployer;
-}; 
+};
 
-export const getTouchDeployer = async (): Promise<RainterpreterExpressionDeployer> => {  
-  const interpreter: Rainterpreter = await rainterpreterDeploy();
-  const store: RainterpreterStore = await rainterpreterStoreDeploy();
-  const expressionDeployer: RainterpreterExpressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter,
-    store
-  ); 
+export const getTouchDeployer =
+  async (): Promise<RainterpreterExpressionDeployer> => {
+    const interpreter: Rainterpreter = await rainterpreterDeploy();
+    const store: RainterpreterStore = await rainterpreterStoreDeploy();
+    const expressionDeployer: RainterpreterExpressionDeployer =
+      await rainterpreterExpressionDeployerDeploy(interpreter, store);
 
-  return expressionDeployer
-
-}
+    return expressionDeployer;
+  };

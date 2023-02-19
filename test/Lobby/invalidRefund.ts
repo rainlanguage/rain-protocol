@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
@@ -11,15 +11,10 @@ import {
   JoinEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
   RefundEvent,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import {
-  assertError,
-  fixedPointMul,
-  getRainContractMetaBytes,
-} from "../../utils";
+import { assertError, fixedPointMul } from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { deployLobby } from "../../utils/deploy/lobby/deploy";
@@ -44,7 +39,6 @@ describe("Lobby Invalid Refund", async function () {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-
   });
 
   beforeEach(async () => {

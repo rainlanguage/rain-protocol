@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
@@ -10,10 +10,9 @@ import {
   LeaveEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { getRainContractMetaBytes, randomUint256 } from "../../utils";
+import { randomUint256 } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { deployLobby } from "../../utils/deploy/lobby/deploy";
@@ -49,8 +48,7 @@ describe("Lobby Tests claim", async function () {
 
   it("should ensure SET in ENTRYPOINT_JOIN is avaliable as GET in ENTRYPOINT_LEAVE", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1]; 
-    
+    const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
     const Lobby: Lobby = await deployLobby(15000000);

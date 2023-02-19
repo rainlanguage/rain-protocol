@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
@@ -9,14 +9,9 @@ import {
   DepositEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import {
-  assertError,
-  fixedPointMul,
-  getRainContractMetaBytes,
-} from "../../utils";
+import { assertError, fixedPointMul } from "../../utils";
 import {
   eighteenZeros,
   ONE,

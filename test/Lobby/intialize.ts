@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
@@ -7,9 +7,8 @@ import {
   InitializeEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { compareStructs, getRainContractMetaBytes } from "../../utils";
+import { compareStructs } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { deployLobby } from "../../utils/deploy/lobby/deploy";
@@ -93,6 +92,5 @@ describe("Lobby Tests Intialize", async function () {
       "wrong deposit sender"
     );
     compareStructs(intializeEvent.config, initialConfig);
-  }); 
-  
+  });
 });

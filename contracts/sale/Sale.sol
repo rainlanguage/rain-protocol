@@ -249,7 +249,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+    constructor(
+        SaleConstructorConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
         _disableInitializers();
 
         maximumSaleTimeout = config_.maximumSaleTimeout;
