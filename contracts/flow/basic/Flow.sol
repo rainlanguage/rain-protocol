@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "../../factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "../../array/LibUint256Array.sol";
@@ -16,7 +17,7 @@ struct FlowConfig {
     EvaluableConfig[] config;
 }
 
-contract Flow is ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
 
@@ -26,8 +27,9 @@ contract Flow is ReentrancyGuard, FlowCommon {
         InterpreterCallerV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @param config_ allowed flows set at initialization.
-    function initialize(FlowConfig memory config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
+        FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         __FlowCommon_init(config_.config, MIN_FLOW_SENTINELS);
         emit Initialize(msg.sender, config_.config);
     }

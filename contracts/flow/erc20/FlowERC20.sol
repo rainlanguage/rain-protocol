@@ -10,6 +10,7 @@ import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
+import "../../factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
@@ -62,7 +63,7 @@ uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
+contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -81,8 +82,9 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         InterpreterCallerV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(FlowERC20Config memory config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
+        FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);

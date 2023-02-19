@@ -59,8 +59,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     function initialize(
-        FlowERC1155Config calldata config_
+        bytes calldata data_
     ) external initializer {
+        FlowERC1155Config memory config_ = abi.decode(data_, (FlowERC1155Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);

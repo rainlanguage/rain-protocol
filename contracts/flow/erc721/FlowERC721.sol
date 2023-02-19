@@ -12,6 +12,7 @@ import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
+import "../../factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
@@ -55,7 +56,7 @@ uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
-contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
+contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -74,10 +75,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         InterpreterCallerV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @param config_ source and token config. Also controls delegated claims.
+    /// @inheritdoc ICloneableV1
     function initialize(
-        FlowERC721Config calldata config_
+        bytes calldata data_
     ) external initializer {
+        FlowERC721Config memory config_ = abi.decode(data_, (FlowERC721Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
