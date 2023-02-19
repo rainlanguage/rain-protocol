@@ -14,11 +14,11 @@ import { getRainContractMetaBytes } from "../../../../meta";
 import { getTouchDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const autoApproveFactoryDeploy = async () => {
-  const factoryFactory = await ethers.getContractFactory("AutoApproveFactory"); 
-  const touchDeployer = await getTouchDeployer() ;
+  const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("autoapprove"), 
-    deployer: touchDeployer.address
+    callerMeta: getRainContractMetaBytes("autoapprove"),
+    deployer: touchDeployer.address,
   };
   const autoApproveFactory = (await factoryFactory.deploy(
     config_

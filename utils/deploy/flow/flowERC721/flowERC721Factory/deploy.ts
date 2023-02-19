@@ -8,12 +8,12 @@ export const flowERC721FactoryDeploy = async () => {
   const flowFactoryFactory = await ethers.getContractFactory(
     "FlowERC721Factory",
     {}
-  ); 
-  const touchDeployer = await getTouchDeployer(); 
+  );
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("flow721"), 
-    deployer: touchDeployer.address
-  };   
+    callerMeta: getRainContractMetaBytes("flow721"),
+    deployer: touchDeployer.address,
+  };
   const flowFactory = (await flowFactoryFactory.deploy(
     config_
   )) as FlowERC721Factory;

@@ -8,12 +8,12 @@ export const stakeFactoryDeploy = async () => {
   const stakeFactoryFactory = await ethers.getContractFactory(
     "StakeFactory",
     {}
-  ); 
-  const touchDeployer = await getTouchDeployer() ;
+  );
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("sale"), 
-    deployer: touchDeployer.address
-  }; 
+    callerMeta: getRainContractMetaBytes("sale"),
+    deployer: touchDeployer.address,
+  };
   const stakeFactory = (await stakeFactoryFactory.deploy(
     config_
   )) as StakeFactory;

@@ -26,10 +26,10 @@ describe("SaleEscrow unchangeable addresses", async function () {
     reserve = await reserveDeploy();
   });
 
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     readWriteTier = await readWriteTierDeploy();
   });

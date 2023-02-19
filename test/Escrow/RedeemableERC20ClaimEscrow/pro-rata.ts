@@ -23,10 +23,10 @@ let claim: RedeemableERC20ClaimEscrow,
   readWriteTier: ReadWriteTier;
 
 describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     ({ claim, readWriteTier } = await escrowDeploy());
   });

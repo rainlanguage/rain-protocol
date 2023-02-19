@@ -22,10 +22,10 @@ let claim: RedeemableERC20ClaimEscrow,
   readWriteTier: ReadWriteTier;
 
 describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
-  before(async () => { 
+  before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
     ({ claim, claimWrapper, readWriteTier } = await escrowDeploy());
   });

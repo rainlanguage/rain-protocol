@@ -67,16 +67,16 @@ export const saleDeploy = async (
 export const saleDependenciesDeploy = async () => {
   const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
   const readWriteTier = await readWriteTierDeploy();
-  const touchDeployer = await getTouchDeployer(); 
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("sale"), 
-    deployer: touchDeployer.address
-  }; 
+    callerMeta: getRainContractMetaBytes("sale"),
+    deployer: touchDeployer.address,
+  };
 
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 10000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    interpreterCallerConfig: config_
+    interpreterCallerConfig: config_,
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

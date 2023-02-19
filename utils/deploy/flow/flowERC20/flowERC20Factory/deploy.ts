@@ -8,11 +8,11 @@ export const flowERC20FactoryDeploy = async () => {
   const flowFactoryFactory = await ethers.getContractFactory(
     "FlowERC20Factory",
     {}
-  ); 
-  const touchDeployer = await getTouchDeployer(); 
+  );
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("flow20"), 
-    deployer: touchDeployer.address
+    callerMeta: getRainContractMetaBytes("flow20"),
+    deployer: touchDeployer.address,
   };
   const flowFactory = (await flowFactoryFactory.deploy(
     config_

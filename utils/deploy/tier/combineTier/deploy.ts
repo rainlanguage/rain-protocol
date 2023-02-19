@@ -16,12 +16,12 @@ export const combineTierDeploy = async (
 ) => {
   const combineTierFactoryFactory = await ethers.getContractFactory(
     "CombineTierFactory"
-  ); 
-  const touchDeployer = await getTouchDeployer() ;
+  );
+  const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("combinetier"), 
-    deployer: touchDeployer.address
-  }; 
+    callerMeta: getRainContractMetaBytes("combinetier"),
+    deployer: touchDeployer.address,
+  };
   const combineTierFactory = (await combineTierFactoryFactory.deploy(
     config_
   )) as CombineTierFactory;

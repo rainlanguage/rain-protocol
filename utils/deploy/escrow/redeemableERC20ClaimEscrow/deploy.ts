@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
-import type { RainterpreterExpressionDeployer, RedeemableERC20ClaimEscrow } from "../../../../typechain";
+import type {
+  RainterpreterExpressionDeployer,
+  RedeemableERC20ClaimEscrow,
+} from "../../../../typechain";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../../../typechain";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { SaleConstructorConfigStruct } from "../../../../typechain/contracts/sale/Sale";
@@ -12,14 +15,14 @@ import { readWriteTierDeploy } from "../../tier/readWriteTier/deploy";
 
 export const escrowDeploy = async () => {
   const readWriteTier = await readWriteTierDeploy();
-  const redeemableERC20Factory = await redeemableERC20FactoryDeploy(); 
+  const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
   const touchDeployer: RainterpreterExpressionDeployer =
-  await getTouchDeployer();
+    await getTouchDeployer();
 
-const config_: InterpreterCallerV1ConstructionConfigStruct = {
-  callerMeta: getRainContractMetaBytes("sale"),
-  deployer: touchDeployer.address,
-};
+  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("sale"),
+    deployer: touchDeployer.address,
+  };
 
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 1000,
