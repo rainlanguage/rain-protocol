@@ -62,7 +62,7 @@
     "ajv": "=8.12.0",
     "lodash": "^4.17.21",
     "prettier": "=2.8.2",
-    "rainlang": "rainprotocol/rainlang#4f07968f20b656da2fffa93af25bed28ec513fef",
+    "rainlang": "rainprotocol/rainlang#439522f774bf1de1df2b77c26870f9a6c8fd5ec6",
     "ts-node": "=10.9.1",
     "typescript": "^4.9.4"
   },
