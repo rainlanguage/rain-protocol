@@ -2,7 +2,8 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
+import type { LobbyReentrantSender, RainterpreterExpressionDeployer, ReserveToken18 } from "../../typechain";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   ContextEvent,
   DepositEvent,
@@ -16,6 +17,8 @@ import {
 import { assertError, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -28,17 +31,17 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
-  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
+  
+
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);
+    await deploy1820(signers[0]); 
 
-    lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
   beforeEach(async () => {
@@ -50,13 +53,9 @@ describe("Lobby Tests leave", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
 
-    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
+    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100)); 
 
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
@@ -176,12 +175,8 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
@@ -304,12 +299,8 @@ describe("Lobby Tests leave", async function () {
     const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -416,12 +407,8 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -522,12 +509,8 @@ describe("Lobby Tests leave", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -672,12 +655,8 @@ describe("Lobby Tests leave", async function () {
     await maliciousReserve
       .connect(signers[0])
       .transfer(alice.address, ONE.mul(100));
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: 15000000,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE;

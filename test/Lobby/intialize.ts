@@ -12,6 +12,7 @@ import {
 import { compareStructs, getRainContractMetaBytes } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -24,14 +25,12 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
-  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-    lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
   beforeEach(async () => {
@@ -43,12 +42,7 @@ describe("Lobby Tests Intialize", async function () {
     const signers = await ethers.getSigners();
 
     const timeoutDuration = 15000000;
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const constants = [0, 1, ONE];
 
@@ -99,5 +93,6 @@ describe("Lobby Tests Intialize", async function () {
       "wrong deposit sender"
     );
     compareStructs(intializeEvent.config, initialConfig);
-  });
+  }); 
+  
 });

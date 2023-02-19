@@ -22,6 +22,7 @@ import {
 } from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -34,7 +35,6 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Invalid Refund", async function () {
   const Opcode = RainterpreterOps;
-  let lobbyFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
@@ -45,7 +45,6 @@ describe("Lobby Invalid Refund", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    lobbyFactory = await ethers.getContractFactory("Lobby", {});
   });
 
   beforeEach(async () => {
@@ -60,12 +59,7 @@ describe("Lobby Invalid Refund", async function () {
     const bob = signers[2];
     const bot = signers[3];
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
     const claimAmount = ONE;
@@ -247,12 +241,7 @@ describe("Lobby Invalid Refund", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
 
@@ -436,12 +425,7 @@ describe("Lobby Invalid Refund", async function () {
     const bob = signers[2];
     const bot = signers[3];
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
     const claimAmount = ONE;
@@ -639,12 +623,7 @@ describe("Lobby Invalid Refund", async function () {
     await maliciousReserve.deployed();
     await maliciousReserve.initialize();
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
     const claimAmount = ONE;
