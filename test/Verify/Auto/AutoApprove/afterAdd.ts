@@ -2,11 +2,9 @@ import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import {
-  ContextEvent,
-  ExpressionConfigStruct,
-} from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ContextEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -29,6 +27,10 @@ describe("AutoApprove afterAdd", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     autoApproveFactory = await autoApproveFactoryDeploy();
     verifyFactory = await verifyFactoryDeploy();
   });
@@ -43,13 +45,13 @@ describe("AutoApprove afterAdd", async function () {
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -58,7 +60,8 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -105,13 +108,13 @@ describe("AutoApprove afterAdd", async function () {
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
     const badID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -120,7 +123,8 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -170,13 +174,13 @@ describe("AutoApprove afterAdd", async function () {
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equal_to),
         ]),
       ],
       constants: [correctID],
@@ -185,7 +189,8 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -230,15 +235,16 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+    const expressionConfig = {
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -278,15 +284,16 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+    const expressionConfig = {
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -340,15 +347,16 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+    const expressionConfig = {
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      expressionConfig
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

@@ -1,0 +1,26 @@
+{
+  "name": "iorderbook-v1-vault-balance",
+  "desc": "The balance of an orderbook vault",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "orderbook-address",
+        "desc": "The address of the IOrderbookV2"
+      },
+      {
+        "name": "owner-address",
+        "desc": "The address of the Owner of the vault"
+      },
+      {
+        "name": "token-address",
+        "desc": "The address of the Token"
+      },
+      {
+        "name": "vault-id"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["vault-balance", "orderbook-vault-balance"]
+}

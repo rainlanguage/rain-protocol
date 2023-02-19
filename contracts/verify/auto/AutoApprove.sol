@@ -9,15 +9,19 @@ import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../interpreter/run/LibContext.sol";
-import "../../interpreter/run/IInterpreterCallerV1.sol";
+import "../../interpreter/caller/LibContext.sol";
+import "../../interpreter/caller/InterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
+);
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
+contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -32,7 +36,9 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
     Evaluable internal evaluable;
 
-    constructor() {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 
@@ -41,16 +47,16 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
         _transferOwnership(msg.sender);
         emit Initialize(msg.sender, config_);
-
-        address expression_ = config_.deployer.deployExpression(
-            config_.expressionConfig,
-            LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-        );
-        evaluable = Evaluable(
-            IInterpreterV1(config_.interpreter),
-            IInterpreterStoreV1(config_.store),
-            expression_
-        );
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.deployer.deployExpression(
+                config_.sources,
+                config_.constants,
+                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function afterAdd(

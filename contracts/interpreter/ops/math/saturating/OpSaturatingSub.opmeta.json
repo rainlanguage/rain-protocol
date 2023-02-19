@@ -1,0 +1,22 @@
+{
+  "name": "saturating-sub",
+  "desc": "Inserts subtraction of the specified items from the stack and if prevernts reverts if the result goes blow zero",
+  "operand": [
+    {
+      "name": "inputs",
+      "bits": [0, 7],
+      "validRange": [[2, 255]]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 7],
+    "parameters": [
+      {
+        "name": "input",
+        "spread": true
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["sat-sub"]
+}

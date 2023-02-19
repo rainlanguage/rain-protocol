@@ -1,11 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type {
   ERC3156FlashBorrowerDepositTest,
-  OrderBook,
   ReserveToken18,
 } from "../../../typechain";
 import { DepositConfigStruct } from "../../../typechain/contracts/orderbook/OrderBook";
@@ -13,9 +11,10 @@ import { randomUint256 } from "../../../utils/bytes";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { assertError } from "../../../utils/test/assertError";
+import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 describe("OrderBook flash loan deposit tests", async function () {
-  let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
   let erc3156Bot: ERC3156FlashBorrowerDepositTest;
@@ -33,11 +32,13 @@ describe("OrderBook flash loan deposit tests", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should not allow depositing flash loan without paying it back", async function () {
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const vaultBot = ethers.BigNumber.from(randomUint256());
 

@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
 
 import {
   memoryOperand,
@@ -8,11 +9,18 @@ import {
   op,
   RainterpreterOps,
 } from "../../../../utils";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("Rainterpreter maxOutputs test", async function () {
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
   it("ensure that max outputs caps the number of values that can be returned from the interpreter so that longer stacks are truncated to their ends", async () => {
     // basic check
     let maxOutputs = 3;
@@ -20,20 +28,19 @@ describe("Rainterpreter maxOutputs test", async function () {
 
     // prettier-ignore
     const source1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
     ]);
 
     let { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source1],
-          constants,
-        },
+        [source1],
+        constants,
+
         maxOutputs
       );
 
@@ -66,20 +73,19 @@ describe("Rainterpreter maxOutputs test", async function () {
     maxOutputs = 0;
     // prettier-ignore
     const source2 = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
   ]);
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source2],
-          constants,
-        },
+        [source2],
+        constants,
+
         maxOutputs
       ));
 
@@ -111,14 +117,13 @@ describe("Rainterpreter maxOutputs test", async function () {
     maxOutputs = 255;
     const maxConstants = new Array(300).fill(1);
     // prettier-ignore
-    const source3 = concat(new Array(300).fill(op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))));
+    const source3 = concat(new Array(300).fill(op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))));
 
     ({ consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [source3],
-          constants: maxConstants,
-        },
+        [source3],
+        maxConstants,
+
         maxOutputs
       ));
 

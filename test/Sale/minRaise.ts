@@ -15,6 +15,7 @@ import {
 } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -43,6 +44,10 @@ describe("Sale minimum raise", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ redeemableERC20Factory, readWriteTier, saleFactory } =
       await saleDependenciesDeploy());
   });
@@ -75,24 +80,21 @@ describe("Sale minimum raise", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -308,24 +310,21 @@ describe("Sale minimum raise", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const saleConfig = {
       evaluableConfig,
       recipient: recipient.address,

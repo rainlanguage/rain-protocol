@@ -1,0 +1,14 @@
+{
+  "name": "erc-20-total-supply",
+  "desc": "Get the supply of an ERC20 token and insert it into the stack",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "token-address"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["erc-20-supply"]
+}

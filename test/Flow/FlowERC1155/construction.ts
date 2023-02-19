@@ -5,6 +5,7 @@ import { FlowERC1155Factory } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
@@ -21,6 +22,10 @@ describe("FlowERC1155 construction tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC1155Factory = await flowERC1155FactoryDeploy();
   });
 
@@ -32,22 +37,22 @@ describe("FlowERC1155 construction tests", async function () {
 
     // prettier-ignore
     const sourceCanTransfer = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // outputNative
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // inputNative
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
     ]);
 
     const sources = [sourceCanTransfer];

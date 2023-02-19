@@ -14,8 +14,8 @@ contract AutoApproveFactory is Factory {
     address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new AutoApprove());
+    constructor(InterpreterCallerV1ConstructionConfig memory config_) {
+        address implementation_ = address(new AutoApprove(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

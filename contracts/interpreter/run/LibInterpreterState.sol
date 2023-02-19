@@ -192,22 +192,24 @@ library LibInterpreterState {
     /// opcodes in the sources in `ExpressionConfig` will be replaced by function
     /// pointer based opcodes in place, so are no longer usable in a portable
     /// format.
-    /// @param config_ Expression config as per `IInterpreterV1`.
+    /// @param sources_ As per `IExpressionDeployerV1`.
+    /// @param constants_ As per `IExpressionDeployerV1`.
     /// @param stackLength_ Stack length calculated by `IExpressionDeployerV1`
     /// that will be used to allocate memory for the stack upon deserialization.
     /// @param opcodeFunctionPointers_ As per `IInterpreterV1.functionPointers`,
     /// bytes to be compiled into the final `InterpreterState.compiledSources`.
     function serialize(
-        ExpressionConfig memory config_,
+        bytes[] memory sources_,
+        uint256[] memory constants_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
             size_ += stackLength_.size();
-            size_ += config_.constants.size();
-            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                size_ += config_.sources[i_].size();
+            size_ += constants_.size();
+            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+                size_ += sources_[i_].size();
             }
             bytes memory serialized_ = new bytes(size_);
             StackPointer cursor_ = serialized_.asStackPointer().up();
@@ -216,12 +218,12 @@ library LibInterpreterState {
             cursor_ = cursor_.push(stackLength_);
 
             // Then the constants.
-            cursor_ = cursor_.pushWithLength(config_.constants);
+            cursor_ = cursor_.pushWithLength(constants_);
 
             // Last the sources.
             bytes memory source_;
-            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                source_ = config_.sources[i_];
+            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+                source_ = sources_[i_];
                 compile(source_, opcodeFunctionPointers_);
                 cursor_ = cursor_.unalignedPushWithLength(source_);
             }

@@ -34,17 +34,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   // Passing context data in constants
   // prettier-ignore
   const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0x0000), // address
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
-    op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.context, 0x0000), // address
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // context
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+    op(Opcode.itier_v2_report, THRESHOLDS.length)
   ]);
 
   before(async () => {
@@ -71,22 +71,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -100,16 +97,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // address
-      op(Opcode.ITIERV2_REPORT)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0000), // address
+      op(Opcode.itier_v2_report)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address],
-      },
+      [source0],
+      [stake.address],
+
       rainInterpreter,
       1
     );
@@ -133,22 +129,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -167,10 +160,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -201,22 +193,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -237,10 +226,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -280,22 +268,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -316,10 +301,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp0 = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -391,22 +375,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -427,10 +408,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositTimestamp = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -470,22 +450,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -506,10 +483,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const blockTime0_ = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -613,22 +589,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -649,10 +622,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const blockTime0_ = await getBlockTimestamp();
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -750,22 +722,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -793,24 +762,23 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // Passing context data in constants
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // address
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
-      op(Opcode.ITIERV2_REPORT, thresholds0.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0000), // address
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // context
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.itier_v2_report, thresholds0.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address, ...thresholds0],
-      },
+      [source0],
+      [stake.address, ...thresholds0],
+
       rainInterpreter,
       1
     );
@@ -825,24 +793,23 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // Passing context data in constants
     const source1 = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0x0000), // address
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
-      op(Opcode.ITIERV2_REPORT, thresholds1.length),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.context, 0x0000), // address
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.itier_v2_report, thresholds1.length),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants: [stake.address, ...thresholds1],
-      },
+      [source1],
+      [stake.address, ...thresholds1],
+
       rainInterpreter,
       1
     );

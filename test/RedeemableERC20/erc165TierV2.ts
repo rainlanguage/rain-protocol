@@ -20,6 +20,7 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
@@ -38,6 +39,10 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let stakeFactory: StakeFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     stakeFactory = await stakeFactoryDeploy();
 
     erc20Pullee = await erc20PulleeDeploy();
@@ -53,25 +58,25 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   });
 
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
+  const ctxAccount = op(Opcode.context, 0x0000);
 
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.CONTEXT, 0x0001),
+      op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.ITIERV2_REPORT),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+    const evaluableConfig = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [0],
-    });
+      [0]
+    );
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       evaluableConfig,
@@ -108,14 +113,11 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     )) as ReserveToken;
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {

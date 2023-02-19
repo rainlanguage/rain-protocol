@@ -1,0 +1,13 @@
+{
+  "name": "erc-5313-owner",
+  "desc": "Stack the owner of an ERC5313 compliant contract.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "contract-address"
+      }
+    ]
+  },
+  "outputs": 1
+}

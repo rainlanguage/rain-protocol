@@ -8,8 +8,8 @@ import "../math/LibFixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibContext.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -36,6 +36,10 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// Thrown when two orders have the same owner during clear.
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0xf3bf4100d48b104793d6aa60e801a42423d61c57063ba3b42c257b52be8e9ff0
+);
 
 /// @dev Value that signifies that an order is live in the internal mapping.
 /// Anything nonzero is equally useful.
@@ -109,7 +113,7 @@ contract OrderBook is
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    IInterpreterCallerV1
+    InterpreterCallerV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -139,7 +143,9 @@ contract OrderBook is
     /// Open Zeppelin upgradeable contracts. Orderbook itself does NOT support
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
-    constructor() initializer {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) initializer InterpreterCallerV1(CALLER_META_HASH, config_) {
         __ReentrancyGuard_init();
         __Multicall_init();
     }
@@ -181,25 +187,25 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        address expression_ = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(
-                CALCULATE_ORDER_MIN_OUTPUTS,
-                HANDLE_IO_MIN_OUTPUTS
-            )
-        );
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
+                LibUint256Array.arrayFrom(
+                    CALCULATE_ORDER_MIN_OUTPUTS,
+                    HANDLE_IO_MIN_OUTPUTS
+                )
+            );
         Order memory order_ = Order(
             msg.sender,
             config_
                 .evaluableConfig
-                .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_IO_ENTRYPOINT)]
                 .length > 0,
-            Evaluable(
-                config_.evaluableConfig.interpreter,
-                config_.evaluableConfig.store,
-                expression_
-            ),
+            Evaluable(interpreter_, store_, expression_),
             config_.validInputs,
             config_.validOutputs,
             config_.data

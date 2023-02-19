@@ -25,12 +25,12 @@ describe("LibInterpreterState deserialize tests", async function () {
     const sources = [
       concat([
         // sourceIndex 0
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.block_number),
       ]),
       concat([
         // sourceIndex 1
-        op(Opcode.BLOCK_NUMBER),
-        op(Opcode.EXPLODE32),
+        op(Opcode.block_number),
+        op(Opcode.explode_32),
       ]),
     ];
     const constants = [];
@@ -38,7 +38,8 @@ describe("LibInterpreterState deserialize tests", async function () {
 
     // test fn serializes and then deserialises
     const state_ = await libInterpreterState.callStatic.serDeserialize(
-      { sources, constants },
+      sources,
+      constants,
       stackLength,
       context,
       interpreter.address

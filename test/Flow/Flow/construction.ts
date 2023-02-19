@@ -6,6 +6,7 @@ import { FlowFactory } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
@@ -22,6 +23,10 @@ describe("Flow construction tests", async function () {
   let flowFactory: FlowFactory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowFactory = await flowFactoryDeploy();
   });
 
@@ -34,19 +39,19 @@ describe("Flow construction tests", async function () {
     // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
 
-      op(Opcode.CONTEXT, 0x0001), // from
-      op(Opcode.CONTEXT, 0x0000), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
+      op(Opcode.context, 0x0001), // from
+      op(Opcode.context, 0x0000), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
-      op(Opcode.CONTEXT, 0x0000), // from
-      op(Opcode.CONTEXT, 0x0001), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
+      op(Opcode.context, 0x0000), // from
+      op(Opcode.context, 0x0001), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
     ]);
 
     const flowConfig: FlowConfig = {

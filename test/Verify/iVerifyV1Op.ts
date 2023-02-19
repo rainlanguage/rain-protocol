@@ -15,6 +15,7 @@ import {
   verifyFactoryDeploy,
 } from "../../utils";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -27,6 +28,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     verifyFactory = await verifyFactoryDeploy();
     rainInterpreter = await rainterpreterDeploy();
 
@@ -52,17 +57,15 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.CONTEXT, 0x0000), // CONTRACT
-        op(Opcode.CONTEXT, 0x0001), // ADDRESS
-        op(Opcode.CONTEXT, 0x0002), // TIMESTAMP
-      op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // STATUS
+        op(Opcode.context, 0x0000), // CONTRACT
+        op(Opcode.context, 0x0001), // ADDRESS
+        op(Opcode.context, 0x0002), // TIMESTAMP
+      op(Opcode.iverify_v1_account_status_at_time), // STATUS
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [],
-      },
+      [source],
+      [],
       rainInterpreter,
       1
     );

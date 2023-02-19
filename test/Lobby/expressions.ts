@@ -1,4 +1,5 @@
 import { assert } from "chai";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
@@ -7,12 +8,15 @@ import {
   DepositEvent,
   JoinEvent,
   LeaveEvent,
+  Lobby,
   LobbyConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { randomUint256 } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -24,13 +28,18 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests claim", async function () {
   const Opcode = RainterpreterOps;
-
   let tokenA: ReserveToken18;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
+
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -42,7 +51,7 @@ describe("Lobby Tests claim", async function () {
     const alice = signers[1];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const Lobby: Lobby = await deployLobby(15000000);
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -53,23 +62,23 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
             // SET key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
-             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-            op(Opcode.SET),
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+             op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+             op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
+            op(Opcode.set),
+            op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
       // GET KEY
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
-      op(Opcode.GET),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+      op(Opcode.get),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -78,7 +87,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -154,7 +164,7 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
     const key = ethers.BigNumber.from(randomUint256());
     const totalPlayers = 2;
@@ -164,27 +174,27 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
          // SET key
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-        op(Opcode.SET),
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.set),
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
     const claimSource = concat([
       // GET KEY
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
-      op(Opcode.GET),
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.DIV, 2),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
+      op(Opcode.get),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.div, 2),
     ]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -193,7 +203,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -323,7 +334,7 @@ describe("Lobby Tests claim", async function () {
     const bob = signers[2];
     const bot = signers[3];
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
     const claimAmount = ONE;
@@ -338,23 +349,23 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         // SET key
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // key
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val
-        op(Opcode.SET),
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
+         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val
+        op(Opcode.set),
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
       // GET KEY
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // key
-      op(Opcode.GET),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
+      op(Opcode.get),
     ]);
 
     const lobbyExpressionConfig = {
@@ -363,7 +374,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -481,7 +493,7 @@ describe("Lobby Tests claim", async function () {
     const carol = signers[3];
     const bot = signers[4];
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const depositAmount = ONE;
     const playerCount = ethers.BigNumber.from(randomUint256());
@@ -497,59 +509,59 @@ describe("Lobby Tests claim", async function () {
     // Each joining players makes a deposit of ONE. When playerCount reaches maxPlayers, lobby gets finalized
     const joinSource = concat([
         // SET key
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // <-- val
-          op(Opcode.GET),
-          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
-         op(Opcode.ADD,2),
-        op(Opcode.SET),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // key
+           op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // <-- val
+          op(Opcode.get),
+          op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
+         op(Opcode.add,2),
+        op(Opcode.set),
 
-        op(Opcode.CONTEXT, 0x0000), // key
-         op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , //val
-        op(Opcode.SET),
+        op(Opcode.context, 0x0000), // key
+         op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)) , //val
+        op(Opcode.set),
 
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
-        op(Opcode.GET),
-       op(Opcode.EQUAL_TO) ,
-       op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2))
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)) ,
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // key
+        op(Opcode.get),
+       op(Opcode.equal_to) ,
+       op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2))
     ]);
 
     // prettier-ignore
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // Winner gets 50 percent of shares.Rest is divided among others.
     const claimSource = concat([
       // condition
-        op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.GET),
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-        op(Opcode.GREATER_THAN),
+        op(Opcode.context, 0x0000),
+        op(Opcode.get),
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)) ,
+        op(Opcode.greater_than),
       // truthy
-            op(Opcode.CONTEXT, 0x0000),
-            op(Opcode.CONTEXT, 0x0300),
-            op(Opcode.EQUAL_TO) ,
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
-              op(Opcode.DIV,2) ,
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
-                op(Opcode.SUB,2),
-              op(Opcode.DIV,3) ,
-          op(Opcode.EAGER_IF) ,
+            op(Opcode.context, 0x0000),
+            op(Opcode.context, 0x0300),
+            op(Opcode.equal_to) ,
+                op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 5)) ,
+              op(Opcode.div,2) ,
+                op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 5)) ,
+                  op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)) ,
+                  op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
+                op(Opcode.sub,2),
+              op(Opcode.div,3) ,
+          op(Opcode.eager_if) ,
       // falsy
-          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-      op(Opcode.EAGER_IF) ,
+          op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)) ,
+      op(Opcode.eager_if) ,
     ]);
 
     // prettier-ignore
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -558,7 +570,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {

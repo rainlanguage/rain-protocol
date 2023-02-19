@@ -1,21 +1,23 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { ethers } from "hardhat";
-import type { OrderBook, ReserveToken18 } from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   DepositConfigStruct,
   DepositEvent,
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
+
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("OrderBook withdraw from vault", async function () {
-  let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
 
   beforeEach(async () => {
@@ -24,13 +26,15 @@ describe("OrderBook withdraw from vault", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should allow withdrawals from vaults", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = await deployOrderBook();
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS

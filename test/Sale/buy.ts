@@ -10,6 +10,7 @@ import {
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -36,6 +37,10 @@ describe("Sale buy", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
@@ -67,23 +72,20 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -210,16 +212,16 @@ describe("Sale buy", async function () {
       maxUnits,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const vMaxUnits = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
     const sources = [
@@ -234,10 +236,7 @@ describe("Sale buy", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -330,17 +329,17 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
     const cooldownDuration = 5;
@@ -352,10 +351,7 @@ describe("Sale buy", async function () {
     await maliciousReserve.deployed();
     await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
-    const evaluableConfig1 = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig1 = await generateEvaluableConfig(sources, constants);
 
     await assertError(
       async () =>
@@ -382,10 +378,7 @@ describe("Sale buy", async function () {
       "COOLDOWN_0",
       "did not prevent configuring a cooldown of 0 blocks"
     );
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
@@ -477,23 +470,20 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -588,23 +578,20 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -676,30 +663,27 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vStart = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.context, 0x0001),
 
         // price
         vBasePrice,
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleDeploy(
       signers,
       deployer,
@@ -902,6 +886,172 @@ describe("Sale buy", async function () {
       `wrong dynamic price5
       expected  ${expectedPrice5}
       got       ${receipt5.price}`
+    );
+  });
+
+  it("should set values from handleBuy entrypoint and accesses it across transactions", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const feeRecipient = signers[2];
+    const signer1 = signers[3];
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("100000").mul(RESERVE_ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const basePrice = ethers.BigNumber.from("75").mul(RESERVE_ONE);
+    const discountedPrice = ethers.BigNumber.from("65").mul(RESERVE_ONE);
+    const constants = [
+      basePrice,
+      startBlock - 1,
+      startBlock + saleDuration - 1,
+      discountedPrice,
+      0,
+    ];
+    const vBasePrice = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vDiscountedPrice = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 3)
+    );
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const key = op(Opcode.context, 0x0000); // msg.sender
+    const zero = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      // prettier-ignore
+      concat([
+        // maxUnits
+        op(Opcode.context, 0x0001),
+
+            // price will be dynamic based on the value set for  msg.sender
+            // (getValue == 0) ? vBasePrice : vDiscountedPrice
+              key,
+            op(Opcode.get),
+            zero,
+          op(Opcode.greater_than),
+          vDiscountedPrice,
+          vBasePrice,
+        op(Opcode.eager_if),
+
+      ]),
+      concat([
+        key, // setting blocknumber for msg.sender as the key
+        op(Opcode.block_number),
+        op(Opcode.set),
+      ]),
+    ];
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        evaluableConfig: evaluableConfig,
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: ethers.constants.AddressZero,
+      }
+    );
+    const fee = ethers.BigNumber.from("1").mul(RESERVE_ONE);
+    // wait until sale start
+    await createEmptyBlock(
+      startBlock - (await ethers.provider.getBlockNumber())
+    );
+    await sale.start();
+    const desiredUnits0 = totalTokenSupply.div(10);
+    const expectedPrice0 = basePrice.add(0);
+
+    const [actualMaxUnits0_, actualPrice0_] = await sale.previewCalculateBuy(
+      desiredUnits0
+    );
+
+    assert(
+      expectedPrice0.eq(actualPrice0_),
+      `wrong price returned from Sale._previewCalculateBuy()
+      expected  ${expectedPrice0}
+      got       ${actualPrice0_}
+      -
+      maxUnits      ${actualMaxUnits0_}
+      desiredUnits  ${desiredUnits0}`
+    );
+
+    const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(ONE);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost0.add(fee));
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost0.add(fee));
+    // buy 10% of total supply
+    const txBuy0 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits0,
+      desiredUnits: desiredUnits0,
+      maximumPrice: expectedPrice0,
+    });
+
+    const { receipt: receipt0 } = (await getEventArgs(
+      txBuy0,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+    assert(
+      receipt0.price.eq(expectedPrice0),
+      `wrong dynamic price0
+      expected  ${expectedPrice0}
+      got       ${receipt0.price}`
+    );
+    const desiredUnits1 = totalTokenSupply.div(10);
+    const expectedPrice1 = discountedPrice;
+    const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(ONE);
+    // give signer1 reserve to cover cost + fee
+    await reserve.transfer(signer1.address, expectedCost1.add(fee));
+    await reserve
+      .connect(signer1)
+      .approve(sale.address, expectedCost1.add(fee));
+    // buy another 10% of total supply
+    const txBuy1 = await sale.connect(signer1).buy({
+      feeRecipient: feeRecipient.address,
+      fee,
+      minimumUnits: desiredUnits1,
+      desiredUnits: desiredUnits1,
+      maximumPrice: expectedPrice1,
+    });
+
+    const { receipt: receipt1 } = (await getEventArgs(
+      txBuy1,
+      "Buy",
+      sale
+    )) as BuyEvent["args"];
+    assert(
+      receipt1.price.eq(expectedPrice1),
+      `wrong dynamic price1
+      expected  ${expectedPrice1}
+      got       ${receipt1.price}`
     );
   });
 });

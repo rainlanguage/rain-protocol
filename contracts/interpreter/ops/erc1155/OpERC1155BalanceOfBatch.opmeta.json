@@ -1,0 +1,33 @@
+{
+  "name": "erc-1155-balance-of-batch",
+  "desc": "Get the balances of an ERC1155 token for batches of accounts and token ids and insert it into the stack",
+  "operand": [
+    {
+      "name": "inputs",
+      "bits": [0, 7],
+      "validRange": [[1, 255]],
+      "computation": "(arg - 1) / 2"
+    }
+  ],
+  "outputs": {
+    "bits": [0, 7]
+  },
+  "inputs": {
+    "bits": [0, 7],
+    "computation": "(bits * 2) + 1",
+    "parameters": [
+      {
+        "name": "token-address"
+      },
+      {
+        "name": "account",
+        "spread": true
+      },
+      {
+        "name": "token-id",
+        "spread": true
+      }
+    ]
+  },
+  "aliases": ["erc-1155-batch-balance"]
+}

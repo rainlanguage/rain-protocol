@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import { RedeemableERC20, Sale, SaleFactory } from "../../../typechain";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   ConstructEvent,
   SaleConfigStruct,
@@ -10,6 +11,8 @@ import {
   SaleRedeemableERC20ConfigStruct,
 } from "../../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../../events";
+import { getRainContractMetaBytes } from "../../meta";
+import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { redeemableERC20FactoryDeploy } from "../redeemableERC20/redeemableERC20Factory/deploy";
 import { readWriteTierDeploy } from "../tier/readWriteTier/deploy";
 import { saleFactoryDeploy } from "./saleFactory/deploy";
@@ -64,10 +67,16 @@ export const saleDeploy = async (
 export const saleDependenciesDeploy = async () => {
   const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
   const readWriteTier = await readWriteTierDeploy();
+  const touchDeployer = await getTouchDeployer();
+  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("sale"),
+    deployer: touchDeployer.address,
+  };
 
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 10000,
     redeemableERC20Factory: redeemableERC20Factory.address,
+    interpreterCallerConfig: config_,
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);

@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
@@ -9,15 +8,9 @@ import type {
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-
-const Opcode = AllStandardOps;
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 
 let signers: SignerWithAddress[];
 let signer1: SignerWithAddress;
@@ -29,6 +22,10 @@ describe("RainInterpreter ERC20 ops", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -47,25 +44,13 @@ describe("RainInterpreter ERC20 ops", async function () {
   });
 
   it("should return ERC20 total supply", async () => {
-    const constants = [tokenERC20.address];
-    const vTokenAddr = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = standardEvaluableConfig(
+      `_: erc-20-total-supply(${tokenERC20.address});`
     );
 
-    // prettier-ignore
-    const sources = [
-      concat([
-          vTokenAddr,
-        op(Opcode.ERC20_TOTAL_SUPPLY)
-      ]),
-    ];
-
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -84,30 +69,13 @@ describe("RainInterpreter ERC20 ops", async function () {
   });
 
   it("should return ERC20 balance", async () => {
-    const constants = [signer1.address, tokenERC20.address];
-    const vSigner1 = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = standardEvaluableConfig(
+      `_: erc-20-balance-of(${tokenERC20.address} ${signer1.address});`
     );
-    const vTokenAddr = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    // prettier-ignore
-    const sources = [
-      concat([
-          vTokenAddr,
-          vSigner1,
-        op(Opcode.ERC20_BALANCE_OF)
-      ]),
-    ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );

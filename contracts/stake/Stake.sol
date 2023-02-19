@@ -4,7 +4,9 @@ pragma solidity =0.8.17;
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibContext.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 
@@ -45,8 +47,9 @@ error ZeroWithdrawAssets();
 /// @dev Thrown when the amount of shares being burned on withdrawal is zero.
 error ZeroWithdrawShares();
 
-/// @dev Thrown when a nonzero store is provided.
-error UnexpectedStore(IInterpreterStoreV1 store);
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
+);
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -132,7 +135,7 @@ struct DepositRecord {
 /// expressing inflationary tokenomics in the share token itself. Third party
 /// tokens may mint/burn themselves according to the share balances and ledger
 /// reports provided by `Stake`.
-contract Stake is ERC4626, TierV2, ReentrancyGuard {
+contract Stake is ERC4626, TierV2, ReentrancyGuard, InterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;
@@ -152,9 +155,9 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     IInterpreterV1 internal interpreter;
     address internal expression;
 
-    /// Constructor does nothing but prevents accidental initialization of an
-    /// implementation template intended to be referenced by a cloning factory.
-    constructor() {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 
@@ -165,23 +168,23 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         if (address(config_.asset) == address(0)) {
             revert ZeroAsset();
         }
-        if (config_.evaluableConfig.store != NO_STORE) {
-            revert UnexpectedStore(config_.evaluableConfig.store);
-        }
 
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
         __TierV2_init();
 
-        interpreter = config_.evaluableConfig.interpreter;
-        expression = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(
-                MAX_DEPOSIT_MIN_OUTPUTS,
-                MAX_WITHDRAW_MIN_OUTPUTS
-            )
-        );
+        (interpreter, , expression) = config_
+            .evaluableConfig
+            .deployer
+            .deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
+                LibUint256Array.arrayFrom(
+                    MAX_DEPOSIT_MIN_OUTPUTS,
+                    MAX_WITHDRAW_MIN_OUTPUTS
+                )
+            );
         emit Initialize(msg.sender, config_);
     }
 

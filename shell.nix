@@ -87,6 +87,11 @@ let
     hardhat test
   '';
 
+  ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
+    # Deploying to mumbai network
+    hardhat run deployment/deployInterpreter.ts --network mumbai
+  '';
+
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
@@ -156,12 +161,20 @@ let
     EOF
   '';
 
-  gen-rainterpreter-opmeta = pkgs.writeShellScriptBin "gen-rainterpreter-opmeta" ''
-    ts-node ./scripts/genRainterpreterOpmeta.ts ''$@
+  rainterpreter-opmeta = pkgs.writeShellScriptBin "rainterpreter-opmeta" ''
+    ts-node ./scripts/getRainterpreterOpmeta.ts ''$@
   '';
 
-  gen-opmeta = pkgs.writeShellScriptBin "gen-opmeta" ''
-    ts-node ./scripts/genOpmeta.ts ''$@
+  opmeta = pkgs.writeShellScriptBin "opmeta" ''
+    ts-node ./scripts/getOpmeta.ts ''$@
+  '';
+
+  rain-contract-meta = pkgs.writeShellScriptBin "rain-contract-meta" ''
+    ts-node ./scripts/getRainContractMeta.ts ''$@
+  '';
+
+  contract-meta = pkgs.writeShellScriptBin "contract-meta" ''
+    ts-node ./scripts/getContractMeta.ts ''$@
   '';
 
 in
@@ -182,6 +195,7 @@ pkgs.stdenv.mkDerivation {
     run-echidna
     ci-test
     ci-lint
+    ci-deployment
     cut-dist
     prepack
     prepublish
@@ -192,8 +206,10 @@ pkgs.stdenv.mkDerivation {
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
     pkgs.echidna
-    gen-rainterpreter-opmeta
-    gen-opmeta
+    rainterpreter-opmeta
+    opmeta
+    contract-meta
+    rain-contract-meta
   ];
 
   shellHook = ''

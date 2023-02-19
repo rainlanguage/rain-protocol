@@ -8,10 +8,15 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/run/LibContext.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x5281a1ecd46ea18005d52780b1d6c17311ecdb6136c83392b96fe4621d57d86e
+);
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -39,7 +44,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2 {
+contract CombineTier is TierV2, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -48,9 +53,11 @@ contract CombineTier is TierV2 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    Evaluable evaluable;
+    Evaluable internal evaluable;
 
-    constructor() {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 
@@ -63,13 +70,7 @@ contract CombineTier is TierV2 {
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
             require(
                 ERC165Checker.supportsInterface(
-                    address(
-                        uint160(
-                            config_.evaluableConfig.expressionConfig.constants[
-                                i_
-                            ]
-                        )
-                    ),
+                    address(uint160(config_.evaluableConfig.constants[i_])),
                     type(ITierV2).interfaceId
                 ),
                 "ERC165_TIERV2"
@@ -78,17 +79,19 @@ contract CombineTier is TierV2 {
 
         emit Initialize(msg.sender, config_);
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     REPORT_MIN_OUTPUTS,
                     REPORT_FOR_TIER_MIN_OUTPUTS
                 )
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     /// @inheritdoc ITierV2

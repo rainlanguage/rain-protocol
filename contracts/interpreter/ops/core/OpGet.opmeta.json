@@ -1,0 +1,14 @@
+{
+  "name": "get",
+  "desc": "Read a key/value pair from contract storage by providing the key and stack the value",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "key",
+        "desc": "the key of the key/value pair"
+      }
+    ]
+  },
+  "outputs": 1
+}

@@ -9,6 +9,7 @@ import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -22,10 +23,14 @@ const Opcode = RainterpreterOps;
 
 describe("Flow flowTime tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
-  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
+  const ME = () => op(Opcode.context, 0x0001); // base context this
+  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowFactory = await flowFactoryDeploy();
   });
 
@@ -73,29 +78,29 @@ describe("Flow flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
+    const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
     const FLOW_TIME = () =>
       concat([
         CONTEXT_FLOW_ID(), // k_
-        op(Opcode.GET),
+        op(Opcode.get),
       ]);
 
     const sourceFlowIO = concat([
       // CAN FLOW
       FLOW_TIME(),
-      op(Opcode.ISZERO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.is_zero),
+      op(Opcode.ensure, 1),
 
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -112,8 +117,8 @@ describe("Flow flowTime tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.BLOCK_TIMESTAMP), // v__
-      op(Opcode.SET),
+      op(Opcode.block_timestamp), // v__
+      op(Opcode.set),
     ]);
 
     const flowConfigStruct: FlowConfig = {

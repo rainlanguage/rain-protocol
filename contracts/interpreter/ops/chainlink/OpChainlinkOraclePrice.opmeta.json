@@ -1,0 +1,19 @@
+{
+  "name": "chainlink-price",
+  "desc": "Takes Feed and StaleAfter values from stack and gets the Chainlink Oracle Feed's price and stack the result based on StaleAfter",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "feed",
+        "desc": "address of the price feed"
+      },
+      {
+        "name": "stale-after",
+        "desc": "duration of time that price will be valid"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["price"]
+}

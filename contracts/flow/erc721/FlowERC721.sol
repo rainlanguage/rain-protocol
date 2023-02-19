@@ -46,6 +46,10 @@ struct FlowERC721IO {
     FlowTransfer flow;
 }
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x64c1efa057778dfb26bcf6fce5bd0764d2f20252596d32d1124b9304e7611567
+);
+
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
@@ -66,6 +70,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     Evaluable internal evaluable;
 
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) FlowCommon(CALLER_META_HASH, config_) {}
+
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(
         FlowERC721Config calldata config_
@@ -74,14 +82,16 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function _dispatch(
@@ -116,12 +126,6 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
-                uint256[] memory callerContext_ = LibUint256Array.arrayFrom(
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    tokenId_,
-                    batchSize_
-                );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                     .interpreter
                     .eval(
@@ -130,7 +134,12 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                         _dispatch(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            callerContext_,
+                            // Transfer params are caller context.
+                            LibUint256Array.arrayFrom(
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_)),
+                                tokenId_
+                            ),
                             new SignedContext[](0)
                         )
                     );

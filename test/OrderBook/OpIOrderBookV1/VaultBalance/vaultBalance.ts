@@ -15,6 +15,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -25,6 +26,10 @@ describe("IOrderBookV1 vault balance tests", async function () {
   let fakeOrderBook: FakeContract<OrderBook>;
 
   beforeEach(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     fakeOrderBook = await smock.fake("OrderBook");
   });
 
@@ -48,13 +53,13 @@ describe("IOrderBookV1 vault balance tests", async function () {
     fakeOrderBook.vaultBalance.returns(vaultBalance);
 
     const ORDERBOOK_ADDRESS = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const OWNER = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const ID = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sources = [concat([
@@ -62,15 +67,14 @@ describe("IOrderBookV1 vault balance tests", async function () {
         OWNER(),
         TOKEN(),
         ID(),
-      op(Opcode.IORDERBOOKV1_VAULT_BALANCE),
+      op(Opcode.iorderbook_v1_vault_balance),
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
+
       rainInterpreter,
       1
     );

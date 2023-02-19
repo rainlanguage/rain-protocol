@@ -13,8 +13,8 @@ contract LobbyFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(uint256 maxTimeoutDuration_) {
-        address implementation_ = address(new Lobby(maxTimeoutDuration_));
+    constructor(LobbyConstructorConfig memory config_) {
+        address implementation_ = address(new Lobby(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

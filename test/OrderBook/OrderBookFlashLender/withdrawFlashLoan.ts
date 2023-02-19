@@ -2,11 +2,10 @@
 // @ts-nocheck
 
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { ethers } from "hardhat";
 import type {
   ERC3156FlashBorrowerWithdrawTest,
-  OrderBook,
   ReserveToken18,
 } from "../../../typechain";
 import {
@@ -16,9 +15,10 @@ import {
 import { randomUint256 } from "../../../utils/bytes";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 describe("OrderBook flash loan withdraw tests", async function () {
-  let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
   let erc3156Bot: ERC3156FlashBorrowerWithdrawTest;
@@ -36,11 +36,13 @@ describe("OrderBook flash loan withdraw tests", async function () {
   });
 
   before(async () => {
-    orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
   });
 
   it("should not allow decreasing flash debt by more than the sender's vault balance", async function () {
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+    const orderBook = await deployOrderBook();
 
     const vaultBot = ethers.BigNumber.from(randomUint256());
 

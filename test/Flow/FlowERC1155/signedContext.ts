@@ -9,6 +9,7 @@ import {
 } from "../../../utils/constants/sentinel";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -25,6 +26,10 @@ describe("FlowERC1155 signed context tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC1155Factory = await flowERC1155FactoryDeploy();
   });
 
@@ -37,12 +42,12 @@ describe("FlowERC1155 signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC1155 = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -135,12 +140,12 @@ describe("FlowERC1155 signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC1155 = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

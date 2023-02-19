@@ -3,6 +3,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer } from "../../../typechain";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
@@ -15,6 +16,11 @@ import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report time for tier op", async function () {
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
   it("should return ITierV2 report time for tier when using opcode", async () => {
     const signers = await ethers.getSigners();
 
@@ -34,17 +40,16 @@ describe("TierV2 report time for tier op", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // account
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // tier
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0000), // account
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // tier
+      op(Opcode.itier_v2_report_time_for_tier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [readWriteTier.address, Tier.FOUR],
-      },
+      [source],
+      [readWriteTier.address, Tier.FOUR],
+
       rainInterpreter,
       1
     );

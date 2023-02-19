@@ -34,6 +34,10 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x1290d7867e9b5439014535435d75311851bb268aaba61b7b0b8399449a36c71f
+);
+
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
@@ -50,6 +54,10 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     Evaluable internal evaluable;
 
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) FlowCommon(CALLER_META_HASH, config_) {}
+
     function initialize(
         FlowERC1155Config calldata config_
     ) external initializer {
@@ -57,14 +65,16 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
 
         __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
     }
@@ -112,16 +122,21 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                 Evaluable memory evaluable_ = evaluable;
 
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                    uint256[][] memory context_ = LibUint256Array
-                        .arrayFrom(
-                            uint(uint160(msg.sender)),
-                            uint(uint160(operator_)),
-                            uint256(uint160(from_)),
-                            uint256(uint160(to_)),
-                            ids_[i_],
-                            amounts_[i_]
-                        )
-                        .matrixFrom();
+                    uint256[][] memory context_;
+                    {
+                        context_ = LibContext.build(
+                            new uint256[][](0),
+                            // Transfer params are caller context.
+                            LibUint256Array.arrayFrom(
+                                uint(uint160(operator_)),
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_)),
+                                ids_[i_],
+                                amounts_[i_]
+                            ),
+                            new SignedContext[](0)
+                        );
+                    }
                     (
                         uint256[] memory stack_,
                         uint256[] memory kvs_

@@ -7,8 +7,8 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibContext.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
@@ -29,6 +29,21 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 
 /// Thrown when `invalid` is called but the lobby is not invalid.
 error NotInvalid();
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x7ee328cade392f781d0c0b5a3acae004e96e508d3a735568e20f4c4a9d1d7946
+);
+
+/// Configuration for the construction of a `Lobby` reference implementation.
+/// All `Lobby` contracts initialized by a factory will share this.
+/// @param maxTimeoutDuration A max timeout is enforced in the constructor so
+/// that all cloned proxies share it, which prevents an initiator from setting a
+/// far future timeout and effectively disabling it to trap funds.
+/// @param callerMeta caller meta as per `IInterpreterCallerV1`.
+struct LobbyConstructorConfig {
+    uint256 maxTimeoutDuration;
+    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
+}
 
 /// Configuration for a `Lobby` to initialize.
 /// @param refMustAgree If `true` the ref must agree to be the ref before ANY
@@ -112,7 +127,7 @@ uint256 constant PHASE_INVALID = 4;
 
 // Phased is a contract in the rain repo that allows contracts to move sequentially
 // through phases and restrict logic by phase.
-contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
+contract Lobby is Phased, ReentrancyGuard, InterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -165,11 +180,10 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     uint256 internal totalShares;
     mapping(address => uint256) internal withdrawals;
 
-    /// A max timeout is enforced in the constructor so that all cloned proxies
-    /// share it, which prevents an initiator from setting a far future timeout
-    /// and effectively disabling it to trap funds.
-    constructor(uint256 maxTimeoutDuration_) {
-        maxTimeoutDuration = maxTimeoutDuration_;
+    constructor(
+        LobbyConstructorConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+        maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 
     function initialize(LobbyConfig calldata config_) external initializer {
@@ -196,18 +210,20 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     JOIN_MIN_OUTPUTS,
                     LEAVE_MIN_OUTPUTS,
                     CLAIM_MIN_OUTPUTS
                 )
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function _joinEncodedDispatch(
@@ -336,8 +352,8 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 emit PlayersFinalised(msg.sender);
             }
 
-            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
             _deposit(amount_);
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
     }
 

@@ -1,0 +1,14 @@
+{
+  "name": "debug",
+  "desc": "ABI encodes the entire stack and logs it to the hardhat console",
+  "operand": [
+    {
+      "name": "mode",
+      "desc": "debugging mode",
+      "bits": [0, 0]
+    }
+  ],
+  "inputs": 0,
+  "outputs": 0,
+  "aliases": ["log", "console", "console-log"]
+}

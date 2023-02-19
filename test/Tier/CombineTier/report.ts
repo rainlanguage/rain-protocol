@@ -22,6 +22,7 @@ import {
   timewarp,
 } from "../../../utils";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
@@ -48,14 +49,20 @@ let rainInterpreter: Rainterpreter;
 let logic: IInterpreterV1Consumer;
 
 describe("CombineTier report tests", async function () {
-  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
+  const ctxAccount = op(Opcode.context, 0x0000);
 
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.CONTEXT, 0x0001),
+      op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.ITIERV2_REPORT),
+    op(Opcode.itier_v2_report),
   ]);
 
   beforeEach(async () => {
@@ -77,26 +84,26 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should support a program which returns the default report", async () => {
-    const evaluableConfigAlwaysTier = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+    const evaluableConfigAlwaysTier = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [ALWAYS],
-    });
+      [ALWAYS]
+    );
 
     const alwaysTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfigAlwaysTier,
     })) as CombineTier;
 
-    const evaluableConfigNeverTier = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+    const evaluableConfigNeverTier = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [NEVER],
-    });
+      [NEVER]
+    );
 
     const neverTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
@@ -110,22 +117,22 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceAlwaysReport = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.CONTEXT, 0x0000),
-      op(Opcode.ITIERV2_REPORT, 0),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.context, 0x0000),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
     // prettier-ignore
     const sourceNeverReport = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.CONTEXT, 0x0000),
-      op(Opcode.ITIERV2_REPORT, 0),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.context, 0x0000),
+      op(Opcode.itier_v2_report, 0),
     ]);
 
-    const evaluableConfigAlways = await generateEvaluableConfig({
-      sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
-      constants,
-    });
+    const evaluableConfigAlways = await generateEvaluableConfig(
+      [sourceAlwaysReport, sourceReportTimeForTierDefault],
+      constants
+    );
 
     const combineTierAlways = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
@@ -145,10 +152,10 @@ describe("CombineTier report tests", async function () {
       got       ${resultAlwaysReport}`
     );
 
-    const evaluableConfigNever = await generateEvaluableConfig({
-      sources: [sourceNeverReport, sourceReportTimeForTierDefault],
-      constants,
-    });
+    const evaluableConfigNever = await generateEvaluableConfig(
+      [sourceNeverReport, sourceReportTimeForTierDefault],
+      constants
+    );
     const combineTierNever = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
       evaluableConfig: evaluableConfigNever,
@@ -170,11 +177,11 @@ describe("CombineTier report tests", async function () {
 
   it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract", async () => {
     const vAlice = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTokenAddr = op(
-      Opcode.READ_MEMORY,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
     // Transferring bob
@@ -185,13 +192,13 @@ describe("CombineTier report tests", async function () {
     const sourceTierContractAlice = concat([
       vTokenAddr,
       vAlice,
-      op(Opcode.ERC20_BALANCE_OF),
+      op(Opcode.erc_20_balance_of),
     ]);
 
-    const evaluableConfigAlice = await generateEvaluableConfig({
-      sources: [sourceTierContractAlice, sourceReportTimeForTierDefault],
-      constants: [alice.address, tokenERC20.address],
-    });
+    const evaluableConfigAlice = await generateEvaluableConfig(
+      [sourceTierContractAlice, sourceReportTimeForTierDefault],
+      [alice.address, tokenERC20.address]
+    );
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfigAlice,
@@ -202,12 +209,12 @@ describe("CombineTier report tests", async function () {
     const sourceTierContractBob = concat([
         vTokenAddr,
         vAlice,
-      op(Opcode.ERC20_BALANCE_OF),
+      op(Opcode.erc_20_balance_of),
     ]);
-    const evaluableConfigBob = await generateEvaluableConfig({
-      sources: [sourceTierContractBob, sourceReportTimeForTierDefault],
-      constants: [bob.address, tokenERC20.address],
-    });
+    const evaluableConfigBob = await generateEvaluableConfig(
+      [sourceTierContractBob, sourceReportTimeForTierDefault],
+      [bob.address, tokenERC20.address]
+    );
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       evaluableConfig: evaluableConfigBob,
@@ -221,23 +228,23 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceMain = concat([
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.CONTEXT, 0x0000),
-          op(Opcode.ITIERV2_REPORT, 0),
-        op(Opcode.ISZERO),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT, 0),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT, 0x0000),
-        op(Opcode.ITIERV2_REPORT, 0),
-      op(Opcode.EAGER_IF)
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.context, 0x0000),
+          op(Opcode.itier_v2_report, 0),
+        op(Opcode.is_zero),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itier_v2_report, 0),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.context, 0x0000),
+        op(Opcode.itier_v2_report, 0),
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      constants
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
@@ -282,33 +289,33 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Alice's Report
-        op(Opcode.CONTEXT, 0x0100),
-      op(Opcode.ITIERV2_REPORT),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Alice's Report
+        op(Opcode.context, 0x0100),
+      op(Opcode.itier_v2_report),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Bob's Report
-        op(Opcode.CONTEXT, 0x0200),
-      op(Opcode.ITIERV2_REPORT),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Bob's Report
+        op(Opcode.context, 0x0200),
+      op(Opcode.itier_v2_report),
     ])
 
     // The source will check Alice's report if it is set [i.e] less than max_uint256, if true, return Alice's report else return Bob's report
     // prettier-ignore
     const sourceMain = concat([
            sourceAliceReport,
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // max_uint256
-        op(Opcode.LESS_THAN),  // 0
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // max_uint256
+        op(Opcode.less_than),  // 0
           sourceAliceReport,
           sourceBobReport,
-      op(Opcode.EAGER_IF)
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      constants
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
@@ -351,16 +358,16 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Alice's Report
-      op(Opcode.CONTEXT, 0x0100),
-      op(Opcode.ITIERV2_REPORT),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Alice's Report
+      op(Opcode.context, 0x0100),
+      op(Opcode.itier_v2_report),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Bob's Report
-        op(Opcode.CONTEXT, 0x0201),
-      op(Opcode.ITIERV2_REPORT),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Bob's Report
+        op(Opcode.context, 0x0201),
+      op(Opcode.itier_v2_report),
     ])
     // MAIN
     const constants = [ethers.BigNumber.from(readWriteTier.address)];
@@ -369,18 +376,18 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceAliceReport,
-          op(Opcode.CONTEXT, 0x0200), // Alice's expected report
-        op(Opcode.EQUAL_TO),
+          op(Opcode.context, 0x0200), // Alice's expected report
+        op(Opcode.equal_to),
           sourceBobReport,
-          op(Opcode.CONTEXT, 0x0202), // Bob's expected report
-        op(Opcode.EQUAL_TO),
-      op(Opcode.EVERY, 2)
+          op(Opcode.context, 0x0202), // Bob's expected report
+        op(Opcode.equal_to),
+      op(Opcode.every, 2)
     ]);
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      constants
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
@@ -419,14 +426,11 @@ describe("CombineTier report tests", async function () {
 
   it("should query Stake Contract's report using Combine Tier", async () => {
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -477,32 +481,32 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0100), // alice address
-        op(Opcode.CONTEXT, 0x0203), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-        op(Opcode.CONTEXT, 0x0208),
-        op(Opcode.CONTEXT, 0x0209),
-        op(Opcode.CONTEXT, 0x020a),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0100), // alice address
+        op(Opcode.context, 0x0203), // THRESHOLDS
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+        op(Opcode.context, 0x0208),
+        op(Opcode.context, 0x0209),
+        op(Opcode.context, 0x020a),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0201), // bob address
-        op(Opcode.CONTEXT, 0x0203), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-        op(Opcode.CONTEXT, 0x0208),
-        op(Opcode.CONTEXT, 0x0209),
-        op(Opcode.CONTEXT, 0x020a),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.context, 0x0201), // bob address
+        op(Opcode.context, 0x0203), // THRESHOLDS
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+        op(Opcode.context, 0x0208),
+        op(Opcode.context, 0x0209),
+        op(Opcode.context, 0x020a),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -510,18 +514,18 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceAliceReport,
-          op(Opcode.CONTEXT, 0x0200), // Alice's expected report
-        op(Opcode.EQUAL_TO),
+          op(Opcode.context, 0x0200), // Alice's expected report
+        op(Opcode.equal_to),
           sourceBobReport,
-          op(Opcode.CONTEXT, 0x0202), // Bob's expected report
-        op(Opcode.EQUAL_TO),
-      op(Opcode.EVERY, 2)
+          op(Opcode.context, 0x0202), // Bob's expected report
+        op(Opcode.equal_to),
+      op(Opcode.every, 2)
     ]);
 
-    const evaluableConfigMain = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants: [stake.address],
-    });
+    const evaluableConfigMain = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      [stake.address]
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
@@ -546,14 +550,11 @@ describe("CombineTier report tests", async function () {
 
   it("should combine reports of 2 staking contracts", async () => {
     const evaluableConfigStakeMain = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -586,32 +587,32 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0200), // THRESHOLDS
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0200), // THRESHOLDS
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -619,21 +620,21 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint256
-          op(Opcode.LESS_THAN),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint256
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint256
-          op(Opcode.LESS_THAN),
-        op(Opcode.EVERY, 2), // Condition
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint256
+          op(Opcode.less_than),
+        op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
-      op(Opcode.EAGER_IF)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfigCombineTierMain = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants: [stake0.address, stake1.address, max_uint256],
-    });
+    const evaluableConfigCombineTierMain = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      [stake0.address, stake1.address, max_uint256]
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
@@ -675,14 +676,11 @@ describe("CombineTier report tests", async function () {
 
   it("should combine reports of N staking contracts", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -717,19 +715,19 @@ describe("CombineTier report tests", async function () {
 
       // prettier-ignore
       const sourceReportStake = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, i)), // ITierV2 contract stake0
-          op(Opcode.CONTEXT, 0x0100), // address
-          op(Opcode.CONTEXT, 0x0200), // THRESHOLDS
-          op(Opcode.CONTEXT, 0x0201),
-          op(Opcode.CONTEXT, 0x0202),
-          op(Opcode.CONTEXT, 0x0203),
-          op(Opcode.CONTEXT, 0x0204),
-          op(Opcode.CONTEXT, 0x0205),
-          op(Opcode.CONTEXT, 0x0206),
-          op(Opcode.CONTEXT, 0x0207),
-        op(Opcode.ITIERV2_REPORT, THRESHOLDS.length),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, POSITION_max_uint256)), // max_uint256
-        op(Opcode.LESS_THAN)
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, i)), // ITierV2 contract stake0
+          op(Opcode.context, 0x0100), // address
+          op(Opcode.context, 0x0200), // THRESHOLDS
+          op(Opcode.context, 0x0201),
+          op(Opcode.context, 0x0202),
+          op(Opcode.context, 0x0203),
+          op(Opcode.context, 0x0204),
+          op(Opcode.context, 0x0205),
+          op(Opcode.context, 0x0206),
+          op(Opcode.context, 0x0207),
+        op(Opcode.itier_v2_report, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, POSITION_max_uint256)), // max_uint256
+        op(Opcode.less_than)
       ]);
 
       // Pushing source reports
@@ -741,16 +739,16 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
           ...sourceReports,
-        op(Opcode.EVERY, stakeContracts.length), // Condition
+        op(Opcode.every, stakeContracts.length), // Condition
         sourceReports[0], // TRUE == 1
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, POSITION_max_uint256)), // FALSE == max_uint256
-      op(Opcode.EAGER_IF)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, POSITION_max_uint256)), // FALSE == max_uint256
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceMain, sourceReportTimeForTierDefault],
-      constants: [...constants, max_uint256],
-    });
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+      [sourceMain, sourceReportTimeForTierDefault],
+      [...constants, max_uint256]
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
@@ -796,14 +794,11 @@ describe("CombineTier report tests", async function () {
 
   it("should use ITIERV2_REPORT opcode with context data to query the report for a CombineTier contract", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -836,32 +831,32 @@ describe("CombineTier report tests", async function () {
 
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0200), // THRESHOLDS
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
-        op(Opcode.CONTEXT, 0x0100), // address
-        op(Opcode.CONTEXT, 0x0200), // THRESHOLDS
-        op(Opcode.CONTEXT, 0x0201),
-        op(Opcode.CONTEXT, 0x0202),
-        op(Opcode.CONTEXT, 0x0203),
-        op(Opcode.CONTEXT, 0x0204),
-        op(Opcode.CONTEXT, 0x0205),
-        op(Opcode.CONTEXT, 0x0206),
-        op(Opcode.CONTEXT, 0x0207),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.context, 0x0100), // address
+        op(Opcode.context, 0x0200), // THRESHOLDS
+        op(Opcode.context, 0x0201),
+        op(Opcode.context, 0x0202),
+        op(Opcode.context, 0x0203),
+        op(Opcode.context, 0x0204),
+        op(Opcode.context, 0x0205),
+        op(Opcode.context, 0x0206),
+        op(Opcode.context, 0x0207),
+      op(Opcode.itier_v2_report, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -869,21 +864,21 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceCombineTierContract = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint256
-          op(Opcode.LESS_THAN),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint256
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint256
-          op(Opcode.LESS_THAN),
-        op(Opcode.EVERY, 2), // Condition
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint256
+          op(Opcode.less_than),
+        op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
-      op(Opcode.EAGER_IF)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfigCoombineTier = await generateEvaluableConfig({
-      sources: [sourceCombineTierContract, sourceReportTimeForTierDefault],
-      constants: [stake0.address, stake1.address, max_uint256],
-    });
+    const evaluableConfigCoombineTier = await generateEvaluableConfig(
+      [sourceCombineTierContract, sourceReportTimeForTierDefault],
+      [stake0.address, stake1.address, max_uint256]
+    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
@@ -891,24 +886,23 @@ describe("CombineTier report tests", async function () {
     })) as CombineTier;
 
     const sourceMain = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract
-      op(Opcode.CONTEXT, 0x0000), // alice address
-      op(Opcode.CONTEXT, 0x0001), // THRESHOLDS
-      op(Opcode.CONTEXT, 0x0002),
-      op(Opcode.CONTEXT, 0x0003),
-      op(Opcode.CONTEXT, 0x0004),
-      op(Opcode.CONTEXT, 0x0005),
-      op(Opcode.CONTEXT, 0x0006),
-      op(Opcode.CONTEXT, 0x0007),
-      op(Opcode.CONTEXT, 0x0008),
-      op(Opcode.ITIERV2_REPORT, THRESHOLDS.length),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract
+      op(Opcode.context, 0x0000), // alice address
+      op(Opcode.context, 0x0001), // THRESHOLDS
+      op(Opcode.context, 0x0002),
+      op(Opcode.context, 0x0003),
+      op(Opcode.context, 0x0004),
+      op(Opcode.context, 0x0005),
+      op(Opcode.context, 0x0006),
+      op(Opcode.context, 0x0007),
+      op(Opcode.context, 0x0008),
+      op(Opcode.itier_v2_report, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [sourceMain],
-        constants: [combineTierMain.address],
-      },
+      [sourceMain],
+      [combineTierMain.address],
+
       rainInterpreter,
       1
     );

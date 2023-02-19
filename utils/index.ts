@@ -9,3 +9,4 @@ export * from "./test";
 export * from "./tier";
 export * from "./time";
 export * from "./types";
+export * from "./meta";

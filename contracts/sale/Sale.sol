@@ -19,24 +19,25 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibContext.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(
+    0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
+);
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
 /// this. Avoids downstream escrows and similar trapping funds due to sales
 /// that never end, or perhaps never even start.
-/// @param maximumCooldownDuration The cooldown duration set in initialize
-/// cannot exceed this. Avoids the "no refunds" situation where someone sets an
-/// infinite cooldown, then accidentally or maliciously the sale ends up in a
-/// state where it cannot end (bad "can end" expression), leading to trapped
-/// funds.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
+/// @param callerMeta As per `IInterpreterCallerV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     RedeemableERC20Factory redeemableERC20Factory;
+    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -158,7 +159,7 @@ uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
 uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
+contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -248,7 +249,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) {
+    constructor(
+        SaleConstructorConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
         _disableInitializers();
 
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -280,7 +283,6 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         if (
             config_
                 .evaluableConfig
-                .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)]
                 .length > 0
         ) {
@@ -324,18 +326,20 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
 
         emit Initialize(msg.sender, config_, address(token_));
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
+        (
+            IInterpreterV1 interpreter_,
+            IInterpreterStoreV1 store_,
+            address expression_
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,
                     CALCULATE_BUY_MIN_OUTPUTS,
                     HANDLE_BUY_MIN_OUTPUTS
                 )
-            )
-        );
+            );
+        evaluable = Evaluable(interpreter_, store_, expression_);
     }
 
     function _dispatchCanLive(
@@ -514,10 +518,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             uint256[] memory kvs_
         ) = _previewCanLive();
         require(!canLive_, "LIVE");
+        _end();
         if (kvs_.length > 0) {
             store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
-        _end();
     }
 
     /// Timeout the sale (move from pending or active to fail).

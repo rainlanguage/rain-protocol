@@ -1,21 +1,25 @@
 import { assert } from "chai";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReserveToken18 } from "../../typechain";
+import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
 import {
   ClaimEvent,
   ContextEvent,
   DepositEvent,
+  Lobby,
   LobbyConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { fixedPointMul } from "../../utils";
+import { assertError, fixedPointMul } from "../../utils";
 import {
   eighteenZeros,
   ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -27,11 +31,16 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests claim", async function () {
   const Opcode = RainterpreterOps;
-
   let tokenA: ReserveToken18;
 
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
+
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -48,25 +57,25 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -75,7 +84,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -217,25 +227,25 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -244,7 +254,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -393,26 +404,25 @@ describe("Lobby Tests claim", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
-
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -421,7 +431,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -586,26 +597,25 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
     await tokenA.connect(signers[0]).transfer(bot.address, botDespoitAmount);
-
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -614,7 +624,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -807,26 +818,25 @@ describe("Lobby Tests claim", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
-
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
     ]);
 
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
     const lobbyExpressionConfig = {
@@ -835,7 +845,8 @@ describe("Lobby Tests claim", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {
@@ -1025,5 +1036,174 @@ describe("Lobby Tests claim", async function () {
         }
       }
     }
+  });
+
+  it("should prevent reentrant claim ", async function () {
+    const signers = await ethers.getSigners();
+    const timeoutDuration = 15000000;
+    const alice = signers[1];
+    const bob = signers[2];
+    const bot = signers[3];
+
+    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros);
+
+    const maliciousReserveFactory = await ethers.getContractFactory(
+      "LobbyReentrantSender"
+    );
+    const maliciousReserve =
+      (await maliciousReserveFactory.deploy()) as LobbyReentrantSender;
+    await maliciousReserve.deployed();
+    await maliciousReserve.initialize();
+
+    await maliciousReserve.connect(signers[0]).transfer(alice.address, ONE);
+    await maliciousReserve.connect(signers[0]).transfer(bob.address, ONE);
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(bot.address, botDespoitAmount);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
+    const depositAmount = ONE;
+
+    const constants = [0, depositAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1)) ,
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+    ]);
+
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
+
+    const invalidSource = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+    ]);
+
+    const lobbyExpressionConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
+    );
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      evaluableConfig: evaluableConfig,
+      token: maliciousReserve.address,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    await Lobby.initialize(initialConfig);
+
+    await maliciousReserve.connect(alice).approve(Lobby.address, ONE);
+    await maliciousReserve.connect(bob).approve(Lobby.address, ONE);
+    await maliciousReserve
+      .connect(bot)
+      .approve(Lobby.address, botDespoitAmount);
+
+    //Alice joins Lobby
+
+    const context0 = [0, 12, 13];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    const aliceJoinTx = await Lobby.connect(alice).join(
+      [1234],
+      signedContexts0
+    );
+
+    const aliceDepositEvent = (await getEventArgs(
+      aliceJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(aliceDepositEvent.sender === alice.address, "wrong deposit sender");
+    assert(aliceDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Bob Joins lobby
+    const context1 = [14, 15, 16]; // context to finalize players
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+    const signedContexts1: SignedContextStruct[] = [
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    const bobJoinTx = await Lobby.connect(bob).join([4567], signedContexts1);
+
+    const bobDepositEvent = (await getEventArgs(
+      bobJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(bobDepositEvent.sender === bob.address, "wrong deposit sender");
+    assert(bobDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Checking Phase
+    const currentPhase0 = await Lobby.currentPhase();
+    assert(currentPhase0.eq(PHASE_RESULT_PENDING), "Bad Phase");
+
+    // Asserting Claim Amounts and Context
+
+    //Both computed amounts add up to 1e18
+    const aliceShares = ethers.BigNumber.from(80 + sixteenZeros);
+    const bobShares = ethers.BigNumber.from(20 + sixteenZeros);
+
+    //Signed Context by bot address
+    const context2 = [aliceShares, bobShares];
+    const hash2 = solidityKeccak256(["uint256[]"], [context2]);
+    const goodSignature2 = await bot.signMessage(arrayify(hash2));
+
+    const signedContexts2: SignedContextStruct[] = [
+      {
+        signer: bot.address,
+        signature: goodSignature2,
+        context: context2,
+      },
+    ];
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [aliceShares],
+      signedContexts2
+    );
+
+    await assertError(
+      async () =>
+        await Lobby.connect(alice).claim([aliceShares], signedContexts2),
+      "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
+      "Alice Claim Reentrant"
+    );
+
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [bobShares],
+      signedContexts2
+    );
+
+    await assertError(
+      async () => await Lobby.connect(bob).claim([bobShares], signedContexts2),
+      "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
+      "Bob Claim Reentrant"
+    );
   });
 });

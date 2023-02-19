@@ -1,14 +1,18 @@
 import { assert } from "chai";
+
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
 import {
   InitializeEvent,
+  Lobby,
   LobbyConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { compareStructs } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby } from "../../utils/deploy/lobby/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
@@ -20,8 +24,13 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
-
   let tokenA: ReserveToken18;
+
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -32,23 +41,23 @@ describe("Lobby Tests Intialize", async function () {
     const signers = await ethers.getSigners();
 
     const timeoutDuration = 15000000;
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const Lobby: Lobby = await deployLobby(timeoutDuration);
 
     const constants = [0, 1, ONE];
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2))
+        op(Opcode.context, 0x0300) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2))
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
     ]);
-    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const claimSource = concat([op(Opcode.context, 0x0100)]);
 
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {
@@ -57,7 +66,8 @@ describe("Lobby Tests Intialize", async function () {
     };
 
     const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
     );
 
     const initialConfig: LobbyConfigStruct = {

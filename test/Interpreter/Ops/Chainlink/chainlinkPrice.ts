@@ -1,27 +1,27 @@
+import { smock } from "@defi-wonderland/smock";
+import { assert } from "chai";
 import type { IInterpreterV1Consumer } from "../../../../typechain";
 import {
-  AllStandardOps,
   assertError,
   eighteenZeros,
   getBlockTimestamp,
-  memoryOperand,
-  MemoryType,
-  op,
   sixZeros,
+  standardEvaluableConfig,
   timewarp,
 } from "../../../../utils";
-import { smock } from "@defi-wonderland/smock";
-import { concat } from "ethers/lib/utils";
-import { assert } from "chai";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 import { ethers } from "hardhat";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 
-const Opcode = AllStandardOps;
-
-describe("CHAINLINK_PRICE Opcode tests", async function () {
+describe("chainlink-price Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
   beforeEach(async () => {
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
@@ -46,23 +46,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 3600;
 
-    const sources = [
-      concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
-      ]),
-    ];
-    const constants = [feed, staleAfter];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: chainlink-price(${feed} ${staleAfter});`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     // Eval
 
@@ -105,23 +94,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const sources = [
-      concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
-      ]),
-    ];
-    const constants = [feed, staleAfter];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: chainlink-price(${feed} ${staleAfter});`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await assertError(
       async () =>
@@ -152,23 +130,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const sources = [
-      concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
-      ]),
-    ];
-    const constants = [feed, staleAfter];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: chainlink-price(${feed} ${staleAfter});`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -196,23 +163,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const sources = [
-      concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
-      ]),
-    ];
-    const constants = [feed, staleAfter];
+    const { sources, constants } = standardEvaluableConfig(
+      `_: chainlink-price(${feed} ${staleAfter});`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,

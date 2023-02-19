@@ -5,6 +5,7 @@ import { FlowERC721Factory } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
 import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
@@ -21,6 +22,10 @@ describe("FlowERC721 construction tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
@@ -32,31 +37,31 @@ describe("FlowERC721 construction tests", async function () {
 
     // prettier-ignore
     const sourceCanTransfer = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
-      op(Opcode.CONTEXT, 0x0001), // from
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
+      op(Opcode.context, 0x0001), // from
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // from
-      op(Opcode.CONTEXT, 0x0001), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // from
+      op(Opcode.context, 0x0001), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // BURN END
-      op(Opcode.CONTEXT, 0x0001), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // burn amount
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // BURN END
+      op(Opcode.context, 0x0001), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // burn amount
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // MINT END
-      op(Opcode.CONTEXT, 0x0001), // to
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // mint amount
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // MINT END
+      op(Opcode.context, 0x0001), // to
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 
     const sources = [sourceCanTransfer];

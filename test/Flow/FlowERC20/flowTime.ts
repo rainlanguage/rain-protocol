@@ -20,15 +20,20 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("FlowERC20 flowTime tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
-  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
-  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
+  const ME = () => op(Opcode.context, 0x0001); // base context this
+  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
@@ -77,33 +82,33 @@ describe("FlowERC20 flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const ONE = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const SENTINEL_ERC20 = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
+    const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.GET),
+      op(Opcode.get),
     ];
 
     const sourceFlowIO = concat([
       // CAN FLOW
       ...FLOW_TIME(),
-      op(Opcode.ISZERO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.is_zero),
+      op(Opcode.ensure, 1),
 
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -123,8 +128,8 @@ describe("FlowERC20 flowTime tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.BLOCK_TIMESTAMP), // v__
-      op(Opcode.SET),
+      op(Opcode.block_timestamp), // v__
+      op(Opcode.set),
     ]);
 
     const sources = [ONE()]; // can transfer

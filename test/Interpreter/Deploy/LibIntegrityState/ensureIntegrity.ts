@@ -32,12 +32,11 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 0;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [],
-      },
+      sources,
+      [],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -60,12 +59,11 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [],
-      },
+      sources,
+      [],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -81,9 +79,9 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
   });
 
   it("should fail integrity with OOB constant read", async function () {
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -92,7 +90,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
           v1,
           v2,
           v3,
-        op(Opcode.ADD, 3),
+        op(Opcode.add, 3),
       ]),
     ];
 
@@ -101,12 +99,11 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [1, 2],
-      },
+      sources,
+      [1, 2],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -122,9 +119,9 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
   });
 
   it("should ensure integrity with 1 source", async function () {
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -133,7 +130,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
           v1,
           v2,
           v3,
-        op(Opcode.ADD, 3),
+        op(Opcode.add, 3),
       ]),
     ];
 
@@ -142,24 +139,22 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const _stackTop_ = await libIntegrityCheckState.callStatic[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [1, 2, 3],
-      },
+      sources,
+      [1, 2, 3],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
     );
 
     const tx_ = await libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [1, 2, 3],
-      },
+      sources,
+      [1, 2, 3],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -183,12 +178,11 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [],
-      },
+      sources,
+      [],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -212,24 +206,22 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 0;
 
     const stackTop_ = await libIntegrityCheckState.callStatic[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [],
-      },
+      sources,
+      [],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
     );
 
     const tx_ = await libIntegrityCheckState[
-      "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"
+      "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256)"
     ](
-      {
-        sources,
-        constants: [],
-      },
+      sources,
+      [],
+
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -257,12 +249,11 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     await assertError(
       async () =>
         await libIntegrityCheckState.callStatic[
-          "ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256,uint256)"
+          "ensureIntegrityTest(bytes[],uint256[],uint256,uint256,uint256,uint256)"
         ](
-          {
-            sources,
-            constants: [],
-          },
+          sources,
+          [],
+
           sourceIndex,
           stackTop,
           minimumFinalStackIndex,

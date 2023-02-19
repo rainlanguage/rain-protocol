@@ -1,0 +1,20 @@
+{
+  "name": "erc-20-snapshot-balance-of-at",
+  "desc": "Get the snapshot balance of an ERC20 token of an account and insters it into the stack",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "token-address"
+      },
+      {
+        "name": "account"
+      },
+      {
+        "name": "snapshot-id"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["erc-20-snapshot-balance"]
+}

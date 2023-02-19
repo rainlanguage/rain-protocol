@@ -1,18 +1,20 @@
 import { expect } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { AllStandardOps, op } from "../../../../utils";
+import { standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
 
 describe("EXPLODE32 Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -23,17 +25,14 @@ describe("EXPLODE32 Opcode test", async function () {
   });
 
   it("should explode a single value into 8x 32 bit integers", async () => {
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.CONTEXT, 0x0000), // Initial Value
-      op(Opcode.EXPLODE32),
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `value: context<0 0>(), /* initial value */
+      _ _ _ _ _ _ _ _: explode-32(value);`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [sourceMAIN],
-        constants: [],
-      },
+      sources,
+      constants,
       rainInterpreter,
       8
     );

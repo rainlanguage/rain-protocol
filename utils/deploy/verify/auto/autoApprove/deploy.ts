@@ -1,20 +1,28 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
+import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
+import { PromiseOrValue } from "../../../../../typechain/common";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
-import {
-  ImplementationEvent as ImplementationEventAutoApproveFactory,
-  ExpressionConfigStruct,
-} from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
+import { ImplementationEvent as ImplementationEventAutoApproveFactory } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
+import { getRainContractMetaBytes } from "../../../../meta";
+import { getTouchDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const autoApproveFactoryDeploy = async () => {
   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
-  const autoApproveFactory =
-    (await factoryFactory.deploy()) as AutoApproveFactory;
+  const touchDeployer = await getTouchDeployer();
+  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("autoapprove"),
+    deployer: touchDeployer.address,
+  };
+  const autoApproveFactory = (await factoryFactory.deploy(
+    config_
+  )) as AutoApproveFactory;
   await autoApproveFactory.deployed();
 
   const { implementation } = (await getEventArgs(
@@ -33,7 +41,8 @@ export const autoApproveFactoryDeploy = async () => {
 export const autoApproveDeploy = async (
   deployer: SignerWithAddress,
   autoApproveFactory: AutoApproveFactory,
-  expressionConfig: ExpressionConfigStruct
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[]
 ) => {
   const { implementation } = (await getEventArgs(
     autoApproveFactory.deployTransaction,
@@ -46,7 +55,8 @@ export const autoApproveDeploy = async (
   );
 
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    expressionConfig
+    sources,
+    constants
   );
 
   const tx = await autoApproveFactory
