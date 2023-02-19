@@ -203,6 +203,7 @@ pkgs.stdenv.mkDerivation {
     flush-all
     # Echidna config
     init-solc
+    pkgs.cloc
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
     pkgs.echidna
