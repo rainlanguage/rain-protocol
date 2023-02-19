@@ -76,9 +76,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1
-    function initialize(
-        bytes calldata data_
-    ) external initializer {
+    function initialize(bytes calldata data_) external initializer {
         FlowERC721Config memory config_ = abi.decode(data_, (FlowERC721Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
