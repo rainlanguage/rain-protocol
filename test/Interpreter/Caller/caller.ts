@@ -104,10 +104,12 @@ describe("Caller Test", async function () {
     const caller = (await callerFactory.deploy(
       metaHash_,
       interpreterCallerConfig
-    )) as IInterpreterCallerConsumer;
+    )) as IInterpreterCallerConsumer; 
+
+    const deployTouchExpression = await caller.deployTouchExpression(touchDeployer.address)
 
     const newExpression = (await getEventArgs(
-      caller.deployTransaction,
+      deployTouchExpression,
       "NewExpression",
       touchDeployer
     )) as NewExpressionEvent["args"];
@@ -134,7 +136,7 @@ describe("Caller Test", async function () {
     );
 
     const expressionAddress = (await getEventArgs(
-      caller.deployTransaction,
+      deployTouchExpression,
       "ExpressionAddress",
       touchDeployer
     )) as ExpressionAddressEvent["args"];
