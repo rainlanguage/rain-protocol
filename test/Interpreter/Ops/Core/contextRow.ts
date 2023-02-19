@@ -15,7 +15,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
   it("should support context height [COLUMN] up to 16", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: context-row<0x0f>(0)`
+      `_: context-row<15>(0)`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -85,8 +85,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
       _: context-row<1>(2), 
       _: context-row<1>(3), 
       _: context-row<2>(0), 
-      _: context-row<2>(1);  
-      `
+      _: context-row<2>(1);`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 20);
@@ -123,8 +122,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
       _: context-row<0>(0), 
       _: context-row<0>(1), 
       _: context-row<0>(2), 
-      _: context-row<0>(3), 
-      `
+      _: context-row<0>(3);`
     );
 
     const { consumerLogic, interpreter, dispatch } =

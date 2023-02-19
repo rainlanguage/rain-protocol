@@ -9,7 +9,7 @@ import {
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
 import { partialRight } from "lodash";
-import { Parser } from "rainlang";
+import { Parser, Diagnostic } from "rainlang";
 import { getRainterpreterOpMetaBytes } from "../meta";
 
 export enum MemoryType {
@@ -270,5 +270,9 @@ export async function generateEvaluableConfig(
  */
 export const standardEvaluableConfig = partialRight(
   Parser.getExpressionConfig.bind(Parser),
-  getRainterpreterOpMetaBytes()
+  getRainterpreterOpMetaBytes(),
+  (diagnostics: Diagnostic[], error) => {
+    if (diagnostics.length > 0) console.error(diagnostics);
+    if (error) console.error(error);
+  }
 );

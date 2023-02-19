@@ -170,7 +170,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
     const { sources, constants } = standardEvaluableConfig(
-      `_: scale18-div<0>(${value1} ${value2});`
+      `_: scale-18-div<0>(${value1} ${value2});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -204,7 +204,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ONE.mul(2);
 
     const { sources, constants } = standardEvaluableConfig(
-      `_: scale18-mul<0>(${value1} ${value2});`
+      `_: scale-18-mul<0>(${value1} ${value2});`
     );
 
     const expression0 = await expressionConsumerDeploy(

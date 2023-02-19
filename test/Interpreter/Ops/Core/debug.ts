@@ -30,8 +30,6 @@ describe("RainInterpreter debug op", async function () {
       : debug<1>();`
     );
 
-    console.log(sources);
-
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -65,42 +63,22 @@ describe("RainInterpreter debug op", async function () {
   it("should be able to log when used within a source from CALL op", async () => {
     const constants = [0, 1, 20];
 
-    // prettier-ignore
-    const checkValue = concat([
-      op(Opcode.debug, Debug.Stack), // Should show the new stack
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.less_than),
-    ]);
-
-    // prettier-ignore
-    const source = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.debug, Debug.Stack), // Should show the stack here
-      op(Opcode.call, callOperand(1, 1, 1)),
-      op(Opcode.debug, Debug.Stack), // Should show the stack here
-    ]);
-
     const { sources } = standardEvaluableConfig(
       `
       a: read-memory<1 0>(),
       b: read-memory<1 1>(),
-      _: call<1 1>(b);
-
+      _: call<1 1>(b),
+      : debug<0>();
+      
+      : debug<0>(),
       c: read-memory<0 0>(),
       d: read-memory<1 2>(),
+      : debug<0>(),
       _: less-than(c d);`
     );
-    // _: less-than(read-memory<0>(0) 20); 
-    console.log(sources);
-    // [source, checkValue],
+
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        sources,
-        constants,
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -129,12 +107,39 @@ describe("RainInterpreter debug op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.less_than),
-      op(Opcode.debug, Debug.Stack),
+      op(Opcode.debug, Debug.StatePacked),
     ]);
 
+    const { sources } = standardEvaluableConfig(
+      `
+      a: read-memory<1 0>(),
+      c: read-memory<0 0>(),
+      b: read-memory<1 2>(),
+      condition: less-than(c b),
+      _: do-while<1>(a condition);
+
+      : debug<0>(),
+      c: read-memory<0 0>(),
+      d: read-memory<1 1>(),
+      _: add(c d),
+      c: read-memory<0 1>(),
+      d: read-memory<1 2>(),
+      _: less-than(c d),
+      : debug<0>();`
+    );
+    // const { sources } = standardEvaluableConfig(
+    //   `
+    //   a: 11,
+    //   c: 11,
+    //   b: 11,
+    //   _: less-than(c b);
+    // `
+    // );
+
+    // [sourceMAIN, sourceWHILE],
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN, sourceWHILE],
+        sources,
         constants,
 
         1

@@ -14,9 +14,8 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should support context height [COLUMN] up to 16", async () => {
-    const { sources, constants } = standardEvaluableConfig(
-      `_: context<0x00 0x0f>();`
-    );
+    const { sources, constants } =
+      standardEvaluableConfig(`_: context<0 15>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -32,9 +31,8 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should support context width [ROW] up to 16", async () => {
-    const { sources, constants } = standardEvaluableConfig(
-      `_: context<0x0f 0x00>();`
-    );
+    const { sources, constants } =
+      standardEvaluableConfig(`_: context<15 0>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -50,9 +48,8 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should error if accessing memory outside of context memory range", async () => {
-    const { sources, constants } = standardEvaluableConfig(
-      `_: context<0x03 0x00>();`
-    );
+    const { sources, constants } =
+      standardEvaluableConfig(`_: context<3 0>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -82,8 +79,8 @@ describe("RainInterpreter context", async function () {
       _: context<3 1>(),
       _: context<0 2>(),
       _: context<1 2>(),
-      _: context<2 2>(),
-     `
+      _: context<2 2>();
+      `
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 11);

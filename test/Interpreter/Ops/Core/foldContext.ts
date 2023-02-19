@@ -37,7 +37,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     await logic.deployed();
   });
 
-  it.only("should add all the elements in the context", async () => {
+  it("should add all the elements in the context", async () => {
     // const constants = [0];
     const sourceIndex = 1;
     const column = 0;
@@ -48,7 +48,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     //     op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
     //   op(
     //     Opcode.fold_context,
-        // foldContextOperand(sourceIndex, column, width, inputSize)
+    // foldContextOperand(sourceIndex, column, width, inputSize)
     //   ),
     // ]);
 
@@ -57,7 +57,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${inputSize} ${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
       /* 
         sources[1] 
@@ -67,8 +67,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       c: read-memory<0 2>(),
       d: read-memory<0 3>(),
       e: read-memory<0 4>(),
-      _: add(a b c d e);
-      `
+      _: add(a b c d e);`
     );
 
     // const sourceAdd = concat([
