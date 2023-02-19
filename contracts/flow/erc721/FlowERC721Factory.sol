@@ -2,6 +2,7 @@
 pragma solidity =0.8.17;
 
 import {Factory} from "../../factory/Factory.sol";
+import {InterpreterCallerV1ConstructionConfig} from "../../interpreter/caller/InterpreterCallerV1.sol";
 import {FlowERC721, FlowERC721Config} from "./FlowERC721.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
@@ -13,8 +14,8 @@ contract FlowERC721Factory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(bytes memory callerMeta_) {
-        address implementation_ = address(new FlowERC721(callerMeta_));
+    constructor(InterpreterCallerV1ConstructionConfig memory config_) {
+        address implementation_ = address(new FlowERC721(config_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

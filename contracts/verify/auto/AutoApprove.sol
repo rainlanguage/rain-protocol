@@ -10,8 +10,7 @@ import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
-import "../../interpreter/caller/LibCallerMeta.sol";
-import "../../interpreter/caller/IInterpreterCallerV1.sol";
+import "../../interpreter/caller/InterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
@@ -22,7 +21,7 @@ uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
+contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -37,11 +36,10 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
-
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     function initialize(EvaluableConfig calldata config_) external initializer {

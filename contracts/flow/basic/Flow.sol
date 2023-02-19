@@ -22,11 +22,9 @@ contract Flow is ReentrancyGuard, FlowCommon {
 
     event Initialize(address sender, EvaluableConfig[] config);
 
-    constructor(bytes memory callerMeta_) FlowCommon() {
-        _disableInitializers();
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
-    }
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig memory config_) external initializer {
