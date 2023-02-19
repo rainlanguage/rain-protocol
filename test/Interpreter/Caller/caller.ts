@@ -142,7 +142,7 @@ describe("Caller Test", async function () {
     assert(expressionAddress.sender == caller.address, "Incorrect Sender");
   });
 
-  it.only("should ensure checkCallerMeta works as expected", async function () {
+  it("should ensure checkCallerMeta works as expected", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const callerFactory = await ethers.getContractFactory(
