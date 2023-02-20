@@ -4,7 +4,6 @@ import type { TierReportTest } from "../../../../typechain";
 import {
   assertError,
   basicDeploy,
-  Debug,
   getBlockTimestamp,
   MemoryType,
   readWriteTierDeploy,
