@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import type { TierReportTest } from "../../../../typechain";
 import {
   AllStandardOps,
+  assertError,
   basicDeploy,
   callOperand,
   getBlockTimestamp,
@@ -11,6 +12,7 @@ import {
   MemoryType,
   op,
   readWriteTierDeploy,
+  standardEvaluableConfig,
   Tier,
   timewarp,
 } from "../../../../utils";
@@ -26,49 +28,68 @@ describe("CALL Opcode test", async function () {
     await deploy1820(signers[0]);
   });
 
-  it("should change the eval's scope using CALL opcode", async () => {
-    const constants = [0, 1];
+  it("should execute a simple call (increment a number)", async () => {
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 1>(2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
-    // input = 3 bits [ 1-7 ]
-    // output = 2 bits [ 1-3]
-    // sourceIndex = 3 bits [ 1-7 ]
-
-    const callADD = op(Opcode.call, callOperand(2, 1, 1));
-
-    // Source to add 2 numbers, input will be provided from another source
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.add, 2),
-    ]);
-
-    // Source for calculating fibonacci sequence uptill 5
-    // prettier-ignore
-    const sourceMAIN = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-        callADD
-    ]);
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN, sourceADD],
-        constants,
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
-        1
-      );
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
+
+    const result = await consumerLogic.stackTop();
+    const expectedResult = 3;
+
+    assert(result.eq(expectedResult));
+  });
+
+  it("should change the eval's scope using CALL opcode", async () => {
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source calculating fibonacci sequence up to 5 */
+      _ _ _ _ _ _:
+          0
+          1
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+          );
+
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          )
+        ;`
+    );
+
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy(sources, constants, 6);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -85,33 +106,20 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the minimum number of input", async () => {
-    const constants = [10, 2, 20];
-    const minInput = 0;
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source */
+      _:  add(
+            call<1 1>()
+            10
+          );
 
-    // CALL opcode which will take 0 input, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(minInput, 1, 1));
-
-    // Source to multiply 2 numbers, input will be provided from another source
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 20
-      op(Opcode.mul, 2), // 40
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-        call0,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 10
-        op(Opcode.add, 2) // 50
-    ]);
+      /* source 1 */
+      _:  mul(2 20);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN, source1],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -127,81 +135,97 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of inputs and fail beyond that", async () => {
-    const constants = [2];
-    const maxInputs = 7;
+    const { sources: sources0, constants: constants0 } =
+      standardEvaluableConfig(
+        `
+      /* main source */
+      _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
 
-    // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(maxInputs, 1, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 5)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)),
-      op(Opcode.mul, maxInputs),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0,
-    ]);
-
-    const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        1
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+            read-memory<${MemoryType.Stack} 5>()
+            read-memory<${MemoryType.Stack} 6>()
+            read-memory<${MemoryType.Stack} 7>()
+            read-memory<${MemoryType.Stack} 8>()
+            read-memory<${MemoryType.Stack} 9>()
+            read-memory<${MemoryType.Stack} 10>()
+            read-memory<${MemoryType.Stack} 11>()
+            read-memory<${MemoryType.Stack} 12>()
+            read-memory<${MemoryType.Stack} 13>()
+            read-memory<${MemoryType.Stack} 14>()
+          );`
       );
 
-    await consumerLogic["eval(address,uint256,uint256[][])"](
-      interpreter.address,
-      dispatch,
+    const {
+      consumerLogic: consumerLogic0,
+      interpreter: interpreter0,
+      dispatch: dispatch0,
+    } = await iinterpreterV1ConsumerDeploy(sources0, constants0, 1);
+
+    await consumerLogic0["eval(address,uint256,uint256[][])"](
+      interpreter0.address,
+      dispatch0,
       []
     );
-    const result0 = await consumerLogic.stackTop();
-    const expectedResult0 = ethers.BigNumber.from("128");
+    const result0 = await consumerLogic0.stackTop();
+    const expectedResult0 = ethers.BigNumber.from(2 ** 15);
     assert(
       result0.eq(expectedResult0),
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
+
+    assertError(
+      () =>
+        standardEvaluableConfig(
+          `
+      /* main source */
+      _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
+
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+            read-memory<${MemoryType.Stack} 5>()
+            read-memory<${MemoryType.Stack} 6>()
+            read-memory<${MemoryType.Stack} 7>()
+            read-memory<${MemoryType.Stack} 8>()
+            read-memory<${MemoryType.Stack} 9>()
+            read-memory<${MemoryType.Stack} 10>()
+            read-memory<${MemoryType.Stack} 11>()
+            read-memory<${MemoryType.Stack} 12>()
+            read-memory<${MemoryType.Stack} 13>()
+            read-memory<${MemoryType.Stack} 14>()
+            read-memory<${MemoryType.Stack} 15>()
+          );`
+        ),
+      "out-of-range operand args",
+      "did not error when call inputs arg out of range (4 bits)"
+    );
   });
 
   it("should process the minimum number of output", async () => {
-    const constants = [2];
-    const minOutput = 1;
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 1>(2 2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(2, minOutput, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.mul, 2),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0,
-    ]);
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          );`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -218,33 +242,23 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of output and fail beyond that", async () => {
-    const constants = [2, 10, 20];
-    const maxOutput = 3;
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source */
+      _ _ _:  call<3 1>(2 2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
-    const call0 = op(Opcode.call, callOperand(2, maxOutput, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.mul, 2),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0, // should end up adding 3 elements to the stack
-    ]);
+      /* source 1 */
+      _ _ _:  mul(
+                read-memory<${MemoryType.Stack} 0>()
+                read-memory<${MemoryType.Stack} 1>()
+              )
+              10
+              20
+          ;`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        maxOutput
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 3);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
