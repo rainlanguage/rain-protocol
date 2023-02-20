@@ -42,15 +42,6 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
-    const inputSize = 1; // Accummulator size
-    // prettier-ignore
-    // const sourceMain = concat([
-    //     op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-    //   op(
-    //     Opcode.fold_context,
-    // foldContextOperand(sourceIndex, column, width, inputSize)
-    //   ),
-    // ]);
 
     const { sources, constants } = standardEvaluableConfig(
       `
@@ -62,24 +53,14 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[1] 
       */
-      a: read-memory<0 0>(),
-      b: read-memory<0 1>(),
-      c: read-memory<0 2>(),
-      d: read-memory<0 3>(),
-      e: read-memory<0 4>(),
+      a: read-memory<${MemoryType.Stack} 0>(),
+      b: read-memory<${MemoryType.Stack} 1>(),
+      c: read-memory<${MemoryType.Stack} 2>(),
+      d: read-memory<${MemoryType.Stack} 3>(),
+      e: read-memory<${MemoryType.Stack} 4>(),
       _: add(a b c d e);`
     );
 
-    // const sourceAdd = concat([
-    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-    //   op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-    //   op(Opcode.add, width + inputSize),
-    // ]);
-
-    // [sourceMain, sourceAdd],
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
