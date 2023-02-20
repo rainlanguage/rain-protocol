@@ -271,8 +271,11 @@ export async function generateEvaluableConfig(
 export const standardEvaluableConfig = partialRight(
   Parser.getExpressionConfig.bind(Parser),
   getRainterpreterOpMetaBytes(),
-  (diagnostics: Diagnostic[], error) => {
-    if (diagnostics.length > 0) console.error(diagnostics);
-    if (error) console.error(error);
+  (diagnostics: Diagnostic[], rainlangInternalError: Error) => {
+    if (diagnostics.length > 0) {
+      Parser.diagnostics = [];
+      throw new Error(JSON.stringify(diagnostics));
+    }
+    if (rainlangInternalError) throw rainlangInternalError;
   }
 );

@@ -1,6 +1,6 @@
 {
   "name": "ensure",
-  "desc": "Require ietms(s) of the stack to be true, i.e. greater than zero, revert if not",
+  "desc": "Require items(s) of the stack to be true, i.e. greater than zero, revert if not",
   "operand": [
     {
       "name": "inputs",
