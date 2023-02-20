@@ -7,7 +7,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
-describe("Enode Op Tests", async function () {
+describe.only("Encode Op Tests", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 ;
@@ -27,14 +27,16 @@ describe("Enode Op Tests", async function () {
   });
 
   it("Encode Op Test", async () => {
-    
-    const source_ = 0x0000000a
-    const target = 0x0000000f  
-    
+
+    const source = '0x000000000000000000000000000000000000000000000000000000000000000a'
+    const target = '0x000000000000000000000000000000000000000000000000000000000000000f'
+    const expect = '0x0000000000000000000000000000000000000000000000000000000000000a0f'
+
     const { sources: sources0, constants: constants0 } = standardEvaluableConfig(
-      `_: encode-256<8 255>(${source_} ${target});`
-    );  
- 
+      `_: encode-256<8 4>(${source} ${target});`
+    );
+
+    console.log(sources0)
 
     const expression0 = await expressionConsumerDeploy(
        sources0,
@@ -47,15 +49,15 @@ describe("Enode Op Tests", async function () {
       rainInterpreter.address,
       expression0.dispatch,
       []
-    ); 
+    );
 
-    const result0 = await logic.stackTop() 
-    console.log("result0 : " , result0 ) 
+    const result0 = await logic.stackTop()
+    console.log("result0 : " , result0.toHexString() )
 
-    
+
     const { sources: sources1, constants: constants1 } = standardEvaluableConfig(
         `_: decode-256<8 255>(${target});`
-    ); 
+    );
 
     const expression1 = await expressionConsumerDeploy(
         sources1,
@@ -68,12 +70,12 @@ describe("Enode Op Tests", async function () {
     rainInterpreter.address,
     expression1.dispatch,
     []
-    ); 
+    );
 
-    const result1 = await logic.stackTop() 
+    const result1 = await logic.stackTop()
     console.log("result1 : " , result1 )
 
-    
+
 
   });
 
