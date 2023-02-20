@@ -3,7 +3,8 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256, standardEvaluableConfig } from "../../../../utils";
 
-import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterDeploy, rainterpreterStoreDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
@@ -28,11 +29,13 @@ describe("Enode Op Tests", async function () {
 
   it("Encode Op Test", async () => {
     
-    const source_ = 0x0000000a
-    const target = 0x0000000f  
     
+    const source_ = 0x000000000000000000000000000000000000000000000000000000000000000a
+    const target =  0x000000000000000000000000000000000000000000000000000000000000000f 
+    const expected = 0x0000000000000000000000000000000000000000000000000000000000000a0f  
+   
     const { sources: sources0, constants: constants0 } = standardEvaluableConfig(
-      `_: encode-256<8 255>(${source_} ${target});`
+      `_: encode-256<8 4>(${source_} ${target});`
     );  
  
 
@@ -49,12 +52,12 @@ describe("Enode Op Tests", async function () {
       []
     ); 
 
-    const result0 = await logic.stackTop() 
-    console.log("result0 : " , result0 ) 
+    const encodedResult = await logic.stackTop() 
+    console.log("encodedResult : " , encodedResult ) 
 
     
     const { sources: sources1, constants: constants1 } = standardEvaluableConfig(
-        `_: decode-256<8 255>(${target});`
+        `_: decode-256<8 255>(${expected});`
     ); 
 
     const expression1 = await expressionConsumerDeploy(
@@ -70,11 +73,13 @@ describe("Enode Op Tests", async function () {
     []
     ); 
 
-    const result1 = await logic.stackTop() 
-    console.log("result1 : " , result1 )
+    const decodedResult = await logic.stackTop() 
+    console.log("decodedResult : " , decodedResult )
 
     
 
-  });
+  }); 
 
+  
 });
+ 
