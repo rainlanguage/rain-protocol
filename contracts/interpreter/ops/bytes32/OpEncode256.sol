@@ -44,10 +44,11 @@ library OpEncode256 {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         unchecked {
             uint256 startBit_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
             uint256 length_ = Operand.unwrap(operand_) & MASK_8BIT;
+            console.log(Operand.unwrap(operand_), startBit_, length_);
             if (startBit_ + length_ > 256) {
                 revert TruncatedEncoding(startBit_, length_);
             }
