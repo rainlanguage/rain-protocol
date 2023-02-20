@@ -54,8 +54,7 @@ describe("Flow multiCall tests", async function () {
     // FLOW ERC20 -- ERC721
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();

@@ -58,10 +58,7 @@ describe("Sale minimum raise", async function () {
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -288,10 +285,7 @@ describe("Sale minimum raise", async function () {
 
   it("should have status of Fail if minimum raise not met", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 7 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 7;
     const saleDuration = 30;

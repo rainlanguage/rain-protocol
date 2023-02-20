@@ -44,11 +44,8 @@ describe("Sale redeemableERC20 token", async function () {
 
   it("should configure tier correctly", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
+    const [deployer, recipient, signer1, feeRecipient, forwardingAddress] =
+      signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -161,11 +158,8 @@ describe("Sale redeemableERC20 token", async function () {
 
   it("should set correct phases for token", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
+    const [deployer, recipient, signer1, feeRecipient, forwardingAddress] =
+      signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -266,9 +260,7 @@ describe("Sale redeemableERC20 token", async function () {
     // However, it is still important that only the token admin can grant these roles.
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
+    const [deployer, recipient, signer1] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

@@ -32,7 +32,7 @@ describe("Flow construction tests", async function () {
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [1, 2];
 

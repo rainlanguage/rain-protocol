@@ -58,8 +58,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should return NEVER time using ITIERV2_REPORT_TIME_FOR_TIER if tier greater than context length", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -326,8 +325,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should return ALWAYS time using ITIERV2_REPORT_TIME_FOR_TIER for tier ZERO", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -384,8 +382,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should return time using ITIERV2_REPORT_TIME_FOR_TIER for tier ONE when enough tokens have been staked to exceed the 1st threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -462,8 +459,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should return earliest time using ITIERV2_REPORT_TIME_FOR_TIER for tier ONE threshold if multiple deposits made after exceeding threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -595,8 +591,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should reset earliest time using ITIERV2_REPORT_TIME_FOR_TIER if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -715,8 +710,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   it("should reset earliest time using ITIERV2_REPORT_TIME_FOR_TIER if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 

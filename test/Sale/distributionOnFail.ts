@@ -44,11 +44,9 @@ describe("Sale distribution on failed sale", async function () {
 
   it("should transfer correct value to all stakeholders after failed sale (with forward address)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
+    const [deployer, recipient, signer1, feeRecipient, forwardingAddress] =
+      signers;
+
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -217,10 +215,7 @@ describe("Sale distribution on failed sale", async function () {
 
   it("should transfer correct value to all stakeholders after failed sale (no forward address)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

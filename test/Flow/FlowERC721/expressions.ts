@@ -36,9 +36,7 @@ describe("FlowERC721 expressions tests", async function () {
 
   it("should validate context emitted in context event", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [deployer, alice, bob] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 

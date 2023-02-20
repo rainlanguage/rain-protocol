@@ -33,7 +33,7 @@ describe("Flow deployExpression tests", async function () {
 
   it("should deploy expression", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
@@ -56,9 +56,7 @@ describe("Flow deployExpression tests", async function () {
 
   it("should validate context from the context event", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
-    const bob = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
@@ -90,7 +88,7 @@ describe("Flow deployExpression tests", async function () {
 
     const context1 = [4, 5, 6];
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
-    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+    const goodSignature1 = await alice.signMessage(arrayify(hash1));
 
     const signedContexts0: SignedContextStruct[] = [
       {
@@ -117,7 +115,7 @@ describe("Flow deployExpression tests", async function () {
       [ethers.BigNumber.from(1234)],
       [
         ethers.BigNumber.from(alice.address),
-        ethers.BigNumber.from(bob.address),
+        ethers.BigNumber.from(alice.address),
       ],
       [
         ethers.BigNumber.from(1),

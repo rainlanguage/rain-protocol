@@ -35,8 +35,7 @@ describe("RedeemableERC20 redeem test", async function () {
     const FIFTY_TOKENS = ethers.BigNumber.from("50" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -424,8 +423,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -603,8 +601,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -816,7 +813,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
   it("should guard against null treasury assets redemptions", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

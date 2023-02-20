@@ -19,9 +19,7 @@ describe("Verify request approve", async function () {
 
   it("should allow anyone to add data to support verification", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [defaultAdmin, signer1, signer2] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,

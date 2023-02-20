@@ -68,9 +68,7 @@ describe("CombineTier report time for tier tests", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    deployer = signers[0];
-    alice = signers[1];
-    bob = signers[2];
+    [deployer, alice, bob] = signers;
 
     tokenERC20 = await reserveDeploy();
     readWriteTier = await readWriteTierDeploy();

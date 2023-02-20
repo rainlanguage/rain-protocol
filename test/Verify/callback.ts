@@ -25,20 +25,19 @@ describe("Verify callback", async function () {
 
   it("should re-emit events associated with add, approve, ban and remove even if corresponding evidence has been deduped for the callback", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
-    const signer2 = signers[8];
-    const signer3 = signers[9];
-    const signer4 = signers[10];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+      signer2,
+      signer3,
+      signer4,
+    ] = signers;
 
     const verifyCallback = (await basicDeploy(
       "VerifyCallbackTest",
@@ -194,25 +193,24 @@ describe("Verify callback", async function () {
 
   it("should handle filtering batches of addresses in callback contract hooks (gas efficiency)", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
-    const signer2 = signers[8];
-    const signer3 = signers[9];
-    const signer4 = signers[10];
-    const signer5 = signers[11];
-    const signer6 = signers[12];
-    const signer7 = signers[13];
-    const signer8 = signers[14];
-    const signer9 = signers[15];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+      signer2,
+      signer3,
+      signer4,
+      signer5,
+      signer6,
+      signer7,
+      signer8,
+      signer9,
+    ] = signers;
 
     const verifyCallback = (await basicDeploy(
       "VerifyCallbackTest",
@@ -349,18 +347,17 @@ describe("Verify callback", async function () {
 
   it("should trigger verify callback contract hooks after adding, approving, banning and removing", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
-    const signer2 = signers[8];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+      signer2,
+    ] = signers;
 
     const verifyCallback = (await basicDeploy(
       "VerifyCallbackTest",

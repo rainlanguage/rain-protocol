@@ -26,7 +26,7 @@ describe("SeedDance reveal", async function () {
   it("should clear out commitment", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const initialSeed = randomBytes(32);
     const secret1 = randomBytes(32);
@@ -53,9 +53,7 @@ describe("SeedDance reveal", async function () {
   it("should produce distinct additional reveal times, from `baseDuration` up to `maxExtraTime`, for each seed owner", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
-    const signer3 = signers[3];
+    const [, signer1, signer2, signer3] = signers;
 
     const secret1 = randomBytes(32);
     const commitment1 = keccak256(secret1);
@@ -134,7 +132,7 @@ describe("SeedDance reveal", async function () {
   it("should calculate correct canRevealUntil timestamp if not started (return 0)", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const secret1 = randomBytes(32);
     const commitment1 = keccak256(secret1);
@@ -167,7 +165,7 @@ describe("SeedDance reveal", async function () {
   it("should calculate correct canRevealUntil timestamp (no extra time)", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const secret1 = randomBytes(32);
     const commitment1 = keccak256(secret1);
@@ -200,7 +198,7 @@ describe("SeedDance reveal", async function () {
   it("should calculate correct canRevealUntil timestamp (with extra time)", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const secret1 = randomBytes(32);
     const commitment1 = keccak256(secret1);
@@ -233,7 +231,7 @@ describe("SeedDance reveal", async function () {
   it("should reveal the secret", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret = randomBytes(32);
@@ -287,9 +285,7 @@ describe("SeedDance reveal", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
-    const signer3 = signers[3];
+    const [, signer1, signer2, signer3] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret1 = randomBytes(32);
@@ -438,7 +434,7 @@ describe("SeedDance reveal", async function () {
   it("reveal should be called only once by the sender", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret = randomBytes(32);
@@ -498,7 +494,7 @@ describe("SeedDance reveal", async function () {
 
   it("signer should not be able to reveal once the time surpasses the base duration and maxExtraTime", async () => {
     const signers = await ethers.getSigners();
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret = randomBytes(32);
@@ -530,7 +526,7 @@ describe("SeedDance reveal", async function () {
 
   it("signer should not be able to reveal once the time surpasses the base duration", async () => {
     const signers = await ethers.getSigners();
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret = randomBytes(32);
@@ -563,9 +559,7 @@ describe("SeedDance reveal", async function () {
   it("canRevealUntil should change on every reveal since sharedSeed changes", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
-    const signer3 = signers[3];
+    const [, signer1, signer2, signer3] = signers;
 
     const initialSeed = randomBytes(32);
     const commitmentSecret1 = randomBytes(32);
@@ -704,7 +698,7 @@ describe("SeedDance reveal", async function () {
   it("should fail to reveal sharedSeed_ if seed dance never started", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
+    const [, signer1] = signers;
 
     const commitmentSecret = randomBytes(32);
     const commitment1 = keccak256(commitmentSecret);

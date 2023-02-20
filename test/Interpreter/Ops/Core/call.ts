@@ -1,16 +1,12 @@
 import { assert, expect } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { TierReportTest } from "../../../../typechain";
 import {
-  AllStandardOps,
   assertError,
   basicDeploy,
-  callOperand,
+  Debug,
   getBlockTimestamp,
-  memoryOperand,
   MemoryType,
-  op,
   readWriteTierDeploy,
   standardEvaluableConfig,
   Tier,
@@ -18,8 +14,6 @@ import {
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
 
 describe("CALL Opcode test", async function () {
   before(async () => {
@@ -279,94 +273,79 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of sources", async () => {
-    const constants = [2, 10, 1];
+    /*
+      call<1 1>  4
+      call<1 2>  4 - 1 = 3
+      call<1 3>  3 * 10 = 30
+      call<1 4>  30 / 2 = 15
+      call<1 5>  15 ** 2 = 225
+      call<1 6>  225 + 10 = 235
+      call<1 7>  235 + 1 = 236
+    */
 
-    // CALL opcode which will take 0 input, pass it to source at index 1, and return 1 output
-    const callADD = op(Opcode.call, callOperand(2, 1, 1));
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.add, 2)
-    ]);
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 7>(
+            call<1 6>(
+              call<1 5>(
+                call<1 4>(
+                  call<1 3>(
+                    call<1 2>(
+                      call<1 1>(2 2)
+                    )
+                  )
+                )
+              )
+            )
+          );
 
-    const callSUB = op(Opcode.call, callOperand(1, 1, 2));
-    // prettier-ignore
-    const sourceSUB = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1
-      op(Opcode.sub, 2)
-    ]);
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          );
 
-    const callMUL = op(Opcode.call, callOperand(1, 1, 3));
-    // prettier-ignore
-    const sourceMUL = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 10
-      op(Opcode.mul, 2)
-    ]);
+      /* source 2 */
+      _:  sub(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );
 
-    const callDIV = op(Opcode.call, callOperand(1, 1, 4));
-    // prettier-ignore
-    const sourceDIV = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-      op(Opcode.div, 2)
-    ]);
+      /* source 3 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            10
+          );
 
-    const callEXP = op(Opcode.call, callOperand(1, 1, 5));
-    // prettier-ignore
-    const sourceEXP = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-      op(Opcode.exp, 2)
-    ]);
+      /* source 4 */
+      _:  div(
+            read-memory<${MemoryType.Stack} 0>()
+            2
+          );
 
-    const callADD10 = op(Opcode.call, callOperand(1, 1, 6));
-    // prettier-ignore
-    const sourceADD10 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 10
-      op(Opcode.add, 2)
-    ]);
+      /* source 5 */
+      _:  exp(
+            read-memory<${MemoryType.Stack} 0>()
+            2
+          );
 
-    const callADD1 = op(Opcode.call, callOperand(1, 1, 7));
-    // prettier-ignore
-    const sourceADD1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1
-      op(Opcode.add, 2)
-    ]);
+      /* source 6 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            10
+          );
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-        callADD, // 4
-        callSUB, // 4 - 1 = 3
-        callMUL, // 3 * 10 = 30
-        callDIV, // 30 / 2 = 15
-        callEXP, // 15 ** 2 = 225
-        callADD10, // 225 + 10 = 235
-        callADD1, // 235 + 1 = 236
-    ]);
+      /* source 7 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );
+      `
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [
-          sourceMAIN,
-          sourceADD,
-          sourceSUB,
-          sourceMUL,
-          sourceDIV,
-          sourceEXP,
-          sourceADD10,
-          sourceADD1,
-        ],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -405,105 +384,61 @@ describe("CALL Opcode test", async function () {
     // Setting Asset price
     const assetPrice = ethers.BigNumber.from("100");
 
-    const constants = [
-      10, // Discount Multiplier
-      Tier.ONE,
-      Tier.TWO,
-      Tier.THREE,
-      Tier.FOUR,
-      Tier.FIVE,
-      Tier.SIX,
-      Tier.SEVEN,
-      Tier.EIGHT,
-      0, // No Discount
-    ];
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source 0 sourceGetDiscountedPrice */
+      ctx-tier: context<0 0>(),
+      ctx-price: context<1 0>(),
+      _:  sub(
+            ctx-price
+            call<1 1>(
+              ctx-tier
+            )
+          );
 
-    const callGetDiscount = op(Opcode.call, callOperand(1, 1, 1));
-
-    // prettier-ignore
-    const sourceGetDiscount = concat([
-          // IF TIER == 1
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Adding extra copy of Tier being passed to function
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.equal_to),
-          // THEN DISCOUNT = 10
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mul, 2),
-            // ELSE IF TIER == 2
-              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.equal_to),
-              // THEN DISCOUNT = 20
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.mul, 2),
-                // ELSE IF TIER == 3
-                op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.equal_to),
-                // THEN DISCOUNT = 30
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.mul, 2),
-                  // ELSE IF TIER == 4
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.equal_to),
-                  // THEN DISCOUNT = 40
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.mul, 2),
-                    // ELSE IF TIER == 5
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.equal_to),
-                    // THEN DISCOUNT = 50
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.mul, 2),
-                      // ELSE IF TIER == 6
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.equal_to),
-                      // THEN DISCOUNT = 60
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.mul, 2),
-                        // ELSE IF TIER == 7
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.equal_to),
-                        // THEN DISCOUNT = 70
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.mul, 2),
-                        // ELSE
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
-                    op(Opcode.eager_if), // TIER == 7
-                  op(Opcode.eager_if), // TIER == 6
-                op(Opcode.eager_if), // TIER == 5
-              op(Opcode.eager_if), // TIER == 4
-            op(Opcode.eager_if), // TIER == 3
-          op(Opcode.eager_if), // TIER == 2
-        op(Opcode.eager_if), // TIER == 1
-    ]);
-
-    // prettier-ignore
-    const sourceGetDiscountedPrice = concat([
-        op(Opcode.context, 0x0001), // PRICE
-          op(Opcode.context, 0x0000), // TIER
-        callGetDiscount, // This function takes TIER as an input and returns the discount that will be applied on the price
-      op(Opcode.sub, 2) // PRICE - DISCOUNT
-    ]);
+      /* source 1 sourceGetDiscount */
+      /* This function takes TIER as an input and returns the discount that will be applied on the price */
+      discount-mul: 10,
+      discount-zero: 0,
+      tier: read-memory<${MemoryType.Stack} 0>(),
+      _:  eager-if(
+            equal-to(tier ${Tier.ONE})
+            mul(discount-mul tier)
+            eager-if(
+              equal-to(tier ${Tier.TWO})
+              mul(discount-mul tier)
+              eager-if(
+                equal-to(tier ${Tier.THREE})
+                mul(discount-mul tier)
+                eager-if(
+                  equal-to(tier ${Tier.FOUR})
+                  mul(discount-mul tier)
+                  eager-if(
+                    equal-to(tier ${Tier.FIVE})
+                    mul(discount-mul tier)
+                    eager-if(
+                      equal-to(tier ${Tier.SIX})
+                      mul(discount-mul tier)
+                      eager-if(
+                        equal-to(tier ${Tier.SEVEN})
+                        mul(discount-mul tier)
+                        eager-if(
+                          equal-to(tier ${Tier.EIGHT})
+                          mul(discount-mul tier)
+                          discount-zero
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          );
+      `
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceGetDiscountedPrice, sourceGetDiscount],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);
@@ -511,6 +446,7 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
+    assert(tierBlockReportAlice.eq(2));
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -522,7 +458,9 @@ describe("CALL Opcode test", async function () {
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
       resultAlice.eq(expectedPriceAlice),
-      `Invalid price returned for Alice. Expected : ${expectedPriceAlice} Actual ${resultAlice}`
+      `Invalid price returned for Alice.
+      expected ${expectedPriceAlice}
+      actual   ${resultAlice}`
     );
 
     // Calculating price for Bob
@@ -531,6 +469,7 @@ describe("CALL Opcode test", async function () {
       reportBob,
       initialTimestamp + 15
     );
+    assert(tierBlockReportAlice.eq(4));
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -542,7 +481,9 @@ describe("CALL Opcode test", async function () {
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(
       resultBob.eq(expectedPriceBob),
-      `Invalid price returned for Bob. Expected : ${expectedPriceBob} Actual ${resultBob}`
+      `Invalid price returned for Bob.
+      expected ${expectedPriceBob}
+      actual   ${resultBob}`
     );
   });
 });

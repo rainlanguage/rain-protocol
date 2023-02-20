@@ -37,7 +37,7 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer1 = signers[1];
+    [, signer1] = signers;
 
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await tokenERC20.initialize();

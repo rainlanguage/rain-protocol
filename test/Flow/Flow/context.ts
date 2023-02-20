@@ -40,8 +40,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (throttle flow output amount)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -376,8 +375,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (canFlow if no registered flow)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();

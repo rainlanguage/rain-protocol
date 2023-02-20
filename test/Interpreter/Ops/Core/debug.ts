@@ -26,8 +26,8 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: add(10 20), 
-      : debug<1>();`
+      `_: add(10 20),
+      : debug<${Debug.Stack}>();`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -44,8 +44,8 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: add(10 20), 
-      : debug<0>();`
+      `_: add(10 20),
+      : debug<${Debug.StatePacked}>();`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -68,12 +68,12 @@ describe("RainInterpreter debug op", async function () {
       a: read-memory<1 0>(),
       b: read-memory<1 1>(),
       _: call<1 1>(b),
-      : debug<0>();
-      
-      : debug<0>(),
+      : debug<${Debug.StatePacked}>();
+
+      : debug<${Debug.StatePacked}>(),
       c: read-memory<0 0>(),
       d: read-memory<1 2>(),
-      : debug<0>(),
+      : debug<${Debug.StatePacked}>(),
       _: less-than(c d);`
     );
 
@@ -118,14 +118,14 @@ describe("RainInterpreter debug op", async function () {
       condition: less-than(c b),
       _: do-while<1>(a condition);
 
-      : debug<0>(),
+      : debug<${Debug.StatePacked}>(),
       c: read-memory<0 0>(),
       d: read-memory<1 1>(),
       _: add(c d),
       c: read-memory<0 1>(),
       d: read-memory<1 2>(),
       _: less-than(c d),
-      : debug<0>();`
+      : debug<${Debug.StatePacked}>();`
     );
     // const { sources } = standardEvaluableConfig(
     //   `
