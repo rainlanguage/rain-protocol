@@ -27,7 +27,7 @@ describe("ENSURE Opcode test", async function () {
 
   it("should execute the transaction if it passes the ensure opcode condition", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(1 2 3)) 1;`);
+      standardEvaluableConfig(`_: ensure(eager-if(1 2 3)) 1;`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -46,7 +46,7 @@ describe("ENSURE Opcode test", async function () {
     assert(result0.eq(1), `returned wrong value from eager if, got ${result0}`);
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(2 2 3)) 3;`);
+      standardEvaluableConfig(`_: ensure(eager-if(2 2 3)) 3;`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -65,7 +65,7 @@ describe("ENSURE Opcode test", async function () {
     assert(result1.eq(3), `returned wrong value from eager if, got ${result1}`);
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(0 2 3)) 0;`);
+      standardEvaluableConfig(`_: ensure(eager-if(0 2 3)) 0;`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,
@@ -86,7 +86,7 @@ describe("ENSURE Opcode test", async function () {
 
   it("should revert the transaction if it fails ensure opcode condition", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(0 2 0)) 1;`);
+      standardEvaluableConfig(`_: ensure(eager-if(0 2 0)) 1;`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -107,7 +107,7 @@ describe("ENSURE Opcode test", async function () {
     );
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(2 0 3)) 3;`);
+      standardEvaluableConfig(`_: ensure(eager-if(2 0 3)) 3;`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -128,7 +128,7 @@ describe("ENSURE Opcode test", async function () {
     );
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: ensure<1>(eager-if(0 2 0)) 0;`);
+      standardEvaluableConfig(`_: ensure(eager-if(0 2 0)) 0;`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,

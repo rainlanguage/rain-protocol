@@ -54,7 +54,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
     const length = 2;
 
     const { sources, constants } = standardEvaluableConfig(
-      `_ _: erc-1155-balance-of-batch<${length}>(
+      `_ _: erc-1155-balance-of-batch(
         ${tokenERC1155.address}
         ${signer1.address}
         ${signer2.address}
