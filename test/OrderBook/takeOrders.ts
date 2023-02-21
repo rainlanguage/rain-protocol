@@ -67,9 +67,7 @@ describe("OrderBook take orders", async function () {
   it("should respect output maximum of a given order", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const [, alice, bob, carol] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -193,9 +191,7 @@ describe("OrderBook take orders", async function () {
   it("should validate minimum input", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const [, alice, bob, carol] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -360,8 +356,7 @@ describe("OrderBook take orders", async function () {
     await tokenX.initialize();
     await tokenY.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -515,9 +510,7 @@ describe("OrderBook take orders", async function () {
       const tokenADecimals = await tokenA06.decimals();
       const tokenBDecimals = await tokenB06.decimals();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -765,9 +758,7 @@ describe("OrderBook take orders", async function () {
       await tokenA20.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1015,9 +1006,7 @@ describe("OrderBook take orders", async function () {
       await tokenA18.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1265,9 +1254,7 @@ describe("OrderBook take orders", async function () {
       await tokenA06.initialize();
       await tokenB20.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1515,9 +1502,7 @@ describe("OrderBook take orders", async function () {
       await tokenA06.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1765,9 +1750,7 @@ describe("OrderBook take orders", async function () {
       await tokenA00.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -2017,9 +2000,7 @@ describe("OrderBook take orders", async function () {
       await tokenA06.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -2219,9 +2200,7 @@ describe("OrderBook take orders", async function () {
       await tokenA20.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -2421,9 +2400,7 @@ describe("OrderBook take orders", async function () {
       await tokenA18.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -2623,9 +2600,7 @@ describe("OrderBook take orders", async function () {
       await tokenA06.initialize();
       await tokenB20.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -2825,9 +2800,7 @@ describe("OrderBook take orders", async function () {
       await tokenA06.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -3027,9 +3000,7 @@ describe("OrderBook take orders", async function () {
       await tokenA00.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const carol = signers[3];
+      const [, alice, bob, carol] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -3218,9 +3189,7 @@ describe("OrderBook take orders", async function () {
   it("should validate input/output tokens", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const [, alice, bob, carol] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -3357,8 +3326,7 @@ describe("OrderBook take orders", async function () {
   it("should emit event when an order has zero output max amount", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -3490,8 +3458,7 @@ describe("OrderBook take orders", async function () {
   it("should emit event when an order exceeds max IO ratio", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -3615,8 +3582,7 @@ describe("OrderBook take orders", async function () {
   it("should emit event when an order wasn't found", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -3724,9 +3690,7 @@ describe("OrderBook take orders", async function () {
   it("should take multiple orders on the good path (clear multiple orders directly from buyer wallet)", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const [, alice, bob, carol] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -3901,8 +3865,7 @@ describe("OrderBook take orders", async function () {
   it("should take order on the good path (clear an order directly from buyer wallet)", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -4044,9 +4007,7 @@ describe("OrderBook take orders", async function () {
     await tokenB06.initialize();
     await tokenC12.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
+    const [, alice, bob, carol] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -4301,8 +4262,7 @@ describe("OrderBook take orders", async function () {
     await tokenB06.initialize();
     await tokenC12.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -4441,8 +4401,7 @@ describe("OrderBook take orders", async function () {
   it("should validate context emitted in context event when handleIO dispatch is zero", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -4628,8 +4587,7 @@ describe("OrderBook take orders", async function () {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -4761,8 +4719,7 @@ describe("OrderBook take orders", async function () {
     await tokenA06.initialize();
     await tokenB18.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 

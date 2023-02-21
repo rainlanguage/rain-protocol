@@ -50,8 +50,7 @@ describe("Stake maxRedeem", async function () {
      */
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256];
 

@@ -45,9 +45,7 @@ describe("Sale previewCanLive (start/end sale)", async function () {
 
   it("should be able to end failed sale if creator does not end it", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
+    const [deployer, recipient, signer1] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

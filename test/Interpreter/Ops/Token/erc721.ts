@@ -37,8 +37,7 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer0 = signers[0];
-    signer1 = signers[1];
+    [signer0, signer1] = signers;
 
     tokenERC721 = (await basicDeploy(
       "ReserveTokenERC721",

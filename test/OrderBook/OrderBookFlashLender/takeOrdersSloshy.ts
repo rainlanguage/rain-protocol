@@ -64,7 +64,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
   it("should complete an e2e slosh with a loan", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
+    const [, alice] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -260,9 +260,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
   it("should complete an e2e slosh without a loan", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const uni = signers[3];
+    const [, alice, bob, uni] = signers;
 
     const orderBook = await deployOrderBook();
 

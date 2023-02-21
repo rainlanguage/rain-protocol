@@ -33,9 +33,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
 
   it("should allocate token withdrawals pro rata (sender's proportion of RedeemableERC20 total supply)", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const deployer = signers[3];
+    const [, alice, bob, deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -139,9 +137,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
 
   it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[1];
-    const alice = signers[4];
-    const bob = signers[5];
+    const [, deployer, , , alice, bob] = signers;
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 

@@ -17,7 +17,7 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: add(10 20), 
+      `_: add(10 20),
       : debug<${Debug.Stack}>();`
     );
 
@@ -35,7 +35,7 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: add(10 20), 
+      `_: add(10 20),
       : debug<${Debug.StatePacked}>();`
     );
 

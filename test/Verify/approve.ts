@@ -21,17 +21,16 @@ describe("Verify approve", async function () {
 
   it("should not grant approver ability to remove or ban if they only have APPROVER role", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+    ] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,
@@ -95,11 +94,7 @@ describe("Verify approve", async function () {
 
   it("should allow approver to automatically add an account that hasn't been added yet while approving it", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin = signers[1];
-    const signer1 = signers[2];
-    const approver = signers[3];
-    const nonApprover = signers[4];
+    const [defaultAdmin, aprAdmin, signer1, approver, nonApprover] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,
@@ -182,11 +177,7 @@ describe("Verify approve", async function () {
 
   it("should allow only approver to approve accounts", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin = signers[1];
-    const signer1 = signers[2];
-    const approver = signers[3];
-    const nonApprover = signers[4];
+    const [defaultAdmin, aprAdmin, signer1, approver, nonApprover] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,

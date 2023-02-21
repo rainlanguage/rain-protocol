@@ -20,17 +20,16 @@ describe("Verify remove", async function () {
 
   it("should not grant remover ability to approve or ban if they only have REMOVER role", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+    ] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,
@@ -94,11 +93,7 @@ describe("Verify remove", async function () {
 
   it("should allow only remover to remove accounts", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const rmvAdmin = signers[1];
-    const signer1 = signers[2];
-    const remover = signers[3];
-    const nonRemover = signers[4];
+    const [defaultAdmin, rmvAdmin, signer1, remover, nonRemover] = signers;
 
     const verify = (await verifyDeploy(signers[0], verifyFactory, {
       admin: defaultAdmin.address,

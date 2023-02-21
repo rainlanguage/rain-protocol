@@ -45,10 +45,8 @@ describe("Sale claim fees", async function () {
 
   it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
+
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -187,10 +185,8 @@ describe("Sale claim fees", async function () {
 
   it("should allow fees recipient to claim fees on successful raise, and prevent buyers from refunding their tokens", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
+
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

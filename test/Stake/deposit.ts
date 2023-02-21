@@ -44,8 +44,7 @@ describe("Stake deposit", async function () {
 
   it("should return zero for maxDeposit if the expression fails", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256, 0, 1, 2, 3];
 
@@ -97,8 +96,7 @@ describe("Stake deposit", async function () {
 
   it("should return minimum of max_deposit source and ERC4262 maxDeposit for maxDeposit if the expression succeds", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const TEN = ethers.BigNumber.from("10" + eighteenZeros);
 
@@ -152,8 +150,7 @@ describe("Stake deposit", async function () {
 
   it("should cap maxDeposit at minimum of max_deposit source and ERC4262 maxDeposit for that particular owner", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const TEN = ethers.BigNumber.from("10" + eighteenZeros);
 
@@ -243,8 +240,7 @@ describe("Stake deposit", async function () {
 
   it("should not process an invalid deposit", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -282,8 +278,7 @@ describe("Stake deposit", async function () {
 
   it("should calculate correct mint amounts based on current supply", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -350,9 +345,7 @@ describe("Stake deposit", async function () {
 
   it("should revert deposit if mint amount is calculated to be 0", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
-    const bob = signers[3];
+    const [deployer, alice, bob] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -396,8 +389,7 @@ describe("Stake deposit", async function () {
 
   it("should not process a deposit of 0 amount", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -434,8 +426,7 @@ describe("Stake deposit", async function () {
 
   it("should process minimum deposit of 1 token", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -487,8 +478,7 @@ describe("Stake deposit", async function () {
 
   it("should process deposit of 2 tokens", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -540,8 +530,7 @@ describe("Stake deposit", async function () {
 
   it("should process deposits", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -653,8 +642,7 @@ describe("Stake deposit", async function () {
 
   it("should process deposit and withdraw with a non 1:1 ratio", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     // Transfer tokens from the deployer to the alice with the instances
     const amountToTransfer = ethers.BigNumber.from("50000000");

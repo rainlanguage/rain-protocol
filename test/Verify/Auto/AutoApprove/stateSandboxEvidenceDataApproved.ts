@@ -44,12 +44,7 @@ describe("AutoApprove evidence data approved", async function () {
   it("should allow checking if the given evidence e.g. approval time is after a given timestamp (e.g. 1 day in the past), and allowing it to be reused for another approval", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const aprAdmin = signers[3];
-    const signer1 = signers[4];
-    const signer2 = signers[5];
-    const signer3 = signers[6];
+    const [, deployer, admin, aprAdmin, signer1, signer2, signer3] = signers;
 
     const expressionConfig = {
       // prettier-ignore
@@ -149,10 +144,7 @@ describe("AutoApprove evidence data approved", async function () {
   it("should allow checking if the given evidence e.g. has already been used in a prior approval, preventing the same evidence being used twice", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const aprAdmin = signers[3];
-    const signer1 = signers[4];
+    const [, deployer, admin, aprAdmin, signer1] = signers;
 
     const expressionConfig = {
       // prettier-ignore

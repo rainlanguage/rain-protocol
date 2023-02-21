@@ -38,8 +38,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when staked tokens exceeded all thresholds until some were withdrawn, and then deposited again to exceed all thresholds", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -146,8 +145,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when staked tokens exceeded 1st threshold until some were withdrawn, and then deposited again to exceed 1st threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -248,8 +246,7 @@ describe("Stake report", async function () {
 
   it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -326,8 +323,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when enough tokens have been staked to exceed all thresholds", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -382,8 +378,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when enough tokens have been staked to exceed the 2nd threshold then the 4th threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -467,8 +462,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when enough tokens have been staked to exceed the 1st threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -523,8 +517,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when some tokens have been staked but do not exceed the first threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -569,8 +562,7 @@ describe("Stake report", async function () {
 
   it("should return a correct report when no token has been staked", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 

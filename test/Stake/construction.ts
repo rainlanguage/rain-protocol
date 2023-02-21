@@ -41,7 +41,7 @@ describe("Stake construction", async function () {
 
   it("should not initialize if requirements not met", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [max_uint256, max_uint16];
 
@@ -73,7 +73,7 @@ describe("Stake construction", async function () {
 
   it("should initialize correctly on the good path", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [max_uint256, max_uint16];
 

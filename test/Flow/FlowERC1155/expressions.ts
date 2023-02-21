@@ -36,9 +36,7 @@ describe("FlowERC1155 expressions tests", async function () {
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [deployer, alice, bob] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 

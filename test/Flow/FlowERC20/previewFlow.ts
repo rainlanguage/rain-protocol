@@ -48,8 +48,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferStruct = {
       native: [
@@ -169,8 +168,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc1155A = (await basicDeploy(
       "ReserveTokenERC1155",
@@ -362,8 +360,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721A = (await basicDeploy(
       "ReserveTokenERC721",
@@ -536,8 +533,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20A = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20A.initialize();
@@ -729,8 +725,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc1155 = (await basicDeploy(
       "ReserveTokenERC1155",
@@ -876,8 +871,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721 = (await basicDeploy(
       "ReserveTokenERC721",
@@ -1013,8 +1007,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20.initialize();
@@ -1171,7 +1164,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should not flow if it does not meet 'ensure' requirement", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 0, 1];
 
@@ -1231,8 +1224,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
   it("should preview empty flow io", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferStruct = {
       native: [],
