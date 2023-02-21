@@ -8,7 +8,6 @@ import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISaleV2.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -22,6 +21,8 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../factory/ICloneableV1.sol";
+import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x806da87a1e3aa9674b863adae4a6dcaad813cc4b3311dbfa16669c69fe93af9b
@@ -36,7 +37,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param callerMeta As per `IInterpreterCallerV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
-    RedeemableERC20Factory redeemableERC20Factory;
+    CloneFactory redeemableERC20Factory;
     InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
 }
 
@@ -159,7 +160,13 @@ uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
 uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
+contract Sale is
+    ICloneableV1,
+    Cooldown,
+    ISaleV2,
+    ReentrancyGuard,
+    InterpreterCallerV1
+{
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -221,7 +228,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
     SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
-    RedeemableERC20Factory private immutable redeemableERC20Factory;
+    CloneFactory private immutable redeemableERC20Factory;
 
     /// @dev as per `SaleConfig`.
     address private recipient;
@@ -261,11 +268,15 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, InterpreterCallerV1 {
         emit Construct(msg.sender, config_);
     }
 
-    function initialize(
-        SaleConfig calldata config_,
-        SaleRedeemableERC20Config memory saleRedeemableERC20Config_
-    ) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         __ReentrancyGuard_init();
+
+        (
+            SaleConfig memory config_,
+            SaleRedeemableERC20Config memory saleRedeemableERC20Config_
+        ) = abi.decode(data_, (SaleConfig, SaleRedeemableERC20Config));
+
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");

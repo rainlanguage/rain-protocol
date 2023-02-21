@@ -9,6 +9,7 @@ import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
+import "../factory/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -135,7 +136,13 @@ struct DepositRecord {
 /// expressing inflationary tokenomics in the share token itself. Third party
 /// tokens may mint/burn themselves according to the share balances and ledger
 /// reports provided by `Stake`.
-contract Stake is ERC4626, TierV2, ReentrancyGuard, InterpreterCallerV1 {
+contract Stake is
+    ERC4626,
+    TierV2,
+    ICloneableV1,
+    ReentrancyGuard,
+    InterpreterCallerV1
+{
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;
@@ -161,15 +168,15 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard, InterpreterCallerV1 {
         _disableInitializers();
     }
 
-    /// Initializes the `Stake` contract in a proxy compatible way to support
-    /// cloning many staking contracts from a single onchain factory.
-    /// @param config_ All the initialization config.
-    function initialize(StakeConfig calldata config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes memory data_) external initializer {
+        __ReentrancyGuard_init();
+
+        StakeConfig memory config_ = abi.decode(data_, (StakeConfig));
         if (address(config_.asset) == address(0)) {
             revert ZeroAsset();
         }
 
-        __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
         __TierV2_init();

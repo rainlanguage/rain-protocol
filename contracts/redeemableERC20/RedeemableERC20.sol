@@ -10,6 +10,7 @@ import {ITierV2} from "../tier/ITierV2.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
+import "../factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -91,7 +92,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
+contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
     using SafeERC20 for IERC20;
 
     /// @dev Phase constants.
@@ -161,11 +162,13 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
-    /// @param config_ Initialized configuration.
+    /// @inheritdoc ICloneableV1
     function initialize(
-        RedeemableERC20Config calldata config_
+        bytes calldata data_
     ) external initializer {
         initializePhased();
+
+        (RedeemableERC20Config memory config_) = abi.decode(data_, (RedeemableERC20Config));
 
         tier = ITierV2(config_.tier);
 

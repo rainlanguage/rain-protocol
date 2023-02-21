@@ -12,6 +12,7 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
 import "../../interpreter/caller/InterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
+import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
@@ -21,7 +22,7 @@ uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
+contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -42,8 +43,10 @@ contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
         _disableInitializers();
     }
 
-    function initialize(EvaluableConfig calldata config_) external initializer {
+    function initialize(bytes calldata data_) external initializer {
         __VerifyCallback_init();
+
+        EvaluableConfig memory config_ = abi.decode(data_, (EvaluableConfig));
 
         _transferOwnership(msg.sender);
         emit Initialize(msg.sender, config_);
