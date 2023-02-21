@@ -4,6 +4,7 @@ import type { TierReportTest } from "../../../../typechain";
 import {
   assertError,
   basicDeploy,
+  Debug,
   getBlockTimestamp,
   MemoryType,
   readWriteTierDeploy,
@@ -360,129 +361,86 @@ describe("CALL Opcode test", async function () {
     );
   });
 
-  it("should execute a function which will calculate the discount based on user's TIER", async () => {
-    const initialTimestamp = await getBlockTimestamp();
-    const [, alice, bob] = await ethers.getSigners();
-
-    // Tier Factory
-    const readWriteTier = await readWriteTierDeploy();
-
-    const tierReport = (await basicDeploy(
-      "TierReportTest",
-      {}
-    )) as TierReportTest;
-
-    // Setting Alice's Tier
-    await readWriteTier.connect(alice).setTier(alice.address, Tier.TWO);
-    await timewarp(10);
-
-    // Setting Bob's tier
-    await readWriteTier.connect(bob).setTier(bob.address, Tier.FOUR);
-    timewarp(10);
-
-    // Setting Asset price
-    const assetPrice = ethers.BigNumber.from("100");
-
+  it("should forward inputs to a call while also supporting other aliases", async () => {
     const { sources, constants } = standardEvaluableConfig(
       `
-      /* main source 0 sourceGetDiscountedPrice */
-      ctx-tier: context<0 0>(),
-      ctx-price: context<1 0>(),
-      _:  sub(
-            ctx-price
-            call<1 1>(
-              ctx-tier
-            )
-          );
+      /* main source 0 */
+      _ _:  call<2 1>(10);
 
-      /* source 1 sourceGetDiscount */
-      /* This function takes TIER as an input and returns the discount that will be applied on the price */
-      discount-mul: 10,
-      discount-zero: 0,
-      tier: read-memory<${MemoryType.Stack} 0>(),
-      _:  eager-if(
-            equal-to(tier ${Tier.ONE})
-            mul(discount-mul tier)
-            eager-if(
-              equal-to(tier ${Tier.TWO})
-              mul(discount-mul tier)
-              eager-if(
-                equal-to(tier ${Tier.THREE})
-                mul(discount-mul tier)
-                eager-if(
-                  equal-to(tier ${Tier.FOUR})
-                  mul(discount-mul tier)
-                  eager-if(
-                    equal-to(tier ${Tier.FIVE})
-                    mul(discount-mul tier)
-                    eager-if(
-                      equal-to(tier ${Tier.SIX})
-                      mul(discount-mul tier)
-                      eager-if(
-                        equal-to(tier ${Tier.SEVEN})
-                        mul(discount-mul tier)
-                        eager-if(
-                          equal-to(tier ${Tier.EIGHT})
-                          mul(discount-mul tier)
-                          discount-zero
-                        )
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          );
+      /* source 1 */
+      ten: ,
+      twenty: 20,
+      _ _:  ten twenty;
       `
     );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
-
-    // Calculating price for Alice
-    const reportAlice = await readWriteTier.report(alice.address, []);
-    const tierBlockReportAlice = await tierReport.tierAtTimeFromReport(
-      reportAlice,
-      initialTimestamp + 5
-    );
-    assert(tierBlockReportAlice.eq(2));
+      await iinterpreterV1ConsumerDeploy(sources, constants, 2);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
       dispatch,
-      [[tierBlockReportAlice, assetPrice]]
-    );
-    const resultAlice = await consumerLogic.stackTop();
-
-    const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
-    assert(
-      resultAlice.eq(expectedPriceAlice),
-      `Invalid price returned for Alice.
-      expected ${expectedPriceAlice}
-      actual   ${resultAlice}`
+      []
     );
 
-    // Calculating price for Bob
-    const reportBob = await readWriteTier.report(bob.address, []);
-    const tierBlockReportBob = await tierReport.tierAtTimeFromReport(
-      reportBob,
-      initialTimestamp + 15
+    const expectedResults = [10, 20];
+    const results = await consumerLogic.stack();
+
+    expectedResults.forEach((expected, i_) => {
+      assert(
+        results[i_].eq(expected),
+        `wrong value at stack position ${i_}
+        expected  ${expected}
+        actual    ${results[i_]}`
+      );
+    });
+  });
+
+  it("should preserve a stack value in a call", async () => {
+    const { sources, constants } = standardEvaluableConfig(
+      `
+      /* main source 0 */
+      value: 10,
+      _ _ _:    call<3 1>(value);
+
+      /* source 1 */
+      stack-value: read-memory<${MemoryType.Stack} 0>(),
+      _ _ _:
+            ensure(stack-value)
+
+            stack-value
+
+            eager-if(
+              0
+              20
+              stack-value
+            )
+
+            eager-if(
+              0
+              30
+              eager-if(
+                0
+                40
+                stack-value
+              )
+            );
+      `
     );
-    assert(tierBlockReportAlice.eq(4));
+
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy(sources, constants, 3);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
       dispatch,
-      [[tierBlockReportBob, assetPrice]]
+      []
     );
 
-    const resultBob = await consumerLogic.stackTop();
-    const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
-    assert(
-      resultBob.eq(expectedPriceBob),
-      `Invalid price returned for Bob.
-      expected ${expectedPriceBob}
-      actual   ${resultBob}`
-    );
+    const results = await consumerLogic.stack();
+
+    for (let i_ = 0; i_ < 3; i_++) {
+      assert(results[i_].eq(10));
+    }
   });
 });
