@@ -163,12 +163,13 @@ contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @inheritdoc ICloneableV1
-    function initialize(
-        bytes calldata data_
-    ) external initializer {
+    function initialize(bytes calldata data_) external initializer {
         initializePhased();
 
-        (RedeemableERC20Config memory config_) = abi.decode(data_, (RedeemableERC20Config));
+        RedeemableERC20Config memory config_ = abi.decode(
+            data_,
+            (RedeemableERC20Config)
+        );
 
         tier = ITierV2(config_.tier);
 

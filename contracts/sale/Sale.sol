@@ -37,7 +37,8 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param callerMeta As per `IInterpreterCallerV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
-    CloneFactory redeemableERC20Factory;
+    CloneFactory cloneFactory;
+    address redeemableERC20Implementation;
     InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
 }
 
@@ -228,7 +229,9 @@ contract Sale is
     SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
-    CloneFactory private immutable redeemableERC20Factory;
+    CloneFactory private immutable cloneFactory;
+    /// ICloneableV1 implementation of rTKN.
+    address private immutable redeemableERC20Implementation;
 
     /// @dev as per `SaleConfig`.
     address private recipient;
@@ -263,7 +266,8 @@ contract Sale is
 
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
-        redeemableERC20Factory = config_.redeemableERC20Factory;
+        cloneFactory = config_.cloneFactory;
+        redeemableERC20Implementation = config_.redeemableERC20Implementation;
 
         emit Construct(msg.sender, config_);
     }
@@ -322,7 +326,8 @@ contract Sale is
             .erc20Config
             .initialSupply;
 
-        address token_ = redeemableERC20Factory.createChild(
+        address token_ = cloneFactory.clone(
+            redeemableERC20Implementation,
             abi.encode(
                 RedeemableERC20Config(
                     address(config_.reserve),
