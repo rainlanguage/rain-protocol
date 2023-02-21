@@ -37,8 +37,8 @@ describe("Encode Op Tests", async function () {
     );
     
     const expression0 = await expressionConsumerDeploy(
-       sources0,
-       constants0,
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -59,7 +59,7 @@ describe("Encode Op Tests", async function () {
 
   it("should encode with bit mask of length 32 ", async () => {
 
-    const source = '0x00000000000000000000000000000000cccccccccccccccccccccccccccccccc'
+    const source =   '0x00000000000000000000000000000000cccccccccccccccccccccccccccccccc'
     const target =   '0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff'
     const expected = '0xccccccccccccccccccccccccccccccccffffffffffffffffffffffffffffffff'
 
@@ -88,7 +88,7 @@ describe("Encode Op Tests", async function () {
 
   it("should fail if (startBit + length) exceeds 256 bits", async () => {
 
-    const source = '0x0000000000000000000000000000000ccccccccccccccccccccccccccccccccc' 
+    const source =   '0x0000000000000000000000000000000ccccccccccccccccccccccccccccccccc' 
     const target =   '0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff'
 
     // startBit + length exceeds 256 bits 
@@ -113,4 +113,3 @@ describe("Encode Op Tests", async function () {
 
   
 });
- 

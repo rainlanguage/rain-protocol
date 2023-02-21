@@ -15,8 +15,8 @@ export const rainterpreterExpressionDeployerDeploy = async (
   interpreter: Rainterpreter,
   store: RainterpreterStore
 ): Promise<RainterpreterExpressionDeployer> => {
-  const bytes_ = getRainterpreterOpMetaBytes()
- 
+  const bytes_ = getRainterpreterOpMetaBytes();
+
   const expressionDeployerFactory = await ethers.getContractFactory(
     "RainterpreterExpressionDeployer"
   );
