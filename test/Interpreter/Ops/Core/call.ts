@@ -1,16 +1,9 @@
 import { assert, expect } from "chai";
 import { ethers } from "hardhat";
-import type { TierReportTest } from "../../../../typechain";
 import {
   assertError,
-  basicDeploy,
-  Debug,
-  getBlockTimestamp,
   MemoryType,
-  readWriteTierDeploy,
   standardEvaluableConfig,
-  Tier,
-  timewarp,
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
