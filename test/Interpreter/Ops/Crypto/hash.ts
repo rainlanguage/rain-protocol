@@ -25,7 +25,7 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a list of values from constant", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: hash<3>(100 200 300);`
+      `_: hash(100 200 300);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -60,7 +60,7 @@ describe("HASH Opcode test", async function () {
     const { sources, constants } = standardEvaluableConfig(
       `value0: context<0 0>(),
       value1: context<1 0>(),
-      _: hash<2>(value0 value1);`
+      _: hash(value0 value1);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -89,7 +89,7 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a single value", async () => {
     const { sources, constants } = standardEvaluableConfig(
-      `_: hash<1>(${ethers.constants.MaxUint256})`
+      `_: hash(${ethers.constants.MaxUint256})`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,
