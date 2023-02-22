@@ -22,6 +22,11 @@ uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
+struct AutoApproveConfig {
+    address owner;
+    EvaluableConfig evaluableConfig;
+}
+
 contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -33,7 +38,7 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
-    event Initialize(address sender, EvaluableConfig config);
+    event Initialize(address sender, AutoApproveConfig config);
 
     Evaluable internal evaluable;
 
@@ -43,20 +48,21 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
         _disableInitializers();
     }
 
+    /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
         __VerifyCallback_init();
 
-        EvaluableConfig memory config_ = abi.decode(data_, (EvaluableConfig));
+        AutoApproveConfig memory config_ = abi.decode(data_, (AutoApproveConfig));
 
-        _transferOwnership(msg.sender);
+        _transferOwnership(config_.owner);
         emit Initialize(msg.sender, config_);
         (
             IInterpreterV1 interpreter_,
             IInterpreterStoreV1 store_,
             address expression_
-        ) = config_.deployer.deployExpression(
-                config_.sources,
-                config_.constants,
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
