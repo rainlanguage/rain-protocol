@@ -273,7 +273,6 @@ export const standardEvaluableConfig = partialRight(
   getRainterpreterOpMetaBytes(),
   (diagnostics: Diagnostic[], rainlangInternalError: Error) => {
     if (diagnostics.length > 0) {
-      Parser.diagnostics = [];
       throw new Error(JSON.stringify({ diagnostics }, null, 2));
     }
     if (rainlangInternalError) throw rainlangInternalError;
