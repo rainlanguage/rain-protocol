@@ -9,7 +9,7 @@ import ContractMetaSchema from "../schema/meta/v0/contract.meta.schema.json";
 import FlowERC20 from "../contracts/flow/erc20/FlowERC20Factory.meta.json";
 import FlowERC721 from "../contracts/flow/erc721/FlowERC721Factory.meta.json";
 import FlowERC1155 from "../contracts/flow/erc1155/FlowERC1155Factory.meta.json";
-import Lobby from "../contracts/lobby/LobbyFactory.meta.json";
+import Lobby from "../contracts/lobby/Lobby.meta.json";
 import Orderbook from "../contracts/orderbook/OrderBook.meta.json";
 import Sale from "../contracts/sale/SaleFactory.meta.json";
 import Stake from "../contracts/stake/StakeFactory.meta.json";
@@ -141,12 +141,12 @@ const main = async () => {
         writeFile(dir, fileData);
       }
       console.log(`
-Deployable ContractMeta Bytes: 
+Deployable ContractMeta Bytes:
 ${contractMetaHexString}
 
 `);
       console.log(`
-Deployable ContractMeta Schema Bytes: 
+Deployable ContractMeta Schema Bytes:
 ${schemaHexString}
 
 `);
