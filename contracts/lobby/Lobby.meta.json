@@ -1,8 +1,8 @@
 {
-  "name": "Lobby Factory",
+  "name": "Lobby",
   "desc": "",
   "source": "https://github.com/rainprotocol/rain-protocol",
-  "alias": "lobby-factory",
+  "alias": "lobby",
   "methods": [
     {
       "name": "",

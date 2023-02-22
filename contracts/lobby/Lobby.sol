@@ -126,8 +126,6 @@ uint256 constant PHASE_COMPLETE = 3;
 // refund on their deposit.
 uint256 constant PHASE_INVALID = 4;
 
-// Phased is a contract in the rain repo that allows contracts to move sequentially
-// through phases and restrict logic by phase.
 contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
