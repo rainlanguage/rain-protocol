@@ -25,17 +25,17 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
-  let cloneFactory: CloneFactory
+  let cloneFactory: CloneFactory;
 
   let tokenA: ReserveToken18;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
-    
+    await deploy1820(signers[0]);
+
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -90,19 +90,25 @@ describe("Lobby Tests Intialize", async function () {
         "tuple(bool refMustAgree ,address ref,address token,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig, bytes description , uint256 timeoutDuration)",
       ],
       [initialConfig]
-    );  
-  
-    const lobbyClone = await cloneFactory.clone(lobbyImplementation.address ,encodedConfig ) 
+    );
+
+    const lobbyClone = await cloneFactory.clone(
+      lobbyImplementation.address,
+      encodedConfig
+    );
 
     const cloneEvent = (await getEventArgs(
       lobbyClone,
       "NewClone",
       cloneFactory
     )) as NewCloneEvent["args"];
-  
-    const Lobby_ = (await ethers.getContractAt('Lobby',cloneEvent.clone)) as Lobby  
 
-    const intializeEvent = ( await getEventArgs(
+    const Lobby_ = (await ethers.getContractAt(
+      "Lobby",
+      cloneEvent.clone
+    )) as Lobby;
+
+    const intializeEvent = (await getEventArgs(
       lobbyClone,
       "Initialize",
       Lobby_

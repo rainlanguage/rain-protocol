@@ -8,56 +8,54 @@ import { ImplementationEvent as ImplementationEventVerifyFactory } from "../../.
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
 
-
-export const verifyImplementation = async (): Promise<Verify>  => {
+export const verifyImplementation = async (): Promise<Verify> => {
   const verifyFactory = await ethers.getContractFactory("Verify");
   const verifyImplementation = (await verifyFactory.deploy()) as Verify;
   await verifyImplementation.deployed();
 
-  
   assert(
     !(verifyImplementation.address === zeroAddress),
     "verify implementation zero address"
   );
 
   return verifyImplementation;
-}; 
+};
 
 export const verifyCloneDeploy = async (
-    cloneFactory: CloneFactory ,
-    implementVerify: Verify ,
-    admin: SignerWithAddress,
-    callback: AutoApprove
-): Promise<Verify>  => {
+  cloneFactory: CloneFactory,
+  implementVerify: Verify,
+  admin: SignerWithAddress,
+  callback: AutoApprove
+): Promise<Verify> => {
   const verifyConfig: VerifyConfigStruct = {
     admin: admin.address,
-    callback: callback.address
-  } 
+    callback: callback.address,
+  };
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-    [
-      "tuple(address admin , address callback )",
-    ],
+    ["tuple(address admin , address callback )"],
     [verifyConfig]
-  );   
+  );
 
-  const verifyClone = await cloneFactory.clone(implementVerify.address ,encodedConfig )    
-  
+  const verifyClone = await cloneFactory.clone(
+    implementVerify.address,
+    encodedConfig
+  );
+
   const cloneEvent = (await getEventArgs(
     verifyClone,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
+  )) as NewCloneEvent["args"];
 
-  assert(
-    !(cloneEvent.clone === zeroAddress),
-    "Clone Verify zero address"
-  );
+  assert(!(cloneEvent.clone === zeroAddress), "Clone Verify zero address");
 
-  const verify = (await ethers.getContractAt('Verify',cloneEvent.clone)) as Verify  
+  const verify = (await ethers.getContractAt(
+    "Verify",
+    cloneEvent.clone
+  )) as Verify;
 
-  return verify
-
+  return verify;
 };
 
 // export const verifyFactoryDeploy = async () => {

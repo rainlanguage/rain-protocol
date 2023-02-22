@@ -1,58 +1,68 @@
 import { assert } from "chai";
 import { Contract, ContractFactory } from "ethers";
-import { arrayify, concat, defaultAbiCoder, solidityKeccak256 } from "ethers/lib/utils";
+import {
+  arrayify,
+  concat,
+  defaultAbiCoder,
+  solidityKeccak256,
+} from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
-import { JoinEvent, Lobby, LobbyConfigStruct, SignedContextStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { generateEvaluableConfig, getEventArgs, memoryOperand, MemoryType, ONE, op, RainterpreterOps } from "../../../utils";
+import {
+  JoinEvent,
+  Lobby,
+  LobbyConfigStruct,
+  SignedContextStruct,
+} from "../../../typechain/contracts/lobby/Lobby";
+import {
+  generateEvaluableConfig,
+  getEventArgs,
+  memoryOperand,
+  MemoryType,
+  ONE,
+  op,
+  RainterpreterOps,
+} from "../../../utils";
 
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { deployLobby } from "../../../utils/deploy/lobby/deploy";
-import deploy1820 from "../../../utils/deploy/registry1820/deploy"; 
-
-
-
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 describe("FactoryCurator createChild", async function () {
   const Opcode = RainterpreterOps;
 
-  let cloneFactory: Contract
-  let tokenA: ReserveToken18; 
+  let cloneFactory: Contract;
+  let tokenA: ReserveToken18;
 
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
-    cloneFactory = await basicDeploy("CloneFactory",{})
-
-  }); 
+    await deploy1820(signers[0]);
+    cloneFactory = await basicDeploy("CloneFactory", {});
+  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await tokenA.initialize();
   });
 
-
-  it("should deploy Lobby Clone", async () => {  
-
+  it("should deploy Lobby Clone", async () => {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2]; 
-
+    const bob = signers[2];
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
     const claimAmount = ONE;
-    const timeoutDuration = 15000000;  
+    const timeoutDuration = 15000000;
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-
-    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration)  
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
 
     const constants = [1, depositAmount, leaveAmount, claimAmount];
 
@@ -89,26 +99,27 @@ describe("FactoryCurator createChild", async function () {
       token: tokenA.address,
       description: [],
       timeoutDuration: timeoutDuration,
-    }; 
+    };
 
     let encodedConfig = ethers.utils.defaultAbiCoder.encode(
       [
         "tuple(bool refMustAgree ,address ref,address token,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig, bytes description , uint256 timeoutDuration)",
       ],
       [initialConfig]
-    );   
+    );
 
-    let lobbyClone = await  cloneFactory.clone(lobbyImplementation.address ,encodedConfig )   
+    let lobbyClone = await cloneFactory.clone(
+      lobbyImplementation.address,
+      encodedConfig
+    );
 
     const event = (await getEventArgs(
-        lobbyClone,
-        "NewClone",
-        cloneFactory
-     )) as NewCloneEvent["args"];
-    
-    const Lobby_ = await ethers.getContractAt('Lobby',event.clone)
+      lobbyClone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];
 
-    
+    const Lobby_ = await ethers.getContractAt("Lobby", event.clone);
 
     await tokenA.connect(alice).approve(Lobby_.address, depositAmount);
 
@@ -154,9 +165,5 @@ describe("FactoryCurator createChild", async function () {
 
     const currentPhase = await Lobby_.currentPhase();
     assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
-
-    
   });
-
- 
 });

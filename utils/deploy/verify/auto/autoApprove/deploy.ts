@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import type { AutoApprove,  CloneFactory } from "../../../../../typechain";
+import type { AutoApprove, CloneFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
 import { NewCloneEvent } from "../../../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
@@ -13,17 +13,15 @@ import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
 import { getRainContractMetaBytes } from "../../../../meta";
 import { getTouchDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
- 
-
 
 export const autoApproveImplementation = async (): Promise<AutoApprove> => {
-  const contractFactory = await ethers.getContractFactory("AutoApprove"); 
+  const contractFactory = await ethers.getContractFactory("AutoApprove");
 
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
     callerMeta: getRainContractMetaBytes("autoapprove"),
     deployer: touchDeployer.address,
-  }; 
+  };
 
   const autoApproveImplementation = (await contractFactory.deploy(
     config_
@@ -35,47 +33,50 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
     "implementation autoApprove factory zero address"
   );
 
-  return autoApproveImplementation ;
-};  
+  return autoApproveImplementation;
+};
 
 export const autoApproveCloneDeploy = async (
-    cloneFactory: CloneFactory ,
-    implementAutoApprove: AutoApprove ,
-    sources: PromiseOrValue<BytesLike>[],
-    constants: PromiseOrValue<BigNumberish>[]
-  ): Promise<AutoApprove>  => { 
-
-    const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-      sources,
-      constants
-    ); 
+  cloneFactory: CloneFactory,
+  implementAutoApprove: AutoApprove,
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[]
+): Promise<AutoApprove> => {
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    sources,
+    constants
+  );
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
       "tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig",
     ],
     [evaluableConfig]
-  );    
+  );
 
-  const autoApproveClone = await cloneFactory.clone(implementAutoApprove.address ,encodedConfig )    
-  
+  const autoApproveClone = await cloneFactory.clone(
+    implementAutoApprove.address,
+    encodedConfig
+  );
+
   const cloneEvent = (await getEventArgs(
     autoApproveClone,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
+  )) as NewCloneEvent["args"];
 
   assert(
     !(cloneEvent.clone === zeroAddress),
     "Clone autoApprove factory zero address"
   );
 
-  const autoApprove = (await ethers.getContractAt('AutoApprove',cloneEvent.clone)) as AutoApprove  
+  const autoApprove = (await ethers.getContractAt(
+    "AutoApprove",
+    cloneEvent.clone
+  )) as AutoApprove;
 
-  return autoApprove
-
-}; 
-
+  return autoApprove;
+};
 
 // export const autoApproveFactoryDeploy = async () => {
 //   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
