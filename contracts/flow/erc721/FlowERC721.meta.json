@@ -1,7 +1,7 @@
 {
-  "name": "Flow ERC721 Factory",
+  "name": "Flow ERC721",
   "desc": "An ERC721 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
-  "alias": "flow-erc721-factory",
+  "alias": "flow-erc721",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {

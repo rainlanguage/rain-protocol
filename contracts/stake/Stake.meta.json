@@ -1,7 +1,7 @@
 {
-  "name": "Stake Factory",
-  "desc": "Factory for Stake contract which allows for staking a ERC20 token as an asset.",
-  "alias": "stake-factory",
+  "name": "Stake",
+  "desc": "Stake contract which allows for staking a ERC20 token as an asset.",
+  "alias": "stake",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {

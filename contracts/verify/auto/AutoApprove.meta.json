@@ -1,7 +1,7 @@
 {
-  "name": "Auto Approve Factory",
+  "name": "Auto Approve",
   "desc": "",
-  "alias": "auto-approve-factory",
+  "alias": "auto-approve",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {

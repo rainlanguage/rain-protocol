@@ -1,7 +1,7 @@
 {
   "name": "Flow Factory",
-  "desc": "A common flow contract factory, that can transfer token based on a deployed expression",
-  "alias": "flow-factory",
+  "desc": "A common flow contract, that can transfer token based on a deployed expression",
+  "alias": "flow",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {

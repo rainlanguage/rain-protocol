@@ -1,7 +1,7 @@
 {
-  "name": "CombineTier Factory",
-  "desc": "Factory for CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
-  "alias": "combine-tier-factory",
+  "name": "CombineTier",
+  "desc": "CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
+  "alias": "combine-tier",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
