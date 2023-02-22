@@ -2,7 +2,11 @@ import { assert } from "chai";
 
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CloneFactory, LobbyReentrantSender, ReserveToken18 } from "../../typechain";
+import type {
+  CloneFactory,
+  LobbyReentrantSender,
+  ReserveToken18,
+} from "../../typechain";
 
 import {
   ContextEvent,
@@ -30,7 +34,7 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
-  let cloneFactory: CloneFactory
+  let cloneFactory: CloneFactory;
 
   let tokenA: ReserveToken18;
 
@@ -39,11 +43,10 @@ describe("Lobby Tests leave", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory 
-
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -120,7 +123,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];
@@ -241,7 +248,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];
@@ -346,7 +357,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];
@@ -454,7 +469,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];
@@ -556,7 +575,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];
@@ -702,7 +725,11 @@ describe("Lobby Tests leave", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await maliciousReserve.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     const context0 = [1, 2, 3];

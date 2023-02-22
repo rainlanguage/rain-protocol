@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../typechain";
-import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -23,20 +26,20 @@ import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { Tier } from "../../utils/types/tier";
 
-describe("Stake reportTimeForTier", async function () { 
-  let implementation: Stake
-  let cloneFactory: CloneFactory
- 
+describe("Stake reportTimeForTier", async function () {
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
+
   let token: ReserveToken18;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-    implementation = await stakeImplementation() 
+    implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -46,7 +49,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should reset earliest time if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -71,7 +74,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1); // exceeds all thresholds
@@ -155,7 +162,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should reset earliest time if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -180,7 +187,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -241,7 +252,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return earliest time for tier ONE threshold if multiple deposits made after exceeding threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -266,7 +277,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -330,7 +345,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return time for tier ONE when enough tokens have been staked to exceed the 1st threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -355,7 +370,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -378,7 +397,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return ALWAYS time for tier ZERO", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -403,7 +422,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const time_ = await stake.reportTimeForTier(alice.address, Tier.ZERO, []);
 
@@ -412,7 +435,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return NEVER time if tier greater than context length", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -437,7 +460,11 @@ describe("Stake reportTimeForTier", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold

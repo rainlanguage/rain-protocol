@@ -1,23 +1,22 @@
-
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   AutoApprove,
-  
   CloneFactory,
   ReserveTokenERC721,
-  
 } from "../../../../typechain";
-import { ApproveEvent, Verify } from "../../../../typechain/contracts/verify/Verify";
+import {
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
-
   autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyCloneDeploy ,
+  verifyCloneDeploy,
   verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
@@ -30,20 +29,20 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let tokenERC721: ReserveTokenERC721;
-  let implementAutoApprove: AutoApprove  
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementAutoApprove = await autoApproveImplementation()  
-    implementVerify = await verifyImplementation()
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -91,11 +90,11 @@ describe("AutoApprove ERC721 ownership", async function () {
     );
 
     const verify = await verifyCloneDeploy(
-      cloneFactory ,  
-      implementVerify , 
+      cloneFactory,
+      implementVerify,
       admin.address,
- autoApprove.address
-  )
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 

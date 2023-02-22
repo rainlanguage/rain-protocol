@@ -1,19 +1,23 @@
 import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {  CloneFactory } from "../../../../typechain";
-import { AutoApprove, ContextEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { ApproveEvent, Verify } from "../../../../typechain/contracts/verify/Verify";
+import { CloneFactory } from "../../../../typechain";
+import {
+  AutoApprove,
+  ContextEvent,
+} from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import {
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
-  
   autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
   verifyCloneDeploy,
-
   verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
@@ -26,25 +30,20 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
-
- 
-  let implementAutoApprove: AutoApprove  
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
-
-
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementAutoApprove = await autoApproveImplementation()  
-    implementVerify = await verifyImplementation()
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
-
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should automatically approve sender if AutoApprove has APPROVER role", async () => {
@@ -78,10 +77,10 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
-        cloneFactory ,  
-        implementVerify , 
-        admin.address,
-        autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -143,12 +142,11 @@ describe("AutoApprove afterAdd", async function () {
       expressionConfig.constants
     );
 
-
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     const deployOwner = await autoApprove.owner();
@@ -213,12 +211,11 @@ admin.address,
       expressionConfig.constants
     );
 
-
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -271,12 +268,11 @@ admin.address,
       expressionConfig.constants
     );
 
-
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
@@ -324,12 +320,11 @@ admin.address,
       expressionConfig.constants
     );
 
-
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -391,12 +386,11 @@ admin.address,
       expressionConfig.constants
     );
 
-
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- autoApprove.address
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);

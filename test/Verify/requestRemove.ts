@@ -7,21 +7,20 @@ import { RequestRemoveEvent } from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils";
 import {
   verifyCloneDeploy,
-
   verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify request remove", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {
@@ -40,10 +39,10 @@ describe("Verify request remove", async function () {
     const signer2 = signers[8];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin roles

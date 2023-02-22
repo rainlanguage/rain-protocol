@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory, ReportOMeter, ReserveToken18 } from "../../typechain";
-import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -18,8 +21,8 @@ import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
 
 describe("Stake many successive deposits and withdraws", async function () {
-  let implementation: Stake
-  let cloneFactory: CloneFactory
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let reportOMeter: ReportOMeter;
   let token: ReserveToken18;
 
@@ -28,10 +31,10 @@ describe("Stake many successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementation = await stakeImplementation() 
+    implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
     reportOMeter = await reportOMeterDeploy();
   });
 
@@ -44,7 +47,7 @@ describe("Stake many successive deposits and withdraws", async function () {
     // stake supply should also track token pool size (assuming all token transferred to Stake contract via `deposit()` function)
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
     const bob = signers[3];
 
@@ -73,7 +76,11 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     for (let i_ = 0; i_ < 50; i_++) {
       // Give Alice some reserve tokens and deposit them
@@ -151,7 +158,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   it("should process 25 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
     const bob = signers[3];
 
@@ -180,7 +187,11 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     for (let i_ = 0; i_ < 25; i_++) {
       // Give Alice some reserve tokens and deposit them
@@ -221,7 +232,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   it("should process 10 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
     const bob = signers[3];
 
@@ -250,7 +261,11 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     for (let i_ = 0; i_ < 10; i_++) {
       // Give Alice some reserve tokens and deposit them

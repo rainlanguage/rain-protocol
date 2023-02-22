@@ -5,7 +5,6 @@ import type { CloneFactory, Verify } from "../../typechain";
 
 import { basicDeploy } from "../../utils";
 import {
-  
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
@@ -13,14 +12,14 @@ import { getBlockTimestamp } from "../../utils/hardhat";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify status", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("statusAtTime should return correct status for any given state & block number", async function () {
@@ -38,10 +37,10 @@ describe("Verify status", async function () {
     const signer1 = signers[7];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin roles

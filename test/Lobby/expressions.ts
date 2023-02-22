@@ -28,7 +28,7 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests claim", async function () {
   const Opcode = RainterpreterOps;
-  let cloneFactory: CloneFactory
+  let cloneFactory: CloneFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
@@ -39,10 +39,10 @@ describe("Lobby Tests claim", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -104,7 +104,11 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: 15000000,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
     await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
 
     // Alice Joins
@@ -220,7 +224,11 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -391,7 +399,11 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, depositAmount);
     await tokenA.connect(bob).approve(Lobby.address, depositAmount);
@@ -587,7 +599,11 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(cloneFactory , lobbyImplementation,  initialConfig);
+    const Lobby = await deployLobbyClone(
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, depositAmount);
     await tokenA.connect(bob).approve(Lobby.address, depositAmount);

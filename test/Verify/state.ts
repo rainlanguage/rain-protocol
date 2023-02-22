@@ -7,20 +7,19 @@ import {
   getBlockTimestamp,
   max_uint32,
   verifyCloneDeploy,
-
   verifyImplementation,
 } from "../../utils";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify state", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should return correct state for a given account", async function () {
@@ -38,10 +37,10 @@ describe("Verify state", async function () {
     const signer1 = signers[7];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin roles

@@ -6,9 +6,11 @@ import {
   IInterpreterV1Consumer,
   Rainterpreter,
   ReserveToken18,
-  
 } from "../../typechain";
-import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import { stakeCloneDeploy, stakeImplementation } from "../../utils";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
@@ -27,8 +29,8 @@ import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake ITIERV2_REPORT Op", async function () {
-  let implementation: Stake
-  let cloneFactory: CloneFactory
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
@@ -50,19 +52,18 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   ]);
 
   before(async () => {
-    
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
     );
     logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
-    await logic.deployed(); 
+    await logic.deployed();
 
-    implementation = await stakeImplementation() 
+    implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -72,7 +73,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when no token has been staked", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -100,7 +101,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // prettier-ignore
     const source0 = concat([
@@ -130,7 +135,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when some tokens have been staked but do not exceed the first threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -158,7 +163,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].div(2);
@@ -194,7 +203,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 1st threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -222,7 +231,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1);
@@ -269,7 +282,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 2nd threshold then the 4th threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -297,7 +310,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[1].add(1);
@@ -376,7 +393,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed all thresholds", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -404,7 +421,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -451,7 +472,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when staked tokens exceeded all thresholds until some were withdrawn, and then deposited again to exceed all thresholds", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -479,7 +500,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -590,7 +615,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return a correct report using ITIERV2_REPORT when staked tokens exceeded 1st threshold until some were withdrawn, and then deposited again to exceed 1st threshold", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -618,7 +643,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1);
@@ -723,7 +752,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   it("should return one-to-many reports using ITIERV2_REPORT i.e. when different lists of thresholds are checked against", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[2];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -751,7 +780,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[3].add(1);

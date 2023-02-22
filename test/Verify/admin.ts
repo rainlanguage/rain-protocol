@@ -2,23 +2,22 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import { basicDeploy } from "../../utils";
-import { zeroAddress } from "../../utils/constants";
+
 import {
- 
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify admin", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow admins to grant others the same admin role", async function () {
@@ -32,10 +31,10 @@ describe("Verify admin", async function () {
     const banAdmin1 = signers[6];
 
     const verify = await verifyCloneDeploy(
-        cloneFactory ,  
-        implementVerify , 
-        defaultAdmin.address,
-        ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
@@ -78,10 +77,10 @@ describe("Verify admin", async function () {
     const banAdmin1 = signers[6];
 
     const verify = await verifyCloneDeploy(
-        cloneFactory ,  
-        implementVerify , 
-        defaultAdmin.address,
-        ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
@@ -162,10 +161,10 @@ describe("Verify admin", async function () {
     const banner = signers[6];
 
     const verify = await verifyCloneDeploy(
-        cloneFactory ,  
-        implementVerify , 
-        defaultAdmin.address,
-        ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin roles
@@ -200,16 +199,14 @@ describe("Verify admin", async function () {
   });
 
   it("should require non-zero admin address", async function () {
-    const signers = await ethers.getSigners();
-
     await assertError(
       async () =>
-      await verifyCloneDeploy(
-        cloneFactory ,  
-        implementVerify , 
-        ethers.constants.AddressZero,
-        ethers.constants.AddressZero
-    ),
+        await verifyCloneDeploy(
+          cloneFactory,
+          implementVerify,
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
+        ),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );

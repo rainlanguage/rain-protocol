@@ -13,14 +13,14 @@ import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify remove", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should not grant remover ability to approve or ban if they only have REMOVER role", async function () {
@@ -38,10 +38,10 @@ describe("Verify remove", async function () {
     const signer1 = signers[7];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin roles
@@ -108,10 +108,10 @@ defaultAdmin.address,
     const nonRemover = signers[4];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     // defaultAdmin grants admin role

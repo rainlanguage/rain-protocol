@@ -1,19 +1,17 @@
-
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApprove,  CloneFactory } from "../../../../typechain";
-import { ApproveEvent, Verify } from "../../../../typechain/contracts/verify/Verify";
+import { AutoApprove, CloneFactory } from "../../../../typechain";
+import {
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
-  
-  
   autoApproveCloneDeploy,
   autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  
-
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
@@ -35,21 +33,20 @@ const TRUE = () =>
   op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
 describe("AutoApprove evidence data approved", async function () {
-  let implementAutoApprove: AutoApprove  
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementAutoApprove = await autoApproveImplementation()  
-    implementVerify = await verifyImplementation()
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory 
-
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow checking if the given evidence e.g. approval time is after a given timestamp (e.g. 1 day in the past), and allowing it to be reused for another approval", async () => {
@@ -101,11 +98,11 @@ describe("AutoApprove evidence data approved", async function () {
     );
 
     const verify = await verifyCloneDeploy(
-      cloneFactory ,  
-      implementVerify , 
+      cloneFactory,
+      implementVerify,
       admin.address,
- autoApprove.address
-  )
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
@@ -199,11 +196,11 @@ describe("AutoApprove evidence data approved", async function () {
     );
 
     const verify = await verifyCloneDeploy(
-      cloneFactory ,  
-      implementVerify , 
+      cloneFactory,
+      implementVerify,
       admin.address,
- autoApprove.address
-  )
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 

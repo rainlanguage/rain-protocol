@@ -16,7 +16,6 @@ import {
   op,
   verifyCloneDeploy,
   verifyImplementation,
-  
 } from "../../utils";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
@@ -27,8 +26,8 @@ const Opcode = AllStandardOps;
 describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   const ONE_SECOND = 1;
 
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
@@ -37,10 +36,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -59,10 +58,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     // Deploying verifiy contract
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-admin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      ethers.constants.AddressZero
     );
 
     // prettier-ignore

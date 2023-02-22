@@ -5,18 +5,21 @@ import type { CloneFactory, Verify } from "../../typechain";
 
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils";
-import { verifyCloneDeploy, verifyImplementation } from "../../utils/deploy/verify/deploy";
+import {
+  verifyCloneDeploy,
+  verifyImplementation,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 
 describe("Verify request approve", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow anyone to add data to support verification", async function () {
@@ -26,10 +29,10 @@ describe("Verify request approve", async function () {
     const signer2 = signers[2];
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- ethers.constants.AddressZero
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
 
     const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add0")]);

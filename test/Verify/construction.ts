@@ -3,7 +3,10 @@ import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 
-import { InitializeEvent, VerifyConfigStruct } from "../../typechain/contracts/verify/Verify";
+import {
+  InitializeEvent,
+  VerifyConfigStruct,
+} from "../../typechain/contracts/verify/Verify";
 import { basicDeploy, zeroAddress } from "../../utils";
 import {
   APPROVER,
@@ -13,20 +16,19 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
-import { verifyImplementation  } from "../../utils/deploy/verify/deploy";
+import { verifyImplementation } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
-import { compareStructs } from "../../utils/test/compareStructs"; 
-
+import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("Verify construction", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should construct and initialize correctly", async function () {
@@ -38,28 +40,28 @@ describe("Verify construction", async function () {
       callback: ethers.constants.AddressZero,
     };
 
-  
     const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(address admin , address callback )",
-      ],
+      ["tuple(address admin , address callback )"],
       [verifyConfig]
-    );   
-  
-    const verifyClone = await cloneFactory.clone(implementVerify.address ,encodedConfig )    
-    
+    );
+
+    const verifyClone = await cloneFactory.clone(
+      implementVerify.address,
+      encodedConfig
+    );
+
     const cloneEvent = (await getEventArgs(
       verifyClone,
       "NewClone",
       cloneFactory
-    )) as NewCloneEvent["args"]; 
-  
-    assert(
-      !(cloneEvent.clone === zeroAddress),
-      "Clone Verify zero address"
-    );
-  
-    const verify = (await ethers.getContractAt('Verify',cloneEvent.clone)) as Verify   
+    )) as NewCloneEvent["args"];
+
+    assert(!(cloneEvent.clone === zeroAddress), "Clone Verify zero address");
+
+    const verify = (await ethers.getContractAt(
+      "Verify",
+      cloneEvent.clone
+    )) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -88,10 +90,7 @@ describe("Verify construction", async function () {
       verify
     )) as InitializeEvent["args"];
 
-    assert(
-      sender === cloneFactory.address,
-      "wrong sender in Initialize event"
-    );
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
     compareStructs(config, verifyConfig);
   });
 });

@@ -11,21 +11,20 @@ import {
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import {
   verifyCloneDeploy,
-
   verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getEvents } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify callback", async function () {
-  let implementVerify: Verify
-  let cloneFactory: CloneFactory
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    implementVerify = await verifyImplementation()
+    implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should re-emit events associated with add, approve, ban and remove even if corresponding evidence has been deduped for the callback", async function () {
@@ -51,10 +50,10 @@ describe("Verify callback", async function () {
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- verifyCallback.address
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
     );
 
     // defaultAdmin grants admin roles
@@ -227,10 +226,10 @@ defaultAdmin.address,
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- verifyCallback.address
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
     );
 
     // defaultAdmin grants admin roles
@@ -377,10 +376,10 @@ defaultAdmin.address,
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
-cloneFactory ,  
-implementVerify , 
-defaultAdmin.address,
- verifyCallback.address
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
     );
 
     // defaultAdmin grants admin roles

@@ -2,7 +2,10 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../typechain";
-import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
   max_uint256,
@@ -14,13 +17,16 @@ import {
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {  stakeCloneDeploy, stakeImplementation } from "../../utils/deploy/stake/deploy";
+import {
+  stakeCloneDeploy,
+  stakeImplementation,
+} from "../../utils/deploy/stake/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 
 describe("Stake direct ledger analysis", async function () {
-  let implementation: Stake
-  let cloneFactory: CloneFactory
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
 
   before(async () => {
@@ -28,10 +34,10 @@ describe("Stake direct ledger analysis", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementation = await stakeImplementation() 
+    implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -41,7 +47,7 @@ describe("Stake direct ledger analysis", async function () {
 
   it("should correctly update `deposits` ledger in FILO order when multiple ledger entries are consumed by a single withdrawal", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -64,7 +70,11 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them over a series of deposits
     const totalDepositAmount = ethers.BigNumber.from("10000");
@@ -130,7 +140,7 @@ describe("Stake direct ledger analysis", async function () {
 
   it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
     const maliciousActor = signers[2];
 
@@ -154,7 +164,11 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -248,7 +262,7 @@ describe("Stake direct ledger analysis", async function () {
 
   it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -271,7 +285,11 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -318,7 +336,7 @@ describe("Stake direct ledger analysis", async function () {
 
   it("should correctly pop the records from ledger ", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -341,7 +359,11 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them over a series of deposits
     const totalDepositAmount = ethers.BigNumber.from("1000");
