@@ -1,8 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken, StakeFactory } from "../../typechain";
+import { CloneFactory, ReserveToken } from "../../typechain";
+import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import {
   InitializeEvent,
+  Stake,
   StakeConfigStruct,
 } from "../../typechain/contracts/stake/Stake";
 import {
@@ -13,18 +15,19 @@ import {
   MemoryType,
   op,
   Opcode,
+  stakeImplementation,
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("Stake construction", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake
+  let cloneFactory: CloneFactory
   let token: ReserveToken;
 
   before(async () => {
@@ -32,7 +35,10 @@ describe("Stake construction", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementation = await stakeImplementation() 
+ 
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory 
   });
 
   beforeEach(async () => {
@@ -61,14 +67,22 @@ describe("Stake construction", async function () {
       symbol: "STKN",
       asset: zeroAddress,
       evaluableConfig: evaluableConfig,
-    };
+    }; 
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [stakeConfigStructZeroToken]
+    );  
 
     await assertError(
       async () =>
-        await stakeDeploy(deployer, stakeFactory, stakeConfigStructZeroToken),
+      await cloneFactory.clone(implementation.address ,encodedConfig ) ,
       "ZeroAsset()",
       "wrongly initialised Stake with token configured as 0 address"
-    );
+    ); 
+    
   });
 
   it("should initialize correctly on the good path", async function () {
@@ -93,17 +107,37 @@ describe("Stake construction", async function () {
       symbol: "STKN",
       asset: token.address,
       evaluableConfig: evaluableConfig,
-    };
+    }; 
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [stakeConfigStruct]
+    );  
+
+    const stakeClone = await cloneFactory.clone(implementation.address ,encodedConfig )  
+
+    const cloneEvent = (await getEventArgs(
+      stakeClone,
+        "NewClone",
+        cloneFactory
+      )) as NewCloneEvent["args"]; 
+  
+      assert(
+        !(cloneEvent.clone === zeroAddress),
+        "stake clone zero address"
+      );
+    
+    const stake = (await ethers.getContractAt('Stake',cloneEvent.clone)) as Stake   
 
     const { sender, config } = (await getEventArgs(
-      stake.deployTransaction,
+      stakeClone,
       "Initialize",
       stake
     )) as InitializeEvent["args"];
 
-    assert(sender === stakeFactory.address, "wrong sender in Initialize event");
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
 
     compareStructs(config, stakeConfigStruct);
   });

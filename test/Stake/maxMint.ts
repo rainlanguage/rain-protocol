@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18, StakeFactory } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { CloneFactory, ReserveToken18 } from "../../typechain";
+import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import {
   assertError,
   generateEvaluableConfig,
@@ -14,11 +14,12 @@ import {
 import { max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import {  stakeCloneDeploy, stakeImplementation } from "../../utils/deploy/stake/deploy";
+
 
 describe("Stake maxMint", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake
+  let cloneFactory: CloneFactory
   let token: ReserveToken18;
 
   before(async () => {
@@ -26,7 +27,10 @@ describe("Stake maxMint", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementation = await stakeImplementation() 
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory 
   });
 
   beforeEach(async () => {
@@ -75,7 +79,8 @@ describe("Stake maxMint", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(cloneFactory, implementation, stakeConfigStruct);
+
 
     // Give Alice some reserve tokens and deposit them
     await token.transfer(alice.address, 9);
