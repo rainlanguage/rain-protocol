@@ -49,7 +49,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x0d60bb6bbcec777ad1bd0846d6bfc0fb041a52d23b7432fddb0c7e083822533c
+    0x9d19dc473599361045d8a72fe65b4aa958fc13db4d062ab677ab464683bd903a
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.

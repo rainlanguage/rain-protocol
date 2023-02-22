@@ -2,13 +2,15 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory, Verify } from "../../../../typechain";
 import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import {
   AutoApprove,
   AutoApproveConfigStruct,
   InitializeEvent,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { basicDeploy, zeroAddress } from "../../../../utils";
+import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../../utils";
+import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
@@ -128,5 +130,48 @@ describe("AutoApprove construction", async function () {
       admin.address,
       autoApprove.address
     );
-  });
+  });  
+  
+  it("should fail when deploying with bad callerMeta", async () => {
+    
+    const contractFactory = await ethers.getContractFactory("AutoApprove");
+
+    const touchDeployer = await getTouchDeployer(); 
+
+    const config_0 : InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("autoapprove"),
+      deployer: touchDeployer.address,
+    };
+
+    const autoApprove = (await contractFactory.deploy(
+      config_0 
+    )) as AutoApprove;
+    await autoApprove.deployed();
+
+    assert(
+      !(autoApprove.address === zeroAddress),
+      "autoApprove not deployed"
+    ); 
+    
+    const config_1 : InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("orderbook"),
+      deployer: touchDeployer.address,
+    }; 
+
+    await assertError(
+      async () =>
+      await contractFactory.deploy(
+        config_1 
+      ),
+      "UnexpectedMetaHash",
+      "AutoApprove Deployed for bad hash"
+    )
+
+
+
+
+
+  });  
+
+
 });
