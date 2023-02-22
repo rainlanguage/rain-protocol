@@ -1,18 +1,25 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { InitializeEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import {  CloneFactory, Verify } from "../../../../typechain";
+import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
+import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
+import { AutoApprove, AutoApproveConfigStruct, InitializeEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { basicDeploy, zeroAddress } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
+
+  
+  autoApproveCloneDeploy,
+  autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -21,16 +28,20 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {
-  let autoApproveFactory: AutoApproveFactory;
-  let verifyFactory: VerifyFactory;
+  let implementAutoApprove: AutoApprove  
+  let implementVerify: Verify
+  let cloneFactory: CloneFactory
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    implementAutoApprove = await autoApproveImplementation()  
+    implementVerify = await verifyImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
   });
 
   it("should construct and initialize correctly", async () => {
@@ -43,19 +54,46 @@ describe("AutoApprove construction", async function () {
       constants: [1],
     };
 
-    const autoApprove = await autoApproveDeploy(
-      deployer,
-      autoApproveFactory,
+    const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
       expressionConfig.sources,
-      expressionConfig.constants
+      expressionConfig.constants,
+
+    ); 
+
+    const initalConfig: AutoApproveConfigStruct = {
+      owner: deployer.address , 
+      evaluableConfig: evaluableConfig
+    }
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address owner, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [initalConfig]
+    );    
+
+    const autoApproveClone = await cloneFactory.clone(implementAutoApprove.address ,encodedConfig )    
+    
+    const cloneEvent = (await getEventArgs(
+      autoApproveClone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];   
+
+    assert(
+      !(cloneEvent.clone === zeroAddress),
+      "Clone autoApprove factory zero address"
     );
+  
+    const autoApprove = (await ethers.getContractAt('AutoApprove',cloneEvent.clone)) as AutoApprove  
+    
 
     const { sender, config } = (await getEventArgs(
-      autoApprove.deployTransaction,
+      autoApproveClone,
       "Initialize",
       autoApprove
     )) as InitializeEvent["args"];
-    assert(sender === autoApproveFactory.address, "wrong sender");
+    assert(sender === cloneFactory.address, "wrong sender");
     compareStructs(config, expressionConfig);
   });
 
@@ -70,16 +108,21 @@ describe("AutoApprove construction", async function () {
       constants: [1],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
+      cloneFactory,
+      implementAutoApprove,
       deployer,
-      autoApproveFactory,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    await verifyCloneDeploy(
+      cloneFactory ,  
+      implementVerify , 
+      admin.address,
+      autoApprove.address
+  ); 
+
+
   });
 });

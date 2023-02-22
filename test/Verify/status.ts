@@ -1,20 +1,26 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify } from "../../typechain";
+
+import { basicDeploy } from "../../utils";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getBlockTimestamp } from "../../utils/hardhat";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify status", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify
+  let cloneFactory: CloneFactory
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
   });
 
   it("statusAtTime should return correct status for any given state & block number", async function () {
@@ -31,10 +37,12 @@ describe("Verify status", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+cloneFactory ,  
+implementVerify , 
+defaultAdmin.address,
+ ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);

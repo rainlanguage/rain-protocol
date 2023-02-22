@@ -47,7 +47,7 @@ describe("AutoApprove afterAdd", async function () {
 
   });
 
-  it.only("should automatically approve sender if AutoApprove has APPROVER role", async () => {
+  it("should automatically approve sender if AutoApprove has APPROVER role", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];
@@ -72,6 +72,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
@@ -79,8 +80,8 @@ describe("AutoApprove afterAdd", async function () {
     const verify = await verifyCloneDeploy(
         cloneFactory ,  
         implementVerify , 
-        admin,
-        autoApprove
+        admin.address,
+        autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -137,15 +138,17 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
+
     const verify = await verifyCloneDeploy(
 cloneFactory ,  
 implementVerify , 
-admin,
- autoApprove
+admin.address,
+ autoApprove.address
     );
 
     const deployOwner = await autoApprove.owner();
@@ -205,15 +208,17 @@ admin,
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
+
     const verify = await verifyCloneDeploy(
 cloneFactory ,  
 implementVerify , 
-admin,
- autoApprove
+admin.address,
+ autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -261,15 +266,17 @@ admin,
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
+
     const verify = await verifyCloneDeploy(
 cloneFactory ,  
 implementVerify , 
-admin,
- autoApprove
+admin.address,
+ autoApprove.address
     );
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
@@ -312,15 +319,17 @@ admin,
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
+
     const verify = await verifyCloneDeploy(
 cloneFactory ,  
 implementVerify , 
-admin,
- autoApprove
+admin.address,
+ autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
@@ -377,15 +386,17 @@ admin,
     const autoApprove = await autoApproveCloneDeploy(
       cloneFactory,
       implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
+
     const verify = await verifyCloneDeploy(
 cloneFactory ,  
 implementVerify , 
-admin,
- autoApprove
+admin.address,
+ autoApprove.address
     );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);

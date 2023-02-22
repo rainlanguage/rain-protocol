@@ -6,7 +6,7 @@ import type { AutoApprove,  CloneFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
 import { NewCloneEvent } from "../../../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
-import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
+import { AutoApproveConfigStruct, EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ImplementationEvent as ImplementationEventAutoApproveFactory } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
@@ -40,7 +40,8 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
 
 export const autoApproveCloneDeploy = async (
     cloneFactory: CloneFactory ,
-    implementAutoApprove: AutoApprove ,
+    implementAutoApprove: AutoApprove , 
+    owner: SignerWithAddress,
     sources: PromiseOrValue<BytesLike>[],
     constants: PromiseOrValue<BigNumberish>[]
   ): Promise<AutoApprove>  => { 
@@ -50,11 +51,16 @@ export const autoApproveCloneDeploy = async (
       constants
     ); 
 
+    const initalConfig: AutoApproveConfigStruct = {
+      owner: owner.address , 
+      evaluableConfig: evaluableConfig
+    }
+
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
-      "tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig",
+      "tuple(address owner, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
     ],
-    [evaluableConfig]
+    [initalConfig]
   );    
 
   const autoApproveClone = await cloneFactory.clone(implementAutoApprove.address ,encodedConfig )    

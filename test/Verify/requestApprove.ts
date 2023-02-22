@@ -1,20 +1,22 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify } from "../../typechain";
+
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
-import {
-  verifyDeploy,
-  verifyFactoryDeploy,
-} from "../../utils/deploy/verify/deploy";
+import { basicDeploy } from "../../utils";
+import { verifyCloneDeploy, verifyImplementation } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 
 describe("Verify request approve", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify
+  let cloneFactory: CloneFactory
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
   });
 
   it("should allow anyone to add data to support verification", async function () {
@@ -23,10 +25,12 @@ describe("Verify request approve", async function () {
     const signer1 = signers[1];
     const signer2 = signers[2];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+cloneFactory ,  
+implementVerify , 
+defaultAdmin.address,
+ ethers.constants.AddressZero
+    );
 
     const evidenceAdd0 = hexlify([...Buffer.from("Evidence for add0")]);
 

@@ -1,21 +1,26 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify } from "../../typechain";
 import {
+  basicDeploy,
   getBlockTimestamp,
   max_uint32,
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+
+  verifyImplementation,
 } from "../../utils";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify state", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify
+  let cloneFactory: CloneFactory
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory",{})) as CloneFactory
   });
 
   it("should return correct state for a given account", async function () {
@@ -32,10 +37,12 @@ describe("Verify state", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+cloneFactory ,  
+implementVerify , 
+defaultAdmin.address,
+ ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);

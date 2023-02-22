@@ -26,12 +26,12 @@ export const verifyImplementation = async (): Promise<Verify>  => {
 export const verifyCloneDeploy = async (
     cloneFactory: CloneFactory ,
     implementVerify: Verify ,
-    admin: SignerWithAddress,
-    callback: AutoApprove
+    admin: string,
+    callback: string
 ): Promise<Verify>  => {
   const verifyConfig: VerifyConfigStruct = {
-    admin: admin.address,
-    callback: callback.address
+    admin: admin,
+    callback: callback
   } 
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
