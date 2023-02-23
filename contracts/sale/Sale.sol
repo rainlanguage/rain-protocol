@@ -182,8 +182,14 @@ contract Sale is
     /// Contract is initializing (being cloned by factory).
     /// @param sender `msg.sender` of the contract initializer (cloner).
     /// @param config All initialization config passed by the sender.
+    /// @param saleRedeemableERC20Config All initialization config for SaleRedeemableERC20 passed by the sender.
     /// @param token The freshly deployed and minted rTKN for the sale.
-    event Initialize(address sender, SaleConfig config, address token);
+    event Initialize(
+        address sender,
+        SaleConfig config,
+        SaleRedeemableERC20Config saleRedeemableERC20Config,
+        address token
+    );
     /// Sale is started (moved to active sale state).
     /// @param sender `msg.sender` that started the sale.
     event Start(address sender);
@@ -340,7 +346,12 @@ contract Sale is
         );
         token = token_;
 
-        emit Initialize(msg.sender, config_, address(token_));
+        emit Initialize(
+            msg.sender,
+            config_,
+            saleRedeemableERC20Config_,
+            address(token_)
+        );
 
         (
             IInterpreterV1 interpreter_,
