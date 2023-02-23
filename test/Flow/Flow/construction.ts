@@ -2,12 +2,14 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
-import { CloneFactory } from "../../../typechain";
+import { CloneFactory, RainterpreterExpressionDeployer } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { Flow, FlowConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { basicDeploy, zeroAddress } from "../../../utils";
+import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../utils";
 import {  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -129,5 +131,36 @@ describe("Flow construction tests", async function () {
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");     
     compareStructs(config, flowConfigStruct);
 
-  });
+  }); 
+
+  it("should fail if flow is deployed with bad callerMeta", async function () {  
+
+    const flowFactory = await ethers.getContractFactory("Flow", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer(); 
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("flow"),
+      deployer: touchDeployer.address,
+    };
+
+    const flow = (await flowFactory.deploy(interpreterCallerConfig0)) as Flow;
+
+    assert(!(flow.address === zeroAddress), "flow did not deploy");  
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("orderbook"),
+      deployer: touchDeployer.address,
+    }; 
+
+    await assertError(
+      async () =>
+      await flowFactory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "Flow Deployed for bad hash"
+    )
+    
+  });  
+
 });

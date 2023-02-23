@@ -29,7 +29,7 @@ export const saleImplementation = async (
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("stake"),
+    callerMeta: getRainContractMetaBytes("sale"),
     deployer: touchDeployer.address,
   };  
 

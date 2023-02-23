@@ -1,13 +1,15 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory } from "../../../typechain";
+import { CloneFactory, RainterpreterExpressionDeployer } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { FlowERC20, FlowERC20ConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { basicDeploy, zeroAddress } from "../../../utils";
+import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
 import {  flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -153,5 +155,36 @@ describe("FlowERC20 construction tests", async function () {
       "wrong sender in Initialize event"
     );
     compareStructs(config, flowERC20ConfigStruct);
-  });
+  });  
+  
+  it("should fail if flowERC20 is deployed with bad callerMeta", async function () {  
+
+    const flowERC20Factory = await ethers.getContractFactory("FlowERC20", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer(); 
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("flow20"),
+      deployer: touchDeployer.address,
+    };
+
+    const flowERC20 = (await flowERC20Factory.deploy(interpreterCallerConfig0)) as FlowERC20;
+
+    assert(!(flowERC20.address === zeroAddress), "flowERC20 did not deploy");  
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("orderbook"),
+      deployer: touchDeployer.address,
+    }; 
+
+    await assertError(
+      async () =>
+      await flowERC20Factory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "FlowERC20 Deployed for bad hash"
+    )
+  }); 
+
+  
 });

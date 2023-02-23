@@ -168,10 +168,6 @@ describe("Stake construction", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     )
-
-
-
-    
   }); 
 
 });

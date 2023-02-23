@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory } from "../../../typechain";
+import { CloneFactory, RainterpreterExpressionDeployer } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { FlowERC1155, FlowERC1155ConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { basicDeploy, zeroAddress } from "../../../utils";
+import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../utils";
 import {  flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -139,5 +141,34 @@ describe("FlowERC1155 construction tests", async function () {
     );
 
     compareStructs(config, flowERC1155Config);
-  });
+  }); 
+
+  it("should fail if flowERC1155 is deployed with bad callerMeta", async function () {  
+
+    const flowERC1155Factory = await ethers.getContractFactory("FlowERC1155", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer(); 
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("flow1155"),
+      deployer: touchDeployer.address,
+    };
+
+    const flowERC1155 = (await flowERC1155Factory.deploy(interpreterCallerConfig0)) as FlowERC1155;
+
+    assert(!(flowERC1155.address === zeroAddress), "flowERC1155 did not deploy");  
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("orderbook"),
+      deployer: touchDeployer.address,
+    }; 
+
+    await assertError(
+      async () =>
+      await flowERC1155Factory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "FlowERC1155 Deployed for bad hash"
+    )
+  }); 
 });
