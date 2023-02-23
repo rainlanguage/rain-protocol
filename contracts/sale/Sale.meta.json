@@ -5,8 +5,8 @@
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
-      "desc": "Deploys a new Sale contract.",
+      "name": "",
+      "desc": "",
       "inputs": [
         {
           "name": "Recepient Address",
@@ -14,13 +14,13 @@
           "path": "[6].inputs[0].components[0]"
         },
         {
-          "name": "Sale Timeout",
-          "desc": "The number of seconds before this sale can timeout. SHOULD be well after the expected end time as a timeout will fail an active or pending sale regardless of any funds raised.",
-          "path": "[6].inputs[0].components[1]"
-        },
-        {
           "name": "Reserve Token Address",
           "desc": "The reserve token address that the Sale is deonominated in.",
+          "path": "[6].inputs[0].components[1]"
+        }, 
+        {
+          "name": "Sale Timeout",
+          "desc": "The number of seconds before this sale can timeout. SHOULD be well after the expected end time as a timeout will fail an active or pending sale regardless of any funds raised.",
           "path": "[6].inputs[0].components[2]"
         },
         {

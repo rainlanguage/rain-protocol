@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ERC20PulleeTest,
   ReadWriteTier,
   ReserveToken,
@@ -8,10 +9,12 @@ import type {
 import { RedeemableERC20Reentrant } from "../../typechain";
 import {
   PhaseScheduledEvent,
+  RedeemableERC20,
+  RedeemableERC20ConfigStruct,
   RedeemEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { getBlockTimestamp, readWriteTierDeploy, Tier } from "../../utils";
+import { basicDeploy, getBlockTimestamp, readWriteTierDeploy, redeemableERC20DeployClone, redeemableERC20DeployImplementation, Tier } from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { Phase } from "../../utils/types/redeemableERC20";
@@ -20,10 +23,18 @@ describe("RedeemableERC20 redeem test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
   let reserve: ReserveToken;
+  let cloneFactory: CloneFactory 
+  let implementation: RedeemableERC20
+
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
-    tier = await readWriteTierDeploy();
+    tier = await readWriteTierDeploy(); 
+    implementation = await redeemableERC20DeployImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+
   });
 
   beforeEach(async () => {
@@ -57,15 +68,22 @@ describe("RedeemableERC20 redeem test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: maliciousReserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    }
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    )
+
 
     await maliciousReserve.addReentrantTarget(redeemableERC20.address);
 
@@ -126,15 +144,21 @@ describe("RedeemableERC20 redeem test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(alice.address, Tier.FOUR);
+    await tier.setTier(alice.address, Tier.FOUR); 
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    }
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    );
 
     await redeemableERC20.deployed();
 
@@ -446,18 +470,25 @@ describe("RedeemableERC20 redeem test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    await tier.setTier(signer1.address, Tier.FOUR);
-    await tier.setTier(signer2.address, Tier.FOUR);
-
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve1.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    }
+
+
+    await tier.setTier(signer1.address, Tier.FOUR);
+    await tier.setTier(signer2.address, Tier.FOUR);
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    ); 
 
     await reserve2.transfer(
       redeemableERC20.address,
@@ -541,20 +572,26 @@ describe("RedeemableERC20 redeem test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
+
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20Config,
+      tier: tier.address,
+      minimumTier: minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    }
 
     // grant second signer GOLD status so they can receive transferred tokens
     await tier.setTier(signers[1].address, Tier.FOUR);
     // grant third signer SILVER status which is NOT enough to receive transfers
     await tier.setTier(signers[2].address, Tier.THREE);
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: tier.address,
-      minimumTier: minimumTier,
-      distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    );
 
     await redeemableERC20.deployed();
 
@@ -627,18 +664,24 @@ describe("RedeemableERC20 redeem test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    await tier.setTier(signer1.address, Tier.FOUR);
-    await tier.setTier(signer2.address, Tier.FOUR);
-
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve1.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    }
+
+    await tier.setTier(signer1.address, Tier.FOUR);
+    await tier.setTier(signer2.address, Tier.FOUR);
+
+    const redeemableERC20 = await await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    )
 
     // There are no reserve tokens in the redeemer on construction
     assert(
@@ -828,17 +871,23 @@ describe("RedeemableERC20 redeem test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    await tier.setTier(alice.address, Tier.FOUR);
-
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    }
+
+    await tier.setTier(alice.address, Tier.FOUR);
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    );
 
     // Redemption not allowed yet.
     await Util.assertError(

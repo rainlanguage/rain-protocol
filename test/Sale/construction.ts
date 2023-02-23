@@ -1,13 +1,15 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import { CloneFactory, ReadWriteTier, ReserveToken, Sale } from "../../typechain";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
-  saleDependenciesDeploy,
-  saleDeploy,
+  saleClone,
+  
+  saleImplementation,
 } from "../../utils/deploy/sale/deploy";
 import {
   generateEvaluableConfig,
@@ -23,15 +25,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale construction", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken
+  let readWriteTier: ReadWriteTier
+     
+  let cloneFactory: CloneFactory 
+  let implementation: Sale
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy()  
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+
+    implementation = await saleImplementation(cloneFactory)
   });
 
   beforeEach(async () => {
@@ -77,10 +86,9 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
-          signers,
-          deployer,
-          saleFactory,
+      await saleClone(
+        cloneFactory,
+        implementation,
           {
             evaluableConfig,
             recipient: recipient.address,
@@ -142,10 +150,9 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
-          signers,
-          deployer,
-          saleFactory,
+      await saleClone(
+        cloneFactory,
+        implementation,
           {
             evaluableConfig,
             recipient: recipient.address,

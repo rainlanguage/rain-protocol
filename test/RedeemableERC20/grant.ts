@@ -1,24 +1,33 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ERC20PulleeTest,
   ReadWriteTier,
   RedeemableERC20,
   ReserveToken,
 } from "../../typechain";
+import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { readWriteTierDeploy, Tier } from "../../utils";
+import { basicDeploy, readWriteTierDeploy, redeemableERC20DeployClone, redeemableERC20DeployImplementation, Tier } from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 grant test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
-  let reserve: ReserveToken;
+  let reserve: ReserveToken; 
+  let cloneFactory: CloneFactory 
+  let implementation: RedeemableERC20
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
-    tier = await readWriteTierDeploy();
+    tier = await readWriteTierDeploy(); 
+    implementation = await redeemableERC20DeployImplementation()
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+
   });
 
   beforeEach(async () => {
@@ -41,15 +50,21 @@ describe("RedeemableERC20 grant test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    }
+
+    const token = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    )
 
     await erc20Pullee.grantSender(token.address, alice.address);
 
@@ -78,15 +93,21 @@ describe("RedeemableERC20 grant test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    }
+
+    const token = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    )
 
     await erc20Pullee.grantReceiver(token.address, alice.address);
 
@@ -121,15 +142,22 @@ describe("RedeemableERC20 grant test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    };
+    }; 
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    }
+
+
+    const token = await redeemableERC20DeployClone(
+      cloneFactory, 
+      implementation , 
+      redeemableConfig
+    )
 
     // alice tries to transfer to bob
     await Util.assertError(

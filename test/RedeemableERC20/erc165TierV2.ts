@@ -1,13 +1,14 @@
 import { assert } from "chai";
 import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ERC20PulleeTest, ReserveToken } from "../../typechain";
+import type { CloneFactory, ERC20PulleeTest, ReserveToken } from "../../typechain";
 import { CombineTier, StakeFactory } from "../../typechain";
 import {
   ERC20ConfigStruct,
   InitializeEvent,
+  RedeemableERC20,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
@@ -17,11 +18,13 @@ import {
   compareStructs,
   getEventArgs,
   max_uint256,
+  redeemableERC20DeployImplementation,
   stakeDeploy,
+  stakeImplementation,
   Tier,
 } from "../../utils";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
@@ -36,14 +39,22 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let reserve: ReserveToken;
   let redeemableERC20Config: ERC20ConfigStruct;
-  let stakeFactory: StakeFactory;
+  let implementationStake: Stake; 
+  let implementationRedeemableERC20: RedeemableERC20
+
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementationStake = await stakeImplementation();
+    implementationRedeemableERC20 = await redeemableERC20DeployImplementation()
+
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
     erc20Pullee = await erc20PulleeDeploy();
 

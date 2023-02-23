@@ -2,23 +2,28 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  CloneFactory,
   ReadWriteTier,
-  RedeemableERC20Factory,
+  
   ReserveToken,
-  SaleFactory,
+  
 } from "../../typechain";
+import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import {
   BuyEvent,
   EndEvent,
   InitializeEvent,
+  Sale,
   StartEvent,
 } from "../../typechain/contracts/sale/Sale";
+import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
-  saleDependenciesDeploy,
-  saleDeploy,
+  saleClone,
+
+  saleImplementation,
 } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
@@ -39,17 +44,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale minimum raise", async function () {
-  let reserve: ReserveToken,
-    redeemableERC20Factory: RedeemableERC20Factory,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken
+  let readWriteTier: ReadWriteTier
+     
+  let cloneFactory: CloneFactory 
+  let implementation: Sale
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ redeemableERC20Factory, readWriteTier, saleFactory } =
-      await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy()  
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+
+    implementation = await saleImplementation(cloneFactory)
   });
 
   beforeEach(async () => {
@@ -95,10 +105,9 @@ describe("Sale minimum raise", async function () {
     ];
     const saleTimeout = 100;
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
-      signers,
-      deployer,
-      saleFactory,
+    const [sale, token] = await saleClone(
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -119,7 +128,7 @@ describe("Sale minimum raise", async function () {
     const saleToken = await sale.token();
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
-    assert(await redeemableERC20Factory.isChild(saleToken));
+    // assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
     const fee = ethers.BigNumber.from("1").mul(RESERVE_ONE);
@@ -324,7 +333,8 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const evaluableConfig = await generateEvaluableConfig(sources, constants); 
+
     const saleConfig = {
       evaluableConfig,
       recipient: recipient.address,
@@ -333,34 +343,53 @@ describe("Sale minimum raise", async function () {
       minimumRaise,
       dustSize: 0,
       saleTimeout,
-    };
+    };  
+    const saleRedeemableConfig = {
+      erc20Config: redeemableERC20Config,
+      tier: readWriteTier.address,
+      minimumTier: Tier.ZERO,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    }
 
-    const [sale] = await saleDeploy(
-      signers,
-      deployer,
-      saleFactory,
-      saleConfig,
-      {
-        erc20Config: redeemableERC20Config,
-        tier: readWriteTier.address,
-        minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: ethers.constants.AddressZero,
-      }
-    );
-    const afterInitializeBlock = await ethers.provider.getBlockNumber();
-    const { sender, config, token } = (await getEventArgs(
-      sale.deployTransaction,
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)", 
+        "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )"
+      ],
+      [saleConfig,saleRedeemableConfig]
+    ); 
+
+    const saleClone = await cloneFactory.clone(
+      implementation.address,  
+      encodedConfig
+    ); 
+
+    const cloneEvent = (await getEventArgs(
+      saleClone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];
+
+    const sale = (await ethers.getContractAt(
+      "Sale",
+      cloneEvent.clone
+    )) as Sale;   
+
+    const afterInitializeBlock = await ethers.provider.getBlockNumber(); 
+
+    const { sender, config, saleRedeemableERC20Config,  token } = (await getEventArgs(
+      saleClone,
       "Initialize",
       sale
-    )) as InitializeEvent["args"];
+    )) as InitializeEvent["args"]; 
 
     compareStructs(config, saleConfig);
-    assert(sender === saleFactory.address, "wrong sender in Initialize event");
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
     const saleToken = await sale.token();
     assert(saleToken === token, "wrong token in Initialize event");
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
-    assert(await redeemableERC20Factory.isChild(saleToken));
+    // assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
     const cantStart = await sale.previewCanLive();

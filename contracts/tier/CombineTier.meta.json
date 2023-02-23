@@ -5,8 +5,8 @@
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
-      "desc": "Deploys a new CombineTier contract.",
+      "name": "",
+      "desc": "",
       "inputs": [
         {
           "name": "combinedTiersLength",
