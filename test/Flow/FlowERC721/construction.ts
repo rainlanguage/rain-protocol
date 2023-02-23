@@ -1,13 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC721Factory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { CloneFactory } from "../../../typechain";
+import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+import { FlowERC721, FlowERC721ConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
+import { basicDeploy, zeroAddress } from "../../../utils";
+import {  flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -19,14 +22,18 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 construction tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory
+  let implementation: FlowERC721
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
@@ -66,7 +73,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const sources = [sourceCanTransfer];
 
-    const configStruct: FlowERC721Config = {
+    const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {
@@ -81,23 +88,66 @@ describe("FlowERC721 construction tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      configStruct
-    );
+    // Building evaluableConfig
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    flowERC721Config.expressionConfig.sources,
+    flowERC721Config.expressionConfig.constants
+  );
 
+  // Building flowConfig
+  const flowConfig: EvaluableConfigStruct[] = [];
+  for (let i = 0; i < flowERC721Config.flows.length; i++) {
+    const evaluableConfig = await generateEvaluableConfig(
+      flowERC721Config.flows[i].sources,
+      flowERC721Config.flows[i].constants
+    );
+    flowConfig.push(evaluableConfig);
+  }
+
+  const flowERC721ConfigStruct: FlowERC721ConfigStruct = {
+    evaluableConfig: evaluableConfig,
+    flowConfig: flowConfig,
+    name: flowERC721Config.name,
+    symbol: flowERC721Config.symbol,
+  }; 
+
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+    ],
+    [flowERC721ConfigStruct]
+  );
+
+  const flowCloneTx = await cloneFactory.clone(
+    implementation.address,
+    encodedConfig
+  );
+
+  const cloneEvent = (await getEventArgs(
+    flowCloneTx,
+    "NewClone",
+    cloneFactory
+  )) as NewCloneEvent["args"]; 
+
+  
+
+  assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
+
+  const flow = (await ethers.getContractAt(
+    "FlowERC721",
+    cloneEvent.clone
+  )) as FlowERC721; 
     const { sender, config } = (await getEventArgs(
-      flow.deployTransaction,
+      flowCloneTx,
       "Initialize",
       flow
     )) as InitializeEvent["args"];
 
     assert(
-      sender === flowERC721Factory.address,
+      sender === cloneFactory.address,
       "wrong sender in Initialize event"
     );
 
-    compareStructs(config, configStruct);
+    compareStructs(config, flowERC721Config);
   });
 });

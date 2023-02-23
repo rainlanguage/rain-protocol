@@ -2,32 +2,39 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
-import { FlowFactory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import { CloneFactory } from "../../../typechain";
+import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+import { Flow, FlowConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
+import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
+import { basicDeploy, zeroAddress } from "../../../utils";
+import {  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { compareEvaluableConfigs } from "../../../utils/test/compareStructs";
+import {  compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
 describe("Flow construction tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowFactory = await flowFactoryDeploy();
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
@@ -69,22 +76,58 @@ describe("Flow construction tests", async function () {
           constants,
         },
       ],
-    };
+    }; 
 
-    const { flow, evaluableConfigs } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfig
+    const evaluableConfigs: EvaluableConfigStruct[] = [];
+
+    // Building config
+    for (let i = 0; i < flowConfig.flows.length; i++) {
+      const evaluableConfig = await generateEvaluableConfig(
+        flowConfig.flows[i].sources,
+        flowConfig.flows[i].constants
+      );
+      evaluableConfigs.push(evaluableConfig);
+    }
+
+    const flowConfigStruct: FlowConfigStruct = {
+      dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
+      config: evaluableConfigs,
+    };  
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(tuple(address deployer,bytes[] sources,uint256[] constants) dummyConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] config)",
+      ],
+      [flowConfigStruct]
+    ); 
+
+    const flowClone = await cloneFactory.clone(
+      implementation.address,
+      encodedConfig
     );
+  
+    const cloneEvent = (await getEventArgs(
+      flowClone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];  
 
-    const { sender, config } = (await getEventArgs(
-      flow.deployTransaction,
+    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address"); 
+
+    const flow = (await ethers.getContractAt(
+      "Flow",
+      cloneEvent.clone
+    )) as Flow; 
+
+
+    const {sender, config } = (await getEventArgs(
+      flowClone,
       "Initialize",
       flow
-    )) as InitializeEvent["args"];
+    )) as InitializeEvent["args"]; 
 
-    assert(sender === flowFactory.address, "wrong sender in Initialize event");
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");     
+    compareStructs(config, flowConfigStruct);
 
-    compareEvaluableConfigs(config, evaluableConfigs);
   });
 });

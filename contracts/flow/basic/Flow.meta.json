@@ -1,12 +1,12 @@
 {
-  "name": "Flow Factory",
-  "desc": "A common flow contract, that can transfer token based on a deployed expression",
+  "name": "Flow",
+  "desc": "A flow contract, that can transfer token based on a deployed expression",
   "alias": "flow",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
-      "desc": "Deploys a new Flow ERC20 contract.",
+      "name": "",
+      "desc": "",
       "expressions": [
         {
           "name": "Dummy Expression",

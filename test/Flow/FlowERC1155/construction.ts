@@ -1,13 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC1155Factory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
-import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import { CloneFactory } from "../../../typechain";
+import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+import { FlowERC1155, FlowERC1155ConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
+import { basicDeploy, zeroAddress } from "../../../utils";
+import {  flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -19,14 +22,18 @@ import { FlowERC1155Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC1155 construction tests", async function () {
-  let flowERC1155Factory: FlowERC1155Factory;
+  let implementation: FlowERC1155;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC1155Factory = await flowERC1155FactoryDeploy();
+    implementation = await flowERC1155Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
@@ -57,7 +64,7 @@ describe("FlowERC1155 construction tests", async function () {
 
     const sources = [sourceCanTransfer];
 
-    const configStruct: FlowERC1155Config = {
+    const flowERC1155Config: FlowERC1155Config = {
       uri: "F1155",
       expressionConfig: {
         sources,
@@ -71,23 +78,66 @@ describe("FlowERC1155 construction tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC1155Deploy(
-      deployer,
-      flowERC1155Factory,
-      configStruct
+    // Building evaluableConfig
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    flowERC1155Config.expressionConfig.sources,
+    flowERC1155Config.expressionConfig.constants
+  );
+
+  // Building flowConfig
+  const flowConfig: EvaluableConfigStruct[] = [];
+  for (let i = 0; i < flowERC1155Config.flows.length; i++) {
+    const evaluableConfig = await generateEvaluableConfig(
+      flowERC1155Config.flows[i].sources,
+      flowERC1155Config.flows[i].constants
     );
+    flowConfig.push(evaluableConfig);
+  }
+
+  const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
+    evaluableConfig: evaluableConfig,
+    flowConfig: flowConfig,
+    uri: flowERC1155Config.uri,
+  };
+
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(string uri, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+    ],
+    [flowERC1155ConfigStruct]
+  );
+
+  const flowCloneTx = await cloneFactory.clone(
+    implementation.address,
+    encodedConfig
+  );
+
+  const cloneEvent = (await getEventArgs(
+    flowCloneTx,
+    "NewClone",
+    cloneFactory
+  )) as NewCloneEvent["args"]; 
+
+  
+
+  assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
+
+  const flow = (await ethers.getContractAt(
+    "FlowERC1155",
+    cloneEvent.clone
+  )) as FlowERC1155;
 
     const { sender, config } = (await getEventArgs(
-      flow.deployTransaction,
+      flowCloneTx,
       "Initialize",
       flow
     )) as InitializeEvent["args"];
 
     assert(
-      sender === flowERC1155Factory.address,
+      sender === cloneFactory.address,
       "wrong sender in Initialize event"
     );
 
-    compareStructs(config, configStruct);
+    compareStructs(config, flowERC1155Config);
   });
 });

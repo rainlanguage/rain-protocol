@@ -1,14 +1,13 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory } from "../../../typechain";
-import { ContextEvent } from "../../../typechain/contracts/flow/basic/Flow";
+import { CloneFactory } from "../../../typechain";
+import { ContextEvent, Flow } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { SignedContextStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { getEventArgs, getEvents } from "../../../utils";
+import { basicDeploy, getEventArgs, getEvents } from "../../../utils";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import { deployFlowClone,  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   memoryOperand,
@@ -21,14 +20,18 @@ import { FlowConfig } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("Flow deployExpression tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowFactory = await flowFactoryDeploy();
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should deploy expression", async function () {
@@ -51,7 +54,7 @@ describe("Flow deployExpression tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const _flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
   });
 
   it("should validate context from the context event", async () => {
@@ -76,13 +79,15 @@ describe("Flow deployExpression tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
+
+    
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);

@@ -35,7 +35,7 @@ struct FlowERC1155IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1290d7867e9b5439014535435d75311851bb268aaba61b7b0b8399449a36c71f
+    0x12eb0421673f6184fb31d5509406f8fc04dd1ecfa8213f3aced41f2cb0d59877
 );
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);

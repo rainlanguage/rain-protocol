@@ -1,22 +1,45 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Flow, FlowFactory } from "../../../../typechain";
+import { CloneFactory, Flow, RainterpreterExpressionDeployer } from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowConfigStruct,
 } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
+import { assert } from "chai";
 
-import { generateEvaluableConfig } from "../../../interpreter";
+import { generateEvaluableConfig } from "../../../interpreter"; 
+import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
+import { getRainContractMetaBytes } from "../../../meta";
+import { zeroAddress } from "../../../constants";
+import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
 
-export const flowDeploy = async (
-  deployer: SignerWithAddress,
-  flowFactory: FlowFactory,
+export const flowImplementation = async (): Promise<Flow> => {
+  const flowFactory = await ethers.getContractFactory("Flow", {});
+
+  const touchDeployer: RainterpreterExpressionDeployer =
+    await getTouchDeployer();
+  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("flow"),
+    deployer: touchDeployer.address,
+  };
+
+  const flow = (await flowFactory.deploy(interpreterCallerConfig)) as Flow;
+
+  assert(!(flow.address === zeroAddress), "implementation stake zero address");
+
+  return flow;
+}; 
+
+export const deployFlowClone = async (
+  cloneFactory: CloneFactory,
+  implementation: Flow,
   flowConfig: FlowConfig,
-  ...args: Overrides[]
-) => {
+) => { 
+
   const evaluableConfigs: EvaluableConfigStruct[] = [];
 
   // Building config
@@ -31,29 +54,38 @@ export const flowDeploy = async (
   const flowConfigStruct: FlowConfigStruct = {
     dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
     config: evaluableConfigs,
-  };
+  }; 
 
-  const txDeploy = await flowFactory.createChildTyped(
-    flowConfigStruct,
-    ...args
+
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(tuple(address deployer,bytes[] sources,uint256[] constants) dummyConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] config)",
+    ],
+    [flowConfigStruct]
   );
 
-  const flow = new ethers.Contract(
-    ethers.utils.hexZeroPad(
-      ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", flowFactory)).child
-      ),
-      20 // address bytes length
-    ),
-    (await artifacts.readArtifact("Flow")).abi,
-    deployer
-  ) as Flow;
+  const flowCloneTx = await cloneFactory.clone(
+    implementation.address,
+    encodedConfig
+  );
 
-  await flow.deployed();
+  const cloneEvent = (await getEventArgs(
+    flowCloneTx,
+    "NewClone",
+    cloneFactory
+  )) as NewCloneEvent["args"]; 
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  flow.deployTransaction = txDeploy;
+  
 
-  return { flow, evaluableConfigs };
+  assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
+
+  const flow = (await ethers.getContractAt(
+    "Flow",
+    cloneEvent.clone
+  )) as Flow; 
+
+
+  return {flow , flowCloneTx};
 };
+
+

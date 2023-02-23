@@ -1,7 +1,7 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC721Factory, ReserveToken18 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { CloneFactory,  ReserveToken18 } from "../../../typechain";
+import { FlowERC721, FlowTransferStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -9,8 +9,8 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { flowERC721Clone,  flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
+
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
@@ -25,7 +25,8 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = RainterpreterOps;
 
 describe("FlowERC721 flowTime tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory
+  let implementation: FlowERC721
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
@@ -34,7 +35,10 @@ describe("FlowERC721 flowTime tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -141,14 +145,14 @@ describe("FlowERC721 flowTime tests", async function () {
       symbol: "FWIN721",
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
+    const { flow, flowCloneTx } = await flowERC721Clone(
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

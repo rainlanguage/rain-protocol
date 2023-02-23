@@ -1,12 +1,13 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowERC721Factory,
+  CloneFactory,
   ReserveToken,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowERC721,
   FlowERC721IOStruct,
   FlowTransferStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
@@ -17,8 +18,7 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { flowERC721Clone,  flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
@@ -35,7 +35,8 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 previewFlow tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory
+  let implementation: FlowERC721
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
@@ -44,7 +45,10 @@ describe("FlowERC721 previewFlow tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should preview defined flow IO for native Ether", async () => {
@@ -121,7 +125,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -134,7 +138,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -294,7 +298,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -307,7 +311,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -448,7 +452,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -461,7 +465,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -619,7 +623,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -632,7 +636,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -746,7 +750,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -759,7 +763,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -861,7 +865,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -874,7 +878,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -998,7 +1002,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -1011,7 +1015,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -1060,7 +1064,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -1073,7 +1077,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -1129,7 +1133,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+    const { flow , flowCloneTx} = await flowERC721Clone(cloneFactory, implementation, {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: expressionConfigStruct,
@@ -1142,7 +1146,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     });
 
     const flowInitialized = (await getEvents(
-      flow.deployTransaction,
+      flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
