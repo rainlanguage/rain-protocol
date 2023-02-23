@@ -16,7 +16,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should execute a simple call (increment a number)", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
       _:  call<1 1>(2);
@@ -44,7 +44,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should change the eval's scope using CALL opcode", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source calculating fibonacci sequence up to 5 */
       _ _ _ _ _ _:
@@ -93,7 +93,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the minimum number of input", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
       _:  add(
@@ -123,7 +123,7 @@ describe("CALL Opcode test", async function () {
 
   it("should process the maximum number of inputs and fail beyond that", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `
       /* main source */
       _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
@@ -167,8 +167,8 @@ describe("CALL Opcode test", async function () {
     );
 
     assertError(
-      () =>
-        standardEvaluableConfig(
+      async () =>
+        await standardEvaluableConfig(
           `
       /* main source */
       _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
@@ -199,7 +199,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the minimum number of output", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
       _:  call<1 1>(2 2);
@@ -229,7 +229,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of output and fail beyond that", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
       _ _ _:  call<3 1>(2 2);
@@ -276,7 +276,7 @@ describe("CALL Opcode test", async function () {
       call<1 7>  235 + 1 = 236
     */
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
       _:  call<1 7>(
@@ -355,7 +355,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should forward inputs to a call while also supporting other aliases", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source 0 */
       _ _:  call<2 1>(10);
@@ -390,7 +390,7 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should preserve a stack value in a call", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source 0 */
       value: 10,

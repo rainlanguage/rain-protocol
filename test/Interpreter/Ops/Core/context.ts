@@ -15,7 +15,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context height [COLUMN] up to 16", async () => {
     const { sources, constants } =
-      standardEvaluableConfig(`_: context<0 15>();`);
+      await standardEvaluableConfig(`_: context<0 15>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -32,7 +32,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context width [ROW] up to 16", async () => {
     const { sources, constants } =
-      standardEvaluableConfig(`_: context<15 0>();`);
+      await standardEvaluableConfig(`_: context<15 0>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -49,7 +49,7 @@ describe("RainInterpreter context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const { sources, constants } =
-      standardEvaluableConfig(`_: context<3 0>();`);
+      await standardEvaluableConfig(`_: context<3 0>();`);
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
@@ -68,7 +68,7 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should not necessarily require square context matrix", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
       _: context<1 0>(),
       _: context<2 0>(),
@@ -104,7 +104,7 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should return correct context value when specifying context operand for 2D context", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
       _: context<1 0>(),
       _: context<2 0>(),
@@ -147,7 +147,7 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should return correct context value when specifying context operand for 1D context", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
       _: context<1 0>(),
       _: context<2 0>(),`
@@ -177,7 +177,7 @@ describe("RainInterpreter context", async function () {
   });
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
-    const { sources, constants } = standardEvaluableConfig(`_: context<0 0>()`);
+    const { sources, constants } = await standardEvaluableConfig(`_: context<0 0>()`);
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);

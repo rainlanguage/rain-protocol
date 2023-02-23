@@ -14,7 +14,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should support context height [COLUMN] up to 16", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context-row<15>(0)`
     );
 
@@ -34,7 +34,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
   it("should support context width [ROW] up to 256", async () => {
     const MAX_ROWS = 2 ** 8;
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context-row<0>(${MAX_ROWS - 1})`
     );
 
@@ -53,7 +53,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should error if accessing memory outside of context memory range", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context-row<0>(10)`
     );
 
@@ -74,7 +74,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should return correct context value when specifying CONTEXT_ROW operand for 2D context", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       _: context-row<0>(0), 
       _: context-row<0>(1), 
@@ -117,7 +117,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should return correct context value when specifying CONTEXT_ROW operand for 1D context", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       _: context-row<0>(0), 
       _: context-row<0>(1), 
@@ -149,7 +149,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should support adding new data to stack at runtime via CONTEXT_ROW opcode", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: context-row<1>(0);`
     );
 

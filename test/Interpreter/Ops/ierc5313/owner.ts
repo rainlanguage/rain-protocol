@@ -42,7 +42,7 @@ describe("RainInterpreter EIP5313 ops", async function () {
   it("should return owner", async () => {
     const signers = await ethers.getSigners();
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-5313-owner(${tokenWithOwner.address});`
     );
 
@@ -71,7 +71,7 @@ describe("RainInterpreter EIP5313 ops", async function () {
     const signer2 = signers[2];
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
+      await standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -96,7 +96,7 @@ describe("RainInterpreter EIP5313 ops", async function () {
     await tokenWithOwner.connect(signers[0]).transferOwnerShip(signer2.address);
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
+      await standardEvaluableConfig(`_: erc-5313-owner(${tokenWithOwner.address});`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,

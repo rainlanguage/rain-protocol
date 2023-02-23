@@ -30,7 +30,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check whether any value in a list is non-zero", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: any(1 2 3);`);
+      await standardEvaluableConfig(`_: any(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -48,7 +48,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: any(0 0);`);
+      await standardEvaluableConfig(`_: any(0 0);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -66,7 +66,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: any(0 0 3);`);
+      await standardEvaluableConfig(`_: any(0 0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,
@@ -86,7 +86,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check whether every value in a list is non-zero", async () => {
     // prettier-ignore
-    const { sources: sources0, constants: constants0 } = standardEvaluableConfig(
+    const { sources: sources0, constants: constants0 } = await standardEvaluableConfig(
       `_: every(1 2 3);`
     );
 
@@ -106,7 +106,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: every(0 1 2);`);
+      await standardEvaluableConfig(`_: every(0 1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -124,7 +124,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: every(0 3);`);
+      await standardEvaluableConfig(`_: every(0 3);`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,
@@ -144,7 +144,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: eager-if(1 2 3);`);
+      await standardEvaluableConfig(`_: eager-if(1 2 3);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -162,7 +162,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: eager-if(2 2 3);`);
+      await standardEvaluableConfig(`_: eager-if(2 2 3);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -180,7 +180,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: eager-if(0 2 3);`);
+      await standardEvaluableConfig(`_: eager-if(0 2 3);`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,
@@ -200,7 +200,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check that value is greater than another value", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: greater-than(2 1);`);
+      await standardEvaluableConfig(`_: greater-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -218,7 +218,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: greater-than(1 2);`);
+      await standardEvaluableConfig(`_: greater-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -238,7 +238,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check that value is less than another value", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: less-than(2 1);`);
+      await standardEvaluableConfig(`_: less-than(2 1);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -257,7 +257,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: less-than(1 2);`);
+      await standardEvaluableConfig(`_: less-than(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -279,7 +279,7 @@ describe("RainInterpreter logic ops", async function () {
     const id = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: equal-to(2 2);`);
+      await standardEvaluableConfig(`_: equal-to(2 2);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -298,7 +298,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: equal-to(1 2);`);
+      await standardEvaluableConfig(`_: equal-to(1 2);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,
@@ -316,7 +316,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(`_: equal-to(1 context<0 0>());`);
+      await standardEvaluableConfig(`_: equal-to(1 context<0 0>());`);
 
     const expression2 = await expressionConsumerDeploy(
       sources2,
@@ -337,7 +337,7 @@ describe("RainInterpreter logic ops", async function () {
     );
 
     const { sources: sources3, constants: constants3 } =
-      standardEvaluableConfig(`_: equal-to(${id} context<0 0>());`);
+      await standardEvaluableConfig(`_: equal-to(${id} context<0 0>());`);
 
     const expression3 = await expressionConsumerDeploy(
       sources3,
@@ -360,7 +360,7 @@ describe("RainInterpreter logic ops", async function () {
 
   it("should check that a value is zero", async () => {
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: is-zero(0);`);
+      await standardEvaluableConfig(`_: is-zero(0);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -379,7 +379,7 @@ describe("RainInterpreter logic ops", async function () {
     assert(isTruthy(result0), "wrongly says 0 is not zero");
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: is-zero(1);`);
+      await standardEvaluableConfig(`_: is-zero(1);`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,

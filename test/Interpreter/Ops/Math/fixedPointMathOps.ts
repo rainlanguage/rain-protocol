@@ -38,7 +38,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0xfc; // -4
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-by<${n}>(${value1});`
     );
 
@@ -70,7 +70,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0x04; // 4
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-by<${n}>(${value1});`
     );
 
@@ -103,7 +103,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 20;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-n<${n}>(${value1});`
     );
 
@@ -136,7 +136,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 6;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-n<${n}>(${value1});`
     );
 
@@ -169,7 +169,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = 50;
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-div<0>(${value1} ${value2});`
     );
 
@@ -203,7 +203,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value1 = 1;
     const value2 = ONE.mul(2);
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-mul<0>(${value1} ${value2});`
     );
 
@@ -236,7 +236,7 @@ describe("RainInterpreter fixed point math ops", async function () {
   it("should scale a number UP to 18 OOM", async () => {
     const value = ethers.BigNumber.from("100245700");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18<${ROUNDING_UP} 8>(${value});`
     );
 
@@ -268,7 +268,7 @@ describe("RainInterpreter fixed point math ops", async function () {
   it("should scale a number DOWN to 18 OOM", async () => {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale18<${ROUNDING_UP} 24>(${value});`
     );
 
@@ -300,7 +300,7 @@ describe("RainInterpreter fixed point math ops", async function () {
   it("should scale a number DOWN to 18 OOM with ROUNDING UP", async () => {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale18<${ROUNDING_UP} 20>(${value});`
     );
 
@@ -334,7 +334,7 @@ describe("RainInterpreter fixed point math ops", async function () {
   it("should scale a number DOWN to 18 OOM with ROUNDING DOWN", async () => {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale18<${ROUNDING_DOWN} 20>(${value});`
     );
 
@@ -367,7 +367,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const decimals = 8;
     const value = ethers.BigNumber.from("100245700");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
     );
 
@@ -400,7 +400,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const decimals = 24;
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
     );
 
@@ -433,7 +433,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const decimals = 22;
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
     );
 
@@ -467,7 +467,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const decimals = 22;
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: scale-18-dynamic<${ROUNDING_DOWN}>(${decimals} ${value});`
     );
 

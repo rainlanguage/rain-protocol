@@ -26,7 +26,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
   });
 
   it("should return block.timestamp", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: block-timestamp();`
     );
 
@@ -53,7 +53,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
   it("should return block.number", async () => {
     const { sources, constants } =
-      standardEvaluableConfig(`_: block-number();`);
+      await standardEvaluableConfig(`_: block-number();`);
 
     const expression0 = await expressionConsumerDeploy(
       sources,

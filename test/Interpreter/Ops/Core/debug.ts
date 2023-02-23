@@ -16,7 +16,7 @@ describe("RainInterpreter debug op", async function () {
   });
 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: add(10 20),
       : debug<${Debug.Stack}>();`
     );
@@ -34,7 +34,7 @@ describe("RainInterpreter debug op", async function () {
   });
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: add(10 20),
       : debug<${Debug.StatePacked}>();`
     );
@@ -54,7 +54,7 @@ describe("RainInterpreter debug op", async function () {
   it("should be able to log when used within a source from CALL op", async () => {
     const constants = [0, 1, 20];
 
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `
       a: read-memory<${MemoryType.Constant} 0>(),
       b: read-memory<${MemoryType.Constant} 1>(),
@@ -81,7 +81,7 @@ describe("RainInterpreter debug op", async function () {
   it("should be able to log when used within a source from DO_WHILE op", async () => {
     const constants = [3, 2, 7];
 
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `
       /* Main Source */
       input: read-memory<${MemoryType.Constant} 0>(),
@@ -125,7 +125,7 @@ describe("RainInterpreter debug op", async function () {
     const incrementValue = 1;
 
     const constants = [initialValue, incrementValue];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `
       /* MAIN SOURCE */
       input: read-memory<${MemoryType.Constant} 0>(),

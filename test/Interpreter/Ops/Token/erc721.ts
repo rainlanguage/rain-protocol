@@ -49,7 +49,7 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   it("should return owner of specific ERC721 token", async () => {
     const nftId = 0;
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-721-owner-of(${tokenERC721.address} ${nftId});`
     );
 
@@ -80,7 +80,7 @@ describe("RainInterpreter ERC721 ops", async function () {
   });
 
   it("should return ERC721 balance of signer", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-721-balance-of(${tokenERC721.address} ${signer1.address});`
     );
 

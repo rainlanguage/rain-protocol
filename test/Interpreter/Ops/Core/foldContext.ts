@@ -43,7 +43,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const column = 0;
     const width = 4;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `
       /* 
         sources[0] 

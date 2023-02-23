@@ -29,7 +29,7 @@ describe("SET/GET Opcode tests", async function () {
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `key1: ${key1},
       val1: ${val1},
       val2: ${val2},
@@ -64,7 +64,7 @@ describe("SET/GET Opcode tests", async function () {
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `key1: ${key1},
       val1: ${val1},
       val2: ${val2},
@@ -95,7 +95,7 @@ describe("SET/GET Opcode tests", async function () {
     const val2 = 0;
     const val3 = 555;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `key1: ${key1},
       key2: ${key2},
       key3: ${key3},
@@ -128,7 +128,7 @@ describe("SET/GET Opcode tests", async function () {
     const val = 456;
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val},
         _: set(key val) get(key);`
@@ -156,7 +156,7 @@ describe("SET/GET Opcode tests", async function () {
     const hashedValue = keccak256(randomBytes(256));
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${hashedKey},
         val: ${hashedValue},
         _: set(key val) get(key);`
@@ -187,7 +187,7 @@ describe("SET/GET Opcode tests", async function () {
     const maxValue = ethers.constants.MaxUint256;
 
     const { sources: sources2, constants: constants2 } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${maxKey},
         val: ${maxValue},
         _: set(key val) get(key);`
@@ -218,7 +218,7 @@ describe("SET/GET Opcode tests", async function () {
     const addressValue = signers[1].address;
 
     const { sources: sources3, constants: constants3 } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${addressKey},
         val: ${addressValue},
         _: set(key val) get(key);`
@@ -249,7 +249,7 @@ describe("SET/GET Opcode tests", async function () {
     const key = 123;
     const val = 456;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `key: ${key},
       val: ${val},
       : set(key val);`
@@ -298,7 +298,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const key = 123;
     const val = 456;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `key: ${key},
       val: ${val},
       : set(key val);`
@@ -342,7 +342,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val2 = randomUint256();
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key1: ${key1},
         val1: ${val1},
         key2: ${key2},
@@ -384,7 +384,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(kvs[3].eq(val1), "Invalid Value set in kv");
 
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key1: ${key1},
         key2: ${key2},
         _ _: get(key1) get(key2);`
@@ -417,7 +417,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val = randomUint256();
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val},
         : set(key val);`
@@ -454,7 +454,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(kvs[1].eq(val), "Invalid Value set in kv");
 
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         _: get(key);`
       );
@@ -487,7 +487,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const namespaceB = 666666;
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val},
         : set(key val);`
@@ -528,7 +528,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // B evals on different namespace
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         _: get(key);`
       );
@@ -556,7 +556,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // C evals on correct namespace
     const { sources: sourcesC, constants: constantsC } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         _: get(key);`
       );
@@ -590,7 +590,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const namespaceA = 999999;
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val1},
         : set(key val);`
@@ -622,7 +622,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val2},
         : set(key val);`
@@ -669,7 +669,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const key2 = 222222;
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key1},
         val: ${val1},
         : set(key val);`
@@ -698,7 +698,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       _KVsA
     );
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key2},
         _: get(key);`
       );
@@ -730,7 +730,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val3 = 123;
 
     const { sources: sourcesA, constants: constantsA } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val1: ${val1},
         val2: ${val2},
@@ -766,7 +766,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     const { sources: sourcesB, constants: constantsB } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         val: ${val3},
         : set(key val);`
@@ -799,7 +799,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     const { sources: sourcesC, constants: constantsC } =
-      standardEvaluableConfig(
+      await standardEvaluableConfig(
         `key: ${key},
         _: get(key);`
       );

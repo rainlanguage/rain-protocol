@@ -37,7 +37,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should read a value from CONSTANT and place it on the STACK", async () => {
     const constants = [1337];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_: read-memory<${MemoryType.Constant} 0>();`
     );
 
@@ -63,7 +63,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should read a value from STACK and place it on the STACK", async () => {
     const constants = [1337];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
         block-timestamp()
         read-memory<${MemoryType.Constant} 0>()
@@ -101,7 +101,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should fail when reading an OOB STACK value", async () => {
     const constants = [1337];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _:
         block-timestamp()
         read-memory<${MemoryType.Stack} 0>()
@@ -118,7 +118,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should fail when reading an OOB CONSTANT value", async () => {
     const constants = [1337];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _:
         read-memory<${MemoryType.Constant} 0>()
         read-memory<${MemoryType.Constant} 1>();` // Reading an OOB value
@@ -134,7 +134,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when STACK operand references a STACK element that hasn't yet been evaluated", async () => {
     const constants = [10, 20, 30];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
         read-memory<${MemoryType.Constant} 0>()
         read-memory<${MemoryType.Constant} 1>()
@@ -152,7 +152,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when STACK operand references itself", async () => {
     const constants = [10, 20, 30];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
         read-memory<${MemoryType.Constant} 0>()
         read-memory<${MemoryType.Constant} 1>()
@@ -173,7 +173,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // STACK should have access to all evaluated stack values
 
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _:
         read-memory<${MemoryType.Constant} 0>()
         read-memory<${MemoryType.Constant} 1>()
@@ -209,7 +209,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should return correct stack element when there are nested evaluations (e.g. returns the addition of several stack elements, rather than a summand)", async () => {
     const constants = [10, 20, 30];
 
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _:
         add(
           read-memory<${MemoryType.Constant} 0>()
@@ -241,7 +241,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should return correct stack element when specifying operand", async () => {
     const constants = [10, 20, 30];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
         read-memory<${MemoryType.Constant} 0>()
         read-memory<${MemoryType.Constant} 1>()
@@ -271,7 +271,7 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
-    const { sources } = standardEvaluableConfig(
+    const { sources } = await standardEvaluableConfig(
       `_: read-memory<${MemoryType.Constant} 1>();`
     );
 
