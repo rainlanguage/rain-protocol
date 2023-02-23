@@ -24,7 +24,7 @@ describe("HASH Opcode test", async function () {
   });
 
   it("should hash a list of values from constant", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: hash(100 200 300);`
     );
 
@@ -57,7 +57,7 @@ describe("HASH Opcode test", async function () {
 
     const context = [[alice.address, 0x12031]];
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `value0: context<0 0>(),
       value1: context<1 0>(),
       _: hash(value0 value1);`
@@ -88,7 +88,7 @@ describe("HASH Opcode test", async function () {
   });
 
   it("should hash a single value", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: hash(${ethers.constants.MaxUint256})`
     );
     const expression0 = await expressionConsumerDeploy(

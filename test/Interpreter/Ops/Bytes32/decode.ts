@@ -32,7 +32,7 @@ describe("Decode Op Tests", async function () {
       "0xffff00000000000000000000000000000000000000000000000000000000cccc";
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: decode-256<240 16>(${expected});`);
+      await standardEvaluableConfig(`_: decode-256<240 16>(${expected});`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -62,7 +62,7 @@ describe("Decode Op Tests", async function () {
       "0xccccccccccccccccccccccccccccccccffffffffffffffffffffffffffffffff";
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: decode-256<128 128>(${expected});`);
+      await standardEvaluableConfig(`_: decode-256<128 128>(${expected});`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -91,7 +91,7 @@ describe("Decode Op Tests", async function () {
 
     // startBit + length exceeds 256 bits
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: decode-256<128 129>(${expected});`);
+      await standardEvaluableConfig(`_: decode-256<128 129>(${expected});`);
 
     await assertError(
       async () =>
@@ -116,7 +116,9 @@ describe("Decode Op Tests", async function () {
 
     // startBit + length exceeds 256 bits
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: encode-256<0 96>(${source} ${target});`);
+      await standardEvaluableConfig(
+        `_: encode-256<0 96>(${source} ${target});`
+      );
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -139,7 +141,7 @@ describe("Decode Op Tests", async function () {
     );
 
     const { sources: sources1, constants: constants1 } =
-      standardEvaluableConfig(`_: decode-256<0 96>(${expected});`);
+      await standardEvaluableConfig(`_: decode-256<0 96>(${expected});`);
 
     const expression1 = await expressionConsumerDeploy(
       sources1,

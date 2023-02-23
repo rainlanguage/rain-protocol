@@ -53,7 +53,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
     const tokenId = 0;
     const length = 2;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_ _: erc-1155-balance-of-batch(
         ${tokenERC1155.address}
         ${signer1.address}
@@ -110,7 +110,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
   it("should return ERC1155 balance of signer", async () => {
     const tokenId = 0;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-1155-balance-of(${tokenERC1155.address} ${signer1.address} ${tokenId});`
     );
 

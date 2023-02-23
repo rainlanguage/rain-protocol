@@ -34,7 +34,9 @@ describe("Encode Op Tests", async function () {
       "0x0000000000000000000000000000000000000000000000000000000ffffcccc";
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: encode-256<16 16>(${source} ${target});`);
+      await standardEvaluableConfig(
+        `_: encode-256<16 16>(${source} ${target});`
+      );
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -67,7 +69,9 @@ describe("Encode Op Tests", async function () {
       "0xccccccccccccccccccccccccccccccccffffffffffffffffffffffffffffffff";
 
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: encode-256<128 128>(${source} ${target});`);
+      await standardEvaluableConfig(
+        `_: encode-256<128 128>(${source} ${target});`
+      );
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -98,7 +102,9 @@ describe("Encode Op Tests", async function () {
 
     // startBit + length exceeds 256 bits
     const { sources: sources0, constants: constants0 } =
-      standardEvaluableConfig(`_: encode-256<128 129>(${source} ${target});`);
+      await standardEvaluableConfig(
+        `_: encode-256<128 129>(${source} ${target});`
+      );
 
     await assertError(
       async () =>
