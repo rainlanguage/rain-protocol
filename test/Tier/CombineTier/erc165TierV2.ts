@@ -12,7 +12,7 @@ import {
   compareStructs,
   getEventArgs,
   max_uint256,
-  
+
   stakeImplementation,
 } from "../../../utils";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -97,13 +97,13 @@ describe("CombineTier ERC165 tests", async function () {
       evaluableConfig1
     )
 
-    const { config } = (await getEventArgs(
+    const { sender, config } = (await getEventArgs(
       combineTier.deployTransaction,
       "Initialize",
       combineTier
     )) as InitializeEvent["args"];
 
-    assert(combineTier.signer == signers[0], "wrong signer");
+    assert(sender === cloneFactory.address, `wrong signer got ${sender} expected ${cloneFactory.address}`);
     compareStructs(config, combineTierSourceConfig);
   });
 
@@ -160,5 +160,5 @@ describe("CombineTier ERC165 tests", async function () {
 
     assert(combineTier.signer == signers[0], "wrong signer");
     compareStructs(config, combineTierSourceConfig);
-  }); 
+  });
 });

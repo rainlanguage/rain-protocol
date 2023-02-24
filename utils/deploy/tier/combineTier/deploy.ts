@@ -12,7 +12,7 @@ import { getRainContractMetaBytes } from "../../../meta";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 
-export const combineTierImplementation = async (): Promise<CombineTier> => { 
+export const combineTierImplementation = async (): Promise<CombineTier> => {
 
   const combineTierFactory = await ethers.getContractFactory(
     "CombineTier"
@@ -21,7 +21,7 @@ export const combineTierImplementation = async (): Promise<CombineTier> => {
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
     callerMeta: getRainContractMetaBytes("combinetier"),
     deployer: touchDeployer.address,
-  }; 
+  };
 
   const combineTier = (await combineTierFactory.deploy(
     config_
@@ -31,41 +31,41 @@ export const combineTierImplementation = async (): Promise<CombineTier> => {
   assert(
     !(combineTier.address === zeroAddress),
     "implementation combineTier zero address"
-  ); 
+  );
 
-  return combineTier; 
-}; 
- 
+  return combineTier;
+};
+
 
 export const combineTierCloneDeploy = async (
   cloneFactory: CloneFactory,
-  implementation: CombineTier, 
+  implementation: CombineTier,
   combinedTiersLength: number,
   initialConfig: EvaluableConfigStruct
-): Promise<CombineTier> => { 
-  
-  const combineTierConfig: CombineTierConfigStruct = { 
-    combinedTiersLength: combinedTiersLength , 
+): Promise<CombineTier> => {
+
+  const combineTierConfig: CombineTierConfigStruct = {
+    combinedTiersLength: combinedTiersLength ,
     evaluableConfig: initialConfig
-  } 
+  }
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
       "tuple(uint256 combinedTiersLength ,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
     ],
     [combineTierConfig]
-  ); 
+  );
 
-  const combineTierClone = await cloneFactory.clone(
+  const combineTierCloneTx = await cloneFactory.clone(
     implementation.address,
     encodedConfig
   );
 
   const cloneEvent = (await getEventArgs(
-    combineTierClone,
+    combineTierCloneTx,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
+  )) as NewCloneEvent["args"];
 
   assert(
     !(cloneEvent.clone === zeroAddress),
@@ -73,10 +73,14 @@ export const combineTierCloneDeploy = async (
   );
 
   const combineTier = (await ethers.getContractAt(
-    "Lobby",
+    "CombineTier",
     cloneEvent.clone
   )) as CombineTier;
 
+  combineTier.deployTransaction = combineTier.deployTransaction || combineTierCloneTx
+
+  await combineTier.deployed()
+
   return combineTier;
-}; 
+};
 
