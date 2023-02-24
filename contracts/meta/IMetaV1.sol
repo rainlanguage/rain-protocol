@@ -7,5 +7,5 @@ uint256 constant META_MAGIC_NUMBER_V1 = 18377652714897045620;
 
 /// @title IMetaV1
 interface IMetaV1 {
-    event MetaV1(address sender, bytes meta);
+    event Meta(address sender, bytes meta);
 }

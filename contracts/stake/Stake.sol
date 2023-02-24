@@ -6,7 +6,6 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 import "../factory/ICloneableV1.sol";
