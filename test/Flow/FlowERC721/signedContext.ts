@@ -8,7 +8,10 @@ import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import {  flowERC721Clone, flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
@@ -23,8 +26,8 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 signed context tests", async function () {
-  let cloneFactory: CloneFactory
-  let implementation: FlowERC721
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
 
   before(async () => {
     // Deploy ERC1820Registry

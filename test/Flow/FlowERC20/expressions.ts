@@ -3,14 +3,20 @@ import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { ContextEvent, FlowERC20 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  ContextEvent,
+  FlowERC20,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import {  flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
 import {
@@ -73,7 +79,7 @@ describe("FlowERC20 expressions test", async function () {
         constants,
       },
       flows: [{ sources: [sourceFlowIO], constants }],
-    }; 
+    };
 
     const { flow, flowCloneTx } = await flowERC20Clone(
       cloneFactory,

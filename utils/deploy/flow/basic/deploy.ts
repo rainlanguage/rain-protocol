@@ -1,7 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { CloneFactory, Flow, RainterpreterExpressionDeployer } from "../../../../typechain";
+import {
+  CloneFactory,
+  Flow,
+  RainterpreterExpressionDeployer,
+} from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowConfigStruct,
@@ -10,7 +14,7 @@ import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
 import { assert } from "chai";
 
-import { generateEvaluableConfig } from "../../../interpreter"; 
+import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { getRainContractMetaBytes } from "../../../meta";
@@ -32,14 +36,13 @@ export const flowImplementation = async (): Promise<Flow> => {
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 
   return flow;
-}; 
+};
 
 export const deployFlowClone = async (
   cloneFactory: CloneFactory,
   implementation: Flow,
-  flowConfig: FlowConfig,
-) => { 
-
+  flowConfig: FlowConfig
+) => {
   const evaluableConfigs: EvaluableConfigStruct[] = [];
 
   // Building config
@@ -54,8 +57,7 @@ export const deployFlowClone = async (
   const flowConfigStruct: FlowConfigStruct = {
     dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
     config: evaluableConfigs,
-  }; 
-
+  };
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
@@ -73,19 +75,11 @@ export const deployFlowClone = async (
     flowCloneTx,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
-
-  
+  )) as NewCloneEvent["args"];
 
   assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
 
-  const flow = (await ethers.getContractAt(
-    "Flow",
-    cloneEvent.clone
-  )) as Flow; 
+  const flow = (await ethers.getContractAt("Flow", cloneEvent.clone)) as Flow;
 
-
-  return {flow , flowCloneTx};
+  return { flow, flowCloneTx };
 };
-
-

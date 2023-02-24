@@ -1,13 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  CloneFactory,
-  ReadWriteTier,
-  
-  ReserveToken,
-  
-} from "../../typechain";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
 import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import {
   BuyEvent,
@@ -20,11 +14,7 @@ import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleClone,
-
-  saleImplementation,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -44,22 +34,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale minimum raise", async function () {
-  let reserve: ReserveToken
-  let readWriteTier: ReadWriteTier
-     
-  let cloneFactory: CloneFactory 
-  let implementation: Sale
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    readWriteTier = await readWriteTierDeploy()  
+    readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
-    implementation = await saleImplementation(cloneFactory)
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -333,7 +323,7 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-    const evaluableConfig = await generateEvaluableConfig(sources, constants); 
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const saleConfig = {
       evaluableConfig,
@@ -343,26 +333,26 @@ describe("Sale minimum raise", async function () {
       minimumRaise,
       dustSize: 0,
       saleTimeout,
-    };  
+    };
     const saleRedeemableConfig = {
       erc20Config: redeemableERC20Config,
       tier: readWriteTier.address,
       minimumTier: Tier.ZERO,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    }
+    };
 
     const encodedConfig = ethers.utils.defaultAbiCoder.encode(
       [
-        "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)", 
-        "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )"
+        "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+        "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )",
       ],
-      [saleConfig,saleRedeemableConfig]
-    ); 
+      [saleConfig, saleRedeemableConfig]
+    );
 
     const saleClone = await cloneFactory.clone(
-      implementation.address,  
+      implementation.address,
       encodedConfig
-    ); 
+    );
 
     const cloneEvent = (await getEventArgs(
       saleClone,
@@ -370,18 +360,16 @@ describe("Sale minimum raise", async function () {
       cloneFactory
     )) as NewCloneEvent["args"];
 
-    const sale = (await ethers.getContractAt(
-      "Sale",
-      cloneEvent.clone
-    )) as Sale;   
+    const sale = (await ethers.getContractAt("Sale", cloneEvent.clone)) as Sale;
 
-    const afterInitializeBlock = await ethers.provider.getBlockNumber(); 
+    const afterInitializeBlock = await ethers.provider.getBlockNumber();
 
-    const { sender, config, saleRedeemableERC20Config,  token } = (await getEventArgs(
-      saleClone,
-      "Initialize",
-      sale
-    )) as InitializeEvent["args"]; 
+    const { sender, config, saleRedeemableERC20Config, token } =
+      (await getEventArgs(
+        saleClone,
+        "Initialize",
+        sale
+      )) as InitializeEvent["args"];
 
     compareStructs(config, saleConfig);
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");

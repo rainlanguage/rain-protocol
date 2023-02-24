@@ -1,13 +1,25 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory, RainterpreterExpressionDeployer } from "../../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
-import { FlowERC1155, FlowERC1155ConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import {
+  FlowERC1155,
+  FlowERC1155ConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../utils";
-import {  flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../../utils";
+import { flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -81,53 +93,52 @@ describe("FlowERC1155 construction tests", async function () {
     };
 
     // Building evaluableConfig
-  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    flowERC1155Config.expressionConfig.sources,
-    flowERC1155Config.expressionConfig.constants
-  );
+    const evaluableConfig: EvaluableConfigStruct =
+      await generateEvaluableConfig(
+        flowERC1155Config.expressionConfig.sources,
+        flowERC1155Config.expressionConfig.constants
+      );
 
-  // Building flowConfig
-  const flowConfig: EvaluableConfigStruct[] = [];
-  for (let i = 0; i < flowERC1155Config.flows.length; i++) {
-    const evaluableConfig = await generateEvaluableConfig(
-      flowERC1155Config.flows[i].sources,
-      flowERC1155Config.flows[i].constants
+    // Building flowConfig
+    const flowConfig: EvaluableConfigStruct[] = [];
+    for (let i = 0; i < flowERC1155Config.flows.length; i++) {
+      const evaluableConfig = await generateEvaluableConfig(
+        flowERC1155Config.flows[i].sources,
+        flowERC1155Config.flows[i].constants
+      );
+      flowConfig.push(evaluableConfig);
+    }
+
+    const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
+      evaluableConfig: evaluableConfig,
+      flowConfig: flowConfig,
+      uri: flowERC1155Config.uri,
+    };
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(string uri, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+      ],
+      [flowERC1155ConfigStruct]
     );
-    flowConfig.push(evaluableConfig);
-  }
 
-  const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
-    evaluableConfig: evaluableConfig,
-    flowConfig: flowConfig,
-    uri: flowERC1155Config.uri,
-  };
+    const flowCloneTx = await cloneFactory.clone(
+      implementation.address,
+      encodedConfig
+    );
 
-  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-    [
-      "tuple(string uri, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
-    ],
-    [flowERC1155ConfigStruct]
-  );
+    const cloneEvent = (await getEventArgs(
+      flowCloneTx,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];
 
-  const flowCloneTx = await cloneFactory.clone(
-    implementation.address,
-    encodedConfig
-  );
+    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
 
-  const cloneEvent = (await getEventArgs(
-    flowCloneTx,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"]; 
-
-  
-
-  assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
-
-  const flow = (await ethers.getContractAt(
-    "FlowERC1155",
-    cloneEvent.clone
-  )) as FlowERC1155;
+    const flow = (await ethers.getContractAt(
+      "FlowERC1155",
+      cloneEvent.clone
+    )) as FlowERC1155;
 
     const { sender, config } = (await getEventArgs(
       flowCloneTx,
@@ -135,40 +146,45 @@ describe("FlowERC1155 construction tests", async function () {
       flow
     )) as InitializeEvent["args"];
 
-    assert(
-      sender === cloneFactory.address,
-      "wrong sender in Initialize event"
-    );
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
 
     compareStructs(config, flowERC1155Config);
-  }); 
+  });
 
-  it("should fail if flowERC1155 is deployed with bad callerMeta", async function () {  
-
-    const flowERC1155Factory = await ethers.getContractFactory("FlowERC1155", {});
+  it("should fail if flowERC1155 is deployed with bad callerMeta", async function () {
+    const flowERC1155Factory = await ethers.getContractFactory(
+      "FlowERC1155",
+      {}
+    );
 
     const touchDeployer: RainterpreterExpressionDeployer =
-      await getTouchDeployer(); 
+      await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("flow1155"),
-      deployer: touchDeployer.address,
-    };
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("flow1155"),
+        deployer: touchDeployer.address,
+      };
 
-    const flowERC1155 = (await flowERC1155Factory.deploy(interpreterCallerConfig0)) as FlowERC1155;
+    const flowERC1155 = (await flowERC1155Factory.deploy(
+      interpreterCallerConfig0
+    )) as FlowERC1155;
 
-    assert(!(flowERC1155.address === zeroAddress), "flowERC1155 did not deploy");  
+    assert(
+      !(flowERC1155.address === zeroAddress),
+      "flowERC1155 did not deploy"
+    );
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("orderbook"),
-      deployer: touchDeployer.address,
-    }; 
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
 
     await assertError(
-      async () =>
-      await flowERC1155Factory.deploy(interpreterCallerConfig1),
+      async () => await flowERC1155Factory.deploy(interpreterCallerConfig1),
       "UnexpectedMetaHash",
       "FlowERC1155 Deployed for bad hash"
-    )
-  }); 
+    );
+  });
 });

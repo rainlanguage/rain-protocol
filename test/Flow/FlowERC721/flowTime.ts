@@ -1,7 +1,10 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory,  ReserveToken18 } from "../../../typechain";
-import { FlowERC721, FlowTransferStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  FlowERC721,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -9,7 +12,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Clone,  flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
@@ -25,8 +31,8 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = RainterpreterOps;
 
 describe("FlowERC721 flowTime tests", async function () {
-  let cloneFactory: CloneFactory
-  let implementation: FlowERC721
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 

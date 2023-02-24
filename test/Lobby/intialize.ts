@@ -2,7 +2,11 @@ import { assert } from "chai";
 
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CloneFactory, RainterpreterExpressionDeployer, ReserveToken18 } from "../../typechain";
+import type {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+  ReserveToken18,
+} from "../../typechain";
 import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
@@ -11,7 +15,12 @@ import {
   LobbyConfigStruct,
   LobbyConstructorConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError, compareStructs, getRainContractMetaBytes, zeroAddress } from "../../utils";
+import {
+  assertError,
+  compareStructs,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -122,7 +131,7 @@ describe("Lobby Tests Intialize", async function () {
       "wrong deposit sender"
     );
     compareStructs(intializeEvent.config, initialConfig);
-  });   
+  });
 
   it("should fail if Lobby is deployed with bad callerMeta", async function () {
     const timeoutDuration = 15000000;
@@ -131,47 +140,38 @@ describe("Lobby Tests Intialize", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("orderbook"), // Bad callerMeta passed. 
-      deployer: touchDeployer.address,
-    };
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"), // Bad callerMeta passed.
+        deployer: touchDeployer.address,
+      };
 
     const lobbyConstructorConfig0: LobbyConstructorConfigStruct = {
       maxTimeoutDuration: timeoutDuration,
       interpreterCallerConfig: interpreterCallerConfig0,
-    };   
+    };
 
     await assertError(
-      async () =>
-        await lobbyFactory.deploy(lobbyConstructorConfig0),
+      async () => await lobbyFactory.deploy(lobbyConstructorConfig0),
       "UnexpectedMetaHash",
       "Lobby Deployed for bad hash"
-    )
+    );
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("lobby"), // Bad callerMeta passed. 
-      deployer: touchDeployer.address,
-    };
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("lobby"), // Bad callerMeta passed.
+        deployer: touchDeployer.address,
+      };
 
     const lobbyConstructorConfig1: LobbyConstructorConfigStruct = {
       maxTimeoutDuration: timeoutDuration,
       interpreterCallerConfig: interpreterCallerConfig1,
-    };  
+    };
 
-    const Lobby: Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig1) ) as Lobby 
+    const Lobby: Lobby = (await lobbyFactory.deploy(
+      lobbyConstructorConfig1
+    )) as Lobby;
 
-    assert(
-      !(Lobby.address === zeroAddress),
-      "Lobby not deployed"
-    ); 
-    
-  }); 
-  
-  
-  
-
-  
-
-
-
+    assert(!(Lobby.address === zeroAddress), "Lobby not deployed");
+  });
 });

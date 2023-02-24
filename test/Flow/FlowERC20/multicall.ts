@@ -10,7 +10,10 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { FlowERC20, FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  FlowERC20,
+  FlowERC20IOStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -18,7 +21,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC20Clone,  flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
@@ -272,7 +278,7 @@ describe("FlowERC20 multicall tests", async function () {
       ],
     };
 
-    const { flow , flowCloneTx} = await flowERC20Clone(
+    const { flow, flowCloneTx } = await flowERC20Clone(
       cloneFactory,
       implementation,
       expressionConfigStruct

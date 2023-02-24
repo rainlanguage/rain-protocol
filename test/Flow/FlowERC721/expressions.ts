@@ -3,14 +3,20 @@ import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { ContextEvent, FlowERC721 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import {
+  ContextEvent,
+  FlowERC721,
+} from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import {  flowERC721Clone, flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
 import {
@@ -24,8 +30,8 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 expressions tests", async function () {
-  let cloneFactory: CloneFactory
-  let implementation: FlowERC721
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
 
   before(async () => {
     // Deploy ERC1820Registry

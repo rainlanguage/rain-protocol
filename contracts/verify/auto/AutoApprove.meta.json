@@ -18,7 +18,7 @@
         {
           "name": "",
           "desc": "",
-          "path": "[6].inputs[0].components[1]", 
+          "path": "[6].inputs[0].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

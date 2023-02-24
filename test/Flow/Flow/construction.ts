@@ -2,13 +2,25 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
-import { CloneFactory, RainterpreterExpressionDeployer } from "../../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
-import { Flow, FlowConfigStruct, InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
+import {
+  Flow,
+  FlowConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../utils";
-import {  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../../utils";
+import { flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -19,7 +31,7 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import {  compareStructs } from "../../../utils/test/compareStructs";
+import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
@@ -41,7 +53,6 @@ describe("Flow construction tests", async function () {
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
 
     const constants = [1, 2];
 
@@ -78,7 +89,7 @@ describe("Flow construction tests", async function () {
           constants,
         },
       ],
-    }; 
+    };
 
     const evaluableConfigs: EvaluableConfigStruct[] = [];
 
@@ -94,73 +105,66 @@ describe("Flow construction tests", async function () {
     const flowConfigStruct: FlowConfigStruct = {
       dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
       config: evaluableConfigs,
-    };  
+    };
 
     const encodedConfig = ethers.utils.defaultAbiCoder.encode(
       [
         "tuple(tuple(address deployer,bytes[] sources,uint256[] constants) dummyConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] config)",
       ],
       [flowConfigStruct]
-    ); 
+    );
 
     const flowClone = await cloneFactory.clone(
       implementation.address,
       encodedConfig
     );
-  
+
     const cloneEvent = (await getEventArgs(
       flowClone,
       "NewClone",
       cloneFactory
-    )) as NewCloneEvent["args"];  
+    )) as NewCloneEvent["args"];
 
-    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address"); 
+    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
 
-    const flow = (await ethers.getContractAt(
-      "Flow",
-      cloneEvent.clone
-    )) as Flow; 
+    const flow = (await ethers.getContractAt("Flow", cloneEvent.clone)) as Flow;
 
-
-    const {sender, config } = (await getEventArgs(
+    const { sender, config } = (await getEventArgs(
       flowClone,
       "Initialize",
       flow
-    )) as InitializeEvent["args"]; 
+    )) as InitializeEvent["args"];
 
-    assert(sender === cloneFactory.address, "wrong sender in Initialize event");     
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
     compareStructs(config, flowConfigStruct);
+  });
 
-  }); 
-
-  it("should fail if flow is deployed with bad callerMeta", async function () {  
-
+  it("should fail if flow is deployed with bad callerMeta", async function () {
     const flowFactory = await ethers.getContractFactory("Flow", {});
 
     const touchDeployer: RainterpreterExpressionDeployer =
-      await getTouchDeployer(); 
+      await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("flow"),
-      deployer: touchDeployer.address,
-    };
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("flow"),
+        deployer: touchDeployer.address,
+      };
 
     const flow = (await flowFactory.deploy(interpreterCallerConfig0)) as Flow;
 
-    assert(!(flow.address === zeroAddress), "flow did not deploy");  
+    assert(!(flow.address === zeroAddress), "flow did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("orderbook"),
-      deployer: touchDeployer.address,
-    }; 
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
 
     await assertError(
-      async () =>
-      await flowFactory.deploy(interpreterCallerConfig1),
+      async () => await flowFactory.deploy(interpreterCallerConfig1),
       "UnexpectedMetaHash",
       "Flow Deployed for bad hash"
-    )
-    
-  });  
-
+    );
+  });
 });

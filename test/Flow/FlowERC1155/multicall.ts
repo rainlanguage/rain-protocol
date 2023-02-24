@@ -21,7 +21,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import {  flowERC1155Clone, flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
@@ -229,20 +232,24 @@ describe("FlowERC1155 multiCall tests", async function () {
       constants: constants_A,
     };
 
-    const { flow, flowCloneTx } = await flowERC1155Clone(cloneFactory, implementation, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO_A],
-          constants: constants_A,
-        },
-        {
-          sources: [sourceFlowIO_B],
-          constants: constants_B,
-        },
-      ],
-    });
+    const { flow, flowCloneTx } = await flowERC1155Clone(
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO_A],
+            constants: constants_A,
+          },
+          {
+            sources: [sourceFlowIO_B],
+            constants: constants_B,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,

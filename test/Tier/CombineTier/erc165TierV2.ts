@@ -3,7 +3,10 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
-import { Stake, StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
   basicDeploy,
@@ -12,7 +15,6 @@ import {
   compareStructs,
   getEventArgs,
   max_uint256,
-  
   stakeImplementation,
 } from "../../../utils";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -30,7 +32,7 @@ const Opcode = AllStandardOps;
 describe("CombineTier ERC165 tests", async function () {
   let implementationStake: Stake;
   let cloneFactory: CloneFactory;
-  let implementationCombineTier: CombineTier
+  let implementationCombineTier: CombineTier;
 
   before(async () => {
     // Deploy ERC1820Registry
@@ -40,7 +42,7 @@ describe("CombineTier ERC165 tests", async function () {
 
   before(async () => {
     implementationStake = await stakeImplementation();
-    implementationCombineTier = await combineTierImplementation()
+    implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
@@ -71,7 +73,7 @@ describe("CombineTier ERC165 tests", async function () {
       implementationCombineTier,
       0,
       evaluableConfig0
-    )
+    );
 
     const constants = [ethers.BigNumber.from(combineTierContract.address)];
 
@@ -95,7 +97,7 @@ describe("CombineTier ERC165 tests", async function () {
       implementationCombineTier,
       1,
       evaluableConfig1
-    )
+    );
 
     const { config } = (await getEventArgs(
       combineTier.deployTransaction,
@@ -160,5 +162,5 @@ describe("CombineTier ERC165 tests", async function () {
 
     assert(combineTier.signer == signers[0], "wrong signer");
     compareStructs(config, combineTierSourceConfig);
-  }); 
+  });
 });

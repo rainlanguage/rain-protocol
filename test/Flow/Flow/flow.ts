@@ -8,14 +8,20 @@ import {
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { Flow, FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { deployFlowClone, flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
@@ -129,15 +135,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -294,7 +302,11 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
@@ -441,15 +453,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -578,15 +592,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -736,15 +752,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -898,15 +916,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1048,15 +1068,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1174,15 +1196,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1264,8 +1288,11 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const {flow} = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
-
+    const { flow } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     await signers[0].sendTransaction({
       to: flow.address,
@@ -1347,15 +1374,17 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1482,15 +1511,17 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1598,15 +1629,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1725,15 +1758,17 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 
@@ -1841,7 +1876,11 @@ describe("Flow flow tests", async function () {
     };
 
     // Deploying flow 0
-    let {flow,flowCloneTx} = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    let { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized0 = (await getEvents(
       flowCloneTx,
@@ -1850,7 +1889,11 @@ describe("Flow flow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     // Deploying flow 1
-    ({ flow } = await deployFlowClone(cloneFactory, implementation, flowConfigStruct));
+    ({ flow } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    ));
 
     await assertError(
       async () =>
@@ -1959,15 +2002,17 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    
 
     const me = flow;
 

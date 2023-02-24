@@ -12,10 +12,7 @@ import {
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleClone,
-  saleImplementation,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -33,22 +30,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale calculate price", async function () {
-  let reserve: ReserveToken
-  let readWriteTier: ReadWriteTier
-     
-  let cloneFactory: CloneFactory 
-  let implementation: Sale
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    readWriteTier = await readWriteTierDeploy()  
+    readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
-    implementation = await saleImplementation(cloneFactory)
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -117,8 +114,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -170,8 +167,8 @@ describe("Sale calculate price", async function () {
       `wrong dynamic price0
       expected  ${expectedPrice0}
       got       ${receipt0.price}`
-    ); 
-    console.log("Here---")
+    );
+    console.log("Here---");
     const signer1Balance1 = await token.balanceOf(signer1.address);
     const desiredUnits1 = totalTokenSupply.div(10);
     const expectedPrice1 = basePrice.sub(
@@ -266,8 +263,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -460,8 +457,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -597,8 +594,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -737,8 +734,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -838,8 +835,8 @@ describe("Sale calculate price", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
-          cloneFactory,
-          implementation,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,

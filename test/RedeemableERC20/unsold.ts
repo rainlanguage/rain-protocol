@@ -9,26 +9,30 @@ import type {
 } from "../../typechain";
 import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { basicDeploy, readWriteTierDeploy, redeemableERC20DeployClone, redeemableERC20DeployImplementation, Tier } from "../../utils";
+import {
+  basicDeploy,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 unsold token test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
-  let reserve: ReserveToken; 
-  let cloneFactory: CloneFactory 
-  let implementation: RedeemableERC20
-
+  let reserve: ReserveToken;
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
-    tier = await readWriteTierDeploy(); 
-    implementation = await redeemableERC20DeployImplementation()
+    tier = await readWriteTierDeploy();
+    implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
-
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -48,7 +52,7 @@ describe("RedeemableERC20 unsold token test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    }; 
+    };
 
     const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
@@ -56,13 +60,13 @@ describe("RedeemableERC20 unsold token test", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: forwardee.address,
-    }
+    };
 
     const redeemableERC20 = await redeemableERC20DeployClone(
-      cloneFactory, 
-      implementation , 
+      cloneFactory,
+      implementation,
       redeemableConfig
-    ); 
+    );
 
     const balanceDistributorBeforeBurn = await redeemableERC20.balanceOf(
       erc20Pullee.address
@@ -100,7 +104,7 @@ describe("RedeemableERC20 unsold token test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    }; 
+    };
 
     const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
@@ -108,12 +112,12 @@ describe("RedeemableERC20 unsold token test", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    }
+    };
     const redeemableERC20 = await redeemableERC20DeployClone(
-      cloneFactory, 
-      implementation , 
+      cloneFactory,
+      implementation,
       redeemableConfig
-    ); 
+    );
 
     const balanceDistributorBeforeBurn = await redeemableERC20.balanceOf(
       erc20Pullee.address

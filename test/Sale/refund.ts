@@ -7,10 +7,7 @@ import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { max_uint256, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleClone,
-  saleImplementation,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -29,22 +26,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale refund", async function () {
-  let reserve: ReserveToken
-  let readWriteTier: ReadWriteTier
-     
-  let cloneFactory: CloneFactory 
-  let implementation: Sale
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    readWriteTier = await readWriteTierDeploy()  
+    readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
-    implementation = await saleImplementation(cloneFactory)
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {

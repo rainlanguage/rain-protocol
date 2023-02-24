@@ -2,13 +2,19 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory,  ReserveToken18 } from "../../../typechain";
-import { Flow, FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { deployFlowClone,  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
@@ -43,7 +49,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (throttle flow output amount)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const you = signers[1];
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -173,7 +179,11 @@ describe("Flow context tests", async function () {
       ],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,
@@ -379,7 +389,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (canFlow if no registered flow)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+
     const you = signers[1];
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -470,7 +480,11 @@ describe("Flow context tests", async function () {
       ],
     };
 
-    const  {flow,flowCloneTx}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct);
+    const { flow, flowCloneTx } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,

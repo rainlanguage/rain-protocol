@@ -1,12 +1,15 @@
-
 import { assert } from "chai";
 
-import {  ethers } from "hardhat";
-import { CloneFactory, RainterpreterExpressionDeployer, RedeemableERC20, Sale } from "../../../typechain";
+import { ethers } from "hardhat";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+  RedeemableERC20,
+  Sale,
+} from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
-  
   InitializeEvent,
   SaleConfigStruct,
   SaleConstructorConfigStruct,
@@ -19,11 +22,9 @@ import { getRainContractMetaBytes } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { redeemableERC20DeployImplementation } from "../redeemableERC20/deploy";
 
-
-
 export const saleImplementation = async (
-  cloneFactory: CloneFactory,
-): Promise<Sale> => {  
+  cloneFactory: CloneFactory
+): Promise<Sale> => {
   const saleFactory = await ethers.getContractFactory("Sale", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
@@ -31,43 +32,42 @@ export const saleImplementation = async (
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     callerMeta: getRainContractMetaBytes("sale"),
     deployer: touchDeployer.address,
-  };  
+  };
 
-  const redeemableERC20Implementation: RedeemableERC20 = await redeemableERC20DeployImplementation()  
-  const maximumSaleTimeout = 10000  
-  
+  const redeemableERC20Implementation: RedeemableERC20 =
+    await redeemableERC20DeployImplementation();
+  const maximumSaleTimeout = 10000;
+
   const saleConstructorConfig: SaleConstructorConfigStruct = {
-    maximumSaleTimeout: maximumSaleTimeout ,
-    cloneFactory: cloneFactory.address, 
-    redeemableERC20Implementation: redeemableERC20Implementation.address ,
-    interpreterCallerConfig: interpreterCallerConfig
-  }  
+    maximumSaleTimeout: maximumSaleTimeout,
+    cloneFactory: cloneFactory.address,
+    redeemableERC20Implementation: redeemableERC20Implementation.address,
+    interpreterCallerConfig: interpreterCallerConfig,
+  };
 
   const sale = (await saleFactory.deploy(saleConstructorConfig)) as Sale;
- 
+
   assert(!(sale.address === zeroAddress), "implementation sale zero address");
 
   return sale;
-}; 
+};
 
 export const saleClone = async (
   cloneFactory: CloneFactory,
   implementation: Sale,
-  saleConfig: SaleConfigStruct, 
+  saleConfig: SaleConfigStruct,
   saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct
-  
-): Promise<[Sale, RedeemableERC20]> => { 
-
+): Promise<[Sale, RedeemableERC20]> => {
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
-      "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)", 
-      "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )"
+      "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )",
     ],
-    [saleConfig,saleRedeemableERC20Config]
+    [saleConfig, saleRedeemableERC20Config]
   );
 
   const saleClone = await cloneFactory.clone(
-    implementation.address,  
+    implementation.address,
     encodedConfig
   );
 
@@ -79,26 +79,20 @@ export const saleClone = async (
 
   assert(!(cloneEvent.clone === zeroAddress), "sale clone zero address");
 
-  const sale = (await ethers.getContractAt(
-    "Sale",
-    cloneEvent.clone
-  )) as Sale;  
+  const sale = (await ethers.getContractAt("Sale", cloneEvent.clone)) as Sale;
 
   const initializeEvent = (await getEventArgs(
     saleClone,
     "Initialize",
     sale
-  )) as InitializeEvent["args"]; 
+  )) as InitializeEvent["args"];
 
   const token = (await ethers.getContractAt(
     "RedeemableERC20",
     initializeEvent.token
-  )) as RedeemableERC20; 
+  )) as RedeemableERC20;
 
-
-
-  return [sale, token]
-  
+  return [sale, token];
 };
 
 // export const saleDeploy = async (

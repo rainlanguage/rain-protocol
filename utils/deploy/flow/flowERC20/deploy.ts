@@ -1,7 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { CloneFactory,  RainterpreterExpressionDeployer } from "../../../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowERC20,
@@ -16,8 +19,6 @@ import { getRainContractMetaBytes } from "../../../meta";
 import { assert } from "chai";
 import { zeroAddress } from "../../../constants";
 import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
-
-
 
 export const flowERC20Implementation = async (): Promise<FlowERC20> => {
   const flowFactory = await ethers.getContractFactory("FlowERC20", {});
@@ -34,14 +35,13 @@ export const flowERC20Implementation = async (): Promise<FlowERC20> => {
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 
   return flow;
-};  
+};
 
 export const flowERC20Clone = async (
   cloneFactory: CloneFactory,
   implementation: FlowERC20,
-  flowERC20Config: FlowERC20Config,
-) => { 
-
+  flowERC20Config: FlowERC20Config
+) => {
   // Building evaluableConfig
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
     flowERC20Config.expressionConfig.sources,
@@ -65,7 +65,6 @@ export const flowERC20Clone = async (
     symbol: flowERC20Config.symbol,
   };
 
-
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
       "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
@@ -82,20 +81,14 @@ export const flowERC20Clone = async (
     flowCloneTx,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
-
-  
+  )) as NewCloneEvent["args"];
 
   assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
 
   const flow = (await ethers.getContractAt(
     "FlowERC20",
     cloneEvent.clone
-  )) as FlowERC20; 
+  )) as FlowERC20;
 
-
-  return {flow , flowCloneTx};
+  return { flow, flowCloneTx };
 };
- 
-
-

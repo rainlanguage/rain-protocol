@@ -1,17 +1,18 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory, ReadWriteTier, ReserveToken, Sale } from "../../typechain";
+import {
+  CloneFactory,
+  ReadWriteTier,
+  ReserveToken,
+  Sale,
+} from "../../typechain";
 import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { noticeboardDeploy } from "../../utils/deploy/noticeboard/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleClone,
-  
-  saleImplementation,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -27,23 +28,23 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale noticeboard", async function () {
-  let reserve: ReserveToken
-  let readWriteTier: ReadWriteTier
-     
-  let cloneFactory: CloneFactory 
-  let implementation: Sale
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    readWriteTier = await readWriteTierDeploy()  
+    readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
-    implementation = await saleImplementation(cloneFactory)
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {

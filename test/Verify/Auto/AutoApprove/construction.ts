@@ -9,7 +9,12 @@ import {
   AutoApproveConfigStruct,
   InitializeEvent,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../../../utils";
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../../../utils";
 import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
@@ -130,48 +135,32 @@ describe("AutoApprove construction", async function () {
       admin.address,
       autoApprove.address
     );
-  });  
-  
+  });
+
   it("should fail when deploying with bad callerMeta", async () => {
-    
     const contractFactory = await ethers.getContractFactory("AutoApprove");
 
-    const touchDeployer = await getTouchDeployer(); 
+    const touchDeployer = await getTouchDeployer();
 
-    const config_0 : InterpreterCallerV1ConstructionConfigStruct = {
+    const config_0: InterpreterCallerV1ConstructionConfigStruct = {
       callerMeta: getRainContractMetaBytes("autoapprove"),
       deployer: touchDeployer.address,
     };
 
-    const autoApprove = (await contractFactory.deploy(
-      config_0 
-    )) as AutoApprove;
+    const autoApprove = (await contractFactory.deploy(config_0)) as AutoApprove;
     await autoApprove.deployed();
 
-    assert(
-      !(autoApprove.address === zeroAddress),
-      "autoApprove not deployed"
-    ); 
-    
-    const config_1 : InterpreterCallerV1ConstructionConfigStruct = {
+    assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
+
+    const config_1: InterpreterCallerV1ConstructionConfigStruct = {
       callerMeta: getRainContractMetaBytes("orderbook"),
       deployer: touchDeployer.address,
-    }; 
+    };
 
     await assertError(
-      async () =>
-      await contractFactory.deploy(
-        config_1 
-      ),
+      async () => await contractFactory.deploy(config_1),
       "UnexpectedMetaHash",
       "AutoApprove Deployed for bad hash"
-    )
-
-
-
-
-
-  });  
-
-
+    );
+  });
 });

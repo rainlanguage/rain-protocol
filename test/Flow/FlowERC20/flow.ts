@@ -3,7 +3,6 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  
   CloneFactory,
   Flow,
   ReserveToken18,
@@ -11,7 +10,10 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { FlowERC20, FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  FlowERC20,
+  FlowERC20IOStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -20,7 +22,10 @@ import {
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 
-import {  flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
@@ -160,16 +165,18 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow: flowCanTransfer, flowCloneTx: flowCanTransferCloneTx } = await flowERC20Clone(
-      cloneFactory,
-      implementation,
-      expressionConfigStructCanTransfer
-    );
-    const { flow: flowCannotTransfer, flowCloneTx: flowCannotTransferCloneTx } = await flowERC20Clone(
-      cloneFactory,
-      implementation,
-      expressionConfigStructCannotTransfer
-    );
+    const { flow: flowCanTransfer, flowCloneTx: flowCanTransferCloneTx } =
+      await flowERC20Clone(
+        cloneFactory,
+        implementation,
+        expressionConfigStructCanTransfer
+      );
+    const { flow: flowCannotTransfer, flowCloneTx: flowCannotTransferCloneTx } =
+      await flowERC20Clone(
+        cloneFactory,
+        implementation,
+        expressionConfigStructCannotTransfer
+      );
 
     const flowInitializedCanTransfer = (await getEvents(
       flowCanTransferCloneTx,
@@ -2061,14 +2068,11 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-
     const { flow } = await flowERC20Clone(
       cloneFactory,
       implementation,
       expressionConfigStruct
     );
-
-    
 
     await signers[0].sendTransaction({
       to: flow.address,

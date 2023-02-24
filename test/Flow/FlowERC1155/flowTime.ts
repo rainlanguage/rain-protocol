@@ -1,7 +1,10 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { CloneFactory,  ReserveToken18 } from "../../../typechain";
-import { FlowERC1155, FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  FlowERC1155,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -9,7 +12,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import {  flowERC1155Clone, flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {

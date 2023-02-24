@@ -17,7 +17,7 @@
           "name": "Reserve Token Address",
           "desc": "The reserve token address that the Sale is deonominated in.",
           "path": "[6].inputs[0].components[1]"
-        }, 
+        },
         {
           "name": "Sale Timeout",
           "desc": "The number of seconds before this sale can timeout. SHOULD be well after the expected end time as a timeout will fail an active or pending sale regardless of any funds raised.",

@@ -5,12 +5,18 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import {  flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
 import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
-import { FlowERC20, FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  FlowERC20,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import {
   memoryOperand,

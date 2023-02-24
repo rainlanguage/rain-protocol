@@ -8,7 +8,10 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import {  flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
@@ -24,7 +27,7 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC20 signed context tests", async function () {
   let implementation: FlowERC20;
-  let cloneFactory: CloneFactory; 
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry

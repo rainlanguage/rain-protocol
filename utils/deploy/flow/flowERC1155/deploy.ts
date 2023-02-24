@@ -1,7 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { CloneFactory, RainterpreterExpressionDeployer } from "../../../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowERC1155,
@@ -9,14 +12,13 @@ import {
 } from "../../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { getEventArgs } from "../../../events";
 import { FlowERC1155Config } from "../../../types/flow";
-import { generateEvaluableConfig } from "../../../interpreter"; 
+import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getRainContractMetaBytes } from "../../../meta";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { zeroAddress } from "../../../constants"; 
+import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
 import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
-
 
 export const flowERC1155Implementation = async (): Promise<FlowERC1155> => {
   const flowFactory = await ethers.getContractFactory("FlowERC1155", {});
@@ -28,18 +30,19 @@ export const flowERC1155Implementation = async (): Promise<FlowERC1155> => {
     deployer: touchDeployer.address,
   };
 
-  const flow = (await flowFactory.deploy(interpreterCallerConfig)) as FlowERC1155;
+  const flow = (await flowFactory.deploy(
+    interpreterCallerConfig
+  )) as FlowERC1155;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 
   return flow;
-};   
+};
 
 export const flowERC1155Clone = async (
   cloneFactory: CloneFactory,
   implementation: FlowERC1155,
-  flowERC1155Config: FlowERC1155Config,
- 
+  flowERC1155Config: FlowERC1155Config
 ) => {
   // Building evaluableConfig
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
@@ -79,19 +82,14 @@ export const flowERC1155Clone = async (
     flowCloneTx,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
-
-  
+  )) as NewCloneEvent["args"];
 
   assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
 
   const flow = (await ethers.getContractAt(
     "FlowERC1155",
     cloneEvent.clone
-  )) as FlowERC1155; 
+  )) as FlowERC1155;
 
-
-  return {flow , flowCloneTx};
+  return { flow, flowCloneTx };
 };
-
-

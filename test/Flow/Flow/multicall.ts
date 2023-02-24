@@ -8,11 +8,17 @@ import {
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { Flow, FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { deployFlowClone,  flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -50,7 +56,7 @@ describe("Flow multiCall tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
@@ -203,9 +209,13 @@ describe("Flow multiCall tests", async function () {
         { sources: [sourceFlowIO_A], constants: constants_A },
         { sources: [sourceFlowIO_B], constants: constants_B },
       ],
-    }; 
+    };
 
-    const  {flow: flow_A, flowCloneTx: flowCloneTx_A}  = await deployFlowClone(cloneFactory, implementation, flowConfigStruct_A);
+    const { flow: flow_A, flowCloneTx: flowCloneTx_A } = await deployFlowClone(
+      cloneFactory,
+      implementation,
+      flowConfigStruct_A
+    );
 
     const flowInitialized_A = (await getEvents(
       flowCloneTx_A,

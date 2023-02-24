@@ -1,14 +1,21 @@
 import { assert } from "chai";
 import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CloneFactory, ERC20PulleeTest, ReserveToken } from "../../typechain";
+import type {
+  CloneFactory,
+  ERC20PulleeTest,
+  ReserveToken,
+} from "../../typechain";
 import { CombineTier, StakeFactory } from "../../typechain";
 import {
   ERC20ConfigStruct,
   InitializeEvent,
   RedeemableERC20,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
-import { Stake, StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
@@ -39,8 +46,8 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let reserve: ReserveToken;
   let redeemableERC20Config: ERC20ConfigStruct;
-  let implementationStake: Stake; 
-  let implementationRedeemableERC20: RedeemableERC20
+  let implementationStake: Stake;
+  let implementationRedeemableERC20: RedeemableERC20;
 
   let cloneFactory: CloneFactory;
 
@@ -50,8 +57,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     await deploy1820(signers[0]);
 
     implementationStake = await stakeImplementation();
-    implementationRedeemableERC20 = await redeemableERC20DeployImplementation()
-
+    implementationRedeemableERC20 = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;

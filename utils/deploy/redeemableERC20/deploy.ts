@@ -1,6 +1,5 @@
-
 import { assert } from "chai";
-import {  ethers } from "hardhat";
+import { ethers } from "hardhat";
 import type { CloneFactory, RedeemableERC20 } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { RedeemableERC20ConfigStruct } from "../../../typechain/contracts/redeemableERC20/RedeemableERC20";
@@ -8,25 +7,24 @@ import { RedeemableERC20ConfigStruct } from "../../../typechain/contracts/redeem
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
 
-
-
-export const redeemableERC20DeployImplementation = async ():Promise<RedeemableERC20> => {
+export const redeemableERC20DeployImplementation =
+  async (): Promise<RedeemableERC20> => {
     const redeemableERC20Factory = await ethers.getContractFactory(
-    "RedeemableERC20",
-    {}
-  );
+      "RedeemableERC20",
+      {}
+    );
 
-  const redeemableERC20 = (await redeemableERC20Factory.deploy()) as RedeemableERC20;  
-  await redeemableERC20.deployed();
-  
-  assert(
-    !(redeemableERC20.address === zeroAddress),
-    "implementation redeemableERC20 zero address"
-  );
+    const redeemableERC20 =
+      (await redeemableERC20Factory.deploy()) as RedeemableERC20;
+    await redeemableERC20.deployed();
 
-  return redeemableERC20;
-};
- 
+    assert(
+      !(redeemableERC20.address === zeroAddress),
+      "implementation redeemableERC20 zero address"
+    );
+
+    return redeemableERC20;
+  };
 
 export const redeemableERC20DeployClone = async (
   cloneFactory: CloneFactory,
@@ -51,7 +49,10 @@ export const redeemableERC20DeployClone = async (
     cloneFactory
   )) as NewCloneEvent["args"];
 
-  assert(!(cloneEvent.clone === zeroAddress), "redeemableERC20 clone zero address");
+  assert(
+    !(cloneEvent.clone === zeroAddress),
+    "redeemableERC20 clone zero address"
+  );
 
   const redeemableERC20 = (await ethers.getContractAt(
     "RedeemableERC20",
@@ -59,5 +60,4 @@ export const redeemableERC20DeployClone = async (
   )) as RedeemableERC20;
 
   return redeemableERC20;
-
 };

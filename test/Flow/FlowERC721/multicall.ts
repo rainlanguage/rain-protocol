@@ -21,7 +21,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Clone,  flowERC721Implementation } from "../../../utils/deploy/flow/flowERC721/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
@@ -36,8 +39,8 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 multicall tests", async function () {
-  let cloneFactory: CloneFactory
-  let implementation: FlowERC721
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowERC721ABI = JSON.parse(
@@ -231,21 +234,25 @@ describe("FlowERC721 multicall tests", async function () {
       constants: constants_A,
     };
 
-    const { flow, flowCloneTx } = await flowERC721Clone(cloneFactory, implementation, {
-      name: "FlowERC721",
-      symbol: "F721",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO_A],
-          constants: constants_A,
-        },
-        {
-          sources: [sourceFlowIO_B],
-          constants: constants_B,
-        },
-      ],
-    });
+    const { flow, flowCloneTx } = await flowERC721Clone(
+      cloneFactory,
+      implementation,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO_A],
+            constants: constants_A,
+          },
+          {
+            sources: [sourceFlowIO_B],
+            constants: constants_B,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flowCloneTx,

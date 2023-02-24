@@ -9,7 +9,13 @@ import type {
 } from "../../typechain";
 import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { basicDeploy, readWriteTierDeploy, redeemableERC20DeployClone, redeemableERC20DeployImplementation, Tier } from "../../utils";
+import {
+  basicDeploy,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { Phase } from "../../utils/types/redeemableERC20";
@@ -17,15 +23,15 @@ import { Phase } from "../../utils/types/redeemableERC20";
 describe("RedeemableERC20 endDistribution test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
-  let reserve: ReserveToken; 
-  let cloneFactory: CloneFactory 
-  let implementation: RedeemableERC20
+  let reserve: ReserveToken;
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
-    tier = await readWriteTierDeploy();   
+    tier = await readWriteTierDeploy();
 
-    implementation = await redeemableERC20DeployImplementation()
+    implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
@@ -46,7 +52,7 @@ describe("RedeemableERC20 endDistribution test", async function () {
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
-    }; 
+    };
 
     const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
@@ -54,13 +60,13 @@ describe("RedeemableERC20 endDistribution test", async function () {
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    }
+    };
 
     const redeemableERC20 = await redeemableERC20DeployClone(
-      cloneFactory, 
-      implementation , 
+      cloneFactory,
+      implementation,
       redeemableConfig
-    )
+    );
 
     assert(
       (await redeemableERC20.currentPhase()).eq(Phase.DISTRIBUTING),

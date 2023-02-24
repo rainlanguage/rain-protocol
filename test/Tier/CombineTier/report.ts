@@ -10,14 +10,15 @@ import {
   Rainterpreter,
   ReadWriteTier,
   ReserveToken,
-  
 } from "../../../typechain";
-import { Stake, StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
 import {
   getBlockTimestamp,
   max_uint256,
   readWriteTierDeploy,
-  
   stakeImplementation,
   THRESHOLDS,
   Tier,
@@ -28,7 +29,10 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
-import { combineTierCloneDeploy,  combineTierImplementation } from "../../../utils/deploy/tier/combineTier/deploy";
+import {
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../utils/deploy/tier/combineTier/deploy";
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -50,20 +54,18 @@ let readWriteTier: ReadWriteTier;
 let rainInterpreter: Rainterpreter;
 let logic: IInterpreterV1Consumer;
 
-describe("CombineTier report tests", async function () { 
-
+describe("CombineTier report tests", async function () {
   let implementationStake: Stake;
   let implementationCombineTier: CombineTier;
 
-  let cloneFactory: CloneFactory; 
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]); 
+    await deploy1820(signers[0]);
 
     implementationCombineTier = await combineTierImplementation();
- 
   });
 
   const ctxAccount = op(Opcode.context, 0x0000);
@@ -105,11 +107,11 @@ describe("CombineTier report tests", async function () {
     );
 
     const alwaysTier = await combineTierCloneDeploy(
-      cloneFactory ,
-      implementationCombineTier , 
-      0 , 
+      cloneFactory,
+      implementationCombineTier,
+      0,
       evaluableConfigAlwaysTier
-    )
+    );
 
     const evaluableConfigNeverTier = await generateEvaluableConfig(
       [
@@ -120,11 +122,11 @@ describe("CombineTier report tests", async function () {
     );
 
     const neverTier = await combineTierCloneDeploy(
-      cloneFactory ,
-      implementationCombineTier , 
-      0 , 
+      cloneFactory,
+      implementationCombineTier,
+      0,
       evaluableConfigNeverTier
-    )
+    );
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -151,11 +153,11 @@ describe("CombineTier report tests", async function () {
     );
 
     const combineTierAlways = await combineTierCloneDeploy(
-      cloneFactory ,
-      implementationCombineTier , 
-      1 , 
+      cloneFactory,
+      implementationCombineTier,
+      1,
       evaluableConfigAlways
-    )
+    );
 
     const resultAlwaysReport = await combineTierAlways.report(
       signers[1].address,
@@ -175,11 +177,11 @@ describe("CombineTier report tests", async function () {
       constants
     );
     const combineTierNever = await combineTierCloneDeploy(
-      cloneFactory ,
-      implementationCombineTier , 
-      1 , 
+      cloneFactory,
+      implementationCombineTier,
+      1,
       evaluableConfigNever
-    )
+    );
     const resultNeverReport = await combineTierNever.report(
       signers[1].address,
       []
