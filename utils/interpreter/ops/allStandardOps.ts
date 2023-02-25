@@ -58,6 +58,7 @@ export enum AllStandardOps {
   prb_ud60x18_floor,
   prb_ud60x18_frac,
   prb_ud60x18_gm,
+  prb_ud60x18_inv,
   saturating_add,
   saturating_mul,
   saturating_sub,
