@@ -54,6 +54,13 @@ import "./math/prb/OpPRBFloor.sol";
 import "./math/prb/OpPRBFrac.sol";
 import "./math/prb/OpPRBGm.sol";
 import "./math/prb/OpPRBInv.sol";
+import "./math/prb/OpPRBLn.sol";
+import "./math/prb/OpPRBLog10.sol";
+import "./math/prb/OpPRBLog2.sol";
+import "./math/prb/OpPRBMul.sol";
+import "./math/prb/OpPRBPow.sol";
+import "./math/prb/OpPRBPowu.sol";
+import "./math/prb/OpPRBSqrt.sol";
 import "./math/saturating/OpSaturatingAdd.sol";
 import "./math/saturating/OpSaturatingMul.sol";
 import "./math/saturating/OpSaturatingSub.sol";
@@ -83,7 +90,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 73;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 80;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -267,6 +274,13 @@ library AllStandardOps {
                     OpPRBFrac.integrity,
                     OpPRBGm.integrity,
                     OpPRBInv.integrity,
+                    OpPRBLn.integrity,
+                    OpPRBLog10.integrity,
+                    OpPRBLog2.integrity,
+                    OpPRBMul.integrity,
+                    OpPRBPow.integrity,
+                    OpPRBPowu.integrity,
+                    OpPRBSqrt.integrity,
                     OpSaturatingAdd.integrity,
                     OpSaturatingMul.integrity,
                     OpSaturatingSub.integrity,
@@ -317,6 +331,7 @@ library AllStandardOps {
                     OpCall.run,
                     OpContext.run,
                     OpContextRow.run,
+                    // 1.001kb
                     OpDebug.run,
                     OpDoWhile.run,
                     OpExtern.intern,
@@ -368,6 +383,14 @@ library AllStandardOps {
                     OpPRBFrac.run,
                     OpPRBGm.run,
                     OpPRBInv.run,
+                    OpPRBLn.run,
+                    // 3.683kb
+                    OpPRBLog10.run,
+                    OpPRBLog2.run,
+                    OpPRBMul.run,
+                    OpPRBPow.run,
+                    OpPRBPowu.run,
+                    OpPRBSqrt.run,
                     OpSaturatingAdd.run,
                     OpSaturatingMul.run,
                     OpSaturatingSub.run,
