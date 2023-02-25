@@ -91,6 +91,8 @@ describe("Sale buy", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -241,6 +243,8 @@ describe("Sale buy", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -358,6 +362,8 @@ describe("Sale buy", async function () {
     await assertError(
       async () =>
         await saleClone(
+          signers,
+          deployer,
           cloneFactory,
           implementation,
           {
@@ -381,6 +387,8 @@ describe("Sale buy", async function () {
     );
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -485,6 +493,8 @@ describe("Sale buy", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -592,6 +602,8 @@ describe("Sale buy", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -683,6 +695,8 @@ describe("Sale buy", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -954,6 +968,8 @@ describe("Sale buy", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

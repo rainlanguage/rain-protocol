@@ -61,7 +61,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       ],
       [ALWAYS]
     );
-    const alwaysTier = await combineTierCloneDeploy(
+    const alwaysTier = await combineTierCloneDeploy( 
+      signers[0],
       cloneFactory,
       implementationCombineTier,
       0,
@@ -74,7 +75,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       ],
       [NEVER]
     );
-    const neverTier = await combineTierCloneDeploy(
+    const neverTier = await combineTierCloneDeploy( 
+      signers[0],
       cloneFactory,
       implementationCombineTier,
       0,
@@ -105,7 +107,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = await combineTierCloneDeploy(
+    const combineTier = await combineTierCloneDeploy( 
+      signers[0],
       cloneFactory,
       implementationCombineTier,
       2,
@@ -156,7 +159,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = await combineTierCloneDeploy(
+    const combineTier = await combineTierCloneDeploy( 
+      signers[0],
       cloneFactory,
       implementationCombineTier,
       2,

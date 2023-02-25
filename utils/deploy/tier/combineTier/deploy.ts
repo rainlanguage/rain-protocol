@@ -1,5 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
 import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
@@ -34,7 +35,8 @@ export const combineTierImplementation = async (): Promise<CombineTier> => {
 };
 
 
-export const combineTierCloneDeploy = async (
+export const combineTierCloneDeploy = async ( 
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: CombineTier,
   combinedTiersLength: number,
@@ -56,24 +58,22 @@ export const combineTierCloneDeploy = async (
   const combineTierCloneTx = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  );
+  ); 
 
-  const cloneEvent = (await getEventArgs(
-    combineTierCloneTx,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const combineTier = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(combineTierCloneTx, "NewClone", cloneFactory)).clone
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("CombineTier")).abi,
+    deployer
+  ) as CombineTier;
 
-  assert(!(cloneEvent.clone === zeroAddress), "combineTier clone zero address");
-
-  const combineTier = (await ethers.getContractAt(
-    "CombineTier",
-    cloneEvent.clone
-  )) as CombineTier; 
-
-  
-
-  combineTier.deployTransaction = combineTier.deployTransaction || combineTierCloneTx  
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  combineTier.deployTransaction = combineTierCloneTx;
 
   await combineTier.deployed()
 

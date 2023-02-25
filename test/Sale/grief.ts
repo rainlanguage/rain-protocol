@@ -98,6 +98,8 @@ describe("Sale griefer", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale, token] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

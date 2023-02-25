@@ -89,6 +89,8 @@ describe("Sale saleStatus", async function () {
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

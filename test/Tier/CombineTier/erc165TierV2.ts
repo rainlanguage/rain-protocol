@@ -4,22 +4,26 @@ import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import { CombineTierConfigStruct, InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
+  assertError,
   basicDeploy,
   combineTierCloneDeploy,
   combineTierImplementation,
   compareStructs,
   getEventArgs,
+  getRainContractMetaBytes,
   max_uint256,
   stakeCloneDeploy,
   stakeImplementation,
   zeroAddress,
 } from "../../../utils";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 import {
@@ -64,6 +68,7 @@ describe("CombineTier ERC165 tests", async function () {
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
     const evaluableConfig0 = await generateEvaluableConfig(
       [
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
@@ -72,6 +77,7 @@ describe("CombineTier ERC165 tests", async function () {
       [ALWAYS]
     );
     const combineTierContract = await combineTierCloneDeploy(
+      deployer,
       cloneFactory,
       implementationCombineTier,
       0,
@@ -96,41 +102,17 @@ describe("CombineTier ERC165 tests", async function () {
       combineTierSourceConfig.constants
     );
     
-
-    const combineTierConfig: CombineTierConfigStruct = {
-      combinedTiersLength: 1 ,
-      evaluableConfig: evaluableConfig1
-    }
-  
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(uint256 combinedTiersLength ,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
-      ],
-      [combineTierConfig]
-    );
-  
-    const combineTierCloneTx = await cloneFactory.clone(
-      implementationCombineTier.address,
-      encodedConfig
-    );
-  
-    const cloneEvent = (await getEventArgs(
-      combineTierCloneTx,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-  
-    assert(!(cloneEvent.clone === zeroAddress), "combineTier clone zero address");
-  
-    let combineTier = (await ethers.getContractAt(
-      "CombineTier",
-      cloneEvent.clone
-    )) as CombineTier;
-  
-    await combineTier.deployed()
+    const combineTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig1
+    )
+    
 
     const { sender, config } = (await getEventArgs(
-      combineTierCloneTx,
+      combineTier.deployTransaction,
       "Initialize",
       combineTier 
     )) as InitializeEvent["args"];
@@ -160,6 +142,7 @@ describe("CombineTier ERC165 tests", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
@@ -185,40 +168,17 @@ describe("CombineTier ERC165 tests", async function () {
       combineTierSourceConfig.constants
     ); 
 
-    const combineTierConfig: CombineTierConfigStruct = {
-      combinedTiersLength: 1 ,
-      evaluableConfig: evaluableConfig1
-    }
-  
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(uint256 combinedTiersLength ,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
-      ],
-      [combineTierConfig]
+    const combineTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig1
     );
-  
-    const combineTierCloneTx = await cloneFactory.clone(
-      implementationCombineTier.address,
-      encodedConfig
-    );
-  
-    const cloneEvent = (await getEventArgs(
-      combineTierCloneTx,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-  
-    assert(!(cloneEvent.clone === zeroAddress), "combineTier clone zero address");
-  
-    let combineTier = (await ethers.getContractAt(
-      "CombineTier",
-      cloneEvent.clone
-    )) as CombineTier;
-  
-    await combineTier.deployed()
+
 
     const { config } = (await getEventArgs(
-      combineTierCloneTx,
+      combineTier.deployTransaction,
       "Initialize",
       combineTier
     )) as InitializeEvent["args"]; 
@@ -226,5 +186,34 @@ describe("CombineTier ERC165 tests", async function () {
 
     assert(await combineTier.signer.getAddress() === signers[0].address, "wrong signer");
     compareStructs(config, combineTierSourceConfig);
+  }); 
+
+  it("should fail if combineTier is deployed with bad callerMeta", async function () {
+    const combineTierFactory = await ethers.getContractFactory(
+      "CombineTier"
+    );
+    const touchDeployer = await getTouchDeployer();
+    const config0: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("combinetier"),
+      deployer: touchDeployer.address,
+    };
+  
+    const combineTier = (await combineTierFactory.deploy(config0)) as CombineTier;
+    await combineTier.deployed();
+
+    assert(!(combineTier.address === zeroAddress), "combineTier did not deploy");
+
+    const config1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    await assertError(
+      async () => await combineTierFactory.deploy(config1),
+      "UnexpectedMetaHash",
+      "Stake Deployed for bad hash"
+    );
   });
+
 });

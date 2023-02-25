@@ -1,6 +1,7 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
@@ -53,6 +54,8 @@ export const saleImplementation = async (
 };
 
 export const saleClone = async (
+  signers: SignerWithAddress[], 
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: Sale,
   saleConfig: SaleConfigStruct,
@@ -69,30 +72,40 @@ export const saleClone = async (
   const saleClone = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  );
+  ); 
 
-  const cloneEvent = (await getEventArgs(
-    saleClone,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const sale = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(saleClone, "NewClone", cloneFactory)).clone
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("Sale")).abi,
+    deployer
+  ) as Sale;
 
-  assert(!(cloneEvent.clone === zeroAddress), "sale clone zero address");
+  if (!ethers.utils.isAddress(sale.address)) {
+    throw new Error(
+      `invalid sale address: ${sale.address} (${sale.address.length} chars)`
+    );
+  }
 
-  const sale = (await ethers.getContractAt("Sale", cloneEvent.clone)) as Sale;
+  await sale.deployed();
 
-  const initializeEvent = (await getEventArgs(
-    saleClone,
-    "Initialize",
-    sale
-  )) as InitializeEvent["args"];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  sale.deployTransaction = saleClone;
 
-  const token = (await ethers.getContractAt(
-    "RedeemableERC20",
-    initializeEvent.token
-  )) as RedeemableERC20;
+    let token = new ethers.Contract(
+    await sale.token(),
+    (await artifacts.readArtifact("RedeemableERC20")).abi
+  ) as RedeemableERC20;
+
+  token = token.connect(signers[0]); // need to do this for some reason
 
   return [sale, token];
+
 };
 
 // export const saleDeploy = async (

@@ -91,6 +91,8 @@ describe("Sale timeout", async function () {
     await assertError(
       async () =>
         await saleClone(
+          signers,
+          deployer,
           cloneFactory,
           implementation,
           {
@@ -113,6 +115,8 @@ describe("Sale timeout", async function () {
       "did not prevent a sale timeout that exceeds maximum timeout, which was set by the sale factory"
     );
     const [sale, token] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

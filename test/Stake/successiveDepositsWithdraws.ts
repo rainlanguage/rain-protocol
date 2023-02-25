@@ -29,6 +29,7 @@ describe("Stake many successive deposits and withdraws", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
     await deploy1820(signers[0]);
 
     implementation = await stakeImplementation();
@@ -47,6 +48,7 @@ describe("Stake many successive deposits and withdraws", async function () {
     // stake supply should also track token pool size (assuming all token transferred to Stake contract via `deposit()` function)
 
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
     const bob = signers[3];
@@ -76,7 +78,8 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -158,7 +161,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   it("should process 25 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0]
     const alice = signers[2];
     const bob = signers[3];
 
@@ -187,7 +190,8 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -232,6 +236,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   it("should process 10 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
     const bob = signers[3];
@@ -261,7 +266,8 @@ describe("Stake many successive deposits and withdraws", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct

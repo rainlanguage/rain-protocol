@@ -45,14 +45,15 @@ describe("CombineTier report context tests", async function () {
 
   it("should support a program which simply returns the account", async () => {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0]
     const sourceReport = concat([op(Opcode.context, 0x0100)]);
     const evaluableConfig = await generateEvaluableConfig(
       [sourceReport, sourceReportTimeForTierDefault],
       []
     );
 
-    const combineTier = await combineTierCloneDeploy(
+    const combineTier = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       0,

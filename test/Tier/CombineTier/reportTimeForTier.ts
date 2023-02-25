@@ -112,7 +112,8 @@ describe("CombineTier report time for tier tests", async function () {
       ]
     );
 
-    const combineTier = await combineTierCloneDeploy(
+    const combineTier = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       0,
@@ -151,7 +152,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       constants
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       1,
@@ -197,7 +199,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceTierContractAlice],
       [alice.address, tokenERC20.address]
     );
-    const tierContractAlice = await combineTierCloneDeploy(
+    const tierContractAlice = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       0,
@@ -217,7 +220,8 @@ describe("CombineTier report time for tier tests", async function () {
       [bob.address, tokenERC20.address]
     );
 
-    const tierContractBob = await combineTierCloneDeploy(
+    const tierContractBob = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       0,
@@ -251,7 +255,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       constants
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       2,
@@ -333,7 +338,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       constants
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       1,
@@ -415,7 +421,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       constants
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       1,
@@ -468,6 +475,7 @@ describe("CombineTier report time for tier tests", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
@@ -536,7 +544,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       [stake.address]
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       1,
@@ -574,11 +583,13 @@ describe("CombineTier report time for tier tests", async function () {
     };
 
     const stake0 = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
     );
     const stake1 = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
@@ -642,7 +653,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       [stake0.address, stake1.address, max_uint32]
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       2,
@@ -711,6 +723,7 @@ describe("CombineTier report time for tier tests", async function () {
     for (let i = 0; i < MAX_STAKE_CONTRACTS; i++) {
       stakeContracts.push(
         await stakeCloneDeploy(
+          deployer,
           cloneFactory,
           implementationStake,
           stakeConfigStruct
@@ -766,7 +779,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceMain],
       [...constants, max_uint32]
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       stakeContracts.length,
@@ -830,11 +844,13 @@ describe("CombineTier report time for tier tests", async function () {
     };
 
     const stake0 = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
     );
     const stake1 = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
@@ -898,7 +914,8 @@ describe("CombineTier report time for tier tests", async function () {
       [sourceReportDefault, sourceCombineTierContract],
       [stake0.address, stake1.address, max_uint32]
     );
-    const combineTierMain = await combineTierCloneDeploy(
+    const combineTierMain = await combineTierCloneDeploy( 
+      deployer,
       cloneFactory,
       implementationCombineTier,
       2,

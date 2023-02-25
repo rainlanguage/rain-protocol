@@ -112,6 +112,8 @@ describe("Sale unchecked math", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -202,6 +204,8 @@ describe("Sale unchecked math", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -281,6 +285,8 @@ describe("Sale unchecked math", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -368,6 +374,8 @@ describe("Sale unchecked math", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const [sale] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

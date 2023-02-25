@@ -54,6 +54,7 @@ describe("Stake withdraw", async function () {
 
   it("should return zero for maxWithdraw if the expression fails", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -98,6 +99,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -112,6 +114,7 @@ describe("Stake withdraw", async function () {
 
   it("should return minimum of max_withdraw source and ERC4262 maxWithdraw for maxWithdraw if the expression succeds", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -158,6 +161,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -189,6 +193,7 @@ describe("Stake withdraw", async function () {
 
   it("should cap maxWithdraw at minimum of max_deposit source and ERC4262 max_deposit", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -217,6 +222,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -283,6 +289,7 @@ describe("Stake withdraw", async function () {
 
   it("should not process an invalid withdraw", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -312,6 +319,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -336,6 +344,7 @@ describe("Stake withdraw", async function () {
 
   it("should process multiple successive withdraws", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -365,6 +374,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -397,6 +407,7 @@ describe("Stake withdraw", async function () {
 
   it("should calculate new highwater when amount withdrawn less than old highwater", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
     const bob = signers[3];
@@ -427,6 +438,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -464,6 +476,7 @@ describe("Stake withdraw", async function () {
 
   it("amount withdrawn cannot be larger than old highwater", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
     const bob = signers[3];
@@ -494,6 +507,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -532,6 +546,7 @@ describe("Stake withdraw", async function () {
 
   it("should process full withdraw (withdraws equal highwater)", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
     const bob = signers[3];
@@ -562,6 +577,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -631,6 +647,7 @@ describe("Stake withdraw", async function () {
 
   it("should not process a withdraw of 0 amount", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -660,6 +677,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -675,7 +693,7 @@ describe("Stake withdraw", async function () {
 
   it("should process withdraws (withdraw equals highwater)", async function () {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0]
     const alice = signers[2];
     const bob = signers[3];
 
@@ -702,6 +720,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -791,6 +810,7 @@ describe("Stake withdraw", async function () {
     await token.initialize();
 
     const signers = await ethers.getSigners();
+    const deployer = signers[0]
 
     const alice = signers[2];
 
@@ -812,6 +832,7 @@ describe("Stake withdraw", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct

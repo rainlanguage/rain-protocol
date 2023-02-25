@@ -96,6 +96,8 @@ describe("Sale minimum raise", async function () {
     const saleTimeout = 100;
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     const [sale, token] = await saleClone(
+      signers,
+      deployer,
       cloneFactory,
       implementation,
       {

@@ -32,7 +32,7 @@ describe("Stake direct ledger analysis", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);
+     await deploy1820(signers[0]);
 
     implementation = await stakeImplementation();
 
@@ -46,8 +46,8 @@ describe("Stake direct ledger analysis", async function () {
   });
 
   it("should correctly update `deposits` ledger in FILO order when multiple ledger entries are consumed by a single withdrawal", async () => {
-    const signers = await ethers.getSigners();
-
+const signers = await ethers.getSigners();
+    const deployer = signers[0]
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -70,7 +70,8 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -139,8 +140,8 @@ describe("Stake direct ledger analysis", async function () {
   });
 
   it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
-    const signers = await ethers.getSigners();
-
+const signers = await ethers.getSigners();
+    const deployer = signers[0]
     const alice = signers[1];
     const maliciousActor = signers[2];
 
@@ -164,7 +165,8 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -261,8 +263,8 @@ describe("Stake direct ledger analysis", async function () {
   });
 
   it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
-    const signers = await ethers.getSigners();
-
+const signers = await ethers.getSigners();
+    const deployer = signers[0]
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -285,7 +287,8 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -335,8 +338,8 @@ describe("Stake direct ledger analysis", async function () {
   });
 
   it("should correctly pop the records from ledger ", async () => {
-    const signers = await ethers.getSigners();
-
+const signers = await ethers.getSigners();
+    const deployer = signers[0]   
     const alice = signers[1];
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
@@ -359,7 +362,8 @@ describe("Stake direct ledger analysis", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy(
+    const stake = await stakeCloneDeploy( 
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct

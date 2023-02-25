@@ -1,5 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
@@ -30,7 +31,8 @@ export const stakeImplementation = async (): Promise<Stake> => {
   return stake;
 };
 
-export const stakeCloneDeploy = async (
+export const stakeCloneDeploy = async ( 
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   stakeImplementation: Stake,
   initialConfig: StakeConfigStruct
@@ -51,45 +53,26 @@ export const stakeCloneDeploy = async (
     stakeClone,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"];
+  )) as NewCloneEvent["args"]; 
+
+  const stake = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(stakeClone, "NewClone", cloneFactory)).clone
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("Stake")).abi,
+    deployer
+  ) as Stake;
+
+  await stake.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  stake.deployTransaction = stakeClone;
 
   assert(!(cloneEvent.clone === zeroAddress), "stake clone zero address");
 
-  const stake = (await ethers.getContractAt(
-    "Stake",
-    cloneEvent.clone
-  )) as Stake;
-
   return stake;
 };
-
-// export const stakeDeploy = async (
-//   deployer: SignerWithAddress,
-//   stakeFactory: StakeFactory,
-//   stakeConfigStruct: StakeConfigStruct,
-//   ...args: Overrides[]
-// ): Promise<Stake> => {
-//   const txDeploy = await stakeFactory.createChildTyped(
-//     stakeConfigStruct,
-//     ...args
-//   );
-
-//   const stake = new ethers.Contract(
-//     ethers.utils.hexZeroPad(
-//       ethers.utils.hexStripZeros(
-//         (await getEventArgs(txDeploy, "NewChild", stakeFactory)).child
-//       ),
-//       20 // address bytes length
-//     ),
-//     (await artifacts.readArtifact("Stake")).abi,
-//     deployer
-//   ) as Stake;
-
-//   await stake.deployed();
-
-//   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//   // @ts-ignore
-//   stake.deployTransaction = txDeploy;
-
-//   return stake;
-// };

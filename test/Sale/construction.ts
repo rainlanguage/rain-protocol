@@ -97,8 +97,10 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleClone(
-          cloneFactory,
+        await await saleClone(
+      signers,
+      deployer,
+      cloneFactory,
           implementation,
           {
             evaluableConfig,
@@ -161,8 +163,10 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleClone(
-          cloneFactory,
+        await await saleClone(
+      signers,
+      deployer,
+      cloneFactory,
           implementation,
           {
             evaluableConfig,

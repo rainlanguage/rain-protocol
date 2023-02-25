@@ -60,7 +60,7 @@ describe("Stake maxMint", async function () {
      */
 
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0];
     const alice = signers[1];
     const bob = signers[2];
 
@@ -85,6 +85,7 @@ describe("Stake maxMint", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct

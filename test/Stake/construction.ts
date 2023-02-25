@@ -21,6 +21,7 @@ import {
   MemoryType,
   op,
   Opcode,
+  stakeCloneDeploy,
   stakeImplementation,
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
@@ -52,9 +53,11 @@ describe("Stake construction", async function () {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
-  it("should not initialize if requirements not met", async function () {
-    const constants = [max_uint256, max_uint16];
+  it("should not initialize if requirements not met", async function () { 
+    const signers = await ethers.getSigners();
+    const deployer = signers[0]; 
 
+    const constants = [max_uint256, max_uint16];
     const max_deposit = op(
       Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
@@ -73,22 +76,18 @@ describe("Stake construction", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
-      ],
-      [stakeConfigStructZeroToken]
-    );
 
     await assertError(
       async () =>
-        await cloneFactory.clone(implementation.address, encodedConfig),
+        await stakeCloneDeploy( deployer ,cloneFactory,  implementation, stakeConfigStructZeroToken),
       "ZeroAsset()",
       "wrongly initialised Stake with token configured as 0 address"
     );
   });
 
-  it("should initialize correctly on the good path", async function () {
+  it("should initialize correctly on the good path", async function () { 
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];  
     const constants = [max_uint256, max_uint16];
 
     const max_deposit = op(
@@ -109,33 +108,10 @@ describe("Stake construction", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
-      ],
-      [stakeConfigStruct]
-    );
-
-    const stakeClone = await cloneFactory.clone(
-      implementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      stakeClone,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    assert(!(cloneEvent.clone === zeroAddress), "stake clone zero address");
-
-    const stake = (await ethers.getContractAt(
-      "Stake",
-      cloneEvent.clone
-    )) as Stake;
+    const stake = await stakeCloneDeploy( deployer ,cloneFactory,  implementation, stakeConfigStruct)
 
     const { sender, config } = (await getEventArgs(
-      stakeClone,
+      stake.deployTransaction,
       "Initialize",
       stake
     )) as InitializeEvent["args"];
