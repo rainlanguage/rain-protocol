@@ -164,7 +164,7 @@ describe("Decode Op Tests", async function () {
     );
   });
 
-  it.only("should encode-decode overwriting existing bytes in source", async () => {
+  it("should encode-decode overwriting existing bytes in source", async () => {
     const source0 =
       "0x000000000000000000000000000000000ffaaccbbdd00000000000aaaa00ffff";
     const target0 =
