@@ -6,7 +6,7 @@
   "methods": [
     {
       "name": "",
-      "desc": "",
+      "desc": "Deploys a new Stake contract.",
       "inputs": [
         {
           "name": "Asset",

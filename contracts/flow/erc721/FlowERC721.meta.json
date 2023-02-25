@@ -6,7 +6,7 @@
   "methods": [
     {
       "name": "",
-      "desc": "",
+      "desc": "Deploys a new Flow ERC721 contract.",
       "inputs": [
         {
           "name": "Name",

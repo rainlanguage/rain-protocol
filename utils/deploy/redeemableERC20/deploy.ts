@@ -63,22 +63,5 @@ export const redeemableERC20DeployClone = async (
   // @ts-ignore
 
   redeemableERC20.deployTransaction = redeemableERC20Clone;
-
-  // const cloneEvent = (await getEventArgs(
-  //   redeemableERC20Clone,
-  //   "NewClone",
-  //   cloneFactory
-  // )) as NewCloneEvent["args"];
-
-  // assert(
-  //   !(cloneEvent.clone === zeroAddress),
-  //   "redeemableERC20 clone zero address"
-  // );
-
-  // const redeemableERC20 = (await ethers.getContractAt(
-  //   "RedeemableERC20",
-  //   cloneEvent.clone
-  // )) as RedeemableERC20;
-
   return redeemableERC20;
 };

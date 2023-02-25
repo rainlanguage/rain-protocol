@@ -15,7 +15,7 @@ import "../../interpreter/run/LibEvaluable.sol";
 import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xe93cb8a4c28a3a56dfaaacb84371ab49e191e5d97d8354617ad2806b27fd29d0
+    0xc2c46806c9d57ca5f3548e5cd69cb3cc85bc94808acd83bc0c4d23c7179c8015
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;

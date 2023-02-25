@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
-import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import {
   BuyEvent,
   EndEvent,
@@ -288,7 +287,7 @@ describe("Sale minimum raise", async function () {
 
   it("should have status of Fail if minimum raise not met", async function () {
     const signers = await ethers.getSigners();
-    // const deployer = signers[0];
+    const deployer = signers[0];
     const recipient = signers[1];
     const signer1 = signers[2];
     const feeRecipient = signers[3];
@@ -342,31 +341,19 @@ describe("Sale minimum raise", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(address recipient, address reserve, uint256 saleTimeout, uint256 cooldownDuration, uint256 minimumRaise, uint256 dustSize, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
-        "tuple(tuple(string name, string symbol, address distributor, uint256 initialSupply) erc20Config, address tier, uint256 minimumTier, address distributionEndForwardingAddress )",
-      ],
-      [saleConfig, saleRedeemableConfig]
+    const [sale] = await saleClone(
+      signers,
+      deployer,
+      cloneFactory,
+      implementation,
+      saleConfig,
+      saleRedeemableConfig
     );
-
-    const saleClone = await cloneFactory.clone(
-      implementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      saleClone,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    const sale = (await ethers.getContractAt("Sale", cloneEvent.clone)) as Sale;
 
     const afterInitializeBlock = await ethers.provider.getBlockNumber();
 
     const { sender, config, token } = (await getEventArgs(
-      saleClone,
+      sale.deployTransaction,
       "Initialize",
       sale
     )) as InitializeEvent["args"];
