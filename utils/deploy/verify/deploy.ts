@@ -21,7 +21,7 @@ export const verifyImplementation = async (): Promise<Verify> => {
   return verifyImplementation;
 };
 
-export const verifyCloneDeploy = async ( 
+export const verifyCloneDeploy = async (
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementVerify: Verify,
@@ -41,7 +41,7 @@ export const verifyCloneDeploy = async (
   const verifyCloneTx = await cloneFactory.clone(
     implementVerify.address,
     encodedConfig
-  ); 
+  );
 
   const verify = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -57,7 +57,7 @@ export const verifyCloneDeploy = async (
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-   verify.deployTransaction = verifyCloneTx;
+  verify.deployTransaction = verifyCloneTx;
 
   return verify;
 };

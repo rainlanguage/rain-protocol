@@ -20,7 +20,10 @@ import {
   getRainContractMetaBytes,
   zeroAddress,
 } from "../../../utils";
-import { deployFlowClone, flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -53,7 +56,7 @@ describe("Flow construction tests", async function () {
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0] ;
+    const deployer = signers[0];
     const constants = [1, 2];
 
     // prettier-ignore
@@ -91,7 +94,7 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const { flow } = await deployFlowClone( 
+    const { flow } = await deployFlowClone(
       deployer,
       cloneFactory,
       implementation,

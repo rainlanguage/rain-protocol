@@ -1,9 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { artifacts, ethers } from "hardhat";
 import { RainterpreterExpressionDeployer } from "../../../typechain";
-import {
-  CloneFactory
-} from "../../../typechain/contracts/factory/CloneFactory";
+import { CloneFactory } from "../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Lobby,
@@ -34,7 +32,7 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
   return Lobby;
 };
 
-export const deployLobbyClone = async ( 
+export const deployLobbyClone = async (
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   lobbyImplementation: Lobby,
@@ -50,7 +48,7 @@ export const deployLobbyClone = async (
   const lobbyClone = await cloneFactory.clone(
     lobbyImplementation.address,
     encodedConfig
-  ); 
+  );
 
   const lobby = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -62,7 +60,6 @@ export const deployLobbyClone = async (
     (await artifacts.readArtifact("Lobby")).abi,
     deployer
   ) as Lobby;
-
 
   await lobby.deployed();
 

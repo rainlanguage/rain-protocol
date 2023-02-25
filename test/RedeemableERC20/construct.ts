@@ -57,7 +57,7 @@ describe("RedeemableERC20 constructor test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await redeemableERC20DeployClone( 
+    const token = await redeemableERC20DeployClone(
       signers[0],
       cloneFactory,
       implementation,
@@ -130,7 +130,7 @@ describe("RedeemableERC20 constructor test", async function () {
 
     await Util.assertError(
       async () =>
-        await redeemableERC20DeployClone( 
+        await redeemableERC20DeployClone(
           signers[0],
           cloneFactory,
           implementation,

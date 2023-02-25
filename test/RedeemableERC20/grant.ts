@@ -159,7 +159,7 @@ describe("RedeemableERC20 grant test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await redeemableERC20DeployClone( 
+    const token = await redeemableERC20DeployClone(
       owner,
       cloneFactory,
       implementation,

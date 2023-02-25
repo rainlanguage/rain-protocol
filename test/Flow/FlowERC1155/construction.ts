@@ -19,7 +19,10 @@ import {
   getRainContractMetaBytes,
   zeroAddress,
 } from "../../../utils";
-import { flowERC1155Clone, flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -92,14 +95,13 @@ describe("FlowERC1155 construction tests", async function () {
       ],
     };
 
-    
     const { flow } = await flowERC1155Clone(
       deployer,
       cloneFactory,
       implementation,
       flowERC1155Config
-    ); 
-    
+    );
+
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",

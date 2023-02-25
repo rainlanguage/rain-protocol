@@ -150,20 +150,18 @@ describe("FlowERC721 flow tests", async function () {
       ],
     };
 
-    const { flow: flowCanTransfer } =
-      await flowERC721Clone(
-        deployer,
-        cloneFactory,
-        implementation,
-        expressionConfigStructCanTransfer
-      );
-    const { flow: flowCannotTransfer } =
-      await flowERC721Clone(
-        deployer,
-        cloneFactory,
-        implementation,
-        expressionConfigStructCannotTransfer
-      );
+    const { flow: flowCanTransfer } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      expressionConfigStructCanTransfer
+    );
+    const { flow: flowCannotTransfer } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      expressionConfigStructCannotTransfer
+    );
 
     const flowExpressionsCanTransfer = (await getEvents(
       flowCanTransfer.deployTransaction,
@@ -1922,17 +1920,22 @@ describe("FlowERC721 flow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Clone(deployer ,cloneFactory, implementation, {
-      name: "FlowERC721",
-      symbol: "F721",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     await signers[0].sendTransaction({
       to: flow.address,

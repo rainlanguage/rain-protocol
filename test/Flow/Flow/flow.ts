@@ -1296,8 +1296,8 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await deployFlowClone( 
-      deployer, 
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
@@ -1889,8 +1889,8 @@ describe("Flow flow tests", async function () {
     };
 
     // Deploying flow 0
-    let { flow } = await deployFlowClone( 
-      deployer, 
+    let { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
@@ -1903,8 +1903,8 @@ describe("Flow flow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     // Deploying flow 1
-    ({ flow } = await deployFlowClone( 
-      deployer, 
+    ({ flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct

@@ -9,7 +9,10 @@ import {
   ReserveToken,
   SaleEscrowWrapper,
 } from "../../../typechain";
-import { redeemableERC20DeployClone, redeemableERC20DeployImplementation } from "../../../utils";
+import {
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+} from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
@@ -21,9 +24,9 @@ import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
 
 let reserve: ReserveToken, readWriteTier: ReadWriteTier;
 
-describe("SaleEscrow unchangeable addresses", async function () { 
+describe("SaleEscrow unchangeable addresses", async function () {
   let cloneFactory: CloneFactory;
-  let implementation: RedeemableERC20; 
+  let implementation: RedeemableERC20;
 
   beforeEach(async () => {
     reserve = await reserveDeploy();
@@ -34,7 +37,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    readWriteTier = await readWriteTierDeploy(); 
+    readWriteTier = await readWriteTierDeploy();
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
@@ -52,7 +55,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-  
 
     const redeemableERC20 = await redeemableERC20DeployClone(
       deployer,

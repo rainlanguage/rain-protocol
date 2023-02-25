@@ -54,7 +54,7 @@ export const saleImplementation = async (
 };
 
 export const saleClone = async (
-  signers: SignerWithAddress[], 
+  signers: SignerWithAddress[],
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: Sale,
@@ -72,7 +72,7 @@ export const saleClone = async (
   const saleClone = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  ); 
+  );
 
   const sale = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -97,7 +97,7 @@ export const saleClone = async (
   // @ts-ignore
   sale.deployTransaction = saleClone;
 
-    let token = new ethers.Contract(
+  let token = new ethers.Contract(
     await sale.token(),
     (await artifacts.readArtifact("RedeemableERC20")).abi
   ) as RedeemableERC20;
@@ -105,7 +105,6 @@ export const saleClone = async (
   token = token.connect(signers[0]); // need to do this for some reason
 
   return [sale, token];
-
 };
 
 // export const saleDeploy = async (

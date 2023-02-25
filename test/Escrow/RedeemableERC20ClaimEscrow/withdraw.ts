@@ -11,7 +11,12 @@ import type {
 import { MockISaleV2 } from "../../../typechain";
 import { WithdrawEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
-import { basicDeploy, getEventArgs, redeemableERC20DeployClone, redeemableERC20DeployImplementation } from "../../../utils";
+import {
+  basicDeploy,
+  getEventArgs,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+} from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
@@ -22,28 +27,26 @@ let claim: RedeemableERC20ClaimEscrow,
   reserve: ReserveToken,
   readWriteTier: ReadWriteTier;
 
-describe("RedeemableERC20ClaimEscrow Withdraw test", async function () { 
+describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
   let cloneFactory: CloneFactory;
-  let implementation: RedeemableERC20;  
+  let implementation: RedeemableERC20;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ claim, claimWrapper, readWriteTier } = await escrowDeploy()); 
+    ({ claim, claimWrapper, readWriteTier } = await escrowDeploy());
 
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;   
-    
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
     // some other token to put into the escrow
-    reserve = await reserveDeploy(); 
-
+    reserve = await reserveDeploy();
   });
 
   it("should allow withdrawing redeemable tokens on successful raise", async function () {
@@ -71,7 +74,6 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
         distributionEndForwardingAddress: Util.zeroAddress,
       }
     );
-
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
@@ -168,7 +170,6 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-     
 
     const redeemableERC20 = await redeemableERC20DeployClone(
       deployer,
@@ -325,7 +326,6 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-  
 
     const redeemableERC20 = await redeemableERC20DeployClone(
       deployer,

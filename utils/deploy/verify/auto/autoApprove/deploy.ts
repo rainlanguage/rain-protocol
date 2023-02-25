@@ -67,9 +67,9 @@ export const autoApproveCloneDeploy = async (
   const autoApproveCloneTx = await cloneFactory.clone(
     implementAutoApprove.address,
     encodedConfig
-  ); 
+  );
 
-    const autoApprove = new ethers.Contract(
+  const autoApprove = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
         (await getEventArgs(autoApproveCloneTx, "NewClone", cloneFactory)).clone
@@ -84,7 +84,6 @@ export const autoApproveCloneDeploy = async (
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   autoApprove.deployTransaction = autoApproveCloneTx;
-
 
   return autoApprove;
 };

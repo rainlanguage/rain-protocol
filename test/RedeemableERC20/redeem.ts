@@ -489,8 +489,8 @@ describe("RedeemableERC20 redeem test", async function () {
     await tier.setTier(signer1.address, Tier.FOUR);
     await tier.setTier(signer2.address, Tier.FOUR);
 
-    const redeemableERC20 = await redeemableERC20DeployClone( 
-      signers[0] ,
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig
@@ -593,7 +593,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // grant third signer SILVER status which is NOT enough to receive transfers
     await tier.setTier(signers[2].address, Tier.THREE);
 
-    const redeemableERC20 = await redeemableERC20DeployClone( 
+    const redeemableERC20 = await redeemableERC20DeployClone(
       signers[0],
       cloneFactory,
       implementation,
@@ -684,7 +684,7 @@ describe("RedeemableERC20 redeem test", async function () {
     await tier.setTier(signer1.address, Tier.FOUR);
     await tier.setTier(signer2.address, Tier.FOUR);
 
-    const redeemableERC20 = await await redeemableERC20DeployClone( 
+    const redeemableERC20 = await await redeemableERC20DeployClone(
       signers[0],
       cloneFactory,
       implementation,

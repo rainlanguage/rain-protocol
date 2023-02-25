@@ -31,7 +31,7 @@ export const stakeImplementation = async (): Promise<Stake> => {
   return stake;
 };
 
-export const stakeCloneDeploy = async ( 
+export const stakeCloneDeploy = async (
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   stakeImplementation: Stake,
@@ -53,7 +53,7 @@ export const stakeCloneDeploy = async (
     stakeClone,
     "NewClone",
     cloneFactory
-  )) as NewCloneEvent["args"]; 
+  )) as NewCloneEvent["args"];
 
   const stake = new ethers.Contract(
     ethers.utils.hexZeroPad(

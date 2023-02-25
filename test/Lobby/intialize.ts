@@ -97,13 +97,12 @@ describe("Lobby Tests Intialize", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby_ = await deployLobbyClone( 
+    const Lobby_ = await deployLobbyClone(
       signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
     );
-   
 
     const intializeEvent = (await getEventArgs(
       Lobby_.deployTransaction,

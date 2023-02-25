@@ -98,9 +98,9 @@ describe("Sale construction", async function () {
     await assertError(
       async () =>
         await await saleClone(
-      signers,
-      deployer,
-      cloneFactory,
+          signers,
+          deployer,
+          cloneFactory,
           implementation,
           {
             evaluableConfig,
@@ -164,9 +164,9 @@ describe("Sale construction", async function () {
     await assertError(
       async () =>
         await await saleClone(
-      signers,
-      deployer,
-      cloneFactory,
+          signers,
+          deployer,
+          cloneFactory,
           implementation,
           {
             evaluableConfig,

@@ -61,7 +61,6 @@ describe("FactoryCurator createChild", async function () {
     implementationStake = await stakeImplementation();
     implementationCombineTier = await combineTierImplementation();
 
-
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
@@ -320,12 +319,12 @@ describe("FactoryCurator createChild", async function () {
       asset: reserve18.address,
       evaluableConfig: evaluableConfig,
     };
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
-    );;
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS_18[1].add(1);
@@ -450,18 +449,18 @@ describe("FactoryCurator createChild", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake0 = await stakeCloneDeploy( 
+    const stake0 = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
-    );;
-    const stake1 = await stakeCloneDeploy( 
+    );
+    const stake1 = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct
-    );;
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS[4].add(1); // exceeds all thresholds
@@ -536,8 +535,6 @@ describe("FactoryCurator createChild", async function () {
       2,
       evaluableConfigCombineTier
     );
-
-    
 
     const FEE = 100 + sixZeros;
 

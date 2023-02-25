@@ -53,9 +53,9 @@ describe("Stake construction", async function () {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
-  it("should not initialize if requirements not met", async function () { 
+  it("should not initialize if requirements not met", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0]; 
+    const deployer = signers[0];
 
     const constants = [max_uint256, max_uint16];
     const max_deposit = op(
@@ -76,18 +76,22 @@ describe("Stake construction", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-
     await assertError(
       async () =>
-        await stakeCloneDeploy( deployer ,cloneFactory,  implementation, stakeConfigStructZeroToken),
+        await stakeCloneDeploy(
+          deployer,
+          cloneFactory,
+          implementation,
+          stakeConfigStructZeroToken
+        ),
       "ZeroAsset()",
       "wrongly initialised Stake with token configured as 0 address"
     );
   });
 
-  it("should initialize correctly on the good path", async function () { 
+  it("should initialize correctly on the good path", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];  
+    const deployer = signers[0];
     const constants = [max_uint256, max_uint16];
 
     const max_deposit = op(
@@ -108,7 +112,12 @@ describe("Stake construction", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( deployer ,cloneFactory,  implementation, stakeConfigStruct)
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const { sender, config } = (await getEventArgs(
       stake.deployTransaction,

@@ -33,6 +33,6 @@ export const escrowDeploy = async () => {
     claimFactory,
     claim,
     claimWrapperFactory,
-    claimWrapper
+    claimWrapper,
   };
 };

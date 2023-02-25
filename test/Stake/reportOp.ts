@@ -101,7 +101,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -165,7 +165,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -235,7 +235,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -316,7 +316,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -429,7 +429,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -510,7 +510,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -655,7 +655,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,
@@ -794,7 +794,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeCloneDeploy( 
+    const stake = await stakeCloneDeploy(
       deployer,
       cloneFactory,
       implementation,

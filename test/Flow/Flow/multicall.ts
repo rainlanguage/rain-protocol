@@ -211,7 +211,7 @@ describe("Flow multiCall tests", async function () {
       ],
     };
 
-    const { flow: flow_A} = await deployFlowClone(
+    const { flow: flow_A } = await deployFlowClone(
       deployer,
       cloneFactory,
       implementation,

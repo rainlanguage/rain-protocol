@@ -109,7 +109,7 @@ describe("Lobby Invalid Refund", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone( 
+    const Lobby = await deployLobbyClone(
       signers[0],
       cloneFactory,
       lobbyImplementation,
@@ -289,7 +289,7 @@ describe("Lobby Invalid Refund", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone( 
+    const Lobby = await deployLobbyClone(
       signers[0],
       cloneFactory,
       lobbyImplementation,
@@ -485,7 +485,7 @@ describe("Lobby Invalid Refund", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone( 
+    const Lobby = await deployLobbyClone(
       signers[0],
       cloneFactory,
       lobbyImplementation,
@@ -692,7 +692,7 @@ describe("Lobby Invalid Refund", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone( 
+    const Lobby = await deployLobbyClone(
       signers[0],
       cloneFactory,
       lobbyImplementation,

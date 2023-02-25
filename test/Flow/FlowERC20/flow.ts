@@ -164,20 +164,18 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow: flowCanTransfer } =
-      await flowERC20Clone( 
-        deployer,
-        cloneFactory,
-        implementation,
-        expressionConfigStructCanTransfer
-      );
-    const { flow: flowCannotTransfer } =
-      await flowERC20Clone( 
-        deployer,
-        cloneFactory,
-        implementation,
-        expressionConfigStructCannotTransfer
-      );
+    const { flow: flowCanTransfer } = await flowERC20Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      expressionConfigStructCanTransfer
+    );
+    const { flow: flowCannotTransfer } = await flowERC20Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      expressionConfigStructCannotTransfer
+    );
 
     const flowInitializedCanTransfer = (await getEvents(
       flowCanTransfer.deployTransaction,

@@ -20,7 +20,10 @@ import {
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -111,8 +114,6 @@ describe("FlowERC20 construction tests", async function () {
       implementation,
       flowERC20Config
     );
-
-    
 
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,

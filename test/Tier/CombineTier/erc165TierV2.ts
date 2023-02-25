@@ -9,7 +9,10 @@ import {
   Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
-import { CombineTierConfigStruct, InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
+import {
+  CombineTierConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/tier/CombineTier";
 import {
   assertError,
   basicDeploy,
@@ -68,7 +71,7 @@ describe("CombineTier ERC165 tests", async function () {
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0]
+    const deployer = signers[0];
     const evaluableConfig0 = await generateEvaluableConfig(
       [
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
@@ -101,23 +104,25 @@ describe("CombineTier ERC165 tests", async function () {
       combineTierSourceConfig.sources,
       combineTierSourceConfig.constants
     );
-    
+
     const combineTier = await combineTierCloneDeploy(
       deployer,
       cloneFactory,
       implementationCombineTier,
       1,
       evaluableConfig1
-    )
-    
+    );
 
     const { sender, config } = (await getEventArgs(
       combineTier.deployTransaction,
       "Initialize",
-      combineTier 
+      combineTier
     )) as InitializeEvent["args"];
 
-    assert(sender === cloneFactory.address, `wrong signer got ${sender} expected ${cloneFactory.address}`);
+    assert(
+      sender === cloneFactory.address,
+      `wrong signer got ${sender} expected ${cloneFactory.address}`
+    );
     compareStructs(config, combineTierSourceConfig);
   });
 
@@ -148,7 +153,6 @@ describe("CombineTier ERC165 tests", async function () {
       stakeConfigStruct
     );
 
-  
     const constants = [ethers.BigNumber.from(stake.address)];
 
     // prettier-ignore
@@ -166,7 +170,7 @@ describe("CombineTier ERC165 tests", async function () {
     const evaluableConfig1 = await generateEvaluableConfig(
       combineTierSourceConfig.sources,
       combineTierSourceConfig.constants
-    ); 
+    );
 
     const combineTier = await combineTierCloneDeploy(
       deployer,
@@ -176,38 +180,41 @@ describe("CombineTier ERC165 tests", async function () {
       evaluableConfig1
     );
 
-
     const { config } = (await getEventArgs(
       combineTier.deployTransaction,
       "Initialize",
       combineTier
-    )) as InitializeEvent["args"]; 
-    
+    )) as InitializeEvent["args"];
 
-    assert(await combineTier.signer.getAddress() === signers[0].address, "wrong signer");
+    assert(
+      (await combineTier.signer.getAddress()) === signers[0].address,
+      "wrong signer"
+    );
     compareStructs(config, combineTierSourceConfig);
-  }); 
+  });
 
   it("should fail if combineTier is deployed with bad callerMeta", async function () {
-    const combineTierFactory = await ethers.getContractFactory(
-      "CombineTier"
-    );
+    const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const touchDeployer = await getTouchDeployer();
     const config0: InterpreterCallerV1ConstructionConfigStruct = {
       callerMeta: getRainContractMetaBytes("combinetier"),
       deployer: touchDeployer.address,
     };
-  
-    const combineTier = (await combineTierFactory.deploy(config0)) as CombineTier;
+
+    const combineTier = (await combineTierFactory.deploy(
+      config0
+    )) as CombineTier;
     await combineTier.deployed();
 
-    assert(!(combineTier.address === zeroAddress), "combineTier did not deploy");
+    assert(
+      !(combineTier.address === zeroAddress),
+      "combineTier did not deploy"
+    );
 
-    const config1: InterpreterCallerV1ConstructionConfigStruct =
-      {
-        callerMeta: getRainContractMetaBytes("orderbook"),
-        deployer: touchDeployer.address,
-      };
+    const config1: InterpreterCallerV1ConstructionConfigStruct = {
+      callerMeta: getRainContractMetaBytes("orderbook"),
+      deployer: touchDeployer.address,
+    };
 
     await assertError(
       async () => await combineTierFactory.deploy(config1),
@@ -215,5 +222,4 @@ describe("CombineTier ERC165 tests", async function () {
       "Stake Deployed for bad hash"
     );
   });
-
 });

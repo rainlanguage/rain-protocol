@@ -2,7 +2,11 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
-import { basicDeploy, combineTierCloneDeploy, combineTierImplementation } from "../../../../utils";
+import {
+  basicDeploy,
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../../utils";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -23,20 +27,19 @@ import { Tier } from "../../../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
-describe("CombineTier tierwise combine report with 'every' logic and 'first' mode", async function () { 
-  let implementationCombineTier: CombineTier; 
-  let cloneFactory: CloneFactory; 
-   
+describe("CombineTier tierwise combine report with 'every' logic and 'first' mode", async function () {
+  let implementationCombineTier: CombineTier;
+  let cloneFactory: CloneFactory;
+
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);  
+    await deploy1820(signers[0]);
 
-    implementationCombineTier = await combineTierImplementation(); 
+    implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
-
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   // report time for tier context
@@ -78,7 +81,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
         ]),
       ]
     );
-    const futureTier = await combineTierCloneDeploy( 
+    const futureTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -92,7 +95,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       ],
       [ALWAYS]
     );
-    const alwaysTier = await combineTierCloneDeploy( 
+    const alwaysTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -106,7 +109,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       ],
       [NEVER]
     );
-    const neverTier = await combineTierCloneDeploy( 
+    const neverTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -156,7 +159,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       constants
     );
 
-    const combineTier = await combineTierCloneDeploy( 
+    const combineTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -184,7 +187,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       ],
       [ALWAYS]
     );
-    const alwaysTier = await combineTierCloneDeploy( 
+    const alwaysTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -198,7 +201,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       ],
       [NEVER]
     );
-    const neverTier = await combineTierCloneDeploy( 
+    const neverTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -230,7 +233,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = await combineTierCloneDeploy( 
+    const combineTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,
@@ -282,7 +285,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = await combineTierCloneDeploy( 
+    const combineTier = await combineTierCloneDeploy(
       signers[0],
       cloneFactory,
       implementationCombineTier,

@@ -1,13 +1,22 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { CloneFactory, RainterpreterExpressionDeployer, Verify } from "../../typechain";
+import type {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+  Verify,
+} from "../../typechain";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 
 import {
   InitializeEvent,
   VerifyConfigStruct,
 } from "../../typechain/contracts/verify/Verify";
-import { assertError, basicDeploy, getRainContractMetaBytes, zeroAddress } from "../../utils";
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../utils";
 import {
   APPROVER,
   APPROVER_ADMIN,
@@ -17,7 +26,10 @@ import {
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { verifyCloneDeploy, verifyImplementation } from "../../utils/deploy/verify/deploy";
+import {
+  verifyCloneDeploy,
+  verifyImplementation,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
@@ -41,7 +53,6 @@ describe("Verify construction", async function () {
       callback: ethers.constants.AddressZero,
     };
 
-  
     const verify = await verifyCloneDeploy(
       defaultAdmin,
       cloneFactory,
@@ -79,9 +90,5 @@ describe("Verify construction", async function () {
 
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");
     compareStructs(config, verifyConfig);
-  }); 
-
-  
-
-
+  });
 });

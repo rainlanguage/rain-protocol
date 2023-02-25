@@ -62,7 +62,7 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await deployFlowClone( 
+    const { flow } = await deployFlowClone(
       deployer,
       cloneFactory,
       implementation,
@@ -147,7 +147,7 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await deployFlowClone( 
+    const { flow } = await deployFlowClone(
       deployer,
       cloneFactory,
       implementation,

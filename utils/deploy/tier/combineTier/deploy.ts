@@ -11,12 +11,8 @@ import { getEventArgs } from "../../../events";
 import { getRainContractMetaBytes } from "../../../meta";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
-
 export const combineTierImplementation = async (): Promise<CombineTier> => {
-
-  const combineTierFactory = await ethers.getContractFactory(
-    "CombineTier"
-  );
+  const combineTierFactory = await ethers.getContractFactory("CombineTier");
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
     callerMeta: getRainContractMetaBytes("combinetier"),
@@ -34,19 +30,17 @@ export const combineTierImplementation = async (): Promise<CombineTier> => {
   return combineTier;
 };
 
-
-export const combineTierCloneDeploy = async ( 
+export const combineTierCloneDeploy = async (
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: CombineTier,
   combinedTiersLength: number,
   initialConfig: EvaluableConfigStruct
 ): Promise<CombineTier> => {
-
   const combineTierConfig: CombineTierConfigStruct = {
-    combinedTiersLength: combinedTiersLength ,
-    evaluableConfig: initialConfig
-  }
+    combinedTiersLength: combinedTiersLength,
+    evaluableConfig: initialConfig,
+  };
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
@@ -58,7 +52,7 @@ export const combineTierCloneDeploy = async (
   const combineTierCloneTx = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  ); 
+  );
 
   const combineTier = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -75,7 +69,7 @@ export const combineTierCloneDeploy = async (
   // @ts-ignore
   combineTier.deployTransaction = combineTierCloneTx;
 
-  await combineTier.deployed()
+  await combineTier.deployed();
 
   return combineTier;
 };

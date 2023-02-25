@@ -31,7 +31,7 @@ describe("Flow deployExpression tests", async function () {
 
   before(async () => {
     // Deploy ERC1820Registry
-    const signers = await ethers.getSigners(); 
+    const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
     implementation = await flowImplementation();
@@ -41,8 +41,8 @@ describe("Flow deployExpression tests", async function () {
   });
 
   it("should deploy expression", async function () {
-    const signers = await ethers.getSigners(); 
-    const deployer = signers[0] 
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
@@ -61,7 +61,7 @@ describe("Flow deployExpression tests", async function () {
     };
 
     const { flow } = await deployFlowClone(
-      deployer ,
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
@@ -69,8 +69,8 @@ describe("Flow deployExpression tests", async function () {
   });
 
   it("should validate context from the context event", async () => {
-    const signers = await ethers.getSigners(); 
-    const deployer = signers[0]
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[1];
     const bob = signers[1];

@@ -21,19 +21,14 @@ import {
   AllStandardOps,
   assertError,
   basicDeploy,
-  
   combineTierCloneDeploy,
-  
   combineTierImplementation,
-  
   compareStructs,
   getEventArgs,
   max_uint256,
   redeemableERC20DeployClone,
   redeemableERC20DeployImplementation,
-  
   stakeCloneDeploy,
-  
   stakeImplementation,
   Tier,
 } from "../../utils";
@@ -66,8 +61,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
     implementationStake = await stakeImplementation();
     implementationRedeemableERC20 = await redeemableERC20DeployImplementation();
-    implementationCombineTier = await combineTierImplementation(); 
-
+    implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
@@ -122,7 +116,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await redeemableERC20DeployClone( 
+    const token = await redeemableERC20DeployClone(
       signers[0],
       cloneFactory,
       implementationRedeemableERC20,
@@ -133,7 +127,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       token.deployTransaction,
       "Initialize",
       token
-    )) as InitializeEvent["args"]; 
+    )) as InitializeEvent["args"];
 
     assert(token.signer == signers[0], "wrong signer");
     compareStructs(config, tokenConfig);
@@ -144,7 +138,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     const deployer = signers[0];
     const reserveToken = (await basicDeploy(
       "ReserveToken",
-      {}   
+      {}
     )) as ReserveToken;
 
     const evaluableConfig = await generateEvaluableConfig(
@@ -179,7 +173,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await redeemableERC20DeployClone( 
+    const token = await redeemableERC20DeployClone(
       deployer,
       cloneFactory,
       implementationRedeemableERC20,
@@ -211,12 +205,13 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     };
 
     await assertError(
-      async () => await redeemableERC20DeployClone( 
-        signers[0],
-        cloneFactory,
-        implementationRedeemableERC20,
-        tokenConfig
-      ),
+      async () =>
+        await redeemableERC20DeployClone(
+          signers[0],
+          cloneFactory,
+          implementationRedeemableERC20,
+          tokenConfig
+        ),
       "ERC165_TIERV2",
       "ERC165_TIERV2 check failed"
     );

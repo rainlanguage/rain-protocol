@@ -40,7 +40,7 @@ export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   return flow;
 };
 
-export const flowERC721Clone = async ( 
+export const flowERC721Clone = async (
   deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: FlowERC721,
@@ -79,7 +79,7 @@ export const flowERC721Clone = async (
   const flowCloneTx = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  ); 
+  );
 
   const flow = new ethers.Contract(
     ethers.utils.hexZeroPad(

@@ -39,7 +39,7 @@ export const flowImplementation = async (): Promise<Flow> => {
 };
 
 export const deployFlowClone = async (
-  deployer: SignerWithAddress ,
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: Flow,
   flowConfig: FlowConfig
@@ -70,7 +70,7 @@ export const deployFlowClone = async (
   const flowCloneTx = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  ); 
+  );
 
   const flow = new ethers.Contract(
     ethers.utils.hexZeroPad(
@@ -90,5 +90,4 @@ export const deployFlowClone = async (
   flow.deployTransaction = flowCloneTx;
 
   return { flow, evaluableConfigs };
-
 };
