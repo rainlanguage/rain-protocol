@@ -6,7 +6,7 @@ import type {
   ERC20PulleeTest,
   ReserveToken,
 } from "../../typechain";
-import { CombineTier, StakeFactory } from "../../typechain";
+import { CombineTier } from "../../typechain";
 import {
   ERC20ConfigStruct,
   InitializeEvent,
@@ -21,12 +21,19 @@ import {
   AllStandardOps,
   assertError,
   basicDeploy,
-  combineTierDeploy,
+  
+  combineTierCloneDeploy,
+  
+  combineTierImplementation,
+  
   compareStructs,
   getEventArgs,
   max_uint256,
+  redeemableERC20DeployClone,
   redeemableERC20DeployImplementation,
-  stakeDeploy,
+  
+  stakeCloneDeploy,
+  
   stakeImplementation,
   Tier,
 } from "../../utils";
@@ -48,6 +55,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let redeemableERC20Config: ERC20ConfigStruct;
   let implementationStake: Stake;
   let implementationRedeemableERC20: RedeemableERC20;
+  let implementationCombineTier: CombineTier;
 
   let cloneFactory: CloneFactory;
 
@@ -58,6 +66,8 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
     implementationStake = await stakeImplementation();
     implementationRedeemableERC20 = await redeemableERC20DeployImplementation();
+    implementationCombineTier = await combineTierImplementation(); 
+
 
     //Deploy Clone Factory
     cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
@@ -94,10 +104,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       ],
       [0]
     );
-    const tier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig,
-    })) as CombineTier;
+    const tier = await combineTierCloneDeploy(
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfig
+    );
 
     const minimumTier = Tier.FOUR;
 
@@ -109,13 +121,18 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await Util.redeemableERC20Deploy(signers[0], tokenConfig);
+    const token = await redeemableERC20DeployClone( 
+      signers[0],
+      cloneFactory,
+      implementationRedeemableERC20,
+      tokenConfig
+    );
 
     const { config } = (await getEventArgs(
       token.deployTransaction,
       "Initialize",
       token
-    )) as InitializeEvent["args"];
+    )) as InitializeEvent["args"]; 
 
     assert(token.signer == signers[0], "wrong signer");
     compareStructs(config, tokenConfig);
@@ -126,7 +143,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     const deployer = signers[0];
     const reserveToken = (await basicDeploy(
       "ReserveToken",
-      {}
+      {}   
     )) as ReserveToken;
 
     const evaluableConfig = await generateEvaluableConfig(
@@ -144,7 +161,11 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       evaluableConfig,
     };
 
-    const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const tier = await stakeCloneDeploy(
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     const minimumTier = Tier.FOUR;
 
@@ -156,8 +177,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await Util.redeemableERC20Deploy(signers[0], tokenConfig);
-
+    const token = await redeemableERC20DeployClone( 
+      deployer,
+      cloneFactory,
+      implementationRedeemableERC20,
+      tokenConfig
+    );
     const { config } = (await getEventArgs(
       token.deployTransaction,
       "Initialize",
@@ -184,7 +209,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     };
 
     await assertError(
-      async () => await Util.redeemableERC20Deploy(signers[0], tokenConfig),
+      async () => await redeemableERC20DeployClone( 
+        signers[0],
+        cloneFactory,
+        implementationRedeemableERC20,
+        tokenConfig
+      ),
       "ERC165_TIERV2",
       "ERC165_TIERV2 check failed"
     );

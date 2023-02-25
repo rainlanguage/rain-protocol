@@ -63,6 +63,7 @@ describe("RedeemableERC20 unsold token test", async function () {
     };
 
     const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig
@@ -114,6 +115,7 @@ describe("RedeemableERC20 unsold token test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
     const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig

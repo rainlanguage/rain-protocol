@@ -63,6 +63,7 @@ describe("RedeemableERC20 endDistribution test", async function () {
     };
 
     const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig

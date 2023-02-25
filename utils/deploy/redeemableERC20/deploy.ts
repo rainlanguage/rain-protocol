@@ -1,5 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, RedeemableERC20 } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { RedeemableERC20ConfigStruct } from "../../../typechain/contracts/redeemableERC20/RedeemableERC20";
@@ -27,10 +28,11 @@ export const redeemableERC20DeployImplementation =
   };
 
 export const redeemableERC20DeployClone = async (
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: RedeemableERC20,
   initialConfig: RedeemableERC20ConfigStruct
-) => {
+) => { 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
       "tuple(address reserve ,tuple(string name,string symbol,address distributor,uint256 initialSupply) erc20Config , address tier , uint256 minimumTier, address distributionEndForwardingAddress)",
@@ -41,23 +43,42 @@ export const redeemableERC20DeployClone = async (
   const redeemableERC20Clone = await cloneFactory.clone(
     implementation.address,
     encodedConfig
-  );
+  ); 
 
-  const cloneEvent = (await getEventArgs(
-    redeemableERC20Clone,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const redeemableERC20 = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(redeemableERC20Clone, "NewClone", cloneFactory)).clone
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("RedeemableERC20")).abi,
+    deployer
+  ) as RedeemableERC20;
 
-  assert(
-    !(cloneEvent.clone === zeroAddress),
-    "redeemableERC20 clone zero address"
-  );
+  await redeemableERC20.deployed();
 
-  const redeemableERC20 = (await ethers.getContractAt(
-    "RedeemableERC20",
-    cloneEvent.clone
-  )) as RedeemableERC20;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore 
+
+  redeemableERC20.deployTransaction = redeemableERC20Clone;
+
+
+  // const cloneEvent = (await getEventArgs(
+  //   redeemableERC20Clone,
+  //   "NewClone",
+  //   cloneFactory
+  // )) as NewCloneEvent["args"];
+
+  // assert(
+  //   !(cloneEvent.clone === zeroAddress),
+  //   "redeemableERC20 clone zero address"
+  // );
+
+  // const redeemableERC20 = (await ethers.getContractAt(
+  //   "RedeemableERC20",
+  //   cloneEvent.clone
+  // )) as RedeemableERC20;
 
   return redeemableERC20;
 };

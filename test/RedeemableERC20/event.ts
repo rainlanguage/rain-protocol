@@ -145,7 +145,8 @@ describe("RedeemableERC20 event test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const redeemableERC20 = await redeemableERC20DeployClone(
+    const redeemableERC20 = await redeemableERC20DeployClone( 
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig

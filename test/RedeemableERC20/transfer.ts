@@ -83,6 +83,7 @@ describe("RedeemableERC20 transfer test", async function () {
     };
 
     const token = await redeemableERC20DeployClone(
+      owner,
       cloneFactory,
       implementation,
       redeemableConfig
@@ -162,6 +163,7 @@ describe("RedeemableERC20 transfer test", async function () {
     };
 
     const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig
@@ -208,6 +210,7 @@ describe("RedeemableERC20 transfer test", async function () {
     await tier.setTier(signer1.address, Tier.FOUR);
 
     const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
       cloneFactory,
       implementation,
       redeemableConfig
