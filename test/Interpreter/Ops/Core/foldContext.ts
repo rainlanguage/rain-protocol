@@ -239,7 +239,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
-    
+
     const { sources } = await standardEvaluableConfig(
       `
       /* 
@@ -414,7 +414,6 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       _: add(a b c d);
       `
     );
-
 
     console.log("Sources = ", sources);
     // [sourceMain, sourceCalculate, sourceCountEven],
