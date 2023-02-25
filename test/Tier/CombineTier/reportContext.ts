@@ -1,9 +1,13 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier } from "../../../typechain";
+import type { CloneFactory, CombineTier } from "../../../typechain";
+import { basicDeploy } from "../../../utils";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
-import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
+import {
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../utils/deploy/tier/combineTier/deploy";
 import {
   generateEvaluableConfig,
   op,
@@ -13,10 +17,19 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 const Opcode = AllStandardOps;
 
 describe("CombineTier report context tests", async function () {
+  let implementationCombineTier: CombineTier;
+
+  let cloneFactory: CloneFactory;
+
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
+
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   // report time for tier context
@@ -32,17 +45,20 @@ describe("CombineTier report context tests", async function () {
 
   it("should support a program which simply returns the account", async () => {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0];
     const sourceReport = concat([op(Opcode.context, 0x0100)]);
     const evaluableConfig = await generateEvaluableConfig(
       [sourceReport, sourceReportTimeForTierDefault],
       []
     );
 
-    const combineTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
+    const combineTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfig
+    );
 
     const result = await combineTier.report(signers[1].address, []);
     const expected = signers[1].address;

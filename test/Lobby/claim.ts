@@ -1,28 +1,28 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LobbyReentrantSender, ReserveToken18 } from "../../typechain";
+import type {
+  CloneFactory,
+  LobbyReentrantSender,
+  ReserveToken18,
+} from "../../typechain";
 import {
   ClaimEvent,
   ContextEvent,
   DepositEvent,
   Lobby,
   LobbyConfigStruct,
-  LobbyConstructorConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import {
-  assertError,
-  fixedPointMul,
-  getRainContractMetaBytes,
-} from "../../utils";
+import { assertError, fixedPointMul } from "../../utils";
 import {
   eighteenZeros,
   ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { deployLobby, deployLobbyClone } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -35,7 +35,7 @@ import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
 describe("Lobby Tests claim", async function () {
   const Opcode = RainterpreterOps;
-  let lobbyFactory: ContractFactory;
+  let cloneFactory: CloneFactory;
   let tokenA: ReserveToken18;
 
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
@@ -46,7 +46,8 @@ describe("Lobby Tests claim", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    lobbyFactory = await ethers.getContractFactory("Lobby", {});
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -62,12 +63,7 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -107,7 +103,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -235,12 +236,7 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
 
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -280,7 +276,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -415,12 +416,7 @@ describe("Lobby Tests claim", async function () {
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -460,7 +456,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -611,12 +612,7 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
     await tokenA.connect(signers[0]).transfer(bot.address, botDespoitAmount);
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -656,7 +652,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -834,12 +835,7 @@ describe("Lobby Tests claim", async function () {
     const [, alice, bob, bot] = signers;
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -879,7 +875,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
@@ -1079,12 +1080,7 @@ describe("Lobby Tests claim", async function () {
     await maliciousReserve
       .connect(signers[0])
       .transfer(bot.address, botDespoitAmount);
-    const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
-      maxTimeoutDuration: timeoutDuration,
-      callerMeta: getRainContractMetaBytes("lobby"),
-    };
-
-    const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
     const depositAmount = ONE;
 
     const constants = [0, depositAmount];
@@ -1124,7 +1120,12 @@ describe("Lobby Tests claim", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    await Lobby.initialize(initialConfig);
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
 
     await maliciousReserve.connect(alice).approve(Lobby.address, ONE);
     await maliciousReserve.connect(bob).approve(Lobby.address, ONE);

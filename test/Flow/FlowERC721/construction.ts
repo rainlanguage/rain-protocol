@@ -1,17 +1,30 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC721Factory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../typechain";
+
+import {
+  FlowERC721,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../../utils";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
+import { memoryOperand, MemoryType, op } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -19,14 +32,18 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 construction tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
@@ -66,7 +83,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const sources = [sourceCanTransfer];
 
-    const configStruct: FlowERC721Config = {
+    const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {
@@ -81,10 +98,11 @@ describe("FlowERC721 construction tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC721Deploy(
+    const { flow } = await flowERC721Clone(
       deployer,
-      flowERC721Factory,
-      configStruct
+      cloneFactory,
+      implementation,
+      flowERC721Config
     );
 
     const { sender, config } = (await getEventArgs(
@@ -93,11 +111,39 @@ describe("FlowERC721 construction tests", async function () {
       flow
     )) as InitializeEvent["args"];
 
-    assert(
-      sender === flowERC721Factory.address,
-      "wrong sender in Initialize event"
-    );
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
 
-    compareStructs(config, configStruct);
+    compareStructs(config, flowERC721Config);
+  });
+
+  it("should fail if flowERC721 is deployed with bad callerMeta", async function () {
+    const flowERC721Factory = await ethers.getContractFactory("FlowERC721", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer();
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("flow721"),
+        deployer: touchDeployer.address,
+      };
+
+    const flowERC721 = (await flowERC721Factory.deploy(
+      interpreterCallerConfig0
+    )) as FlowERC721;
+
+    assert(!(flowERC721.address === zeroAddress), "flowERC721 did not deploy");
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    await assertError(
+      async () => await flowERC721Factory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "FlowERC721 Deployed for bad hash"
+    );
   });
 });

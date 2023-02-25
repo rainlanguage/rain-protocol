@@ -2,6 +2,7 @@
 pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
+import "./IInterpreterCallerV1.sol";
 
 error UnexpectedMetaHash(bytes32 expectedHash, bytes32 actualHash);
 

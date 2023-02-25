@@ -1,11 +1,29 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../typechain";
+
+import {
+  FlowERC20,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+
+import {
+  assertError,
+  basicDeploy,
+  getRainContractMetaBytes,
+  zeroAddress,
+} from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
-import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -20,14 +38,18 @@ import { FlowERC20Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 construction tests", async function () {
-  let flowERC20Factory: FlowERC20Factory;
+  let implementation: FlowERC20;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC20Factory = await flowERC20FactoryDeploy();
+    implementation = await flowERC20Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
@@ -69,7 +91,7 @@ describe("FlowERC20 construction tests", async function () {
 
     const sources = [sourceCanTransfer];
 
-    const configStruct: FlowERC20Config = {
+    const flowERC20Config: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
       expressionConfig: {
@@ -84,10 +106,11 @@ describe("FlowERC20 construction tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
-      configStruct
+      cloneFactory,
+      implementation,
+      flowERC20Config
     );
 
     const { sender, config } = (await getEventArgs(
@@ -96,10 +119,38 @@ describe("FlowERC20 construction tests", async function () {
       flow
     )) as InitializeEvent["args"];
 
-    assert(
-      sender === flowERC20Factory.address,
-      "wrong sender in Initialize event"
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
+    compareStructs(config, flowERC20Config);
+  });
+
+  it("should fail if flowERC20 is deployed with bad callerMeta", async function () {
+    const flowERC20Factory = await ethers.getContractFactory("FlowERC20", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer();
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("flow20"),
+        deployer: touchDeployer.address,
+      };
+
+    const flowERC20 = (await flowERC20Factory.deploy(
+      interpreterCallerConfig0
+    )) as FlowERC20;
+
+    assert(!(flowERC20.address === zeroAddress), "flowERC20 did not deploy");
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    await assertError(
+      async () => await flowERC20Factory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "FlowERC20 Deployed for bad hash"
     );
-    compareStructs(config, configStruct);
   });
 });

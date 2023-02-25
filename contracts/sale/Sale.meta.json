@@ -1,0 +1,108 @@
+{
+  "name": "Sale",
+  "desc": "Sale contract which throws a sale for reserve token against a redeemable erc20 token which can be later redeemed.",
+  "alias": "sale",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "",
+      "desc": "Deploys a new Sale contract.",
+      "inputs": [
+        {
+          "name": "Recepient Address",
+          "desc": "The recipient of the proceeds of a Sale, if/when the Sale is successful.",
+          "path": "[6].inputs[0].components[0]"
+        },
+        {
+          "name": "Reserve Token Address",
+          "desc": "The reserve token address that the Sale is deonominated in.",
+          "path": "[6].inputs[0].components[1]"
+        },
+        {
+          "name": "Sale Timeout",
+          "desc": "The number of seconds before this sale can timeout. SHOULD be well after the expected end time as a timeout will fail an active or pending sale regardless of any funds raised.",
+          "path": "[6].inputs[0].components[2]"
+        },
+        {
+          "name": "Cooldown Duration",
+          "desc": "Forwarded to `Cooldown` contract initialization.",
+          "path": "[6].inputs[0].components[3]"
+        },
+        {
+          "name": "Minimum Raise Threshold",
+          "desc": "Defines the amount of reserve required to raise that defines success/fail of the sale. Reaching the minimum raise DOES NOT cause the raise to end early (unless the 'can live' expression allows it of course).",
+          "path": "[6].inputs[0].components[4]"
+        },
+        {
+          "name": "Dust Size",
+          "desc": "The minimum amount of rTKN that must remain in the Sale contract unless it is all purchased, clearing the raise to 0 stock and thus ending the raise.",
+          "path": "[6].inputs[0].components[5]"
+        },
+        {
+          "name": "Reddemable ERC20 Name",
+          "desc": "Name of the Redeemable ERC20 token as defined by Open Zeppelin ERC20.",
+          "path": "[6].inputs[1].components[0].components[0]"
+        },
+        {
+          "name": "Reddemable ERC20 Symbol",
+          "desc": "Symbol of the Redeemable ERC20 token as defined by Open Zeppelin ERC20.",
+          "path": "[6].inputs[1].components[0].components[1]"
+        },
+        {
+          "name": "Reddemable ERC20 Distributor",
+          "desc": "Reddemable ERC20 distributor address of the initial supply, MAY be zero.",
+          "path": "[6].inputs[1].components[0].components[2]"
+        },
+        {
+          "name": "Reddemable ERC20 Initial Supply",
+          "desc": "Redeemable ERC20 Initial supply to mint, MAY be zero.",
+          "path": "[6].inputs[1].components[0].components[3]"
+        },
+        {
+          "name": "Tier Address",
+          "desc": "Tier contract address to gate the sale",
+          "path": "[6].inputs[1].components[1]"
+        },
+        {
+          "name": "Minimum Tier",
+          "desc": "Minimum tier level of the Tier contract that is gating the sale required in order to be able to participate in the sale",
+          "path": "[6].inputs[1].components[2]"
+        },
+        {
+          "name": "Distribution End Forwarding Address",
+          "desc": "Determines if the remaining Redeemable ERC20 tokens after the sale has ended in success should be burned or transfered to the Recepient address, 0x00 address would burn the remaining rTKNs.",
+          "path": "[6].inputs[1].components[3]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "Sale Expression",
+          "desc": "An expression to calculate the rTKN price and sale's can live state.",
+          "path": "[6].inputs[0].components[6]",
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This Contract",
+                  "desc": "The address of the Sale contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -224,7 +224,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -234,7 +234,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -433,7 +433,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -443,7 +443,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -626,7 +626,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -636,7 +636,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -828,7 +828,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -838,7 +838,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -1025,7 +1025,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -1035,7 +1035,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -1260,7 +1260,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -1270,7 +1270,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructBob);
+    compareStructs(config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -1433,7 +1433,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -1443,7 +1443,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(amountB), "wrong input");
     assert(output.eq(amountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStruct);
+    compareStructs(config, takeOrderConfigStruct);
 
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
@@ -1727,7 +1727,7 @@ describe("OrderBook expression checks", async () => {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -1737,7 +1737,7 @@ describe("OrderBook expression checks", async () => {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructAlice);
+    compareStructs(config, takeOrderConfigStructAlice);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);

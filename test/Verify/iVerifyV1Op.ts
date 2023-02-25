@@ -2,17 +2,20 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   IInterpreterV1Consumer,
   Rainterpreter,
   Verify,
 } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+
 import * as Util from "../../utils";
 import {
   AllStandardOps,
+  basicDeploy,
   getBlockTimestamp,
   op,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
@@ -23,7 +26,8 @@ const Opcode = AllStandardOps;
 describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   const ONE_SECOND = 1;
 
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
@@ -32,7 +36,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -47,10 +54,13 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     const [admin, verifier, signer1, newAdmin] = signers;
 
     // Deploying verifiy contract
-    const verify = (await Util.verifyDeploy(signers[0], verifyFactory, {
-      admin: admin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      ethers.constants.AddressZero
+    );
 
     // prettier-ignore
     const source = concat([

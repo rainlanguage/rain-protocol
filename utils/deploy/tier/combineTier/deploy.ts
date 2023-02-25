@@ -1,51 +1,75 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { CombineTier, CombineTierFactory } from "../../../../typechain";
+import type { CloneFactory, CombineTier } from "../../../../typechain";
+
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
+import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/CombineTier";
-import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
 import { getRainContractMetaBytes } from "../../../meta";
+import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
-export const combineTierDeploy = async (
-  deployer: SignerWithAddress,
-  config: CombineTierConfigStruct
-) => {
-  const combineTierFactoryFactory = await ethers.getContractFactory(
-    "CombineTierFactory"
-  );
-  const combineTierFactory = (await combineTierFactoryFactory.deploy(
-    getRainContractMetaBytes("combinetier")
-  )) as CombineTierFactory;
-  await combineTierFactory.deployed();
+export const combineTierImplementation = async (): Promise<CombineTier> => {
+  const combineTierFactory = await ethers.getContractFactory("CombineTier");
+  const touchDeployer = await getTouchDeployer();
+  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+    callerMeta: getRainContractMetaBytes("combinetier"),
+    deployer: touchDeployer.address,
+  };
 
-  const { implementation } = (await getEventArgs(
-    combineTierFactory.deployTransaction,
-    "Implementation",
-    combineTierFactory
-  )) as ImplementationEventCombineTierFactory["args"];
+  const combineTier = (await combineTierFactory.deploy(config_)) as CombineTier;
+  await combineTier.deployed();
+
   assert(
-    !(implementation === zeroAddress),
-    "implementation combineTier factory zero address"
+    !(combineTier.address === zeroAddress),
+    "implementation combineTier zero address"
   );
 
-  const tx = await combineTierFactory.createChildTyped(config);
-  const contract = new ethers.Contract(
+  return combineTier;
+};
+
+export const combineTierCloneDeploy = async (
+  deployer: SignerWithAddress,
+  cloneFactory: CloneFactory,
+  implementation: CombineTier,
+  combinedTiersLength: number,
+  initialConfig: EvaluableConfigStruct
+): Promise<CombineTier> => {
+  const combineTierConfig: CombineTierConfigStruct = {
+    combinedTiersLength: combinedTiersLength,
+    evaluableConfig: initialConfig,
+  };
+
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(uint256 combinedTiersLength ,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+    ],
+    [combineTierConfig]
+  );
+
+  const combineTierCloneTx = await cloneFactory.clone(
+    implementation.address,
+    encodedConfig
+  );
+
+  const combineTier = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", combineTierFactory)).child
+        (await getEventArgs(combineTierCloneTx, "NewClone", cloneFactory)).clone
       ),
       20
     ),
     (await artifacts.readArtifact("CombineTier")).abi,
     deployer
   ) as CombineTier;
-  await contract.deployed();
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  contract.deployTransaction = tx;
+  combineTier.deployTransaction = combineTierCloneTx;
 
-  return contract;
+  await combineTier.deployed();
+
+  return combineTier;
 };

@@ -52,8 +52,9 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
   });
 
   it("should return block.number", async () => {
-    const { sources, constants } =
-      await standardEvaluableConfig(`_: block-number();`);
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: block-number();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,

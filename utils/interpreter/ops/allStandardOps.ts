@@ -1,6 +1,9 @@
 import { getAllStandardOpsEnum } from "../../meta/op/allStandardOpMeta";
 
 export enum AllStandardOps {
+  decode_256,
+  encode_256,
+  explode_32,
   chainlink_price,
   call,
   context,
@@ -26,7 +29,6 @@ export enum AllStandardOps {
   ensure,
   block_number,
   block_timestamp,
-  explode_32,
   add,
   div,
   exp,

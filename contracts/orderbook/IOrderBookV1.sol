@@ -348,12 +348,12 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// against the specified orders. Each order that is matched within a the
     /// `takeOrders` loop emits its own individual event.
     /// @param sender `msg.sender` taking the orders.
-    /// @param takeOrder All config defining the orders to attempt to take.
+    /// @param config All config defining the orders to attempt to take.
     /// @param input The input amount from the perspective of sender.
     /// @param output The output amount from the perspective of sender.
     event TakeOrder(
         address sender,
-        TakeOrderConfig takeOrder,
+        TakeOrderConfig config,
         uint256 input,
         uint256 output
     );
@@ -479,7 +479,7 @@ interface IOrderBookV1 is IERC3156FlashLender {
     ///
     /// Rounding errors always favour the order never the `msg.sender`.
     ///
-    /// @param takeOrders The constraints and list of orders to take, orders are
+    /// @param config The constraints and list of orders to take, orders are
     /// processed sequentially in order as provided, there is NO ATTEMPT onchain
     /// to predict/filter/sort these orders other than evaluating them as
     /// provided. Inputs and outputs are from the perspective of `msg.sender`
@@ -490,7 +490,7 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// @return totalOutput Total tokens taken from `msg.sender` and distributed
     /// between vaults.
     function takeOrders(
-        TakeOrdersConfig calldata takeOrders
+        TakeOrdersConfig calldata config
     ) external returns (uint256 totalInput, uint256 totalOutput);
 
     /// Allows `msg.sender` to match two live orders placed earlier by

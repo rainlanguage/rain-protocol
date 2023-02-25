@@ -2,18 +2,21 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  CloneFactory,
   IInterpreterV1Consumer,
   Rainterpreter,
   ReserveToken18,
-  StakeFactory,
 } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
+import { stakeCloneDeploy, stakeImplementation } from "../../utils";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
@@ -26,7 +29,8 @@ import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake ITIERV2_REPORT Op", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
@@ -48,7 +52,6 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   ]);
 
   before(async () => {
-    stakeFactory = await stakeFactoryDeploy();
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -56,6 +59,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     );
     logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
     await logic.deployed();
+
+    implementation = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -92,7 +100,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // prettier-ignore
     const source0 = concat([
@@ -149,7 +162,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].div(2);
@@ -212,7 +230,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1);
@@ -286,7 +309,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[1].add(1);
@@ -392,7 +420,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -466,7 +499,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -604,7 +642,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1);
@@ -736,7 +779,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[3].add(1);

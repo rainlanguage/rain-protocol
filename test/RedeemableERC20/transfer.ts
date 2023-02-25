@@ -1,13 +1,21 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ERC20PulleeTest,
   ReadWriteTier,
   RedeemableERC20,
   ReserveToken,
 } from "../../typechain";
+import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { readWriteTierDeploy, Tier } from "../../utils";
+import {
+  basicDeploy,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
@@ -15,10 +23,16 @@ describe("RedeemableERC20 transfer test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
   let reserve: ReserveToken;
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
     tier = await readWriteTierDeploy();
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -56,13 +70,20 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    };
+
+    const token = await redeemableERC20DeployClone(
+      owner,
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     await Util.assertError(
       async () =>
@@ -129,13 +150,20 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     // user attempts to wrongly 'redeem' by sending all of their redeemable tokens directly to contract address
     await Util.assertError(
@@ -167,15 +195,22 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.FOUR);
-
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    await tier.setTier(signer1.address, Tier.FOUR);
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     await Util.assertError(
       async () =>

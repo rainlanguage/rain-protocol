@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "../../factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1d993cd279a9a18eb476124f8b3b7fa871a208797f3f83c030b579cf0b0cfd68
+    0x420f47b73b795f863e3710e44148d324d8e7054841fb8bb47a650d3a82e05aa7
 );
 
 struct FlowConfig {
@@ -16,22 +17,21 @@ struct FlowConfig {
     EvaluableConfig[] config;
 }
 
-contract Flow is ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
 
-    event Initialize(address sender, EvaluableConfig[] config);
+    event Initialize(address sender, FlowConfig config);
 
-    constructor(bytes memory callerMeta_) FlowCommon() {
-        _disableInitializers();
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
-    }
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @param config_ allowed flows set at initialization.
-    function initialize(FlowConfig memory config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
+        FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         __FlowCommon_init(config_.config, MIN_FLOW_SENTINELS);
-        emit Initialize(msg.sender, config_.config);
+        emit Initialize(msg.sender, config_);
     }
 
     function _previewFlow(

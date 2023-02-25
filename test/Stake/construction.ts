@@ -1,30 +1,41 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken, StakeFactory } from "../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+  ReserveToken,
+} from "../../typechain";
+
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   InitializeEvent,
+  Stake,
   StakeConfigStruct,
 } from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
+  getRainContractMetaBytes,
   max_uint16,
   max_uint256,
   memoryOperand,
   MemoryType,
   op,
   Opcode,
+  stakeCloneDeploy,
+  stakeImplementation,
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("Stake construction", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken;
 
   before(async () => {
@@ -32,7 +43,10 @@ describe("Stake construction", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementation = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -44,7 +58,6 @@ describe("Stake construction", async function () {
     const [deployer] = signers;
 
     const constants = [max_uint256, max_uint16];
-
     const max_deposit = op(
       Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
@@ -65,7 +78,12 @@ describe("Stake construction", async function () {
 
     await assertError(
       async () =>
-        await stakeDeploy(deployer, stakeFactory, stakeConfigStructZeroToken),
+        await stakeCloneDeploy(
+          deployer,
+          cloneFactory,
+          implementation,
+          stakeConfigStructZeroToken
+        ),
       "ZeroAsset()",
       "wrongly initialised Stake with token configured as 0 address"
     );
@@ -95,7 +113,12 @@ describe("Stake construction", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const { sender, config } = (await getEventArgs(
       stake.deployTransaction,
@@ -103,8 +126,39 @@ describe("Stake construction", async function () {
       stake
     )) as InitializeEvent["args"];
 
-    assert(sender === stakeFactory.address, "wrong sender in Initialize event");
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
 
     compareStructs(config, stakeConfigStruct);
+  });
+
+  it("should fail if stake is deployed with bad callerMeta", async function () {
+    const stakeFactory = await ethers.getContractFactory("Stake", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer();
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("stake"),
+        deployer: touchDeployer.address,
+      };
+
+    const stake = (await stakeFactory.deploy(
+      interpreterCallerConfig0
+    )) as Stake;
+
+    assert(!(stake.address === zeroAddress), "stake did not deploy");
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    await assertError(
+      async () => await stakeFactory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "Stake Deployed for bad hash"
+    );
   });
 });

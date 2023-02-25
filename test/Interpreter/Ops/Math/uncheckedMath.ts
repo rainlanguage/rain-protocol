@@ -73,7 +73,9 @@ describe("RainInterpreter unchecked math", async () => {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    const { sources, constants } = await standardEvaluableConfig(`_: sub(0 1);`);
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: sub(0 1);`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,

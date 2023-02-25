@@ -87,6 +87,11 @@ let
     hardhat test
   '';
 
+  ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
+    # Deploying to mumbai network
+    hardhat run deployment/deployInterpreter.ts --network mumbai
+  '';
+
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
@@ -190,6 +195,7 @@ pkgs.stdenv.mkDerivation {
     run-echidna
     ci-test
     ci-lint
+    ci-deployment
     cut-dist
     prepack
     prepublish
@@ -197,6 +203,7 @@ pkgs.stdenv.mkDerivation {
     flush-all
     # Echidna config
     init-solc
+    pkgs.cloc
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
     pkgs.echidna

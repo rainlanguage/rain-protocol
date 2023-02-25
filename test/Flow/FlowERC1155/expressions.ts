@@ -1,16 +1,22 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC1155Factory } from "../../../typechain";
+import { CloneFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { ContextEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import {
+  ContextEvent,
+  FlowERC1155,
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
-import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
 import {
@@ -24,14 +30,18 @@ import { FlowERC1155Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC1155 expressions tests", async function () {
-  let flowERC1155Factory: FlowERC1155Factory;
+  let implementation: FlowERC1155;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC1155Factory = await flowERC1155FactoryDeploy();
+    implementation = await flowERC1155Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should validate multiple signed contexts", async () => {
@@ -68,9 +78,10 @@ describe("FlowERC1155 expressions tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC1155Deploy(
+    const { flow } = await flowERC1155Clone(
       deployer,
-      flowERC1155Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 

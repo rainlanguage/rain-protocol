@@ -1,12 +1,17 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReserveToken, ReserveToken18, StakeFactory } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { CloneFactory, ReserveToken, ReserveToken18 } from "../../typechain";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
+  stakeCloneDeploy,
+  stakeImplementation,
   zeroAddress,
 } from "../../utils";
 import {
@@ -16,8 +21,7 @@ import {
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 
@@ -28,7 +32,8 @@ import { assertError } from "../../utils/test/assertError";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 describe("Stake withdraw", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
 
   before(async () => {
@@ -36,7 +41,10 @@ describe("Stake withdraw", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementation = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -88,7 +96,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
@@ -143,7 +156,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
@@ -197,7 +215,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
@@ -287,7 +310,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // ZeroAddress receiver
     await assertError(
@@ -335,7 +363,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
@@ -391,7 +424,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice some reserve tokens and deposit them
     await token.transfer(
@@ -452,7 +490,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice some reserve tokens and deposit them
     await token.transfer(
@@ -514,7 +557,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice some reserve tokens and deposit them
     await token.transfer(
@@ -607,7 +655,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     await assertError(
       async () =>
@@ -643,7 +696,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
@@ -748,7 +806,12 @@ describe("Stake withdraw", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);

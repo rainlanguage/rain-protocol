@@ -3,17 +3,22 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowFactory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -32,7 +37,8 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 const Opcode = AllStandardOps;
 
 describe("Flow multiCall tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowABI = JSON.parse(
@@ -47,7 +53,10 @@ describe("Flow multiCall tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowFactory = await flowFactoryDeploy();
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
@@ -201,9 +210,10 @@ describe("Flow multiCall tests", async function () {
       ],
     };
 
-    const { flow: flow_A } = await flowDeploy(
+    const { flow: flow_A } = await deployFlowClone(
       deployer,
-      flowFactory,
+      cloneFactory,
+      implementation,
       flowConfigStruct_A
     );
 
