@@ -1,0 +1,25 @@
+{
+  "name": "decode-256",
+  "desc": "Decode a slice of bits out of a 256 bit value (anything on the stack).",
+  "operand": [
+    {
+      "name": "start",
+      "desc": "Bit index to start reading from.",
+      "bits": [8, 15]
+    },
+    {
+      "name": "length",
+      "desc": "Number of bits to read from start.",
+      "bits": [0, 7]
+    }
+  ],
+  "inputs": {
+    "parameters": [
+      {
+        "name": "source"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["slice-256"]
+}

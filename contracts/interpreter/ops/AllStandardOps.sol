@@ -4,6 +4,9 @@ pragma solidity =0.8.17;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
+import "./bytes32/OpDecode256.sol";
+import "./bytes32/OpEncode256.sol";
+import "./bytes32/OpExplode32.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpSet.sol";
@@ -29,7 +32,6 @@ import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
-import "./list/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
@@ -72,7 +74,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 62;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 64;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -198,6 +200,9 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    OpDecode256.integrity,
+                    OpEncode256.integrity,
+                    OpExplode32.integrity,
                     OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
@@ -223,7 +228,6 @@ library AllStandardOps {
                     OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpTimestamp.integrity,
-                    OpExplode32.integrity,
                     OpAdd.integrity,
                     OpDiv.integrity,
                     OpExp.integrity,
@@ -288,6 +292,9 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    OpDecode256.run,
+                    OpEncode256.run,
+                    OpExplode32.run,
                     OpChainlinkOraclePrice.run,
                     OpCall.run,
                     OpContext.run,
@@ -313,7 +320,6 @@ library AllStandardOps {
                     OpEnsure.run,
                     OpBlockNumber.run,
                     OpTimestamp.run,
-                    OpExplode32.run,
                     OpAdd.run,
                     OpDiv.run,
                     OpExp.run,
