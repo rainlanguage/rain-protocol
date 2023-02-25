@@ -90,6 +90,7 @@ describe("AutoApprove evidence data approved", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -98,6 +99,7 @@ describe("AutoApprove evidence data approved", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -188,6 +190,7 @@ describe("AutoApprove evidence data approved", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -196,6 +199,7 @@ describe("AutoApprove evidence data approved", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,

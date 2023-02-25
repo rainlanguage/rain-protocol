@@ -234,7 +234,8 @@ describe("FlowERC721 multicall tests", async function () {
       constants: constants_A,
     };
 
-    const { flow, flowCloneTx } = await flowERC721Clone(
+    const { flow } = await flowERC721Clone(
+      deployer,
       cloneFactory,
       implementation,
       {
@@ -255,7 +256,7 @@ describe("FlowERC721 multicall tests", async function () {
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

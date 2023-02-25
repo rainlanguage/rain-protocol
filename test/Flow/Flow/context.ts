@@ -49,7 +49,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (throttle flow output amount)", async () => {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0]
     const you = signers[1];
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -179,14 +179,15 @@ describe("Flow context tests", async function () {
       ],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer ,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -389,7 +390,7 @@ describe("Flow context tests", async function () {
 
   it("should register and load flow times into context (canFlow if no registered flow)", async () => {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0];
     const you = signers[1];
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -480,14 +481,15 @@ describe("Flow context tests", async function () {
       ],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer ,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

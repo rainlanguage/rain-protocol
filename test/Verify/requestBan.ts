@@ -38,6 +38,7 @@ describe("Verify request ban", async function () {
     const signer2 = signers[8];
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,

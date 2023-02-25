@@ -40,6 +40,7 @@ export const flowERC1155Implementation = async (): Promise<FlowERC1155> => {
 };
 
 export const flowERC1155Clone = async (
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementation: FlowERC1155,
   flowERC1155Config: FlowERC1155Config
@@ -78,18 +79,22 @@ export const flowERC1155Clone = async (
     encodedConfig
   );
 
-  const cloneEvent = (await getEventArgs(
-    flowCloneTx,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const flow = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(flowCloneTx, "NewClone", cloneFactory)).clone
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("FlowERC1155")).abi,
+    deployer
+  ) as FlowERC1155;
 
-  assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
+  await flow.deployed();
 
-  const flow = (await ethers.getContractAt(
-    "FlowERC1155",
-    cloneEvent.clone
-  )) as FlowERC1155;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  flow.deployTransaction = flowCloneTx;
 
-  return { flow, flowCloneTx };
+  return { flow };
 };

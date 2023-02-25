@@ -20,7 +20,7 @@ import {
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { flowERC20Clone, flowERC20Implementation } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -105,63 +105,23 @@ describe("FlowERC20 construction tests", async function () {
       ],
     };
 
-    // Building evaluableConfig
-    const evaluableConfig: EvaluableConfigStruct =
-      await generateEvaluableConfig(
-        flowERC20Config.expressionConfig.sources,
-        flowERC20Config.expressionConfig.constants
-      );
-
-    // Building flowConfig
-    const flowConfig: EvaluableConfigStruct[] = [];
-    for (let i = 0; i < flowERC20Config.flows.length; i++) {
-      const evaluableConfig = await generateEvaluableConfig(
-        flowERC20Config.flows[i].sources,
-        flowERC20Config.flows[i].constants
-      );
-      flowConfig.push(evaluableConfig);
-    }
-
-    const flowERC20ConfigStruct: FlowERC20ConfigStruct = {
-      evaluableConfig: evaluableConfig,
-      flowConfig: flowConfig,
-      name: flowERC20Config.name,
-      symbol: flowERC20Config.symbol,
-    };
-
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
-      ],
-      [flowERC20ConfigStruct]
+    const { flow } = await flowERC20Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowERC20Config
     );
 
-    const flowCloneTx = await cloneFactory.clone(
-      implementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      flowCloneTx,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
-
-    const flow = (await ethers.getContractAt(
-      "FlowERC20",
-      cloneEvent.clone
-    )) as FlowERC20;
+    
 
     const { sender, config } = (await getEventArgs(
-      flowCloneTx,
+      flow.deployTransaction,
       "Initialize",
       flow
     )) as InitializeEvent["args"];
 
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");
-    compareStructs(config, flowERC20ConfigStruct);
+    compareStructs(config, flowERC20Config);
   });
 
   it("should fail if flowERC20 is deployed with bad callerMeta", async function () {

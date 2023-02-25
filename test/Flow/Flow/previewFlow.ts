@@ -41,7 +41,7 @@ describe("Flow previewFlow tests", async function () {
 
   before(async () => {
     // Deploy ERC1820Registry
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
     await deploy1820(signers[0]);
 
     implementation = await flowImplementation();
@@ -51,7 +51,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for native Ether", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -105,14 +106,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -129,7 +131,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -257,14 +260,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -281,7 +285,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -388,14 +393,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -411,7 +417,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -537,14 +544,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -560,7 +568,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -640,14 +649,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -663,7 +673,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -733,14 +744,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -756,7 +768,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -848,14 +861,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -872,7 +886,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should not flow if it does not meet 'ensure' requirement", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const you = signers[1];
 
@@ -930,14 +945,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -953,7 +969,8 @@ describe("Flow previewFlow tests", async function () {
   });
 
   it("should preview empty flow io", async () => {
-    const signers = await ethers.getSigners();
+    const signers = await ethers.getSigners(); 
+    const deployer = signers[0]
 
     const flowTransfer: FlowTransferStruct = {
       native: [],
@@ -979,14 +996,15 @@ describe("Flow previewFlow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

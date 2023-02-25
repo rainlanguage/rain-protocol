@@ -105,6 +105,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       [0]
     );
     const tier = await combineTierCloneDeploy(
+      signers[0],
       cloneFactory,
       implementationCombineTier,
       0,
@@ -162,6 +163,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     };
 
     const tier = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementationStake,
       stakeConfigStruct

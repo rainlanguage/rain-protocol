@@ -105,7 +105,8 @@ describe("Lobby Tests join", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(
+    const Lobby = await deployLobbyClone( 
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -209,7 +210,8 @@ describe("Lobby Tests join", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(
+    const Lobby = await deployLobbyClone( 
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -327,7 +329,8 @@ describe("Lobby Tests join", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(
+    const Lobby = await deployLobbyClone( 
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -430,7 +433,8 @@ describe("Lobby Tests join", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(
+    const Lobby = await deployLobbyClone( 
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -584,7 +588,8 @@ describe("Lobby Tests join", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const Lobby = await deployLobbyClone(
+    const Lobby = await deployLobbyClone( 
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig

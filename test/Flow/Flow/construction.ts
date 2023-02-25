@@ -20,7 +20,7 @@ import {
   getRainContractMetaBytes,
   zeroAddress,
 } from "../../../utils";
-import { flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
+import { deployFlowClone, flowImplementation } from "../../../utils/deploy/flow/basic/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -53,7 +53,7 @@ describe("Flow construction tests", async function () {
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-
+    const deployer = signers[0] ;
     const constants = [1, 2];
 
     // prettier-ignore
@@ -91,52 +91,21 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const evaluableConfigs: EvaluableConfigStruct[] = [];
-
-    // Building config
-    for (let i = 0; i < flowConfig.flows.length; i++) {
-      const evaluableConfig = await generateEvaluableConfig(
-        flowConfig.flows[i].sources,
-        flowConfig.flows[i].constants
-      );
-      evaluableConfigs.push(evaluableConfig);
-    }
-
-    const flowConfigStruct: FlowConfigStruct = {
-      dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
-      config: evaluableConfigs,
-    };
-
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(tuple(address deployer,bytes[] sources,uint256[] constants) dummyConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] config)",
-      ],
-      [flowConfigStruct]
+    const { flow } = await deployFlowClone( 
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfig
     );
-
-    const flowClone = await cloneFactory.clone(
-      implementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      flowClone,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
-
-    const flow = (await ethers.getContractAt("Flow", cloneEvent.clone)) as Flow;
 
     const { sender, config } = (await getEventArgs(
-      flowClone,
+      flow.deployTransaction,
       "Initialize",
       flow
     )) as InitializeEvent["args"];
 
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");
-    compareStructs(config, flowConfigStruct);
+    compareStructs(config, flowConfig);
   });
 
   it("should fail if flow is deployed with bad callerMeta", async function () {

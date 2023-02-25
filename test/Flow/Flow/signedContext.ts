@@ -62,14 +62,15 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone( 
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
@@ -146,14 +147,15 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, flowCloneTx } = await deployFlowClone(
+    const { flow } = await deployFlowClone( 
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ReadWriteTier,
   RedeemableERC20,
   RedeemableERC20ClaimEscrow,
@@ -10,7 +11,7 @@ import type {
 import { MockISaleV2 } from "../../../typechain";
 import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
-import { basicDeploy } from "../../../utils";
+import { basicDeploy, redeemableERC20DeployClone, redeemableERC20DeployImplementation } from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
@@ -20,13 +21,20 @@ let claim: RedeemableERC20ClaimEscrow,
   reserve: ReserveToken,
   readWriteTier: ReadWriteTier;
 
-describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
+describe("RedeemableERC20ClaimEscrow Deposit test", async function () { 
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20; 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ claim, readWriteTier } = await escrowDeploy());
+    ({ claim, readWriteTier } = await escrowDeploy()); 
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory; 
+
   });
 
   beforeEach(async () => {
@@ -46,13 +54,19 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: readWriteTier.address,
-      minimumTier: 0,
-      distributionEndForwardingAddress: Util.zeroAddress,
-    })) as RedeemableERC20;
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        reserve: reserve.address,
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: 0,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
@@ -134,13 +148,20 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: readWriteTier.address,
-      minimumTier: 0,
-      distributionEndForwardingAddress: Util.zeroAddress,
-    })) as RedeemableERC20;
+   
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        reserve: reserve.address,
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: 0,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 

@@ -37,6 +37,7 @@ describe("Verify status", async function () {
     const signer1 = signers[7];
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,

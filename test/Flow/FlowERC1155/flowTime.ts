@@ -148,14 +148,15 @@ describe("FlowERC1155 flowTime tests", async function () {
       uri: "FlowERC1155",
     };
 
-    const { flow, flowCloneTx } = await flowERC1155Clone(
+    const { flow } = await flowERC1155Clone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

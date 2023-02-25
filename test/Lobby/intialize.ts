@@ -7,7 +7,7 @@ import type {
   RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
-import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
+
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   InitializeEvent,
@@ -24,7 +24,7 @@ import {
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { deployLobby } from "../../utils/deploy/lobby/deploy";
+import { deployLobby, deployLobbyClone } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
@@ -97,31 +97,16 @@ describe("Lobby Tests Intialize", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(bool refMustAgree ,address ref,address token,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig, bytes description , uint256 timeoutDuration)",
-      ],
-      [initialConfig]
+    const Lobby_ = await deployLobbyClone( 
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
     );
-
-    const lobbyClone = await cloneFactory.clone(
-      lobbyImplementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      lobbyClone,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    const Lobby_ = (await ethers.getContractAt(
-      "Lobby",
-      cloneEvent.clone
-    )) as Lobby;
+   
 
     const intializeEvent = (await getEventArgs(
-      lobbyClone,
+      Lobby_.deployTransaction,
       "Initialize",
       Lobby_
     )) as InitializeEvent["args"];

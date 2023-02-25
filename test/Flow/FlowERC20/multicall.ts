@@ -278,14 +278,15 @@ describe("FlowERC20 multicall tests", async function () {
       ],
     };
 
-    const { flow, flowCloneTx } = await flowERC20Clone(
+    const { flow } = await flowERC20Clone(
+      deployer,
       cloneFactory,
       implementation,
       expressionConfigStruct
     );
 
     const flowInitialized = (await getEvents(
-      flowCloneTx,
+      flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];

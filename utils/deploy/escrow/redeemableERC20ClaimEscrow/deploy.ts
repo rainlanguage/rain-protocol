@@ -6,31 +6,12 @@ import type {
 } from "../../../../typechain";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../../../typechain";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { SaleConstructorConfigStruct } from "../../../../typechain/contracts/sale/Sale";
 import { getRainContractMetaBytes } from "../../../meta";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { redeemableERC20FactoryDeploy } from "../../redeemableERC20/redeemableERC20Factory/deploy";
-import { saleFactoryDeploy } from "../../sale/saleFactory/deploy";
 import { readWriteTierDeploy } from "../../tier/readWriteTier/deploy";
 
 export const escrowDeploy = async () => {
   const readWriteTier = await readWriteTierDeploy();
-  const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
-  const touchDeployer: RainterpreterExpressionDeployer =
-    await getTouchDeployer();
-
-  const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("sale"),
-    deployer: touchDeployer.address,
-  };
-
-  const saleConstructorConfig: SaleConstructorConfigStruct = {
-    maximumSaleTimeout: 1000,
-    redeemableERC20Factory: redeemableERC20Factory.address,
-    interpreterCallerConfig: config_,
-  };
-
-  const saleFactory = await saleFactoryDeploy(saleConstructorConfig);
 
   // Deploy global Claim contract
   const claimFactory = await ethers.getContractFactory(
@@ -52,7 +33,6 @@ export const escrowDeploy = async () => {
     claimFactory,
     claim,
     claimWrapperFactory,
-    claimWrapper,
-    saleFactory,
+    claimWrapper
   };
 };

@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { BigNumberish, BytesLike } from "ethers";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, CloneFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
 import { NewCloneEvent } from "../../../../../typechain/contracts/factory/CloneFactory";
@@ -40,6 +40,7 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
 };
 
 export const autoApproveCloneDeploy = async (
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementAutoApprove: AutoApprove,
   owner: SignerWithAddress,
@@ -63,26 +64,27 @@ export const autoApproveCloneDeploy = async (
     [initalConfig]
   );
 
-  const autoApproveClone = await cloneFactory.clone(
+  const autoApproveCloneTx = await cloneFactory.clone(
     implementAutoApprove.address,
     encodedConfig
-  );
+  ); 
 
-  const cloneEvent = (await getEventArgs(
-    autoApproveClone,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+    const autoApprove = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(autoApproveCloneTx, "NewClone", cloneFactory)).clone
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("AutoApprove")).abi,
+    deployer
+  ) as AutoApprove;
+  await autoApprove.deployed();
 
-  assert(
-    !(cloneEvent.clone === zeroAddress),
-    "Clone autoApprove factory zero address"
-  );
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  autoApprove.deployTransaction = autoApproveCloneTx;
 
-  const autoApprove = (await ethers.getContractAt(
-    "AutoApprove",
-    cloneEvent.clone
-  )) as AutoApprove;
 
   return autoApprove;
 };

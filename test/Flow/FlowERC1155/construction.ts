@@ -19,7 +19,7 @@ import {
   getRainContractMetaBytes,
   zeroAddress,
 } from "../../../utils";
-import { flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import { flowERC1155Clone, flowERC1155Implementation } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -92,56 +92,16 @@ describe("FlowERC1155 construction tests", async function () {
       ],
     };
 
-    // Building evaluableConfig
-    const evaluableConfig: EvaluableConfigStruct =
-      await generateEvaluableConfig(
-        flowERC1155Config.expressionConfig.sources,
-        flowERC1155Config.expressionConfig.constants
-      );
-
-    // Building flowConfig
-    const flowConfig: EvaluableConfigStruct[] = [];
-    for (let i = 0; i < flowERC1155Config.flows.length; i++) {
-      const evaluableConfig = await generateEvaluableConfig(
-        flowERC1155Config.flows[i].sources,
-        flowERC1155Config.flows[i].constants
-      );
-      flowConfig.push(evaluableConfig);
-    }
-
-    const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
-      evaluableConfig: evaluableConfig,
-      flowConfig: flowConfig,
-      uri: flowERC1155Config.uri,
-    };
-
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      [
-        "tuple(string uri, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
-      ],
-      [flowERC1155ConfigStruct]
-    );
-
-    const flowCloneTx = await cloneFactory.clone(
-      implementation.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      flowCloneTx,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    assert(!(cloneEvent.clone === zeroAddress), "flow clone zero address");
-
-    const flow = (await ethers.getContractAt(
-      "FlowERC1155",
-      cloneEvent.clone
-    )) as FlowERC1155;
-
+    
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowERC1155Config
+    ); 
+    
     const { sender, config } = (await getEventArgs(
-      flowCloneTx,
+      flow.deployTransaction,
       "Initialize",
       flow
     )) as InitializeEvent["args"];

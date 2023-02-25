@@ -211,14 +211,15 @@ describe("Flow multiCall tests", async function () {
       ],
     };
 
-    const { flow: flow_A, flowCloneTx: flowCloneTx_A } = await deployFlowClone(
+    const { flow: flow_A} = await deployFlowClone(
+      deployer,
       cloneFactory,
       implementation,
       flowConfigStruct_A
     );
 
     const flowInitialized_A = (await getEvents(
-      flowCloneTx_A,
+      flow_A.deployTransaction,
       "FlowInitialized",
       flow_A
     )) as FlowInitializedEvent["args"][];

@@ -1,5 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../../typechain";
 import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { VerifyConfigStruct } from "../../../typechain/contracts/verify/Verify";
@@ -20,7 +21,8 @@ export const verifyImplementation = async (): Promise<Verify> => {
   return verifyImplementation;
 };
 
-export const verifyCloneDeploy = async (
+export const verifyCloneDeploy = async ( 
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   implementVerify: Verify,
   admin: string,
@@ -36,23 +38,26 @@ export const verifyCloneDeploy = async (
     [verifyConfig]
   );
 
-  const verifyClone = await cloneFactory.clone(
+  const verifyCloneTx = await cloneFactory.clone(
     implementVerify.address,
     encodedConfig
-  );
+  ); 
 
-  const cloneEvent = (await getEventArgs(
-    verifyClone,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const verify = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(verifyCloneTx, "NewClone", cloneFactory)).clone
+      ),
+      20
+    ),
+    (await artifacts.readArtifact("Verify")).abi,
+    deployer
+  ) as Verify;
+  await verify.deployed();
 
-  assert(!(cloneEvent.clone === zeroAddress), "Clone Verify zero address");
-
-  const verify = (await ethers.getContractAt(
-    "Verify",
-    cloneEvent.clone
-  )) as Verify;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+   verify.deployTransaction = verifyCloneTx;
 
   return verify;
 };

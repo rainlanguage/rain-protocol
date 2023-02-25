@@ -121,7 +121,8 @@ describe("AutoApprove construction", async function () {
       constants: [1],
     };
 
-    const autoApprove = await autoApproveCloneDeploy(
+    const autoApprove = await autoApproveCloneDeploy( 
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -130,6 +131,7 @@ describe("AutoApprove construction", async function () {
     );
 
     await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
