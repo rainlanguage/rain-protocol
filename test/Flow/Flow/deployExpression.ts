@@ -60,7 +60,7 @@ describe("Flow deployExpression tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await deployFlowClone(
+    await deployFlowClone(
       deployer,
       cloneFactory,
       implementation,

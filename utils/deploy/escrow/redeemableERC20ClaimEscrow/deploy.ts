@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
-import type {
-  RainterpreterExpressionDeployer,
-  RedeemableERC20ClaimEscrow,
-} from "../../../../typechain";
+import type { RedeemableERC20ClaimEscrow } from "../../../../typechain";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { getRainContractMetaBytes } from "../../../meta";
-import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+
 import { readWriteTierDeploy } from "../../tier/readWriteTier/deploy";
 
 export const escrowDeploy = async () => {

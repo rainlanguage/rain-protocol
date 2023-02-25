@@ -5,14 +5,12 @@ import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+
 import {
   FlowERC721,
-  FlowERC721ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
-import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
 import {
   assertError,
   basicDeploy,
@@ -26,12 +24,7 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import {
-  generateEvaluableConfig,
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
+import { MemoryType, op } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";

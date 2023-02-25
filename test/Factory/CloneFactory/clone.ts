@@ -1,35 +1,25 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+
 import { ethers } from "hardhat";
-import { CombineTier, ReserveToken, ReserveToken18 } from "../../../typechain";
-import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
+import { ReserveToken } from "../../../typechain";
 import {
   CloneFactory,
   NewCloneEvent,
 } from "../../../typechain/contracts/factory/CloneFactory";
-import {
-  JoinEvent,
-  Lobby,
-  LobbyConfigStruct,
-  SignedContextStruct,
-} from "../../../typechain/contracts/lobby/Lobby";
+import { Lobby } from "../../../typechain/contracts/lobby/Lobby";
 import {
   Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import {
   assertError,
-  combineTierImplementation,
   generateEvaluableConfig,
   getEventArgs,
   max_uint256,
   memoryOperand,
   MemoryType,
-  ONE,
   op,
   RainterpreterOps,
-  stakeCloneDeploy,
   stakeImplementation,
 } from "../../../utils";
 
@@ -41,7 +31,6 @@ describe("CloneFactory tests", async function () {
   const Opcode = RainterpreterOps;
 
   let cloneFactory: CloneFactory;
-  let implementationCombineTier: CombineTier;
   let implementationLobby: Lobby;
   let implementationStake: Stake;
 
@@ -50,7 +39,6 @@ describe("CloneFactory tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    implementationCombineTier = await combineTierImplementation();
     implementationLobby = await deployLobby(15000000);
     implementationStake = await stakeImplementation();
 

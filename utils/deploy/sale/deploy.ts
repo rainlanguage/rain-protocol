@@ -8,10 +8,9 @@ import {
   RedeemableERC20,
   Sale,
 } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
-  InitializeEvent,
   SaleConfigStruct,
   SaleConstructorConfigStruct,
   SaleRedeemableERC20ConfigStruct,

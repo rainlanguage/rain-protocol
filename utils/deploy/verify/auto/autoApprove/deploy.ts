@@ -4,7 +4,7 @@ import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, CloneFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
-import { NewCloneEvent } from "../../../../../typechain/contracts/factory/CloneFactory";
+
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
 import {
   AutoApproveConfigStruct,

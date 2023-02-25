@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
-import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
+
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/CombineTier";

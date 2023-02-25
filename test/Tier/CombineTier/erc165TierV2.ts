@@ -3,16 +3,13 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
-import {
-  CombineTierConfigStruct,
-  InitializeEvent,
-} from "../../../typechain/contracts/tier/CombineTier";
+import { InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
   assertError,
   basicDeploy,

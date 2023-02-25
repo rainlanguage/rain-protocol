@@ -117,10 +117,9 @@ describe("Sale minimum raise", async function () {
       }
     );
     const afterInitializeBlock = await ethers.provider.getBlockNumber();
-    const saleToken = await sale.token();
+    await sale.token();
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
-    // assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
     const fee = ethers.BigNumber.from("1").mul(RESERVE_ONE);
@@ -289,7 +288,7 @@ describe("Sale minimum raise", async function () {
 
   it("should have status of Fail if minimum raise not met", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    // const deployer = signers[0];
     const recipient = signers[1];
     const signer1 = signers[2];
     const feeRecipient = signers[3];
@@ -366,12 +365,11 @@ describe("Sale minimum raise", async function () {
 
     const afterInitializeBlock = await ethers.provider.getBlockNumber();
 
-    const { sender, config, saleRedeemableERC20Config, token } =
-      (await getEventArgs(
-        saleClone,
-        "Initialize",
-        sale
-      )) as InitializeEvent["args"];
+    const { sender, config, token } = (await getEventArgs(
+      saleClone,
+      "Initialize",
+      sale
+    )) as InitializeEvent["args"];
 
     compareStructs(config, saleConfig);
     assert(sender === cloneFactory.address, "wrong sender in Initialize event");
@@ -379,7 +377,6 @@ describe("Sale minimum raise", async function () {
     assert(saleToken === token, "wrong token in Initialize event");
     const saleReserve = await sale.reserve();
     const saleStatusPending = await sale.saleStatus();
-    // assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
     const cantStart = await sale.previewCanLive();

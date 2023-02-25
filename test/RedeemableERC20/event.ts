@@ -41,8 +41,6 @@ describe("RedeemableERC20 event test", async function () {
   });
 
   it("should emit Initialize event", async function () {
-    const signers = await ethers.getSigners();
-
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}

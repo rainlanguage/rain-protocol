@@ -29,7 +29,6 @@ describe("Stake many successive deposits and withdraws", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
     await deploy1820(signers[0]);
 
     implementation = await stakeImplementation();

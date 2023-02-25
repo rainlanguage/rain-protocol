@@ -2,7 +2,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
 import { VerifyConfigStruct } from "../../../typechain/contracts/verify/Verify";
 
 import { zeroAddress } from "../../constants";

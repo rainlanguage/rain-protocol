@@ -5,14 +5,13 @@ import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+
 import {
   FlowERC1155,
-  FlowERC1155ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
-import { EvaluableConfigStruct } from "../../../typechain/contracts/lobby/Lobby";
+
 import {
   assertError,
   basicDeploy,
@@ -27,7 +26,6 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
-  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,

@@ -1,5 +1,4 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import {
   CloneFactory,
@@ -19,7 +18,6 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typecha
 import { getRainContractMetaBytes } from "../../../meta";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
-import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   const flowFactory = await ethers.getContractFactory("FlowERC721", {});

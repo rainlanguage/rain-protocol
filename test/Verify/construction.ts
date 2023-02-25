@@ -1,22 +1,12 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type {
-  CloneFactory,
-  RainterpreterExpressionDeployer,
-  Verify,
-} from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import type { CloneFactory, Verify } from "../../typechain";
 
 import {
   InitializeEvent,
   VerifyConfigStruct,
 } from "../../typechain/contracts/verify/Verify";
-import {
-  assertError,
-  basicDeploy,
-  getRainContractMetaBytes,
-  zeroAddress,
-} from "../../utils";
+import { basicDeploy } from "../../utils";
 import {
   APPROVER,
   APPROVER_ADMIN,
@@ -25,7 +15,7 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
-import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+
 import {
   verifyCloneDeploy,
   verifyImplementation,
