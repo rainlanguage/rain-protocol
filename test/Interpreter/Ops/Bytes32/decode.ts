@@ -49,7 +49,7 @@ describe("Decode Op Tests", async function () {
 
     const result0 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result0.toHexString()) ==
+      ethers.utils.hexStripZeros(result0.toHexString()) ===
         ethers.utils.hexStripZeros(source),
       "Incorrectly decoded target"
     );
@@ -79,7 +79,7 @@ describe("Decode Op Tests", async function () {
 
     const result0 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result0.toHexString()) ==
+      ethers.utils.hexStripZeros(result0.toHexString()) ===
         ethers.utils.hexStripZeros(source),
       "Incorrectly decoded target"
     );
@@ -135,7 +135,7 @@ describe("Decode Op Tests", async function () {
 
     const result0 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result0.toHexString()) ==
+      ethers.utils.hexStripZeros(result0.toHexString()) ===
         ethers.utils.hexStripZeros(expected),
       "Incorrect Encoding"
     );
@@ -158,7 +158,7 @@ describe("Decode Op Tests", async function () {
 
     const result1 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result1.toHexString()) ==
+      ethers.utils.hexStripZeros(result1.toHexString()) ===
         ethers.utils.hexStripZeros(source),
       "Incorrectly decoded target"
     );
@@ -193,7 +193,7 @@ describe("Decode Op Tests", async function () {
 
     const result0 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result0.toHexString()) ==
+      ethers.utils.hexStripZeros(result0.toHexString()) ===
         ethers.utils.hexStripZeros(source0),
       "Incorrectly decoded target"
     );
@@ -228,7 +228,7 @@ describe("Decode Op Tests", async function () {
 
     const result1 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result1.toHexString()) ==
+      ethers.utils.hexStripZeros(result1.toHexString()) ===
         ethers.utils.hexStripZeros(expected1),
       "Incorrect Encoding"
     );
@@ -263,7 +263,7 @@ describe("Decode Op Tests", async function () {
 
     const result2 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result2.toHexString()) ==
+      ethers.utils.hexStripZeros(result2.toHexString()) ===
         ethers.utils.hexStripZeros(expected2),
       "Incorrect Encoding"
     );
@@ -298,7 +298,7 @@ describe("Decode Op Tests", async function () {
 
     const result3 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result3.toHexString()) ==
+      ethers.utils.hexStripZeros(result3.toHexString()) ===
         ethers.utils.hexStripZeros(expected3),
       "Incorrect Encoding"
     );
@@ -331,7 +331,7 @@ describe("Decode Op Tests", async function () {
 
     const result4 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result4.toHexString()) ==
+      ethers.utils.hexStripZeros(result4.toHexString()) ===
         ethers.utils.hexStripZeros(expected4),
       "Incorrect Encoding"
     );
@@ -364,7 +364,7 @@ describe("Decode Op Tests", async function () {
 
     const result5 = await logic.stackTop();
     assert(
-      ethers.utils.hexStripZeros(result5.toHexString()) ==
+      ethers.utils.hexStripZeros(result5.toHexString()) ===
         ethers.utils.hexStripZeros(expected5),
       "Incorrect Encoding"
     );
