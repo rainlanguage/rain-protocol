@@ -49,6 +49,7 @@ import "./math/prb/OpPRBAvg.sol";
 import "./math/prb/OpPRBCeil.sol";
 import "./math/prb/OpPRBDiv.sol";
 import "./math/prb/OpPRBExp.sol";
+import "./math/prb/OpPRBExp2.sol";
 import "./math/saturating/OpSaturatingAdd.sol";
 import "./math/saturating/OpSaturatingMul.sol";
 import "./math/saturating/OpSaturatingSub.sol";
@@ -78,7 +79,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 68;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 69;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -257,6 +258,7 @@ library AllStandardOps {
                     OpPRBCeil.integrity,
                     OpPRBDiv.integrity,
                     OpPRBExp.integrity,
+                    OpPRBExp2.integrity,
                     OpSaturatingAdd.integrity,
                     OpSaturatingMul.integrity,
                     OpSaturatingSub.integrity,
@@ -353,6 +355,7 @@ library AllStandardOps {
                     OpPRBCeil.run,
                     OpPRBDiv.run,
                     OpPRBExp.run,
+                    OpPRBExp2.run,
                     OpSaturatingAdd.run,
                     OpSaturatingMul.run,
                     OpSaturatingSub.run,
