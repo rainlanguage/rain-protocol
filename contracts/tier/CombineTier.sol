@@ -11,11 +11,12 @@ import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x5281a1ecd46ea18005d52780b1d6c17311ecdb6136c83392b96fe4621d57d86e
+    0x785ad5ed1a4f87b24fefb46f7e16de1190b16e89113a3fd115f239c2b0175b15
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -44,7 +45,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, InterpreterCallerV1 {
+contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -61,10 +62,14 @@ contract CombineTier is TierV2, InterpreterCallerV1 {
         _disableInitializers();
     }
 
-    function initialize(
-        CombineTierConfig calldata config_
-    ) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         __TierV2_init();
+
+        CombineTierConfig memory config_ = abi.decode(
+            data_,
+            (CombineTierConfig)
+        );
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {

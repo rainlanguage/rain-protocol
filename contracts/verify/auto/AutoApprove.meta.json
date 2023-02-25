@@ -1,23 +1,23 @@
 {
-  "name": "CombineTier Factory",
-  "desc": "Factory for CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
-  "alias": "combine-tier-factory",
+  "name": "Auto Approve",
+  "desc": "",
+  "alias": "auto-approve",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
-      "desc": "Deploys a new CombineTier contract.",
+      "name": "",
+      "desc": "Deploys a new AutoApprove contract.",
       "inputs": [
         {
-          "name": "combinedTiersLength",
-          "desc": "The first N values in the constants array of the expressionConfig MUST be all the combined tiers that are known statically. Of course some tier addresses MAY only be known at runtime and so these cannotbe included.",
+          "name": "Owner",
+          "desc": "Sets owner",
           "path": "[6].inputs[0].components[0]"
         }
       ],
       "expressions": [
         {
-          "name": "CombineTier Report",
-          "desc": "An expression that determines the report of a CombineTier contract.",
+          "name": "",
+          "desc": "",
           "path": "[6].inputs[0].components[1]",
           "signedContext": true,
           "callerContext": true,
@@ -36,7 +36,7 @@
                 },
                 {
                   "name": "This Contract",
-                  "desc": "The address of the CombineTier contract this expression is for",
+                  "desc": "The address of the AutoApprove contract this expression is for",
                   "alias": "this-contract",
                   "cellIndex": 1
                 }

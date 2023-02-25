@@ -12,6 +12,7 @@ import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
+import "../factory/ICloneableV1.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -31,7 +32,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x7ee328cade392f781d0c0b5a3acae004e96e508d3a735568e20f4c4a9d1d7946
+    0x096afebd3859030c4d9ce95cf6055f2e73bae4f721f75b77f4789aa30c02a59a
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -125,9 +126,7 @@ uint256 constant PHASE_COMPLETE = 3;
 // refund on their deposit.
 uint256 constant PHASE_INVALID = 4;
 
-// Phased is a contract in the rain repo that allows contracts to move sequentially
-// through phases and restrict logic by phase.
-contract Lobby is Phased, ReentrancyGuard, InterpreterCallerV1 {
+contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -186,13 +185,16 @@ contract Lobby is Phased, ReentrancyGuard, InterpreterCallerV1 {
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 
-    function initialize(LobbyConfig calldata config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         // anon initializes with the passed config
         // we initialize rather than construct as there would be some factory
         // producing cheap clones of an implementation contract
 
         initializePhased();
         __ReentrancyGuard_init();
+
+        LobbyConfig memory config_ = abi.decode(data_, (LobbyConfig));
 
         // immediately move to pending player phase if ref doesn't need to agree
         if (!config_.refMustAgree) {

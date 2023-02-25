@@ -1,0 +1,28 @@
+{
+  "name": "CombineTier",
+  "desc": "CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
+  "alias": "combine-tier",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "",
+      "desc": "Deploys a new CombineTier contract.",
+      "inputs": [
+        {
+          "name": "combinedTiersLength",
+          "desc": "The first N values in the constants array of the expressionConfig MUST be all the combined tiers that are known statically. Of course some tier addresses MAY only be known at runtime and so these cannotbe included.",
+          "path": "[6].inputs[0].components[0]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "CombineTier Expression",
+          "desc": "An expression that determines the report of a CombineTier contract.",
+          "path": "[6].inputs[0].components[1]",
+          "signedContext": true,
+          "callerContext": true
+        }
+      ]
+    }
+  ]
+}

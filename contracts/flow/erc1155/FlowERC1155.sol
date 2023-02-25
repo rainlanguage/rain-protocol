@@ -35,7 +35,7 @@ struct FlowERC1155IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1290d7867e9b5439014535435d75311851bb268aaba61b7b0b8399449a36c71f
+    0x7caec7689ae0e17d7d9faa1d59090d88ba7d2b9e06b5e4a423e0660132966cc4
 );
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -58,9 +58,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         InterpreterCallerV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    function initialize(
-        FlowERC1155Config calldata config_
-    ) external initializer {
+    function initialize(bytes calldata data_) external initializer {
+        FlowERC1155Config memory config_ = abi.decode(
+            data_,
+            (FlowERC1155Config)
+        );
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);

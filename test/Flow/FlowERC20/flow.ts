@@ -3,13 +3,16 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowERC20Factory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {
+  FlowERC20,
+  FlowERC20IOStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -17,8 +20,11 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
-import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
+
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
@@ -35,7 +41,8 @@ import { FlowERC20Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 flow tests", async function () {
-  let flowERC20Factory: FlowERC20Factory;
+  let implementation: FlowERC20;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
@@ -44,7 +51,10 @@ describe("FlowERC20 flow tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC20Factory = await flowERC20FactoryDeploy();
+    implementation = await flowERC20Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support transferPreflight hook", async () => {
@@ -153,14 +163,16 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow: flowCanTransfer } = await flowERC20Deploy(
+    const { flow: flowCanTransfer } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStructCanTransfer
     );
-    const { flow: flowCannotTransfer } = await flowERC20Deploy(
+    const { flow: flowCannotTransfer } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStructCannotTransfer
     );
 
@@ -354,9 +366,10 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -616,9 +629,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -826,9 +840,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1021,9 +1036,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1192,9 +1208,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1393,9 +1410,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1593,9 +1611,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1786,9 +1805,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -1950,9 +1970,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -2054,9 +2075,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -2202,9 +2224,10 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -2439,9 +2462,10 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 

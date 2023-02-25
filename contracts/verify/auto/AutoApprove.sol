@@ -12,16 +12,22 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
 import "../../interpreter/caller/InterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
+import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
+    0xc2c46806c9d57ca5f3548e5cd69cb3cc85bc94808acd83bc0c4d23c7179c8015
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
+struct AutoApproveConfig {
+    address owner;
+    EvaluableConfig evaluableConfig;
+}
+
+contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -32,7 +38,7 @@ contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
-    event Initialize(address sender, EvaluableConfig config);
+    event Initialize(address sender, AutoApproveConfig config);
 
     Evaluable internal evaluable;
 
@@ -42,18 +48,24 @@ contract AutoApprove is VerifyCallback, InterpreterCallerV1 {
         _disableInitializers();
     }
 
-    function initialize(EvaluableConfig calldata config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         __VerifyCallback_init();
 
-        _transferOwnership(msg.sender);
+        AutoApproveConfig memory config_ = abi.decode(
+            data_,
+            (AutoApproveConfig)
+        );
+
+        _transferOwnership(config_.owner);
         emit Initialize(msg.sender, config_);
         (
             IInterpreterV1 interpreter_,
             IInterpreterStoreV1 store_,
             address expression_
-        ) = config_.deployer.deployExpression(
-                config_.sources,
-                config_.constants,
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         evaluable = Evaluable(interpreter_, store_, expression_);

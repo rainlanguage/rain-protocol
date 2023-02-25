@@ -9,6 +9,7 @@ import "./LibEvidence.sol";
 import "../array/LibUint256Array.sol";
 import "./IVerifyV1.sol";
 import "./libraries/LibVerifyStatus.sol";
+import "../factory/ICloneableV1.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -174,7 +175,7 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is IVerifyV1, AccessControl {
+contract Verify is IVerifyV1, ICloneableV1, AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibVerifyStatus for VerifyStatus;
@@ -251,9 +252,9 @@ contract Verify is IVerifyV1, AccessControl {
         _disableInitializers();
     }
 
-    /// Initializes the `Verify` contract e.g. as cloned by a factory.
-    /// @param config_ The config required to initialize the contract.
-    function initialize(VerifyConfig memory config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
+        VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
         require(config_.admin != address(0), "0_ACCOUNT");
         __AccessControl_init();
 

@@ -1,10 +1,14 @@
-import { ethers } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { artifacts, ethers } from "hardhat";
 import { RainterpreterExpressionDeployer } from "../../../typechain";
+import { CloneFactory } from "../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Lobby,
+  LobbyConfigStruct,
   LobbyConstructorConfigStruct,
 } from "../../../typechain/contracts/lobby/Lobby";
+import { getEventArgs } from "../../events";
 import { getRainContractMetaBytes } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
@@ -26,4 +30,42 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
   const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;
 
   return Lobby;
+};
+
+export const deployLobbyClone = async (
+  deployer: SignerWithAddress,
+  cloneFactory: CloneFactory,
+  lobbyImplementation: Lobby,
+  initialConfig: LobbyConfigStruct
+): Promise<Lobby> => {
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(bool refMustAgree ,address ref,address token,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig, bytes description , uint256 timeoutDuration)",
+    ],
+    [initialConfig]
+  );
+
+  const lobbyClone = await cloneFactory.clone(
+    lobbyImplementation.address,
+    encodedConfig
+  );
+
+  const lobby = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(lobbyClone, "NewClone", cloneFactory)).clone
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("Lobby")).abi,
+    deployer
+  ) as Lobby;
+
+  await lobby.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  lobby.deployTransaction = lobbyClone;
+
+  return lobby;
 };

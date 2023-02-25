@@ -1,50 +1,51 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { Verify, VerifyFactory } from "../../../typechain";
+import type { CloneFactory, Verify } from "../../../typechain";
 import { VerifyConfigStruct } from "../../../typechain/contracts/verify/Verify";
-import { ImplementationEvent as ImplementationEventVerifyFactory } from "../../../typechain/contracts/verify/VerifyFactory";
+
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
 
-export const verifyFactoryDeploy = async () => {
-  const verifyFactoryFactory = await ethers.getContractFactory("VerifyFactory");
-  const verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-  await verifyFactory.deployed();
+export const verifyImplementation = async (): Promise<Verify> => {
+  const verifyFactory = await ethers.getContractFactory("Verify");
+  const verifyImplementation = (await verifyFactory.deploy()) as Verify;
+  await verifyImplementation.deployed();
 
-  const { implementation } = (await getEventArgs(
-    verifyFactory.deployTransaction,
-    "Implementation",
-    verifyFactory
-  )) as ImplementationEventVerifyFactory["args"];
   assert(
-    !(implementation === zeroAddress),
-    "implementation verify factory zero address"
+    !(verifyImplementation.address === zeroAddress),
+    "verify implementation zero address"
   );
 
-  return verifyFactory;
+  return verifyImplementation;
 };
 
-export const verifyDeploy = async (
+export const verifyCloneDeploy = async (
   deployer: SignerWithAddress,
-  verifyFactory: VerifyFactory,
-  config: VerifyConfigStruct
-) => {
-  const { implementation } = (await getEventArgs(
-    verifyFactory.deployTransaction,
-    "Implementation",
-    verifyFactory
-  )) as ImplementationEventVerifyFactory["args"];
-  assert(
-    !(implementation === zeroAddress),
-    "implementation verify factory zero address"
+  cloneFactory: CloneFactory,
+  implementVerify: Verify,
+  admin: string,
+  callback: string
+): Promise<Verify> => {
+  const verifyConfig: VerifyConfigStruct = {
+    admin: admin,
+    callback: callback,
+  };
+
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    ["tuple(address admin , address callback )"],
+    [verifyConfig]
   );
 
-  const tx = await verifyFactory.createChildTyped(config);
+  const verifyCloneTx = await cloneFactory.clone(
+    implementVerify.address,
+    encodedConfig
+  );
+
   const verify = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", verifyFactory)).child
+        (await getEventArgs(verifyCloneTx, "NewClone", cloneFactory)).clone
       ),
       20
     ),
@@ -55,6 +56,8 @@ export const verifyDeploy = async (
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  verify.deployTransaction = tx;
+  verify.deployTransaction = verifyCloneTx;
+
   return verify;
 };
+

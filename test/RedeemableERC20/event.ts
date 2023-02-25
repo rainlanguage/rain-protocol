@@ -1,30 +1,46 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ERC20PulleeTest,
   ReadWriteTier,
   ReserveToken,
 } from "../../typechain";
+import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 import {
   InitializeEvent,
+  RedeemableERC20,
+  RedeemableERC20ConfigStruct,
   TreasuryAssetEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { readWriteTierDeploy, Tier } from "../../utils";
+import {
+  basicDeploy,
+  getEventArgs,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+  zeroAddress,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 
 describe("RedeemableERC20 event test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
+  let implementation: RedeemableERC20;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
     tier = await readWriteTierDeploy();
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should emit Initialize event", async function () {
-    const signers = await ethers.getSigners();
-
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -42,16 +58,44 @@ describe("RedeemableERC20 event test", async function () {
       initialSupply: totalSupply,
     };
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve1.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address reserve ,tuple(string name,string symbol,address distributor,uint256 initialSupply) erc20Config , address tier , uint256 minimumTier, address distributionEndForwardingAddress)",
+      ],
+      [redeemableConfig]
+    );
+
+    const redeemableERC20Clone = await cloneFactory.clone(
+      implementation.address,
+      encodedConfig
+    );
+
+    const cloneEvent = (await getEventArgs(
+      redeemableERC20Clone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];
+
+    assert(
+      !(cloneEvent.clone === zeroAddress),
+      "redeemableERC20 clone zero address"
+    );
+
+    const redeemableERC20 = (await ethers.getContractAt(
+      "RedeemableERC20",
+      cloneEvent.clone
+    )) as RedeemableERC20;
 
     const { sender, config } = (await Util.getEventArgs(
-      redeemableERC20.deployTransaction,
+      redeemableERC20Clone,
       "Initialize",
       redeemableERC20
     )) as InitializeEvent["args"];
@@ -91,13 +135,20 @@ describe("RedeemableERC20 event test", async function () {
       initialSupply: totalSupply,
     };
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve1.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     const event0 = (await Util.getEventArgs(
       await redeemableERC20.newTreasuryAsset(reserve1.address),
