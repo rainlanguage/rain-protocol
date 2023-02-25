@@ -90,7 +90,7 @@ describe("CloneFactory tests", async function () {
     );
   }) 
 
-  it("should not clone contract with incorrect implementation contract or data", async () => {  
+  it("should not clone contract with incorrect implementation contract ", async () => {  
     
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
@@ -148,7 +148,46 @@ describe("CloneFactory tests", async function () {
     )
 
     
-  })
+  })  
+
+  it("should not clone contract with incorrect  data ", async () => {  
+    
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    const stakeConfigStruct0  = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address
+    }; 
+
+    const encodedConfig1 = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address asset ,string name, string symbol)",
+      ],
+      [stakeConfigStruct0]
+    );  
+
+    assertError(
+      async () => await cloneFactory.clone(
+        implementationStake.address,
+        encodedConfig1
+      ) , 
+      "" ,
+      "Deployed with Incorrect data"
+    ) 
+
+    assertError(
+      async () => await cloneFactory.clone(
+        implementationStake.address,
+        "0x00"
+      ) , 
+      "" ,
+      "Deployed with zero data"
+    )
+
+    
+  }) 
+  
  
   it("should initialize clone with correct data", async () => {  
     const signers = await ethers.getSigners()
