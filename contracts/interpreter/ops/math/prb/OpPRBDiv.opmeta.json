@@ -6,6 +6,9 @@
       "parameters": [
         {
           "name": "x"
+        },
+        {
+          "name": "y"
         }
       ]
     },
