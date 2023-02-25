@@ -720,7 +720,7 @@ describe("Stake deposit", async function () {
     assert(depositsAlice2_[1].amount.eq(amount0.add(amount1)));
   });
 
-  it.only("should process deposit and withdraw with a non 1:1 ratio", async function () {
+  it("should process deposit and withdraw with a non 1:1 ratio", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
