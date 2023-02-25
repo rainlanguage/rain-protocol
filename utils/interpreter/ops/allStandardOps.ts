@@ -52,6 +52,7 @@ export enum AllStandardOps {
   less_than,
   prb_ud60x18_avg,
   prb_ud60x18_ceil,
+  prb_ud60x18_div,
   saturating_add,
   saturating_mul,
   saturating_sub,
