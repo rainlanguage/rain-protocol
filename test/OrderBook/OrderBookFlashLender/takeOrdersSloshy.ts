@@ -361,7 +361,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -370,7 +370,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     assert(sender === bob.address, "wrong sender");
     assert(input.eq(amountDAI), "wrong input");
     assert(output.eq(threshold), "wrong output");
-    compareStructs(takeOrder, takeOrderConfigStruct);
+    compareStructs(config, takeOrderConfigStruct);
 
     // 4.1 bob now has 1 DAI and 0.01 USDT
     const bobUSDTBalance = await USDT.balanceOf(bob.address);
