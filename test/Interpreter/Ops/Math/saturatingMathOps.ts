@@ -29,7 +29,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating multiplication", async () => {
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      standardEvaluableConfig(`_: mul(${max_uint256} 2);`);
+      await standardEvaluableConfig(`_: mul(${max_uint256} 2);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -50,7 +50,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     const { sources: sourcesSat, constants: constantsSat } =
-      standardEvaluableConfig(`_: saturating-mul(${max_uint256} 2);`);
+      await standardEvaluableConfig(`_: saturating-mul(${max_uint256} 2);`);
 
     const expression1 = await expressionConsumerDeploy(
       sourcesSat,
@@ -75,7 +75,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating subtraction", async () => {
     // test case with normal subtraction
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      standardEvaluableConfig(`_: sub(10 20);`);
+      await standardEvaluableConfig(`_: sub(10 20);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -96,7 +96,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     const { sources: sourcesSat, constants: constantsSat } =
-      standardEvaluableConfig(`_: saturating-sub(10 20);`);
+      await standardEvaluableConfig(`_: saturating-sub(10 20);`);
 
     const expression1 = await expressionConsumerDeploy(
       sourcesSat,
@@ -121,7 +121,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating addition", async () => {
     // test case with normal addition
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      standardEvaluableConfig(`_: add(${max_uint256} 10);`);
+      await standardEvaluableConfig(`_: add(${max_uint256} 10);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -142,7 +142,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     const { sources: sourcesSat, constants: constantsSat } =
-      standardEvaluableConfig(`_: saturating-add(${max_uint256} 10);`);
+      await standardEvaluableConfig(`_: saturating-add(${max_uint256} 10);`);
 
     const expression1 = await expressionConsumerDeploy(
       sourcesSat,

@@ -46,7 +46,7 @@ describe("chainlink-price Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 3600;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: chainlink-price(${feed} ${staleAfter});`
     );
 
@@ -94,7 +94,7 @@ describe("chainlink-price Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: chainlink-price(${feed} ${staleAfter});`
     );
 
@@ -130,7 +130,7 @@ describe("chainlink-price Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: chainlink-price(${feed} ${staleAfter});`
     );
 
@@ -163,7 +163,7 @@ describe("chainlink-price Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: chainlink-price(${feed} ${staleAfter});`
     );
 
