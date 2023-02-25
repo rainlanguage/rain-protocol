@@ -16,6 +16,7 @@ import {
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { DebugStyle } from "../../LibInterpreterState/debug";
 
 const Opcode = AllStandardOps;
 
@@ -38,7 +39,6 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
   });
 
   it("should add all the elements in the context", async () => {
-    // const constants = [0];
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
@@ -53,11 +53,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[1] 
       */
-      a: read-memory<${MemoryType.Stack} 0>(),
-      b: read-memory<${MemoryType.Stack} 1>(),
-      c: read-memory<${MemoryType.Stack} 2>(),
-      d: read-memory<${MemoryType.Stack} 3>(),
-      e: read-memory<${MemoryType.Stack} 4>(),
+      a b c d e: ,
       _: add(a b c d e);`
     );
 
@@ -94,38 +90,28 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
-    const inputSize = 1; // Accummulator size
-    // prettier-ignore
-    const sourceMain = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.fold_context, foldContextOperand(sourceIndex, column, width, inputSize)),
-    ]);
 
-    // prettier-ignore
-    const sourceCount = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // acc
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sources[0] 
+      */
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
 
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // context[0][]
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equal_to),
-
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // context[1][]
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equal_to),
-
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // context[2][]
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equal_to),
-
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)), // context[3][]
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // X
-        op(Opcode.equal_to),
-
-      op(Opcode.add, 5),
-    ]);
+      /* 
+        sources[1] 
+      */
+      acc a1 a2 a3 a4: ,
+      a: equal-to(a1 read-memory<${MemoryType.Constant} 1>()),
+      b: equal-to(a2 read-memory<${MemoryType.Constant} 1>()),
+      c: equal-to(a3 read-memory<${MemoryType.Constant} 1>()),
+      d: equal-to(a4 read-memory<${MemoryType.Constant} 1>()),
+      _: add(acc a b c d),
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceCount],
+      sources,
       constants,
 
       rainInterpreter,
@@ -163,27 +149,24 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
-    const inputSize = 1; // Accummulator size
-    // prettier-ignore
-    const sourceMain = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-      op(
-        Opcode.fold_context,
-        foldContextOperand(sourceIndex, column, width, inputSize)
-      ),
-    ]);
 
-    const sourceAdd = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.add, width + inputSize),
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sources[0] 
+      */
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
+
+      /* 
+        sources[1] 
+      */
+      s0 s1 s2 s3 s4: ,
+      _: add(s0 s1 s2 s3 s4),
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceAdd],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -213,23 +196,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 0;
-    const inputSize = 1; // Accummulator size
-    // prettier-ignore
-    const sourceMain = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-      op(
-        Opcode.fold_context,
-        foldContextOperand(sourceIndex, column, width, inputSize)
-      ),
-    ]);
 
-    const sourceAdd = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.add, width + inputSize),
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sources[0] 
+      */
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
 
+      /* 
+        sources[1] 
+      */
+      s0: ,
+      `
+    );
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceAdd],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -257,27 +239,24 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
-    const inputSize = 1; // Accummulator size
-    // prettier-ignore
-    const sourceMain = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // acc
-      op(
-        Opcode.fold_context,
-        foldContextOperand(sourceIndex, column, width, inputSize)
-      ),
-    ]);
+    
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sources[0] 
+      */
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
 
-    const sourceAdd = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.add, width + inputSize),
-    ]);
+      /* 
+        sources[1] 
+      */
+      s0 s1 s2 s3 s4: ,
+      _: add(s0 s1 s2 s3 s4);
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceAdd],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -406,8 +385,41 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.add, 4), // Adding all the mod values
     ]);
 
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
+
+      /* 
+        sourceCalculate
+      */
+      evencount oddcount s2 s3 s4 s5: ,
+      retevencount: call<1 2>(s2 s3 s4 s5),
+      _: add(retevencount evencount),
+
+      /* counting ODD numbers [Total elements - EVEN number count = ODD number count] */
+      totalminuseven: sub(read-memory<${MemoryType.Constant} 2>() retevencount),
+      _: add(totalminuseven oddcount);
+
+      /* 
+      sourceCountEvent
+      */
+      s0 s1 s2 s3: ,
+      a: is-zero(mod(s0 read-memory<${MemoryType.Constant} 1>())),
+      b: is-zero(mod(s1 read-memory<${MemoryType.Constant} 1>())),
+      c: is-zero(mod(s2 read-memory<${MemoryType.Constant} 1>())),
+      d: is-zero(mod(s3 read-memory<${MemoryType.Constant} 1>())),
+      _: add(a b c d);
+      `
+    );
+
+
+    console.log("Sources = ", sources);
+    // [sourceMain, sourceCalculate, sourceCountEven],
     const expression0 = await expressionConsumerDeploy(
-      [sourceMain, sourceCalculate, sourceCountEven],
+      sources,
       constants,
 
       rainInterpreter,
