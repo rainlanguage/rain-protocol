@@ -12,14 +12,21 @@ import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
 import { metaFromBytes } from "../general";
-import cbor from "cbor";
+import { MAGIC_NUMBERS, cborEncode } from "../cbor";
+import { artifacts } from "hardhat";
+import { arrayify } from "ethers/lib/utils";
 
-export const MAGIC_NUMBERS = {
-  RAIN_META_DOCUMENT: BigInt(0xff0a89c674ee7874n),
-  SOLIDITY_ABIV2: BigInt(0xffe5ffb4a3ff2cden),
-  OPS_META_V1: BigInt(0xffe5282f43e495b4n),
-  CONTRACT_META_V1: BigInt(0xffc21bbf86cc199bn),
-};
+export type ContractMeta =
+  | "sale"
+  | "stake"
+  | "orderbook"
+  | "flow"
+  | "flow20"
+  | "flow721"
+  | "flow1155"
+  | "lobby"
+  | "autoapprove"
+  | "combinetier";
 
 /**
  * @public
@@ -28,19 +35,7 @@ export const MAGIC_NUMBERS = {
  * @param contract - Name of a Rain contract, eg "sale", "flowErc20"
  * @returns Deployable bytes as hex string
  */
-export const getRainContractMetaBytes = (
-  contract:
-    | "sale"
-    | "stake"
-    | "orderbook"
-    | "flow"
-    | "flow20"
-    | "flow721"
-    | "flow1155"
-    | "lobby"
-    | "autoapprove"
-    | "combinetier"
-): string => {
+export const getRainContractMetaBytes = (contract: ContractMeta): string => {
   let meta;
   if (contract === "sale") meta = Sale;
   if (contract === "stake") meta = Stake;
@@ -53,13 +48,7 @@ export const getRainContractMetaBytes = (
   if (contract === "autoapprove") meta = AutoApprove;
   if (contract === "combinetier") meta = CombineTier;
 
-  const content = format(JSON.stringify(meta, null, 4), { parser: "json" });
-  const bytes = Uint8Array.from(deflateSync(content));
-  let hex = "0x";
-  for (let i = 0; i < bytes.length; i++) {
-    hex = hex + bytes[i].toString(16).padStart(2, "0");
-  }
-  return hex;
+  return deflateJson(meta);
 };
 
 /**
@@ -79,37 +68,93 @@ export const getRainContractMetaFromBytes = (
 
 /**
  * @public
- * Get cbor encoded deplyable compressed bytes of a Rain contract meta
- * Spec : https://github.com/rainprotocol/metadata-spec/blob/main/README.md
+ * Get cbor encoded deployable compressed bytes of a Rain contract.
+ *
+ * Encode the `Contract meta v1` and `Solidity ABIv2` with CBOR, and concanate
+ * them to generate a CBOR sequence with the Rain meta document Prefix.
+ *
+ * See more: https://github.com/rainprotocol/metadata-spec/blob/main/README.md
  *
  * @param contract - Name of a Rain contract, eg "sale", "flowErc20"
- * @returns Deployable bytes as hex string
+ * @returns CBOR sequence as hex string with the Rain Prefix
  */
-export const getRainContractMetaCborEncoded = (
-  contract:
-    | "sale"
-    | "stake"
-    | "orderbook"
-    | "flow"
-    | "flow20"
-    | "flow721"
-    | "flow1155"
-    | "lobby"
-    | "autoapprove"
-    | "combinetier"
+export const getRainDocumentsFromContract = (
+  contract: ContractMeta
 ): string => {
-  // ContractMeta
-  const contractMeta = getRainContractMetaBytes(contract);
-  const m = new Map();
-  m.set(0, contractMeta); // Payload
-  m.set(1, MAGIC_NUMBERS.CONTRACT_META_V1); // Magic number
-  m.set(2, "application/json"); // Content-Type
-  m.set(3, "deflate"); // Content-Encoding
+  // Prefixes every rain meta document as an hex string
+  const metaDocumentHex =
+    "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
 
-  const contractCbor = cbor.encodeCanonical(m).toString("hex").toLowerCase();
+  // -- Encoding ContractMeta with CBOR
+  // Obtain Contract Meta as string (Deflated JSON) and parse it to an ArrayBuffer
+  const contractMeta = arrayify(getRainContractMetaBytes(contract)).buffer;
+  const contractMetaEncoded = cborEncode(
+    contractMeta,
+    MAGIC_NUMBERS.CONTRACT_META_V1,
+    "application/json",
+    {
+      contentEncoding: "deflate",
+    }
+  );
 
-  // contract with rain meta magic number
-  const contractCborEncoded = MAGIC_NUMBERS.RAIN_META_DOCUMENT + contractCbor;
+  // -- Enconding Contract JSON ABIv2 with CBOR
+  // Obtain ABIv2 as string (Deflated JSON) and parse it to an ArrayBuffer
+  const abiJson = arrayify(getAbi(contract)).buffer;
+  const abiEncoded = cborEncode(
+    abiJson,
+    MAGIC_NUMBERS.SOLIDITY_ABIV2,
+    "application/json",
+    {
+      contentEncoding: "deflate",
+    }
+  );
 
-  return contractCborEncoded;
+  // Contract document magic number plus each encoded data
+  return metaDocumentHex + contractMetaEncoded + abiEncoded;
+};
+
+/**
+ * @public
+ * Read the artifacts and obtain the ABI from a given `contractName_` to encode as
+ * a deflated JSON.
+ *
+ * @param contractName_ The contract that will be read to get the ABI
+ * @returns The  deflated ABI JSON as hex string.
+ */
+const getAbi = (contractName_: ContractMeta): string => {
+  let name: string;
+
+  if (contractName_ === "sale") name = "Sale";
+  if (contractName_ === "stake") name = "Stake";
+  if (contractName_ === "orderbook") name = "Orderbook";
+  if (contractName_ === "flow") name = "Flow";
+  if (contractName_ === "flow20") name = "FlowERC20";
+  if (contractName_ === "flow721") name = "FlowERC721";
+  if (contractName_ === "flow1155") name = "FlowERC1155";
+  if (contractName_ === "lobby") name = "Lobby";
+  if (contractName_ === "autoapprove") name = "AutoApprove";
+  if (contractName_ === "combinetier") name = "CombineTier";
+
+  if (!name) throw new Error("Invalid contract name");
+
+  const abiJSON = artifacts.readArtifactSync(name).abi;
+
+  return deflateJson(abiJSON);
+};
+
+/**
+ * @public
+ * Take a Object and parset it to a JSON to be deflated and returned as hex string.
+ *
+ * @param data_ The data object to be encoded
+ * @returns An hex string
+ */
+const deflateJson = (data_: any): string => {
+  const content = format(JSON.stringify(data_, null, 4), { parser: "json" });
+  const bytes = Uint8Array.from(deflateSync(content));
+  let hex = "0x";
+  for (let i = 0; i < bytes.length; i++) {
+    hex = hex + bytes[i].toString(16).padStart(2, "0");
+  }
+  return hex;
 };
