@@ -98,15 +98,13 @@ export const getRainContractMetaCborEncoded = (
     | "autoapprove"
     | "combinetier"
 ): string => {
+  // ContractMeta
   const contractMeta = getRainContractMetaBytes(contract);
-
   const m = new Map();
-  // Payload
-  m.set(0, contractMeta);
-  // contract meta magic number
-  m.set(1, MAGIC_NUMBERS.CONTRACT_META_V1);
-  // content-type
-  m.set(2, "application/cbor");
+  m.set(0, contractMeta); // Payload
+  m.set(1, MAGIC_NUMBERS.CONTRACT_META_V1); // Magic number
+  m.set(2, "application/json"); // Content-Type
+  m.set(3, "deflate"); // Content-Encoding
 
   const contractCbor = cbor.encodeCanonical(m).toString("hex").toLowerCase();
 
