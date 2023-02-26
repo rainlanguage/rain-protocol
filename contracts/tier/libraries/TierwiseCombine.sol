@@ -5,21 +5,21 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "./TierReport.sol";
 import "../../math/SaturatingMath.sol";
 
+/// @dev Every lte check in `selectLte` must pass.
+uint256 constant TIERWISE_COMBINE_LOGIC_EVERY = 0;
+/// @dev Only one lte check in `selectLte` must pass.
+uint256 constant TIERWISE_COMBINE_LOGIC_ANY = 1;
+
+/// @dev Select the minimum block number from passing blocks in `selectLte`.
+uint256 constant TIERWISE_COMBINE_MODE_MIN = 0;
+/// @dev Select the maximum block number from passing blocks in `selectLte`.
+uint256 constant TIERWISE_COMBINE_MODE_MAX = 1;
+/// @dev Select the first block number that passes in `selectLte`.
+uint256 constant TIERWISE_COMBINE_MODE_FIRST = 2;
+
 library TierwiseCombine {
     using Math for uint256;
     using SaturatingMath for uint256;
-
-    /// Every lte check in `selectLte` must pass.
-    uint256 internal constant LOGIC_EVERY = 0;
-    /// Only one lte check in `selectLte` must pass.
-    uint256 internal constant LOGIC_ANY = 1;
-
-    /// Select the minimum block number from passing blocks in `selectLte`.
-    uint256 internal constant MODE_MIN = 0;
-    /// Select the maximum block number from passing blocks in `selectLte`.
-    uint256 internal constant MODE_MAX = 1;
-    /// Select the first block number that passes in `selectLte`.
-    uint256 internal constant MODE_FIRST = 2;
 
     /// Performs a tierwise saturating subtraction of two reports.
     /// Intepret as "# of blocks older report was held before newer report".
@@ -83,7 +83,7 @@ library TierwiseCombine {
                 anyLte_ = false;
 
                 // Initialize the accumulator for this tier.
-                if (mode_ == MODE_MIN) {
+                if (mode_ == TIERWISE_COMBINE_MODE_MIN) {
                     accumulator_ = TierConstants.NEVER_REPORT;
                 } else {
                     accumulator_ = 0;
@@ -97,15 +97,15 @@ library TierwiseCombine {
                     if (block_ <= blockNumber_) {
                         // Min and max need to compare current value against
                         // the accumulator.
-                        if (mode_ == MODE_MIN) {
+                        if (mode_ == TIERWISE_COMBINE_MODE_MIN) {
                             accumulator_ = block_.min(accumulator_);
-                        } else if (mode_ == MODE_MAX) {
+                        } else if (mode_ == TIERWISE_COMBINE_MODE_MAX) {
                             accumulator_ = block_.max(accumulator_);
-                        } else if (mode_ == MODE_FIRST && !anyLte_) {
+                        } else if (mode_ == TIERWISE_COMBINE_MODE_FIRST && !anyLte_) {
                             accumulator_ = block_;
                         }
                         anyLte_ = true;
-                    } else if (logic_ == LOGIC_EVERY) {
+                    } else if (logic_ == TIERWISE_COMBINE_LOGIC_EVERY) {
                         // Can short circuit for an "every" check.
                         accumulator_ = TierConstants.NEVER_REPORT;
                         break;
