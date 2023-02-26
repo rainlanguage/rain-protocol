@@ -34,7 +34,7 @@ describe("RainInterpreter update tier range op", async function () {
     const startTier = Tier.ZERO;
     const endTier = 9; // beyond max tier of Tier.EIGHT
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `update-timestamp: ${NEVER},
       report: ${block},
       _: update-times-for-tier-range<${startTier} ${endTier}>(update-timestamp report);`
