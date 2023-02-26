@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import "../../../deploy/LibIntegrityCheck.sol";
 import "../../../run/LibInterpreterState.sol";
-import { UD60x18, pow } from "@prb/math/src/ud60x18/Math.sol";
+import {UD60x18, pow} from "@prb/math/src/ud60x18/Math.sol";
 
 library OpPRBPow {
     using LibStackPointer for StackPointer;
