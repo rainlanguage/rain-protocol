@@ -61,6 +61,7 @@
     "@openzeppelin/contracts-upgradeable": "=4.8.0",
     "@types/node": "=18.11.18",
     "ajv": "=8.12.0",
+    "cbor": "=8.1.0",
     "prettier": "=2.8.2",
     "rainlang": "rainprotocol/rainlang#05f236ed68edf4500103305c9aca74edd11fe38b",
     "ts-node": "=10.9.1",

@@ -15,6 +15,7 @@ import {
 import {
   generateEvaluableConfig,
   getRainContractMetaBytes,
+  getRainContractMetaCborEncoded,
   max_uint16,
   max_uint256,
   memoryOperand,
@@ -138,7 +139,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("stake"),
+        meta: getRainContractMetaCborEncoded("stake"),
         deployer: touchDeployer.address,
       };
 
@@ -150,7 +151,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("orderbook"),
+        meta: getRainContractMetaCborEncoded("orderbook"),
         deployer: touchDeployer.address,
       };
 

@@ -25,7 +25,7 @@ export const rainterpreterExpressionDeployerDeploy = async (
     {
       interpreter: interpreter.address,
       store: store.address,
-      opMeta: bytes_,
+      meta: bytes_,
     };
 
   const expressionDeployer = (await expressionDeployerFactory.deploy(
