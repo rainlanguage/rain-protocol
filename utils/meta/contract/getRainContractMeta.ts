@@ -12,6 +12,14 @@ import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
 import { metaFromBytes } from "../general";
+import cbor from "cbor";
+
+export const MAGIC_NUMBERS = {
+  RAIN_META_DOCUMENT: BigInt(0xff0a89c674ee7874n),
+  SOLIDITY_ABIV2: BigInt(0xffe5ffb4a3ff2cden),
+  OPS_META_V1: BigInt(0xffe5282f43e495b4n),
+  CONTRACT_META_V1: BigInt(0xffc21bbf86cc199bn),
+};
 
 /**
  * @public
@@ -67,4 +75,43 @@ export const getRainContractMetaFromBytes = (
   path?: string
 ) => {
   return metaFromBytes(bytes, ContractMetaSchema, path);
+};
+
+/**
+ * @public
+ * Get cbor encoded deplyable compressed bytes of a Rain contract meta
+ * Spec : https://github.com/rainprotocol/metadata-spec/blob/main/README.md
+ *
+ * @param contract - Name of a Rain contract, eg "sale", "flowErc20"
+ * @returns Deployable bytes as hex string
+ */
+export const getRainContractMetaCborEncoded = (
+  contract:
+    | "sale"
+    | "stake"
+    | "orderbook"
+    | "flow"
+    | "flow20"
+    | "flow721"
+    | "flow1155"
+    | "lobby"
+    | "autoapprove"
+    | "combinetier"
+): string => {
+  const contractMeta = getRainContractMetaBytes(contract);
+
+  const m = new Map();
+  // Payload
+  m.set(0, contractMeta);
+  // contract meta magic number
+  m.set(1, MAGIC_NUMBERS.CONTRACT_META_V1);
+  // content-type
+  m.set(2, "application/cbor");
+
+  const contractCbor = cbor.encodeCanonical(m).toString("hex").toLowerCase();
+
+  // contract with rain meta magic number
+  const contractCborEncoded = MAGIC_NUMBERS.RAIN_META_DOCUMENT + contractCbor;
+
+  return contractCborEncoded;
 };
