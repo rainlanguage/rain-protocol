@@ -1,18 +1,23 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory } from "../../../typechain/contracts/flow/erc20";
+
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
 import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 
-import { ReserveToken18 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  FlowERC20,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
-import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -25,7 +30,8 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 const Opcode = RainterpreterOps;
 
 describe("FlowERC20 flowTime tests", async function () {
-  let flowERC20Factory: FlowERC20Factory;
+  let implementation: FlowERC20;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
@@ -34,7 +40,10 @@ describe("FlowERC20 flowTime tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC20Factory = await flowERC20FactoryDeploy();
+    implementation = await flowERC20Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -141,9 +150,10 @@ describe("FlowERC20 flowTime tests", async function () {
       symbol: "FWIN20",
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 

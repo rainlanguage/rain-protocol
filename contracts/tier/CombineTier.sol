@@ -16,7 +16,7 @@ import "../factory/ICloneableV1.sol";
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x5281a1ecd46ea18005d52780b1d6c17311ecdb6136c83392b96fe4621d57d86e
+    0x785ad5ed1a4f87b24fefb46f7e16de1190b16e89113a3fd115f239c2b0175b15
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);

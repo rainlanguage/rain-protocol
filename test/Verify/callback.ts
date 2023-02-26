@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify, VerifyCallbackTest } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify, VerifyCallbackTest } from "../../typechain";
+
 import {
   ApproveEvent,
   BanEvent,
@@ -10,17 +10,21 @@ import {
 } from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getEvents } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify callback", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should re-emit events associated with add, approve, ban and remove even if corresponding evidence has been deduped for the callback", async function () {
@@ -45,10 +49,13 @@ describe("Verify callback", async function () {
       {}
     )) as VerifyCallbackTest;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: verifyCallback.address,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -219,10 +226,13 @@ describe("Verify callback", async function () {
       {}
     )) as VerifyCallbackTest;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: verifyCallback.address,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -367,10 +377,13 @@ describe("Verify callback", async function () {
       {}
     )) as VerifyCallbackTest;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: verifyCallback.address,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      verifyCallback.address
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);

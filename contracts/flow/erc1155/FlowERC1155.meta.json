@@ -1,29 +1,24 @@
 {
-  "name": "Flow ERC20 Factory",
-  "desc": "An ERC20 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
-  "alias": "flow-erc20-factory",
+  "name": "Flow ERC1155",
+  "desc": "An ERC1155 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
+  "alias": "flow-erc1155",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
-      "desc": "Deploys a new Flow ERC20 contract.",
+      "name": "",
+      "desc": "Deploys a new Flow ERC1155 contract.",
       "inputs": [
         {
-          "name": "Name",
-          "desc": "Name of the token",
+          "name": "Uri",
+          "desc": "A base URI for this contract's tokens.",
           "path": "[6].inputs[0].components[0]"
-        },
-        {
-          "name": "Symbol",
-          "desc": "Symbol for the token",
-          "path": "[6].inputs[0].components[1]"
         }
       ],
       "expressions": [
         {
-          "name": "Can Transfer",
+          "name": "Can transfer",
           "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
-          "path": "[6].inputs[0].components[2]",
+          "path": "[6].inputs[0].components[1]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -39,8 +34,8 @@
                   "cellIndex": 0
                 },
                 {
-                  "name": "This Contract",
-                  "desc": "The address of the FlowERC20 contract this expression is for",
+                  "name": "This contract",
+                  "desc": "The address of the FlowERC1155 contract this expression is for",
                   "alias": "this-contract",
                   "cellIndex": 1
                 },
@@ -48,28 +43,34 @@
                   "name": "From",
                   "desc": "The address this token is being transferred from",
                   "alias": "from-address",
-                  "cellIndex": 2
+                  "cellIndex": 1
                 },
                 {
                   "name": "To",
                   "desc": "The address this token is being transferred from",
                   "alias": "to-address",
-                  "cellIndex": 3
-                },
-                {
-                  "name": "Amount",
-                  "desc": "The amount of this token being transferred",
-                  "alias": "transfer-amount",
-                  "cellIndex": 4
+                  "cellIndex": 2
                 }
               ]
+            },
+            {
+              "name": "ID",
+              "desc": "Passing ERC1155 ids.",
+              "alias": "id",
+              "columnIndex": 1
+            },
+            {
+              "name": "Amount",
+              "desc": "Passing ERC1155 amounts.",
+              "alias": "amount",
+              "columnIndex": 2
             }
           ]
         },
         {
           "name": "Flows",
           "desc": "The available flows for this token.",
-          "path": "[6].inputs[0].components[3]",
+          "path": "[6].inputs[0].components[2]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [
@@ -86,8 +87,8 @@
                   "cellIndex": 0
                 },
                 {
-                  "name": "This Contract",
-                  "desc": "The address of the FlowERC20 contract this expression is for",
+                  "name": "This contract",
+                  "desc": "The address of the FlowERC721 contract this expression is for",
                   "alias": "this-contract",
                   "cellIndex": 1
                 }

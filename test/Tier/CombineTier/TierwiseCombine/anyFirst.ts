@@ -1,10 +1,14 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier } from "../../../../typechain";
+import type { CloneFactory, CombineTier } from "../../../../typechain";
+import { basicDeploy } from "../../../../utils";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
+import {
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../../utils/deploy/tier/combineTier/deploy";
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";
 import {
@@ -23,12 +27,20 @@ import { Tier } from "../../../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'any' logic and 'first' mode", async function () {
+  let implementationCombineTier: CombineTier;
+  let cloneFactory: CloneFactory;
+
   // report time for tier context
   const ctxAccount = op(Opcode.context, 0x0000);
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
+
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   // prettier-ignore
@@ -67,10 +79,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         ]),
       ]
     );
-    const futureTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigFuture,
-    })) as CombineTier;
+    const futureTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigFuture
+    );
 
     const evaluableConfigAlways = await generateEvaluableConfig(
       [
@@ -79,10 +94,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ],
       [ALWAYS]
     );
-    const alwaysTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigAlways,
-    })) as CombineTier;
+    const alwaysTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigAlways
+    );
 
     const evaluableConfigNever = await generateEvaluableConfig(
       [
@@ -91,10 +109,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ],
       [NEVER]
     );
-    const neverTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigNever,
-    })) as CombineTier;
+    const neverTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigNever
+    );
 
     const constants = [
       ethers.BigNumber.from(futureTier.address),
@@ -137,10 +158,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 3,
-      evaluableConfig: evaluableConfigCombine,
-    })) as CombineTier;
+    const combineTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      3,
+      evaluableConfigCombine
+    );
 
     const result = await combineTier.report(signers[0].address, []);
 
@@ -172,10 +196,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ],
       [ALWAYS]
     );
-    const alwaysTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigAlways,
-    })) as CombineTier;
+    const alwaysTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigAlways
+    );
 
     const evaluableConfigNever = await generateEvaluableConfig(
       [
@@ -184,10 +211,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ],
       [NEVER]
     );
-    const neverTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigNever,
-    })) as CombineTier;
+    const neverTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigNever
+    );
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -212,10 +242,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombine,
-    })) as CombineTier;
+    const combineTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombine
+    );
 
     const result = await combineTier.report(signers[0].address, []);
 
@@ -261,10 +294,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       [sourceReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 2,
-      evaluableConfig,
-    })) as CombineTier;
+    const combineTier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfig
+    );
 
     const startTimestamp = await getBlockTimestamp();
 

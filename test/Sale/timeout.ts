@@ -1,17 +1,15 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
 import { PhaseScheduledEvent } from "../../typechain/contracts/phased/Phased";
-import { TimeoutEvent } from "../../typechain/contracts/sale/Sale";
+import { Sale, TimeoutEvent } from "../../typechain/contracts/sale/Sale";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock, getBlockTimestamp } from "../../utils/hardhat";
 import {
@@ -30,15 +28,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale timeout", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -85,10 +90,11 @@ describe("Sale timeout", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
+        await saleClone(
           signers,
           deployer,
-          saleFactory,
+          cloneFactory,
+          implementation,
           {
             evaluableConfig,
             recipient: recipient.address,
@@ -108,10 +114,11 @@ describe("Sale timeout", async function () {
       "MAX_TIMEOUT",
       "did not prevent a sale timeout that exceeds maximum timeout, which was set by the sale factory"
     );
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,

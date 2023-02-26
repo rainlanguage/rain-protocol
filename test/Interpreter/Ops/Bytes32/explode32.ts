@@ -25,7 +25,7 @@ describe("EXPLODE32 Opcode test", async function () {
   });
 
   it("should explode a single value into 8x 32 bit integers", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `value: context<0 0>(), /* initial value */
       _ _ _ _ _ _ _ _: explode-32(value);`
     );

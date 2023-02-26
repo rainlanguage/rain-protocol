@@ -1,11 +1,17 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory } from "../../../typechain";
-import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { CloneFactory } from "../../../typechain";
+import {
+  Flow,
+  SignedContextStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import { basicDeploy } from "../../../utils";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
@@ -20,14 +26,18 @@ import { FlowConfig } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("Flow signed context tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowFactory = await flowFactoryDeploy();
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should validate multiple signed contexts", async () => {
@@ -52,7 +62,12 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -132,7 +147,12 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

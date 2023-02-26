@@ -1,0 +1,28 @@
+{
+  "name": "encode-256",
+  "desc": "Encode some truncated bits from a 256 bit value (anything on the stack) into a new 256 bit value.",
+  "operand": [
+    {
+      "name": "start",
+      "desc": "Bit index to start reading from.",
+      "bits": [8, 15]
+    },
+    {
+      "name": "length",
+      "desc": "Number of bits to read from start.",
+      "bits": [0, 7]
+    }
+  ],
+  "inputs": {
+    "parameters": [
+      {
+        "name": "source"
+      },
+      {
+        "name": "target"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["copy-slice-256"]
+}

@@ -672,7 +672,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -683,7 +683,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -922,7 +922,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -933,7 +933,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA20.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -1172,7 +1172,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -1183,7 +1183,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -1422,7 +1422,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -1433,7 +1433,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB20.balanceOf(alice.address);
@@ -1672,7 +1672,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -1683,7 +1683,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB18.balanceOf(alice.address);
@@ -1922,7 +1922,7 @@ describe("OrderBook take orders", async function () {
         takeOrderAlice.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(
@@ -1933,7 +1933,7 @@ describe("OrderBook take orders", async function () {
         takeOrderBob.output.eq(depositAmountA.div(2)),
         "wrong output, output max wasn't respected"
       );
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA00.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB18.balanceOf(alice.address);
@@ -2164,12 +2164,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -2366,12 +2366,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA20.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -2568,12 +2568,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -2770,12 +2770,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB20.balanceOf(alice.address);
@@ -2972,12 +2972,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB18.balanceOf(alice.address);
@@ -3174,12 +3174,12 @@ describe("OrderBook take orders", async function () {
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
       assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
       assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+      compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
       assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
       assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
-      compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+      compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA00.balanceOf(alice.address);
       const tokenBAliceBalance = await tokenB18.balanceOf(alice.address);
@@ -3860,12 +3860,12 @@ describe("OrderBook take orders", async function () {
     assert(takeOrderAlice.sender === carol.address, "wrong sender");
     assert(takeOrderAlice.input.eq(amountB), "wrong input");
     assert(takeOrderAlice.output.eq(amountA), "wrong output");
-    compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+    compareStructs(takeOrderAlice.config, takeOrderConfigStructAlice);
 
     assert(takeOrderBob.sender === carol.address, "wrong sender");
     assert(takeOrderBob.input.eq(amountB), "wrong input");
     assert(takeOrderBob.output.eq(amountA), "wrong output");
-    compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+    compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
@@ -3991,7 +3991,7 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -4001,7 +4001,7 @@ describe("OrderBook take orders", async function () {
     assert(input.eq(amountB), "wrong input");
     assert(output.eq(amountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStruct);
+    compareStructs(config, takeOrderConfigStruct);
 
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
@@ -4192,7 +4192,7 @@ describe("OrderBook take orders", async function () {
     assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
     assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+    compareStructs(takeOrderBob.config, takeOrderConfigStructBob);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -4256,7 +4256,7 @@ describe("OrderBook take orders", async function () {
     assert(takeOrderCarol.input.eq(depositAmountB), "wrong input");
     assert(takeOrderCarol.output.eq(depositAmountC), "wrong output");
 
-    compareStructs(takeOrderCarol.takeOrder, takeOrdersConfigStructCarol);
+    compareStructs(takeOrderCarol.config, takeOrdersConfigStructCarol);
 
     const tokenBAliceBalance1 = await tokenB06.balanceOf(alice.address);
     const tokenCAliceBalance = await tokenC12.balanceOf(alice.address);
@@ -4531,7 +4531,7 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -4541,7 +4541,7 @@ describe("OrderBook take orders", async function () {
     assert(input.eq(amountB), "wrong input");
     assert(output.eq(amountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStruct);
+    compareStructs(config, takeOrderConfigStruct);
 
     const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
@@ -4714,7 +4714,7 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -4724,7 +4724,7 @@ describe("OrderBook take orders", async function () {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructAlice);
+    compareStructs(config, takeOrderConfigStructAlice);
 
     const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
@@ -4847,7 +4847,7 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .takeOrders(takeOrdersConfigStruct);
 
-    const { sender, takeOrder, input, output } = (await getEventArgs(
+    const { sender, config, input, output } = (await getEventArgs(
       txTakeOrders,
       "TakeOrder",
       orderBook
@@ -4857,7 +4857,7 @@ describe("OrderBook take orders", async function () {
     assert(input.eq(depositAmountB), "wrong input");
     assert(output.eq(depositAmountA), "wrong output");
 
-    compareStructs(takeOrder, takeOrderConfigStructAlice);
+    compareStructs(config, takeOrderConfigStructAlice);
 
     const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
     const tokenBAliceBalance = await tokenB18.balanceOf(alice.address);

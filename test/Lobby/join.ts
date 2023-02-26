@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
@@ -107,6 +106,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const Lobby = await deployLobbyClone(
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -211,6 +211,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const Lobby = await deployLobbyClone(
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -329,6 +330,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const Lobby = await deployLobbyClone(
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -432,6 +434,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const Lobby = await deployLobbyClone(
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
@@ -586,6 +589,7 @@ describe("Lobby Tests join", async function () {
     };
 
     const Lobby = await deployLobbyClone(
+      signers[0],
       cloneFactory,
       lobbyImplementation,
       initialConfig
