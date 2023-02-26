@@ -1,164 +1,206 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../../typechain";
-import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
+import { ReserveToken } from "../../../typechain";
 import {
-  JoinEvent,
-  Lobby,
-  LobbyConfigStruct,
-  SignedContextStruct,
-} from "../../../typechain/contracts/lobby/Lobby";
+  CloneFactory,
+  NewCloneEvent,
+} from "../../../typechain/contracts/factory/CloneFactory";
+import { Lobby } from "../../../typechain/contracts/lobby/Lobby";
 import {
+  Stake,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
+import {
+  assertError,
   generateEvaluableConfig,
   getEventArgs,
+  max_uint256,
   memoryOperand,
   MemoryType,
-  ONE,
   op,
   RainterpreterOps,
+  stakeImplementation,
 } from "../../../utils";
 
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { deployLobby } from "../../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
-describe("FactoryCurator createChild", async function () {
+describe("CloneFactory tests", async function () {
   const Opcode = RainterpreterOps;
 
-  let cloneFactory: Contract;
-  let tokenA: ReserveToken18;
-
-  const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
+  let cloneFactory: CloneFactory;
+  let implementationLobby: Lobby;
+  let implementationStake: Stake;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-    cloneFactory = await basicDeploy("CloneFactory", {});
+
+    implementationLobby = await deployLobby(15000000);
+    implementationStake = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
-  beforeEach(async () => {
-    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await tokenA.initialize();
-  });
+  it("should revert if implementation address is zero", async () => {
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
-  it("should deploy Lobby Clone", async () => {
-    const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-
-    const depositAmount = ONE;
-    const leaveAmount = ONE;
-    const claimAmount = ONE;
-    const timeoutDuration = 15000000;
-
-    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
-
-    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
-
-    const constants = [1, depositAmount, leaveAmount, claimAmount];
-
-    // prettier-ignore
-    const joinSource = concat([
-        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)) ,
-        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1))
-      ]);
-
-    const leaveSource = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-    const claimSource = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-    ]);
-    const invalidSource = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    const lobbyExpressionConfig = {
-      sources: [joinSource, leaveSource, claimSource, invalidSource],
-      constants: constants,
-    };
-
-    const evaluableConfig = await generateEvaluableConfig(
-      lobbyExpressionConfig.sources,
-      lobbyExpressionConfig.constants
+    const evaluableConfig0 = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
-    const initialConfig: LobbyConfigStruct = {
-      refMustAgree: false,
-      ref: signers[0].address,
-      evaluableConfig: evaluableConfig,
-      token: tokenA.address,
-      description: [],
-      timeoutDuration: timeoutDuration,
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      evaluableConfig: evaluableConfig0,
     };
 
     const encodedConfig = ethers.utils.defaultAbiCoder.encode(
       [
-        "tuple(bool refMustAgree ,address ref,address token,tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig, bytes description , uint256 timeoutDuration)",
+        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
       ],
-      [initialConfig]
+      [stakeConfigStruct]
     );
 
-    const lobbyClone = await cloneFactory.clone(
-      lobbyImplementation.address,
+    await assertError(
+      async () =>
+        await cloneFactory.clone(ethers.constants.AddressZero, encodedConfig),
+      "ZeroImplementation",
+      "Deployed with zero implementation"
+    );
+  });
+
+  it("should not clone contract with incorrect implementation contract ", async () => {
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    const evaluableConfig0 = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
+    );
+
+    const stakeConfigStruct0: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      evaluableConfig: evaluableConfig0,
+    };
+
+    const encodedConfig0 = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [stakeConfigStruct0]
+    );
+
+    assertError(
+      async () =>
+        await cloneFactory.clone(implementationLobby.address, encodedConfig0),
+      "",
+      "Deployed with Incorrect implementation"
+    );
+
+    const stakeConfigStruct1 = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
+
+    const encodedConfig1 = ethers.utils.defaultAbiCoder.encode(
+      ["tuple(address asset ,string name, string symbol)"],
+      [stakeConfigStruct1]
+    );
+
+    assertError(
+      async () =>
+        await cloneFactory.clone(implementationLobby.address, encodedConfig1),
+      "",
+      "Deployed with Incorrect data"
+    );
+  });
+
+  it("should not clone contract with incorrect  data ", async () => {
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    const stakeConfigStruct0 = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
+
+    const encodedConfig1 = ethers.utils.defaultAbiCoder.encode(
+      ["tuple(address asset ,string name, string symbol)"],
+      [stakeConfigStruct0]
+    );
+
+    assertError(
+      async () =>
+        await cloneFactory.clone(implementationStake.address, encodedConfig1),
+      "",
+      "Deployed with Incorrect data"
+    );
+
+    assertError(
+      async () => await cloneFactory.clone(implementationStake.address, "0x00"),
+      "",
+      "Deployed with zero data"
+    );
+  });
+
+  it("should initialize clone with correct data", async () => {
+    const signers = await ethers.getSigners();
+
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    const evaluableConfig = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      evaluableConfig: evaluableConfig,
+    };
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address asset ,string name, string symbol , tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [stakeConfigStruct]
+    );
+
+    const stakeClone = await cloneFactory.clone(
+      implementationStake.address,
       encodedConfig
     );
 
-    const event = (await getEventArgs(
-      lobbyClone,
+    const cloneEvent = (await getEventArgs(
+      stakeClone,
       "NewClone",
       cloneFactory
     )) as NewCloneEvent["args"];
 
-    const Lobby_ = await ethers.getContractAt("Lobby", event.clone);
-
-    await tokenA.connect(alice).approve(Lobby_.address, depositAmount);
-
-    const context0 = [1, 2, 3];
-    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
-    const goodSignature0 = await alice.signMessage(arrayify(hash0));
-
-    const context1 = [4, 5, 6];
-    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
-    const goodSignature1 = await bob.signMessage(arrayify(hash1));
-
-    const signedContexts0: SignedContextStruct[] = [
-      {
-        signer: alice.address,
-        signature: goodSignature0,
-        context: context0,
-      },
-      {
-        signer: bob.address,
-        signature: goodSignature1,
-        context: context1,
-      },
-    ];
-
-    const joinTx = await Lobby_.connect(alice).join([1234], signedContexts0);
-
-    const { sender } = (await getEventArgs(
-      joinTx,
-      "Join",
-      Lobby_
-    )) as JoinEvent["args"];
-
-    const {
-      sender: depositSender,
-      token: depositToken,
-      amount,
-    } = (await getEventArgs(joinTx, "Deposit", Lobby_)) as DepositEvent["args"];
-
-    assert(depositSender === alice.address, "wrong deposit sender");
-    assert(depositToken === tokenA.address, "wrong deposit token");
-    assert(amount.eq(depositAmount), "wrong deposit amount");
-    assert(sender === alice.address, "wrong sender");
-
-    const currentPhase = await Lobby_.currentPhase();
-    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
+    assert(cloneEvent.sender == signers[0].address, "Incorrect sender");
+    assert(
+      cloneEvent.implementation == implementationStake.address,
+      "Incorrect implementation"
+    );
+    assert(cloneEvent.data == encodedConfig, "Incorrect data");
   });
 });

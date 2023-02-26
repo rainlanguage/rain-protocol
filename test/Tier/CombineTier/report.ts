@@ -4,29 +4,37 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  CloneFactory,
   CombineTier,
   IInterpreterV1Consumer,
   Rainterpreter,
   ReadWriteTier,
   ReserveToken,
-  StakeFactory,
 } from "../../../typechain";
-import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
+  Stake,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
+import {
+  basicDeploy,
   getBlockTimestamp,
   max_uint256,
   readWriteTierDeploy,
-  stakeDeploy,
+  stakeCloneDeploy,
+  stakeImplementation,
   THRESHOLDS,
   Tier,
   timewarp,
 } from "../../../utils";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
-import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
+import {
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../utils/deploy/tier/combineTier/deploy";
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -44,15 +52,26 @@ let alice: SignerWithAddress;
 let bob: SignerWithAddress;
 let tokenERC20: ReserveToken;
 let readWriteTier: ReadWriteTier;
-let stakeFactory: StakeFactory;
+
 let rainInterpreter: Rainterpreter;
 let logic: IInterpreterV1Consumer;
 
 describe("CombineTier report tests", async function () {
+  let implementationStake: Stake;
+  let implementationCombineTier: CombineTier;
+
+  let cloneFactory: CloneFactory;
+
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
+
+    implementationStake = await stakeImplementation();
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   const ctxAccount = op(Opcode.context, 0x0000);
@@ -73,7 +92,8 @@ describe("CombineTier report tests", async function () {
 
     tokenERC20 = await reserveDeploy();
     readWriteTier = await readWriteTierDeploy();
-    stakeFactory = await stakeFactoryDeploy();
+    implementationStake = await stakeImplementation();
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -92,10 +112,13 @@ describe("CombineTier report tests", async function () {
       [ALWAYS]
     );
 
-    const alwaysTier = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigAlwaysTier,
-    })) as CombineTier;
+    const alwaysTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigAlwaysTier
+    );
 
     const evaluableConfigNeverTier = await generateEvaluableConfig(
       [
@@ -105,10 +128,13 @@ describe("CombineTier report tests", async function () {
       [NEVER]
     );
 
-    const neverTier = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigNeverTier,
-    })) as CombineTier;
+    const neverTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigNeverTier
+    );
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -134,10 +160,13 @@ describe("CombineTier report tests", async function () {
       constants
     );
 
-    const combineTierAlways = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfigAlways,
-    })) as CombineTier;
+    const combineTierAlways = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfigAlways
+    );
 
     const resultAlwaysReport = await combineTierAlways.report(
       signers[1].address,
@@ -156,11 +185,13 @@ describe("CombineTier report tests", async function () {
       [sourceNeverReport, sourceReportTimeForTierDefault],
       constants
     );
-    const combineTierNever = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfigNever,
-    })) as CombineTier;
-
+    const combineTierNever = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfigNever
+    );
     const resultNeverReport = await combineTierNever.report(
       signers[1].address,
       []
@@ -199,10 +230,13 @@ describe("CombineTier report tests", async function () {
       [sourceTierContractAlice, sourceReportTimeForTierDefault],
       [alice.address, tokenERC20.address]
     );
-    const tierContractAlice = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigAlice,
-    })) as CombineTier;
+    const tierContractAlice = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigAlice
+    );
 
     // BOB
     // prettier-ignore
@@ -215,10 +249,13 @@ describe("CombineTier report tests", async function () {
       [sourceTierContractBob, sourceReportTimeForTierDefault],
       [bob.address, tokenERC20.address]
     );
-    const tierContractBob = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigBob,
-    })) as CombineTier;
+    const tierContractBob = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigBob
+    );
 
     // MAIN
     const constants = [
@@ -246,10 +283,13 @@ describe("CombineTier report tests", async function () {
       constants
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.report(signers[1].address, []);
 
@@ -317,10 +357,13 @@ describe("CombineTier report tests", async function () {
       constants
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.report(alice.address, [bob.address]);
 
@@ -389,10 +432,13 @@ describe("CombineTier report tests", async function () {
       constants
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.report(alice.address, [
       expectedResultAlice,
@@ -440,7 +486,12 @@ describe("CombineTier report tests", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -527,10 +578,13 @@ describe("CombineTier report tests", async function () {
       [stake.address]
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfigMain,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfigMain
+    );
 
     const result0 = await combineTierMain.report(alice.address, [
       expectedReportAlice,
@@ -564,8 +618,18 @@ describe("CombineTier report tests", async function () {
       evaluableConfig: evaluableConfigStakeMain,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -636,10 +700,13 @@ describe("CombineTier report tests", async function () {
       [stake0.address, stake1.address, max_uint256]
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombineTierMain,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombineTierMain
+    );
 
     const result0 = await combineTierMain.report(alice.address, [
       ...THRESHOLDS,
@@ -697,7 +764,12 @@ describe("CombineTier report tests", async function () {
     const constants = [];
     for (let i = 0; i < MAX_STAKE_CONTRACTS; i++) {
       stakeContracts.push(
-        await stakeDeploy(deployer, stakeFactory, stakeConfigStruct)
+        await stakeCloneDeploy(
+          deployer,
+          cloneFactory,
+          implementationStake,
+          stakeConfigStruct
+        )
       );
       constants.push(stakeContracts[i].address);
 
@@ -750,10 +822,13 @@ describe("CombineTier report tests", async function () {
       [...constants, max_uint256]
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: stakeContracts.length,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      stakeContracts.length,
+      evaluableConfigCombineTier
+    );
 
     const result0 = await combineTierMain.report(alice.address, [
       ...THRESHOLDS,
@@ -808,8 +883,18 @@ describe("CombineTier report tests", async function () {
       evaluableConfig: evaluableConfigStake,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -880,10 +965,13 @@ describe("CombineTier report tests", async function () {
       [stake0.address, stake1.address, max_uint256]
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCoombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCoombineTier
+    );
 
     const sourceMain = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract

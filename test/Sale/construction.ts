@@ -1,14 +1,27 @@
+import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  RedeemableERC20,
+  ReserveToken,
+  Sale,
+} from "../../typechain";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
+import {
+  getRainContractMetaBytes,
+  readWriteTierDeploy,
+  redeemableERC20DeployImplementation,
+} from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -23,15 +36,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale construction", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -77,10 +97,11 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
+        await await saleClone(
           signers,
           deployer,
-          saleFactory,
+          cloneFactory,
+          implementation,
           {
             evaluableConfig,
             recipient: recipient.address,
@@ -142,10 +163,11 @@ describe("Sale construction", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
+        await await saleClone(
           signers,
           deployer,
-          saleFactory,
+          cloneFactory,
+          implementation,
           {
             evaluableConfig,
             recipient: recipient.address,
@@ -164,6 +186,51 @@ describe("Sale construction", async function () {
         ),
       "DISTRIBUTOR_SET",
       "did not alert deployer about setting custom distributor, since Sale will override this to automatically set the distributor to itself"
+    );
+  });
+
+  it("should fail if sale is deployed with bad callerMeta", async function () {
+    const saleFactory = await ethers.getContractFactory("Sale", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer();
+
+    const redeemableERC20Implementation: RedeemableERC20 =
+      await redeemableERC20DeployImplementation();
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("sale"),
+        deployer: touchDeployer.address,
+      };
+
+    const saleConstructorConfig0: SaleConstructorConfigStruct = {
+      maximumSaleTimeout: 1000,
+      cloneFactory: cloneFactory.address,
+      redeemableERC20Implementation: redeemableERC20Implementation.address,
+      interpreterCallerConfig: interpreterCallerConfig0,
+    };
+
+    const sale = (await saleFactory.deploy(saleConstructorConfig0)) as Sale;
+
+    assert(!(sale.address === zeroAddress), "sale did not deploy");
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        callerMeta: getRainContractMetaBytes("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    const saleConstructorConfig1: SaleConstructorConfigStruct = {
+      maximumSaleTimeout: 1000,
+      cloneFactory: cloneFactory.address,
+      redeemableERC20Implementation: redeemableERC20Implementation.address,
+      interpreterCallerConfig: interpreterCallerConfig1,
+    };
+    await assertError(
+      async () => await saleFactory.deploy(saleConstructorConfig1),
+      "UnexpectedMetaHash",
+      "Sale Deployed for bad hash"
     );
   });
 });

@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
-import { BuyEvent } from "../../typechain/contracts/sale/Sale";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
+import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
+import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import {
   fourZeros,
@@ -11,10 +12,7 @@ import {
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -32,15 +30,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale calculate price", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -108,10 +113,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -164,6 +170,7 @@ describe("Sale calculate price", async function () {
       expected  ${expectedPrice0}
       got       ${receipt0.price}`
     );
+    console.log("Here---");
     const signer1Balance1 = await token.balanceOf(signer1.address);
     const desiredUnits1 = totalTokenSupply.div(10);
     const expectedPrice1 = basePrice.sub(
@@ -257,10 +264,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -374,10 +382,11 @@ describe("Sale calculate price", async function () {
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
+        await saleClone(
           signers,
           deployer,
-          saleFactory,
+          cloneFactory,
+          implementation,
           {
             evaluableConfig: evaluableConfig,
             recipient: recipient.address,
@@ -453,10 +462,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -591,10 +601,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -732,10 +743,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -834,10 +846,11 @@ describe("Sale calculate price", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,

@@ -31,6 +31,7 @@ describe("Verify admin", async function () {
     const banAdmin1 = signers[6];
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,
@@ -77,6 +78,7 @@ describe("Verify admin", async function () {
     const banAdmin1 = signers[6];
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,
@@ -161,6 +163,7 @@ describe("Verify admin", async function () {
     const banner = signers[6];
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,
@@ -199,9 +202,12 @@ describe("Verify admin", async function () {
   });
 
   it("should require non-zero admin address", async function () {
+    const signers = await ethers.getSigners();
+
     await assertError(
       async () =>
         await verifyCloneDeploy(
+          signers[0],
           cloneFactory,
           implementVerify,
           ethers.constants.AddressZero,

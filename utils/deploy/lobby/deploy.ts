@@ -1,9 +1,7 @@
-import { ethers } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { artifacts, ethers } from "hardhat";
 import { RainterpreterExpressionDeployer } from "../../../typechain";
-import {
-  CloneFactory,
-  NewCloneEvent,
-} from "../../../typechain/contracts/factory/CloneFactory";
+import { CloneFactory } from "../../../typechain/contracts/factory/CloneFactory";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Lobby,
@@ -35,6 +33,7 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
 };
 
 export const deployLobbyClone = async (
+  deployer: SignerWithAddress,
   cloneFactory: CloneFactory,
   lobbyImplementation: Lobby,
   initialConfig: LobbyConfigStruct
@@ -51,16 +50,22 @@ export const deployLobbyClone = async (
     encodedConfig
   );
 
-  const cloneEvent = (await getEventArgs(
-    lobbyClone,
-    "NewClone",
-    cloneFactory
-  )) as NewCloneEvent["args"];
+  const lobby = new ethers.Contract(
+    ethers.utils.hexZeroPad(
+      ethers.utils.hexStripZeros(
+        (await getEventArgs(lobbyClone, "NewClone", cloneFactory)).clone
+      ),
+      20 // address bytes length
+    ),
+    (await artifacts.readArtifact("Lobby")).abi,
+    deployer
+  ) as Lobby;
 
-  const Lobby_ = (await ethers.getContractAt(
-    "Lobby",
-    cloneEvent.clone
-  )) as Lobby;
+  await lobby.deployed();
 
-  return Lobby_;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  lobby.deployTransaction = lobbyClone;
+
+  return lobby;
 };

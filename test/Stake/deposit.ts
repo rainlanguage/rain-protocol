@@ -52,6 +52,7 @@ describe("Stake deposit", async function () {
 
   it("should return zero for maxDeposit if the expression fails", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -94,6 +95,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -109,6 +111,7 @@ describe("Stake deposit", async function () {
 
   it("should return minimum of max_deposit source and ERC4262 maxDeposit for maxDeposit if the expression succeds", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -153,6 +156,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -168,6 +172,7 @@ describe("Stake deposit", async function () {
 
   it("should cap maxDeposit at minimum of max_deposit source and ERC4262 maxDeposit for that particular owner", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -194,6 +199,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -263,6 +269,7 @@ describe("Stake deposit", async function () {
 
   it("should not process an invalid deposit", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -287,6 +294,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -306,6 +314,7 @@ describe("Stake deposit", async function () {
 
   it("should calculate correct mint amounts based on current supply", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[1];
 
@@ -330,6 +339,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -378,6 +388,7 @@ describe("Stake deposit", async function () {
 
   it("should revert deposit if mint amount is calculated to be 0", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
     const bob = signers[3];
@@ -403,6 +414,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -428,6 +440,7 @@ describe("Stake deposit", async function () {
 
   it("should not process a deposit of 0 amount", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -452,6 +465,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -470,6 +484,7 @@ describe("Stake deposit", async function () {
 
   it("should process minimum deposit of 1 token", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -494,6 +509,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -527,6 +543,7 @@ describe("Stake deposit", async function () {
 
   it("should process deposit of 2 tokens", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -551,6 +568,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -584,6 +602,7 @@ describe("Stake deposit", async function () {
 
   it("should process deposits", async function () {
     const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
     const alice = signers[2];
 
@@ -608,6 +627,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -706,16 +726,10 @@ describe("Stake deposit", async function () {
 
     // Transfer tokens from the deployer to the alice with the instances
     const amountToTransfer = ethers.BigNumber.from("50000000");
-    await token
-      .connect(deployer)
-      .transfer(cloneFactory.address, amountToTransfer);
-
-    await token
-      .connect(deployer)
-      .approve(cloneFactory.address, amountToTransfer);
+    // await token.connect(deployer).approve(deployer.address, amountToTransfer);
 
     //await token.connect(alice);
-    await token.transferFrom(deployer.address, alice.address, amountToTransfer);
+    await token.transfer(alice.address, amountToTransfer);
 
     const tokenBalanceAlice = await token.balanceOf(alice.address);
 
@@ -745,6 +759,7 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeCloneDeploy(
+      deployer,
       cloneFactory,
       implementation,
       stakeConfigStruct
@@ -765,9 +780,10 @@ describe("Stake deposit", async function () {
     await token
       .connect(alice)
       .approve(stake.address, ethers.constants.MaxUint256);
+
     const depositUnits = ethers.BigNumber.from("20000000");
     // alice depositing
-    await stake.deposit(depositUnits, alice.address);
+    await stake.connect(alice).deposit(depositUnits, alice.address);
 
     const stTokenTotalSupply1 = await stake.totalSupply();
     const tokenBalanceStake1 = await token.balanceOf(stake.address);
@@ -793,7 +809,9 @@ describe("Stake deposit", async function () {
 
     // alice withdrawing half of her shares
     const shares = await stake.balanceOf(alice.address);
-    await stake.withdraw(shares.div(2), alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(shares.div(2), alice.address, alice.address);
 
     const stTokenTotalSupply2 = await stake.totalSupply();
     const tokenBalanceStake2 = await token.balanceOf(stake.address);

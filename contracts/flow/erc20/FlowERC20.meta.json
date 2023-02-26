@@ -5,7 +5,7 @@
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
+      "name": "",
       "desc": "Deploys a new Flow ERC20 contract.",
       "inputs": [
         {

@@ -6,15 +6,15 @@ import { format } from "prettier";
 import { argv } from "process";
 import { deflateSync } from "zlib";
 import ContractMetaSchema from "../schema/meta/v0/contract.meta.schema.json";
-import FlowERC20 from "../contracts/flow/erc20/FlowERC20Factory.meta.json";
-import FlowERC721 from "../contracts/flow/erc721/FlowERC721Factory.meta.json";
-import FlowERC1155 from "../contracts/flow/erc1155/FlowERC1155Factory.meta.json";
+import FlowERC20 from "../contracts/flow/erc20/FlowERC20.meta.json";
+import FlowERC721 from "../contracts/flow/erc721/FlowERC721.meta.json";
+import FlowERC1155 from "../contracts/flow/erc1155/FlowERC1155.meta.json";
 import Lobby from "../contracts/lobby/Lobby.meta.json";
 import Orderbook from "../contracts/orderbook/OrderBook.meta.json";
-import Sale from "../contracts/sale/SaleFactory.meta.json";
-import Stake from "../contracts/stake/StakeFactory.meta.json";
-import CombineTier from "../contracts/tier/CombineTierFactory.meta.json";
-import AutoApprove from "../contracts/verify/auto/AutoApproveFactory.meta.json";
+import Sale from "../contracts/sale/Sale.meta.json";
+import Stake from "../contracts/stake/Stake.meta.json";
+import CombineTier from "../contracts/tier/CombineTier.meta.json";
+import AutoApprove from "../contracts/verify/auto/AutoApprove.meta.json";
 
 const writeFile = (_path: string, file: string) => {
   try {

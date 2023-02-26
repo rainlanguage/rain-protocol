@@ -69,6 +69,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -77,6 +78,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -135,6 +137,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -143,6 +146,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -204,6 +208,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -212,6 +217,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -261,6 +267,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -269,6 +276,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -313,6 +321,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -321,6 +330,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,
@@ -379,6 +389,7 @@ describe("AutoApprove afterAdd", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -387,6 +398,7 @@ describe("AutoApprove afterAdd", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,

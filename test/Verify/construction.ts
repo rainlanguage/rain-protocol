@@ -1,13 +1,12 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
-import { NewCloneEvent } from "../../typechain/contracts/factory/CloneFactory";
 
 import {
   InitializeEvent,
   VerifyConfigStruct,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy, zeroAddress } from "../../utils";
+import { basicDeploy } from "../../utils";
 import {
   APPROVER,
   APPROVER_ADMIN,
@@ -16,7 +15,11 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
-import { verifyImplementation } from "../../utils/deploy/verify/deploy";
+
+import {
+  verifyCloneDeploy,
+  verifyImplementation,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
@@ -40,28 +43,13 @@ describe("Verify construction", async function () {
       callback: ethers.constants.AddressZero,
     };
 
-    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
-      ["tuple(address admin , address callback )"],
-      [verifyConfig]
+    const verify = await verifyCloneDeploy(
+      defaultAdmin,
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
     );
-
-    const verifyClone = await cloneFactory.clone(
-      implementVerify.address,
-      encodedConfig
-    );
-
-    const cloneEvent = (await getEventArgs(
-      verifyClone,
-      "NewClone",
-      cloneFactory
-    )) as NewCloneEvent["args"];
-
-    assert(!(cloneEvent.clone === zeroAddress), "Clone Verify zero address");
-
-    const verify = (await ethers.getContractAt(
-      "Verify",
-      cloneEvent.clone
-    )) as Verify;
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -85,7 +73,7 @@ describe("Verify construction", async function () {
     assert(callback === verifyConfig.callback, "wrong callback address");
 
     const { sender, config } = (await getEventArgs(
-      verifyClone,
+      verify.deployTransaction,
       "Initialize",
       verify
     )) as InitializeEvent["args"];

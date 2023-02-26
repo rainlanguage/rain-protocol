@@ -50,6 +50,7 @@ describe("Verify callback", async function () {
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,
@@ -226,6 +227,7 @@ describe("Verify callback", async function () {
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,
@@ -376,6 +378,7 @@ describe("Verify callback", async function () {
     )) as VerifyCallbackTest;
 
     const verify = await verifyCloneDeploy(
+      signers[0],
       cloneFactory,
       implementVerify,
       defaultAdmin.address,

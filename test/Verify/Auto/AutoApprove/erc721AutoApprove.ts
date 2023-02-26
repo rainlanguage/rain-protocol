@@ -82,6 +82,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     };
 
     const autoApprove = await autoApproveCloneDeploy(
+      deployer,
       cloneFactory,
       implementAutoApprove,
       deployer,
@@ -90,6 +91,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     );
 
     const verify = await verifyCloneDeploy(
+      deployer,
       cloneFactory,
       implementVerify,
       admin.address,

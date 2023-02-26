@@ -5,13 +5,22 @@
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
+      "name": "",
       "desc": "Deploys a new AutoApprove contract.",
+      "inputs": [
+        {
+          "name": "Owner",
+          "desc": "Sets owner",
+          "path": "[6].inputs[0].components[0]"
+        }
+      ],
       "expressions": [
         {
-          "name": "Can Approve",
-          "desc": "An expression that determines whether an address can be approved or not.",
-          "path": "[6].inputs[0].components[3]",
+          "name": "",
+          "desc": "",
+          "path": "[6].inputs[0].components[1]",
+          "signedContext": true,
+          "callerContext": true,
           "contextColumns": [
             {
               "name": "Base",

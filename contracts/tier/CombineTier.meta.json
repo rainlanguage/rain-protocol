@@ -5,7 +5,7 @@
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "createChildTyped",
+      "name": "",
       "desc": "Deploys a new CombineTier contract.",
       "inputs": [
         {
@@ -16,33 +16,11 @@
       ],
       "expressions": [
         {
-          "name": "CombineTier Report",
+          "name": "CombineTier Expression",
           "desc": "An expression that determines the report of a CombineTier contract.",
           "path": "[6].inputs[0].components[1]",
           "signedContext": true,
-          "callerContext": true,
-          "contextColumns": [
-            {
-              "name": "Base",
-              "desc": "Base context column",
-              "alias": "base",
-              "columnIndex": 0,
-              "cells": [
-                {
-                  "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
-                  "cellIndex": 0
-                },
-                {
-                  "name": "This Contract",
-                  "desc": "The address of the CombineTier contract this expression is for",
-                  "alias": "this-contract",
-                  "cellIndex": 1
-                }
-              ]
-            }
-          ]
+          "callerContext": true
         }
       ]
     }
