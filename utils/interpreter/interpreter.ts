@@ -10,6 +10,7 @@ import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/sha
 import { AllStandardOps } from "./ops/allStandardOps";
 import { ExpressionConfig, rlc } from "rainlang";
 import { getRainDocumentsFromOpmeta } from "../meta";
+import { MAGIC_NUMBERS, decodeRainDocument } from "../meta/cbor";
 
 export enum MemoryType {
   Stack,
@@ -270,7 +271,18 @@ export async function generateEvaluableConfig(
 export const standardEvaluableConfig = async (
   expression: string
 ): Promise<ExpressionConfig> => {
-  return await rlc(expression, getRainDocumentsFromOpmeta())
+  const rainDocumentEncoded = getRainDocumentsFromOpmeta();
+
+  const dataDecoded = decodeRainDocument(rainDocumentEncoded);
+
+  // Find the correct element related to OPS_META_V1
+  const opsMetaMap = dataDecoded.find(
+    (elem_) => elem_.get(1) === MAGIC_NUMBERS.OPS_META_V1
+  );
+
+  const hexOpsMeta = hexlify(opsMetaMap.get(0));
+
+  return await rlc(expression, hexOpsMeta)
     .then((expressionConfig) => {
       return expressionConfig;
     })
