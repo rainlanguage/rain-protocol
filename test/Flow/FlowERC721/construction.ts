@@ -57,7 +57,12 @@ describe("FlowERC721 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
+    const sourceHandleTransfer = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    // prettier-ignore
+    const sourceTokenURI = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
@@ -85,7 +90,7 @@ describe("FlowERC721 construction tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 
-    const sources = [sourceCanTransfer];
+    const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -100,6 +105,7 @@ describe("FlowERC721 construction tests", async function () {
           constants,
         },
       ],
+      baseURI: "https://www.rainprotocol.xyz/nft/",
     };
 
     const { flow } = await flowERC721Clone(
