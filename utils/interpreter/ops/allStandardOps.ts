@@ -7,6 +7,7 @@ export enum AllStandardOps {
   chainlink_price,
 
   context,
+  context_column_hash,
   context_row,
   fold_context,
 

@@ -1,0 +1,12 @@
+{
+  "name": "context-column-hash",
+  "desc": "Stacks the hash of an entire context column. Useful for snapshotting and later checking a list of user-provided values.",
+  "operand": [
+    {
+      "name": "column",
+      "bits": [0, 15]
+    }
+  ],
+  "inputs": 0,
+  "outputs": 1
+}

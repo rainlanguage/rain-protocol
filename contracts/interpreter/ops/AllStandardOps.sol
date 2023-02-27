@@ -9,6 +9,7 @@ import "./bytes32/OpEncode256.sol";
 import "./bytes32/OpExplode32.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./context/OpContext.sol";
+import "./context/OpContextColumnHash.sol";
 import "./context/OpContextRow.sol";
 import "./context/OpFoldContext.sol";
 import "./core/OpCall.sol";
@@ -90,7 +91,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 80;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 81;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -220,13 +221,16 @@ library AllStandardOps {
                     OpEncode256.integrity,
                     OpExplode32.integrity,
                     OpChainlinkOraclePrice.integrity,
-                    OpCall.integrity,
+
                     OpContext.integrity,
+                    OpContextColumnHash.integrity,
                     OpContextRow.integrity,
+                    OpFoldContext.integrity,
+
+                    OpCall.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpExtern.integrity,
-                    OpFoldContext.integrity,
                     OpGet.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
@@ -328,14 +332,17 @@ library AllStandardOps {
                     OpEncode256.run,
                     OpExplode32.run,
                     OpChainlinkOraclePrice.run,
-                    OpCall.run,
+
                     OpContext.run,
+                    OpContextColumnHash.run,
                     OpContextRow.run,
+                    OpFoldContext.run,
+
+                    OpCall.run,
                     // 1.001kb
                     OpDebug.run,
                     OpDoWhile.run,
                     OpExtern.intern,
-                    OpFoldContext.run,
                     OpGet.run,
                     OpLoopN.run,
                     OpReadMemory.run,
