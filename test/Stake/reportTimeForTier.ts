@@ -49,9 +49,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should reset earliest time if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -164,9 +162,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should reset earliest time if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -256,9 +252,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return earliest time for tier ONE threshold if multiple deposits made after exceeding threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -351,9 +345,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return time for tier ONE when enough tokens have been staked to exceed the 1st threshold", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -405,9 +397,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return ALWAYS time for tier ZERO", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
@@ -445,9 +435,7 @@ describe("Stake reportTimeForTier", async function () {
 
   it("should return NEVER time if tier greater than context length", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const alice = signers[1];
+    const [deployer, alice] = signers;
 
     const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 

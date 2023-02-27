@@ -1,18 +1,10 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
-
-const Opcode = AllStandardOps;
 
 describe("RainInterpreter CONTEXT_ROW", async function () {
   before(async () => {
@@ -22,13 +14,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should support context height [COLUMN] up to 16", async () => {
-    const constants = [0];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 0x0f),
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: context-row<15>(0)`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -46,13 +34,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
   it("should support context width [ROW] up to 256", async () => {
     const MAX_ROWS = 2 ** 8;
-    const constants = [MAX_ROWS - 1];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 0), // context[0][0]
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: context-row<0>(${MAX_ROWS - 1})`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -69,13 +53,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should error if accessing memory outside of context memory range", async () => {
-    const constants = [10];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 0), // context[0][0]
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: context-row<0>(10)`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -94,32 +74,19 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should return correct context value when specifying CONTEXT_ROW operand for 2D context", async () => {
-    const constants = [0, 1, 2, 3];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 0), // context[0][0]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.context_row, 0), // context[0][1]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.context_row, 0), // context[0][2]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.context_row, 0), // context[0][3]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 1), // context[1][0]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.context_row, 1), // context[1][1]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.context_row, 1), // context[1][2]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.context_row, 1), // context[1][3]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 2), // context[2][0]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.context_row, 2), // context[2][1]
-      ]),
-    ];
-
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      _: context-row<0>(0), 
+      _: context-row<0>(1), 
+      _: context-row<0>(2), 
+      _: context-row<0>(3), 
+      _: context-row<1>(0), 
+      _: context-row<1>(1), 
+      _: context-row<1>(2), 
+      _: context-row<1>(3), 
+      _: context-row<2>(0), 
+      _: context-row<2>(1);`
+    );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 20);
 
@@ -150,19 +117,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should return correct context value when specifying CONTEXT_ROW operand for 1D context", async () => {
-    const constants = [0, 1, 2, 3];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 0), // context[0][0]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.context_row, 0), // context[0][1]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.context_row, 0), // context[0][2]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.context_row, 0), // context[0][3]
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      _: context-row<0>(0), 
+      _: context-row<0>(1), 
+      _: context-row<0>(2), 
+      _: context-row<0>(3);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 8);
@@ -188,13 +149,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   });
 
   it("should support adding new data to stack at runtime via CONTEXT_ROW opcode", async () => {
-    const constants = [0];
-    const sources = [
-      concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.context_row, 1), // context[1][0]
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: context-row<1>(0);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);

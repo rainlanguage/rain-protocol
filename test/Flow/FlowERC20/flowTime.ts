@@ -48,8 +48,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();

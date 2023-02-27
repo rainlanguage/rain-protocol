@@ -113,8 +113,7 @@ describe("AutoApprove construction", async function () {
   it("can be configured as verify callback contract", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
+    const [, deployer, admin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],

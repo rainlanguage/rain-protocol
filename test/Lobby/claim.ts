@@ -58,9 +58,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure player are able to claim on a good path (shares add up to 1e18)", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
@@ -233,9 +231,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure player are able to claim (shares do not add up to 1e18)", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
@@ -416,9 +412,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure claimant is not able to double-claim", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
@@ -612,9 +606,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure claimants are able to claim their prorata share of the future deposits", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
     const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros);
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
@@ -840,10 +832,7 @@ describe("Lobby Tests claim", async function () {
   it("should validate context emitted in Context Event", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
-
+    const [, alice, bob, bot] = signers;
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
     const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
@@ -1074,9 +1063,7 @@ describe("Lobby Tests claim", async function () {
   it("should prevent reentrant claim ", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros);
 

@@ -42,9 +42,7 @@ describe("Flow signed context tests", async function () {
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
@@ -127,9 +125,7 @@ describe("Flow signed context tests", async function () {
 
   it("should validate a signed context", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 

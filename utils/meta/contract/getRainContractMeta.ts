@@ -11,7 +11,7 @@ import AutoApprove from "../../../contracts/verify/auto/AutoApprove.meta.json";
 import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
 import { deflateSync, inflateSync } from "zlib";
 import { format } from "prettier";
-import cbor from "cbor" ; 
+import cbor from "cbor";
 import { metaFromBytes } from "../general";
 import { MAGIC_NUMBERS, cborEncode } from "../cbor";
 import { artifacts } from "hardhat";
@@ -28,8 +28,6 @@ export type ContractMeta =
   | "lobby"
   | "autoapprove"
   | "combinetier";
-
-
 
 /**
  * @public

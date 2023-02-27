@@ -61,8 +61,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -150,8 +149,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with multiplication op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -242,8 +240,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -323,8 +320,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with addition op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;

@@ -72,8 +72,7 @@ describe("FactoryCurator createChild", async function () {
   it("should revert if user does not meet tier requirement", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
+    const [, curator, signer1] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -136,9 +135,7 @@ describe("FactoryCurator createChild", async function () {
   it("should revert if config has not been registered", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
-    const wrongCurator = signers[3];
+    const [, curator, signer1, wrongCurator] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -210,8 +207,7 @@ describe("FactoryCurator createChild", async function () {
   it("should create a child using a registered config", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
+    const [, curator, signer1] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -293,9 +289,7 @@ describe("FactoryCurator createChild", async function () {
 
   it("should test createChild by passing stake tier contract which utilizes context", async () => {
     const signers = await ethers.getSigners();
-    const curator = signers[1];
-    const alice = signers[2];
-    const deployer = signers[3];
+    const [, curator, alice, deployer] = signers;
 
     // Stake expect 18 decimal asset
     const reserve18 = (await basicDeploy(
@@ -428,9 +422,7 @@ describe("FactoryCurator createChild", async function () {
 
   it("should test createChild by passing CombineTier contract which utilizes context", async () => {
     const signers = await ethers.getSigners();
-    const curator = signers[1];
-    const alice = signers[2];
-    const deployer = signers[3];
+    const [, curator, alice, deployer] = signers;
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
