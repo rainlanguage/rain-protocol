@@ -2,11 +2,8 @@
 pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
-import "./IInterpreterCallerV1.sol";
 
-error UnexpectedMetaHash(bytes32 expectedHash, bytes32 actualHash);
-
-library LibCallerMeta {
+library LibCaller {
     /// Hack so that some deployer will emit an event with the sender as the
     /// caller of `touchDeployer`. This MAY be needed by indexers such as
     /// subgraph that can only index events from the first moment they are aware
@@ -24,15 +21,5 @@ library LibCallerMeta {
             new uint256[](0),
             new uint256[](0)
         );
-    }
-
-    function checkCallerMeta(
-        bytes32 expectedHash_,
-        bytes memory callerMeta_
-    ) internal pure {
-        bytes32 actualHash_ = keccak256(callerMeta_);
-        if (expectedHash_ != actualHash_) {
-            revert UnexpectedMetaHash(expectedHash_, actualHash_);
-        }
     }
 }

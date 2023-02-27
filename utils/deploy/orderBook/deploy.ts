@@ -2,13 +2,13 @@ import { ethers } from "hardhat";
 import { OrderBook } from "../../../typechain";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 
-import { getRainContractMetaBytes } from "../../meta";
+import { getRainDocumentsFromContract } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const deployOrderBook = async (): Promise<OrderBook> => {
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("orderbook"),
+    meta: getRainDocumentsFromContract("orderbook"),
     deployer: touchDeployer.address,
   };
   const orderBookFactory = await ethers.getContractFactory("OrderBook", {});

@@ -6,18 +6,24 @@ import "../../../interpreter/caller/InterpreterCallerV1.sol";
 contract IInterpreterCallerConsumer is InterpreterCallerV1 {
     constructor(
         bytes memory metaHash_,
-        InterpreterCallerV1ConstructionConfig memory interpreterCallerConfig
-    ) InterpreterCallerV1(keccak256(metaHash_), interpreterCallerConfig) {}
+        InterpreterCallerV1ConstructionConfig memory interpreterCallerConfig_
+    ) InterpreterCallerV1(keccak256(metaHash_), interpreterCallerConfig_) {}
 
     function deployTouchExpression(address deployer_) external {
-        LibCallerMeta.touchDeployer(deployer_);
+        LibCaller.touchDeployer(deployer_);
     }
 
-    function checkCallerMeta(
+    function checkMeta(
         bytes memory expectedHash_,
-        bytes memory callerMeta_
+        bytes memory meta_
     ) external pure returns (bool) {
-        LibCallerMeta.checkCallerMeta(keccak256(expectedHash_), callerMeta_);
+        LibMeta.checkMeta(keccak256(expectedHash_), meta_);
         return true;
+    } 
+
+    function checkIsRainMetaV1(
+        bytes memory meta_
+    ) external pure returns (bool) {
+        return LibMeta.isRainMetaV1(meta_);
     }
 }
