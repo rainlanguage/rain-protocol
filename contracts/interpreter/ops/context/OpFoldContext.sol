@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "./OpCall.sol";
+import "../core/OpCall.sol";
 
 /// @title OpFoldContext
 /// Folds over columns of context from their start to end. Expressions do not

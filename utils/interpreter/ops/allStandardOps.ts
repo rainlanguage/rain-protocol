@@ -5,13 +5,15 @@ export enum AllStandardOps {
   encode_256,
   explode_32,
   chainlink_price,
-  call,
+
   context,
   context_row,
+  fold_context,
+
+  call,
   debug,
   do_while,
   extern,
-  fold_context,
   get,
   loop_n,
   read_memory,
