@@ -9,7 +9,7 @@ import Stake from "../../../contracts/stake/Stake.meta.json";
 import CombineTier from "../../../contracts/tier/CombineTier.meta.json";
 import AutoApprove from "../../../contracts/verify/auto/AutoApprove.meta.json";
 import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
-import { deflateSync } from "zlib";
+import { deflateSync, inflateSync } from "zlib";
 import { format } from "prettier";
 import { metaFromBytes } from "../general";
 import { MAGIC_NUMBERS, cborEncode } from "../cbor";
@@ -149,7 +149,7 @@ const getAbi = (contractName_: ContractMeta): string => {
  * @param data_ The data object to be encoded
  * @returns An hex string
  */
-const deflateJson = (data_: any): string => {
+export const deflateJson = (data_: any): string => {
   const content = format(JSON.stringify(data_, null, 4), { parser: "json" });
   const bytes = Uint8Array.from(deflateSync(content));
   let hex = "0x";
@@ -157,4 +157,24 @@ const deflateJson = (data_: any): string => {
     hex = hex + bytes[i].toString(16).padStart(2, "0");
   }
   return hex;
+};
+
+/**
+ * @public
+ * `WIP:` Inverse of `deflateJson`. Get a hex string  or Uint8Array and inflate
+ * the JSON to obtain an string with the decoded data.
+ */
+export const inflateJson = (bytes: string | Uint8Array) => {
+  let _uint8Arr: Uint8Array;
+  if (typeof bytes === "string") {
+    if (bytes.startsWith("0x")) bytes = bytes.slice(2);
+    const _bytesArr = [];
+    for (let i = 0; i < bytes.length; i += 2) {
+      _bytesArr.push(Number("0x" + bytes.slice(i, i + 2)));
+    }
+    _uint8Arr = Uint8Array.from(_bytesArr);
+  } else {
+    _uint8Arr = bytes;
+  }
+  return format(inflateSync(_uint8Arr).toString(), { parser: "json" });
 };
