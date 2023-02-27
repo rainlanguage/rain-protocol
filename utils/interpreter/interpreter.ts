@@ -9,7 +9,7 @@ import {
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
 import { ExpressionConfig, rlc } from "rainlang";
-import { getRainterpreterOpMetaBytes } from "../meta";
+import { getRainDocumentsFromOpmeta } from "../meta";
 
 export enum MemoryType {
   Stack,
@@ -270,7 +270,7 @@ export async function generateEvaluableConfig(
 export const standardEvaluableConfig = async (
   expression: string
 ): Promise<ExpressionConfig> => {
-  return await rlc(expression, getRainterpreterOpMetaBytes())
+  return await rlc(expression, getRainDocumentsFromOpmeta())
     .then((expressionConfig) => {
       return expressionConfig;
     })
