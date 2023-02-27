@@ -79,7 +79,7 @@ describe("RedeemableERC20 endDistribution test", async function () {
         await redeemableERC20
           .connect(signers[1])
           .endDistribution(signers[0].address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${signers[1].address}\\")`,
       "was wrongly able to set phase block with insuffient role permissions"
     );
 

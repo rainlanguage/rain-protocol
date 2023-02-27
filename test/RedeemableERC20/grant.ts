@@ -165,7 +165,7 @@ describe("RedeemableERC20 grant test", async function () {
     // alice tries to transfer to bob
     await Util.assertError(
       async () => await token.connect(alice).transfer(bob.address, 1),
-      "2SPOKE", // token sender must be a 'receiver'
+      "Spoke2Hop()", // token sender must be a 'receiver'
       "alice/bob sent/received tokens despite alice not being a 'receiver'"
     );
 

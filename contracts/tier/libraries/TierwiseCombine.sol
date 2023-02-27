@@ -101,7 +101,9 @@ library TierwiseCombine {
                             accumulator_ = block_.min(accumulator_);
                         } else if (mode_ == TIERWISE_COMBINE_MODE_MAX) {
                             accumulator_ = block_.max(accumulator_);
-                        } else if (mode_ == TIERWISE_COMBINE_MODE_FIRST && !anyLte_) {
+                        } else if (
+                            mode_ == TIERWISE_COMBINE_MODE_FIRST && !anyLte_
+                        ) {
                             accumulator_ = block_;
                         }
                         anyLte_ = true;
