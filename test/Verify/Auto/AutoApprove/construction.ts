@@ -12,7 +12,7 @@ import {
 import {
   assertError,
   basicDeploy,
-  getRainContractMetaBytes,
+  getRainDocumentsFromContract,
   zeroAddress,
 } from "../../../../utils";
 import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -113,8 +113,7 @@ describe("AutoApprove construction", async function () {
   it("can be configured as verify callback contract", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
+    const [, deployer, admin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
@@ -145,7 +144,7 @@ describe("AutoApprove construction", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const config_0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("autoapprove"),
+      meta: getRainDocumentsFromContract("autoapprove"),
       deployer: touchDeployer.address,
     };
 
@@ -155,7 +154,7 @@ describe("AutoApprove construction", async function () {
     assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
 
     const config_1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("orderbook"),
+      meta: getRainDocumentsFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
 

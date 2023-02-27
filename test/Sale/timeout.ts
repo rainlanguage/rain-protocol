@@ -52,9 +52,7 @@ describe("Sale timeout", async function () {
 
   it("should correctly timeout sale if it does not end naturally", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
+    const [deployer, recipient, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

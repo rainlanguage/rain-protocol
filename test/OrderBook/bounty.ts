@@ -58,9 +58,7 @@ describe("OrderBook bounty", async function () {
   it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 

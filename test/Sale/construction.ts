@@ -12,7 +12,7 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
 import {
-  getRainContractMetaBytes,
+  getRainDocumentsFromContract,
   readWriteTierDeploy,
   redeemableERC20DeployImplementation,
 } from "../../utils";
@@ -60,9 +60,8 @@ describe("Sale construction", async function () {
 
   it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const distributionEndForwardingAddress = signers[2];
+    const [deployer, recipient, distributionEndForwardingAddress] = signers;
+
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -126,9 +125,8 @@ describe("Sale construction", async function () {
 
   it("should fail to initialize when deployer attempts to set a distributor", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const distributor = signers[2];
+    const [deployer, recipient, distributor] = signers;
+
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -200,7 +198,7 @@ describe("Sale construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("sale"),
+        meta: getRainDocumentsFromContract("sale"),
         deployer: touchDeployer.address,
       };
 
@@ -217,7 +215,7 @@ describe("Sale construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("orderbook"),
+        meta: getRainDocumentsFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

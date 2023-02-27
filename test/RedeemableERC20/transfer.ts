@@ -52,11 +52,7 @@ describe("RedeemableERC20 transfer test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const aliceReceiver = signers[1];
-    const bobReceiver = signers[2];
-    const carolSpoke = signers[3];
-    const daveSpoke = signers[4];
+    const [owner, aliceReceiver, bobReceiver, carolSpoke, daveSpoke] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

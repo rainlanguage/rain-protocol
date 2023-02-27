@@ -49,8 +49,7 @@ describe("FlowERC721 flowTime tests", async function () {
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -109,6 +108,9 @@ describe("FlowERC721 flowTime tests", async function () {
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_
       op(Opcode.get),
@@ -142,9 +144,10 @@ describe("FlowERC721 flowTime tests", async function () {
       op(Opcode.set),
     ]);
 
-    const sources = [ONE()]; // can transfer
+    const sources = [ONE(), TOKEN_URI()]; // can transfer
 
     const flowConfigStruct: FlowERC721Config = {
+      baseURI: "https://www.rainprotocol.xyz/nft/",
       expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
       name: "FlowERC721",

@@ -22,13 +22,15 @@ describe("Verify admin", async function () {
 
   it("should allow admins to grant others the same admin role", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin0 = signers[1];
-    const rmvAdmin0 = signers[2];
-    const banAdmin0 = signers[3];
-    const aprAdmin1 = signers[4];
-    const rmvAdmin1 = signers[5];
-    const banAdmin1 = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin0,
+      rmvAdmin0,
+      banAdmin0,
+      aprAdmin1,
+      rmvAdmin1,
+      banAdmin1,
+    ] = signers;
 
     const verify = await verifyCloneDeploy(
       signers[0],
@@ -69,13 +71,15 @@ describe("Verify admin", async function () {
 
   it("should allow admin to delegate admin roles and then renounce them", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin0 = signers[1];
-    const rmvAdmin0 = signers[2];
-    const banAdmin0 = signers[3];
-    const aprAdmin1 = signers[4];
-    const rmvAdmin1 = signers[5];
-    const banAdmin1 = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin0,
+      rmvAdmin0,
+      banAdmin0,
+      aprAdmin1,
+      rmvAdmin1,
+      banAdmin1,
+    ] = signers;
 
     const verify = await verifyCloneDeploy(
       signers[0],
@@ -152,15 +156,15 @@ describe("Verify admin", async function () {
 
   it("should allow admin to delegate admin roles which can then grant non-admin roles", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+    ] = signers;
 
     const verify = await verifyCloneDeploy(
       signers[0],

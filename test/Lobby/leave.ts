@@ -56,7 +56,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should ensure player is refunded on leave (interpreter amount > deposit amount)", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
@@ -182,7 +182,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should ensure player is refunded on leave (interpreter amount < deposit amount)", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
@@ -310,8 +310,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should ensure only players are able to leave", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
@@ -424,7 +423,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should ensure player is able to leave on a happy path", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
@@ -531,7 +530,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should validate context emitted in Context event", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 
@@ -672,7 +671,7 @@ describe("Lobby Tests leave", async function () {
 
   it("should ensure leave isn't reentrant", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     const maliciousReserveFactory = await ethers.getContractFactory(
       "LobbyReentrantSender"

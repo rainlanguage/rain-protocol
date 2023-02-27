@@ -11,7 +11,7 @@ describe("Cooldown initialize test", async function () {
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
-    alice = signers[0];
+    [alice] = signers;
     cooldownTest = await cooldownDeploy();
   });
 

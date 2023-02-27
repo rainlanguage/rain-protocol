@@ -14,9 +14,6 @@ import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contr
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../factory/ICloneableV1.sol";
 
-/// Thrown when eval of the transfer entrypoint returns 0.
-error InvalidTransfer();
-
 /// Thrown when burner of tokens is not the owner of tokens.
 error BurnerNotOwner();
 
@@ -32,6 +29,7 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 struct FlowERC721Config {
     string name;
     string symbol;
+    string baseURI;
     EvaluableConfig evaluableConfig;
     EvaluableConfig[] flowConfig;
 }
@@ -48,12 +46,15 @@ struct FlowERC721IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x43ea5ee63543f838424e28aab2724dedae11d2eb7bfdc9d285ddcd027af9eb9d
+    0x0c4f7aeb3fda98368b1a829b8f3e7cb1d0428f8317ba17a4c8c6a308a79a8291
 );
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant TOKEN_URI_ENTRYPOINT = SourceIndex.wrap(1);
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint256 constant TOKEN_URI_MIN_OUTPUTS = 1;
+uint256 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
+uint256 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
@@ -69,7 +70,10 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
+    bool private evalHandleTransfer;
+    bool private evalTokenURI;
     Evaluable internal evaluable;
+    string private baseURI;
 
     constructor(
         InterpreterCallerV1ConstructionConfig memory config_
@@ -81,27 +85,75 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
+        baseURI = config_.baseURI;
         __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
-        (
-            IInterpreterV1 interpreter_,
-            IInterpreterStoreV1 store_,
-            address expression_
-        ) = config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.sources,
-                config_.evaluableConfig.constants,
-                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            );
-        evaluable = Evaluable(interpreter_, store_, expression_);
+
+        if (config_.evaluableConfig.sources.length > 0) {
+            evalHandleTransfer = config_.evaluableConfig.sources[0].length > 0;
+            evalTokenURI =
+                config_.evaluableConfig.sources.length > 1 &&
+                config_.evaluableConfig.sources[1].length > 0;
+
+            (
+                IInterpreterV1 interpreter_,
+                IInterpreterStoreV1 store_,
+                address expression_
+            ) = config_.evaluableConfig.deployer.deployExpression(
+                    config_.evaluableConfig.sources,
+                    config_.evaluableConfig.constants,
+                    LibUint256Array.arrayFrom(
+                        HANDLE_TRANSFER_MIN_OUTPUTS,
+                        TOKEN_URI_MIN_OUTPUTS
+                    )
+                );
+            evaluable = Evaluable(interpreter_, store_, expression_);
+        }
     }
 
-    function _dispatch(
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI;
+    }
+
+    function tokenURI(
+        uint256 tokenId_
+    ) public view virtual override returns (string memory) {
+        if (evalTokenURI) {
+            Evaluable memory evaluable_ = evaluable;
+            (uint256[] memory stack_, ) = evaluable_.interpreter.eval(
+                evaluable_.store,
+                DEFAULT_STATE_NAMESPACE,
+                _dispatchTokenURI(evaluable_.expression),
+                LibContext.build(
+                    new uint256[][](0),
+                    LibUint256Array.arrayFrom(tokenId_),
+                    new SignedContext[](0)
+                )
+            );
+            tokenId_ = stack_[0];
+        }
+
+        return super.tokenURI(tokenId_);
+    }
+
+    function _dispatchHandleTransfer(
         address expression_
     ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
-                CAN_TRANSFER_ENTRYPOINT,
-                CAN_TRANSFER_MAX_OUTPUTS
+                HANDLE_TRANSFER_ENTRYPOINT,
+                HANDLE_TRANSFER_MAX_OUTPUTS
+            );
+    }
+
+    function _dispatchTokenURI(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                TOKEN_URI_ENTRYPOINT,
+                TOKEN_URI_MAX_OUTPUTS
             );
     }
 
@@ -122,16 +174,16 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     ) internal virtual override {
         unchecked {
             super._afterTokenTransfer(from_, to_, tokenId_, batchSize_);
-            // Mint and burn access MUST be handled by CAN_FLOW.
-            // CAN_TRANSFER will only restrict subsequent transfers.
-            if (!(from_ == address(0) || to_ == address(0))) {
-                Evaluable memory evaluable_ = evaluable;
-                (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
-                    .interpreter
-                    .eval(
+
+            if (evalHandleTransfer) {
+                // Mint and burn access MUST be handled by CAN_FLOW.
+                // CAN_TRANSFER will only restrict subsequent transfers.
+                if (!(from_ == address(0) || to_ == address(0))) {
+                    Evaluable memory evaluable_ = evaluable;
+                    (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
                         evaluable_.store,
                         DEFAULT_STATE_NAMESPACE,
-                        _dispatch(evaluable_.expression),
+                        _dispatchHandleTransfer(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
                             // Transfer params are caller context.
@@ -143,11 +195,9 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
                             new SignedContext[](0)
                         )
                     );
-                if (stack_[stack_.length - 1] == 0) {
-                    revert InvalidTransfer();
-                }
-                if (kvs_.length > 0) {
-                    evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                    if (kvs_.length > 0) {
+                        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                    }
                 }
             }
         }

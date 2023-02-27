@@ -14,6 +14,7 @@ export type FlowERC721Config = {
   flows: Array<any>;
   name: string;
   symbol: string;
+  baseURI: string;
 };
 
 export type FlowERC1155Config = {
