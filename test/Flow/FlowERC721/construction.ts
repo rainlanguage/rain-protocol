@@ -24,7 +24,11 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { memoryOperand, MemoryType, op } from "../../../utils/interpreter/interpreter";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -53,7 +57,12 @@ describe("FlowERC721 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
+    const sourceHandleTransfer = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+    
+    // prettier-ignore
+    const sourceTokenURI = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
@@ -81,7 +90,7 @@ describe("FlowERC721 construction tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 
-    const sources = [sourceCanTransfer];
+    const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -96,6 +105,7 @@ describe("FlowERC721 construction tests", async function () {
           constants,
         },
       ],
+      baseURI: "https://www.rainprotocol.xyz/nft/",
     };
 
     const { flow } = await flowERC721Clone(

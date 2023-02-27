@@ -65,11 +65,12 @@ export const flowERC721Clone = async (
     flowConfig: flowConfig,
     name: flowERC721Config.name,
     symbol: flowERC721Config.symbol,
+    baseURI: flowERC721Config.baseURI,
   };
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
-      "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+      "tuple(string name, string symbol, string baseURI, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
     ],
     [flowERC721ConfigStruct]
   );
