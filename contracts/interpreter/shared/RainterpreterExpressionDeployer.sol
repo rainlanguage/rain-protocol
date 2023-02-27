@@ -3,7 +3,6 @@ pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
-import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -39,11 +38,11 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0df80e4e0e7a0f13109e11cc1201121f12a712b612c412d312e112ef12fd130b12d31319132713361344135213611370137f138e139d13ac13bb13ca13d913e813f7140614151424146d147f148d14bf14cd14db14e914f7150515131521152f153d154b15591567157515831591159f15ad15bb15c915d815e715f6160416121620162e163c164a165816671676168416f6";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0df80e4e0e7a0f13109e10d310f11100110e111d112b113911471155111d116311711180118e119c11ab11ba11c911d811e711f6120512141223123212411250125f126e12b712c912d713091317132513331341134f135d136b13791387139513a313b113bf13cd13db13e913f714051413142214311440144e145c146a14781486149414a215d0165816671676168416f6";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x4a7f50d6e4b037ae7039d1450e23fe4a7e048b96b638aca8c5793f11481a92b6
+    0x1748429b8f603c1e0bd117557b9daacdac07bfd2ee9e81b4ac5ddb2c5a9f8484
 );
 
 /// @dev Hash of the known store bytecode.
@@ -53,7 +52,7 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x4c06c776469ba379376c5224c8a604293d2badb1fbe77a6074a743360bcbb8c7
+    0x9b5d3f1bd2eb442487a1b57bd7f280a164afb97b56340860a88c812926caa2f8
 );
 
 /// All config required to construct a `Rainterpreter`.

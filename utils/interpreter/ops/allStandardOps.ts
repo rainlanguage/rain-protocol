@@ -15,10 +15,8 @@ export enum AllStandardOps {
   debug,
   do_while,
   extern,
-  get,
   loop_n,
   read_memory,
-  set,
   hash,
   erc_1155_balance_of,
   erc_1155_balance_of_batch,
@@ -79,6 +77,11 @@ export enum AllStandardOps {
   isale_v2_token,
   isale_v2_total_reserve_received,
   iverify_v1_account_status_at_time,
+
+  // store
+  get,
+  set,
+
   itier_v2_report,
   itier_v2_report_time_for_tier,
   saturating_diff,

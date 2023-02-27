@@ -13,11 +13,9 @@ import "./context/OpContextColumnHash.sol";
 import "./context/OpContextRow.sol";
 import "./context/OpFoldContext.sol";
 import "./core/OpCall.sol";
-import "./core/OpSet.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpExtern.sol";
-import "./core/OpGet.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpReadMemory.sol";
 import "./crypto/OpHash.sol";
@@ -80,6 +78,10 @@ import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
 import "./rain/ISaleV2/OpISaleV2Token.sol";
 import "./rain/ISaleV2/OpISaleV2TotalReserveReceived.sol";
 import "./rain/IVerifyV1/OpIVerifyV1AccountStatusAtTime.sol";
+
+import "./store/OpGet.sol";
+import "./store/OpSet.sol";
+
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
@@ -231,10 +233,8 @@ library AllStandardOps {
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpExtern.integrity,
-                    OpGet.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
-                    OpSet.integrity,
                     OpHash.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
@@ -295,6 +295,11 @@ library AllStandardOps {
                     OpISaleV2Token.integrity,
                     OpISaleV2TotalReserveReceived.integrity,
                     OpIVerifyV1AccountStatusAtTime.integrity,
+
+                    // Store
+                    OpGet.integrity,
+                    OpSet.integrity,
+
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -343,10 +348,8 @@ library AllStandardOps {
                     OpDebug.run,
                     OpDoWhile.run,
                     OpExtern.intern,
-                    OpGet.run,
                     OpLoopN.run,
                     OpReadMemory.run,
-                    OpSet.run,
                     OpHash.run,
                     OpERC1155BalanceOf.run,
                     OpERC1155BalanceOfBatch.run,
@@ -408,6 +411,11 @@ library AllStandardOps {
                     OpISaleV2Token.run,
                     OpISaleV2TotalReserveReceived.run,
                     OpIVerifyV1AccountStatusAtTime.run,
+
+                    // Store
+                    OpGet.run,
+                    OpSet.run,
+
                     OpITierV2Report.run,
                     OpITierV2ReportTimeForTier.run,
                     OpSaturatingDiff.run,
