@@ -87,7 +87,7 @@ export const getRainDocumentsFromContract = (
 
   // -- Encoding ContractMeta with CBOR
   // Obtain Contract Meta as string (Deflated JSON) and parse it to an ArrayBuffer
-  const contractMeta = arrayify(getRainDocumentsFromContract(contract)).buffer;
+  const contractMeta = arrayify(getRainContractMetaBytes(contract)).buffer;
   const contractMetaEncoded = cborEncode(
     contractMeta,
     MAGIC_NUMBERS.CONTRACT_META_V1,
@@ -126,7 +126,7 @@ const getAbi = (contractName_: ContractMeta): string => {
 
   if (contractName_ === "sale") name = "Sale";
   if (contractName_ === "stake") name = "Stake";
-  if (contractName_ === "orderbook") name = "Orderbook";
+  if (contractName_ === "orderbook") name = "OrderBook";
   if (contractName_ === "flow") name = "Flow";
   if (contractName_ === "flow20") name = "FlowERC20";
   if (contractName_ === "flow721") name = "FlowERC721";
