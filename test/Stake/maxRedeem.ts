@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18, StakeFactory } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { CloneFactory, ReserveToken18 } from "../../typechain";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
   getEventArgs,
@@ -9,18 +12,27 @@ import {
   MemoryType,
   op,
   Opcode,
+  stakeCloneDeploy,
+  stakeImplementation,
 } from "../../utils";
 import { max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 describe("Stake maxRedeem", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
 
   before(async () => {
-    stakeFactory = await stakeFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -51,22 +63,16 @@ describe("Stake maxRedeem", async function () {
     const constants = [max_uint256, max_uint256];
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const source = [max_deposit, max_withdraw];
-    const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: source,
-        constants: constants,
-      },
-      false
-    );
+    const evaluableConfig = await generateEvaluableConfig(source, constants);
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -74,7 +80,12 @@ describe("Stake maxRedeem", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice some reserve tokens and deposit them
     await token.transfer(alice.address, 9);

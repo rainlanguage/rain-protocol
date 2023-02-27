@@ -1,15 +1,19 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import { AutoApprove, CloneFactory } from "../../../../typechain";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../../../utils";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
+import {
+  autoApproveCloneDeploy,
+  autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import { timewarp } from "../../../../utils/hardhat";
@@ -24,16 +28,25 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = RainterpreterOps;
 
 const FALSE = () =>
-  op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-const TRUE = () => op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+const TRUE = () =>
+  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
 describe("AutoApprove evidence data approved", async function () {
-  let autoApproveFactory: AutoApproveFactory;
-  let verifyFactory: VerifyFactory;
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow checking if the given evidence e.g. approval time is after a given timestamp (e.g. 1 day in the past), and allowing it to be reused for another approval", async () => {
@@ -46,7 +59,7 @@ describe("AutoApprove evidence data approved", async function () {
     const signer2 = signers[5];
     const signer3 = signers[6];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
@@ -59,33 +72,39 @@ describe("AutoApprove evidence data approved", async function () {
                   op(Opcode.context, 0x0001),
                 op(Opcode.hash, 1),
               op(Opcode.get),
-                op(Opcode.blockTimestamp),
-                op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.block_timestamp),
+                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.sub, 2),
-            op(Opcode.lessThan),
+            op(Opcode.less_than),
 
             // else, set new evidence and return true
                 op(Opcode.context, 0x0001),
               op(Opcode.hash, 1), // k
-              op(Opcode.blockTimestamp), // v
+              op(Opcode.block_timestamp), // v
             op(Opcode.set),
             TRUE(),
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1, 86400],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
-      expressionConfig
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
@@ -148,7 +167,7 @@ describe("AutoApprove evidence data approved", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         // approved ? deny : approve
@@ -165,21 +184,27 @@ describe("AutoApprove evidence data approved", async function () {
             op(Opcode.set),
             TRUE(), // approve
 
-          op(Opcode.eagerIf),
+          op(Opcode.eager_if),
         ])],
       constants: [0, 1],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
-      expressionConfig
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 

@@ -1,18 +1,23 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory } from "../../../typechain/contracts/flow/erc20";
+
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import {
+  flowERC20Clone,
+  flowERC20Implementation,
+} from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
 import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 
-import { ReserveToken18 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  FlowERC20,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
-import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -20,16 +25,25 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("FlowERC20 flowTime tests", async function () {
-  let flowERC20Factory: FlowERC20Factory;
+  let implementation: FlowERC20;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
-    flowERC20Factory = await flowERC20FactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowERC20Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -77,20 +91,20 @@ describe("FlowERC20 flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const ONE = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const SENTINEL_ERC20 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
@@ -102,7 +116,7 @@ describe("FlowERC20 flowTime tests", async function () {
     const sourceFlowIO = concat([
       // CAN FLOW
       ...FLOW_TIME(),
-      op(Opcode.isZero),
+      op(Opcode.is_zero),
       op(Opcode.ensure, 1),
 
       SENTINEL(), // ERC115 SKIP
@@ -123,7 +137,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.blockTimestamp), // v__
+      op(Opcode.block_timestamp), // v__
       op(Opcode.set),
     ]);
 
@@ -136,9 +150,10 @@ describe("FlowERC20 flowTime tests", async function () {
       symbol: "FWIN20",
     };
 
-    const { flow } = await flowERC20Deploy(
+    const { flow } = await flowERC20Clone(
       deployer,
-      flowERC20Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 

@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
@@ -10,16 +9,10 @@ import type {
 import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-
-const Opcode = AllStandardOps;
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 
 let signers: SignerWithAddress[];
 let signer1: SignerWithAddress;
@@ -31,6 +24,10 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -52,26 +49,17 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 total supply snapshot", async () => {
-    const constants = [tokenERC20Snapshot.address];
-    const vTokenAddr = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = await standardEvaluableConfig(
+      `snapshot-id: context<0 0>(),
+      _: erc-20-snapshot-total-supply-at(
+        ${tokenERC20Snapshot.address}
+        snapshot-id
+      );`
     );
 
-    // prettier-ignore
-    const sources = [
-      concat([
-          vTokenAddr,
-          op(Opcode.context, 0x0000),
-        op(Opcode.erc20SnapshotTotalSupplyAt)
-      ]),
-    ];
-
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -97,31 +85,18 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 balance snapshot", async () => {
-    const constants = [signer1.address, tokenERC20Snapshot.address];
-    const vSigner1 = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = await standardEvaluableConfig(
+      `snapshot-id: context<0 0>(),
+      _: erc-20-snapshot-balance-of-at(
+        ${tokenERC20Snapshot.address}
+        ${signer1.address}
+        snapshot-id
+      );`
     );
-    const vTokenAddr = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    // prettier-ignore
-    const sources = [
-      concat([
-          vTokenAddr,
-          vSigner1,
-          op(Opcode.context, 0x0000),
-        op(Opcode.erc20SnapshotBalanceOfAt)
-      ]),
-    ];
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources,
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );

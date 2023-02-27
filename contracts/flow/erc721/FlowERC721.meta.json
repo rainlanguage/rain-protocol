@@ -1,0 +1,107 @@
+{
+  "name": "Flow ERC721",
+  "desc": "An ERC721 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
+  "alias": "flow-erc721",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "",
+      "desc": "Deploys a new Flow ERC721 contract.",
+      "inputs": [
+        {
+          "name": "Name",
+          "desc": "Name of the token",
+          "path": "[6].inputs[0].components[0]"
+        },
+        {
+          "name": "Symbol",
+          "desc": "Symbol for the token",
+          "path": "[6].inputs[0].components[1]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "Can transfer",
+          "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
+          "path": "[6].inputs[0].components[2]",
+          "signedContext": false,
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This contract",
+                  "desc": "The address of the FlowERC721 contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                },
+                {
+                  "name": "From",
+                  "desc": "The address this token is being transferred from",
+                  "alias": "from-address",
+                  "cellIndex": 2
+                },
+                {
+                  "name": "To",
+                  "desc": "The address this token is being transferred from",
+                  "alias": "to-address",
+                  "cellIndex": 3
+                },
+                {
+                  "name": "Token ID",
+                  "desc": "The ID of the token being transferred",
+                  "alias": "token-id",
+                  "cellIndex": 4
+                },
+                {
+                  "name": "Batch size",
+                  "desc": "If a mint transfer, the number of tokens minted. Batch size is always non-zero",
+                  "alias": "batch-size",
+                  "cellIndex": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Flows",
+          "desc": "The available flows for this token.",
+          "path": "[6].inputs[0].components[3]",
+          "signedContext": true,
+          "callerContext": true,
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This contract",
+                  "desc": "The address of the FlowERC721 contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

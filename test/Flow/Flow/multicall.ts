@@ -3,17 +3,22 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowFactory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -27,11 +32,13 @@ import { FlowConfig } from "../../../utils/types/flow";
 
 import fs from "fs";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("Flow multiCall tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowABI = JSON.parse(
@@ -42,7 +49,14 @@ describe("Flow multiCall tests", async function () {
   );
 
   before(async () => {
-    flowFactory = await flowFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
@@ -104,15 +118,15 @@ describe("Flow multiCall tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO_A = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -164,15 +178,15 @@ describe("Flow multiCall tests", async function () {
     ];
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO_B = concat([
       SENTINEL(), // ERC1155 END
@@ -197,9 +211,10 @@ describe("Flow multiCall tests", async function () {
       ],
     };
 
-    const { flow: flow_A } = await flowDeploy(
+    const { flow: flow_A } = await deployFlowClone(
       deployer,
-      flowFactory,
+      cloneFactory,
+      implementation,
       flowConfigStruct_A
     );
 

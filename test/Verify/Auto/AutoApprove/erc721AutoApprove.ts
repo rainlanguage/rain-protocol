@@ -1,20 +1,23 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  AutoApproveFactory,
+  AutoApprove,
+  CloneFactory,
   ReserveTokenERC721,
-  VerifyFactory,
 } from "../../../../typechain";
-import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
+import {
+  autoApproveCloneDeploy,
+  autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
@@ -26,12 +29,20 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let tokenERC721: ReserveTokenERC721;
-  let autoApproveFactory: AutoApproveFactory;
-  let verifyFactory: VerifyFactory;
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -51,35 +62,41 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const cAccount = op(Opcode.context, 0x0000);
     const cNftId = op(Opcode.context, 0x0001);
 
-    const expressionConfig: ExpressionConfigStruct = {
+    const expressionConfig = {
       // prettier-ignore
       sources: [
         concat([
               vTokenAddr,
               cNftId,
-            op(Opcode.erc721OwnerOf),
+            op(Opcode.erc_721_owner_of),
             cAccount,
-          op(Opcode.equalTo),
+          op(Opcode.equal_to),
         ])],
       constants: [tokenERC721.address],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
-      expressionConfig
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 

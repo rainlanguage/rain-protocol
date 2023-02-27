@@ -1,0 +1,48 @@
+{
+  "name": "Flow",
+  "desc": "A flow contract, that can transfer token based on a deployed expression",
+  "alias": "flow",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "methods": [
+    {
+      "name": "",
+      "desc": "Deploys a new Flow ERC20 contract.",
+      "expressions": [
+        {
+          "name": "Dummy Expression",
+          "desc": "A dummy expression.",
+          "path": "[6].inputs[0].components[0]"
+        },
+        {
+          "name": "Flows",
+          "desc": "The available flows.",
+          "path": "[6].inputs[0].components[1]",
+          "signedContext": true,
+          "callerContext": true,
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This Contract",
+                  "desc": "The address of the Flow contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import type {
+  CloneFactory,
   CombineTier,
   FactoryChildTest,
   FactoryCurator,
@@ -9,7 +10,6 @@ import type {
   ReadWriteTier,
   ReserveToken,
   ReserveToken18,
-  StakeFactory,
 } from "../../../typechain";
 import {
   CurationConfigStruct,
@@ -17,17 +17,20 @@ import {
 } from "../../../typechain/contracts/factory/FactoryCurator";
 import {
   EvaluableConfigStruct,
+  Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/test/factory/Factory/FactoryChildTest";
 import {
-  combineTierDeploy,
+  combineTierCloneDeploy,
+  combineTierImplementation,
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
   Opcode,
-  stakeDeploy,
+  stakeCloneDeploy,
+  stakeImplementation,
   THRESHOLDS,
   THRESHOLDS_18,
   timewarp,
@@ -38,7 +41,7 @@ import {
   sixZeros,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
@@ -46,10 +49,20 @@ import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
   let reserve: ReserveToken;
-  let stakeFactory: StakeFactory;
+  let implementationStake: Stake;
+  let cloneFactory: CloneFactory;
+  let implementationCombineTier: CombineTier;
 
   before(async () => {
-    stakeFactory = await stakeFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementationStake = await stakeImplementation();
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -293,14 +306,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-          constants: [max_uint256],
-        },
-        false
+        [
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
@@ -309,7 +319,12 @@ describe("FactoryCurator createChild", async function () {
       asset: reserve18.address,
       evaluableConfig: evaluableConfig,
     };
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS_18[1].add(1);
@@ -419,14 +434,11 @@ describe("FactoryCurator createChild", async function () {
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
-        {
-          sources: [
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          ],
-          constants: [max_uint256],
-        },
-        false
+        [
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        [max_uint256]
       );
 
     // Stake contract
@@ -437,8 +449,18 @@ describe("FactoryCurator createChild", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS[4].add(1); // exceeds all thresholds
@@ -449,7 +471,7 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLD
@@ -460,12 +482,12 @@ describe("FactoryCurator createChild", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLD
@@ -476,13 +498,13 @@ describe("FactoryCurator createChild", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     const sourceReportDefault = concat([
       op(Opcode.context, 0x0201),
       op(Opcode.context, 0x0200),
-      op(Opcode.itierV2Report),
+      op(Opcode.itier_v2_report),
     ]);
 
     // MAIN
@@ -490,26 +512,29 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceMain = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.less_than),
         op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // FALSE
-      op(Opcode.eagerIf)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.eager_if)
     ]);
 
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants: [stake0.address, stake1.address, max_uint32],
-    });
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      [stake0.address, stake1.address, max_uint32]
+    );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombineTier
+    );
 
     const FEE = 100 + sixZeros;
 

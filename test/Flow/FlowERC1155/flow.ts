@@ -3,15 +3,15 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowERC1155Factory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowERC1155,
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -20,8 +20,11 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
-import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import {
@@ -37,12 +40,20 @@ import { FlowERC1155Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC1155 flow tests", async function () {
-  let flowERC1155Factory: FlowERC1155Factory;
+  let implementation: FlowERC1155;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
-    flowERC1155Factory = await flowERC1155FactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowERC1155Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support transferPreflight hook", async () => {
@@ -70,17 +81,17 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
     const TOKEN_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const TOKEN_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -123,14 +134,16 @@ describe("FlowERC1155 flow tests", async function () {
       ],
     };
 
-    const { flow: flowCanTransfer } = await flowERC1155Deploy(
+    const { flow: flowCanTransfer } = await flowERC1155Clone(
       deployer,
-      flowERC1155Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStructCanTransfer
     );
-    const { flow: flowCannotTransfer } = await flowERC1155Deploy(
+    const { flow: flowCannotTransfer } = await flowERC1155Clone(
       deployer,
-      flowERC1155Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStructCannotTransfer
     );
 
@@ -290,21 +303,21 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const TOKEN_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const TOKEN_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIOMint = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -361,9 +374,10 @@ describe("FlowERC1155 flow tests", async function () {
       ],
     };
 
-    const { flow } = await flowERC1155Deploy(
+    const { flow } = await flowERC1155Clone(
       deployer,
-      flowERC1155Factory,
+      cloneFactory,
+      implementation,
       expressionConfigStruct
     );
 
@@ -531,22 +545,22 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -570,21 +584,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -722,23 +741,23 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -760,21 +779,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -897,21 +921,21 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -932,21 +956,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1050,19 +1079,19 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1082,21 +1111,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1223,25 +1257,25 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -1264,21 +1298,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1411,21 +1450,21 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1446,21 +1485,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1585,21 +1629,21 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
@@ -1620,21 +1664,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1737,16 +1786,16 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1765,21 +1814,26 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1854,11 +1908,11 @@ describe("FlowERC1155 flow tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1871,16 +1925,21 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [{ sources: [sourceFlowIO], constants }],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [{ sources: [sourceFlowIO], constants }],
+      }
+    );
 
     await signers[0].sendTransaction({
       to: flow.address,
@@ -1929,18 +1988,18 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const KEY = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIOA = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1958,7 +2017,7 @@ describe("FlowERC1155 flow tests", async function () {
 
       // Setting a value
       KEY(), // k_
-      op(Opcode.blockTimestamp), // v_
+      op(Opcode.block_timestamp), // v_
       op(Opcode.set),
     ]);
 
@@ -1966,7 +2025,7 @@ describe("FlowERC1155 flow tests", async function () {
       // Getting the value set in flowA
       KEY(), // k_
       op(Opcode.get), // Getting a value with the same key set in flowA
-      op(Opcode.isZero),
+      op(Opcode.is_zero),
       op(Opcode.ensure, 1), // Ensures that the value is not set
 
       SENTINEL(), // ERC1155 SKIP
@@ -1985,19 +2044,24 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        { sources: [sourceFlowIOA], constants },
-        { sources: [sourceFlowIOB], constants },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          { sources: [sourceFlowIOA], constants },
+          { sources: [sourceFlowIOB], constants },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -2139,25 +2203,25 @@ describe("FlowERC1155 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
     const ZERO = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
@@ -2174,10 +2238,10 @@ describe("FlowERC1155 flow tests", async function () {
       YOU(),
       op(Opcode.get),
       ZERO(),
-      op(Opcode.greaterThan),
+      op(Opcode.greater_than),
       FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
-      op(Opcode.eagerIf),
+      op(Opcode.eager_if),
       SENTINEL(), // NATIVE SKIP
       SENTINEL_1155(),
       SENTINEL_1155(),
@@ -2189,26 +2253,31 @@ describe("FlowERC1155 flow tests", async function () {
         // Setting a value for msg.sender.
         // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
-        op(Opcode.blockNumber),
+        op(Opcode.block_number),
         op(Opcode.set),
       ]),
     ];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants,
     };
 
-    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
-      uri: "F1155",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow } = await flowERC1155Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        uri: "F1155",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

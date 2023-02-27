@@ -36,7 +36,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1))
       ])
     ];
     const context = [[3, 5, 7, 9, 11]];
@@ -44,7 +44,8 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+        sources,
+        constants,
         stackLength,
         context,
         debugStyle,
@@ -63,7 +64,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1))
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1))
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
@@ -71,7 +72,8 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+        sources,
+        constants,
         stackLength,
         context,
         debugStyle,
@@ -90,7 +92,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.blockNumber, 0),
+        op(Opcode.block_number, 0),
       ])
     ];
 
@@ -99,7 +101,8 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+        sources,
+        constants,
         stackLength,
         context,
         debugStyle,
@@ -118,7 +121,7 @@ describe("LibInterpreterState debug tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.blockNumber, 0),
+        op(Opcode.block_number, 0),
       ])
     ];
 
@@ -127,7 +130,8 @@ describe("LibInterpreterState debug tests", async function () {
 
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-        { sources, constants },
+        sources,
+        constants,
         stackLength,
         context,
         debugStyle,
@@ -144,7 +148,7 @@ describe("LibInterpreterState debug tests", async function () {
   //   // prettier-ignore
   //   const sources = [
   //     concat([
-  //       op(Opcode.BLOCK_NUMBER, 0),
+  //       op(Opcode.block_number, 0),
   //     ])
   //   ];
   //   const constants = [2, 4, 6, 8, 10];
@@ -157,7 +161,7 @@ describe("LibInterpreterState debug tests", async function () {
 
   //   const { stackTop_, stackTopAfter_ } =
   //     await libInterpreterState.callStatic.debug(
-  //       { sources, constants },
+  //        sources, constants ,
   //       context,
   //       debugStyle,
   //       sourceIndex,
@@ -174,13 +178,13 @@ describe("LibInterpreterState debug tests", async function () {
   //   // prettier-ignore
   //   const sources = [
   //     concat([
-  //       op(Opcode.BLOCK_NUMBER, 0),
+  //       op(Opcode.block_number, 0),
   //     ]),
   //     concat([
-  //       op(Opcode.BLOCK_NUMBER, 0),
-  //       op(Opcode.CONTEXT, 0x0000), // sender
-  //       op(Opcode.CONTEXT, 0x0001), // this address
-  //       op(Opcode.BLOCK_TIMESTAMP, 0),
+  //       op(Opcode.block_number, 0),
+  //       op(Opcode.context, 0x0000), // sender
+  //       op(Opcode.context, 0x0001), // this address
+  //       op(Opcode.block_timestamp, 0),
   //     ])
   //   ];
   //   const constants = [2, 4, 6, 8, 10];
@@ -201,7 +205,7 @@ describe("LibInterpreterState debug tests", async function () {
 
   //   const { stackTop_, stackTopAfter_ } =
   //     await libInterpreterState.callStatic.debug(
-  //       { sources, constants },
+  //        sources, constants ,
   //       context,
   //       debugStyle,
   //       sourceIndex,

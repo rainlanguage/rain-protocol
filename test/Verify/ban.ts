@@ -1,22 +1,27 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify } from "../../typechain";
+
 import { BanEvent } from "../../typechain/contracts/verify/Verify";
 import {
   assertError,
+  basicDeploy,
   getBlockTimestamp,
   getEventArgs,
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils";
 
 describe("Verify ban", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow banner to preemptively ban an account before it is added, which also triggers add callback before ban callback", async function () {
@@ -27,10 +32,13 @@ describe("Verify ban", async function () {
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);
@@ -114,10 +122,13 @@ describe("Verify ban", async function () {
     // other signers
     const signer1 = signers[7];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -182,10 +193,13 @@ describe("Verify ban", async function () {
     const banner = signers[3];
     const nonBanner = signers[4];
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin role
     await verify.grantRole(await verify.BANNER_ADMIN(), banAdmin.address);

@@ -1,7 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { FlowERC20Factory } from "../../../../typechain";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowERC20,
@@ -10,23 +12,47 @@ import {
 import { getEventArgs } from "../../../events";
 import { FlowERC20Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
+import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
+import { getRainDocumentsFromContract } from "../../../meta";
+import { assert } from "chai";
+import { zeroAddress } from "../../../constants";
 
-export const flowERC20Deploy = async (
+export const flowERC20Implementation = async (): Promise<FlowERC20> => {
+  const flowFactory = await ethers.getContractFactory("FlowERC20", {});
+
+  const touchDeployer: RainterpreterExpressionDeployer =
+    await getTouchDeployer();
+  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+    meta: getRainDocumentsFromContract("flow20"),
+    deployer: touchDeployer.address,
+  };
+
+  const flow = (await flowFactory.deploy(interpreterCallerConfig)) as FlowERC20;
+
+  assert(!(flow.address === zeroAddress), "implementation stake zero address");
+
+  return flow;
+};
+
+export const flowERC20Clone = async (
   deployer: SignerWithAddress,
-  flowERC20Factory: FlowERC20Factory,
-  flowERC20Config: FlowERC20Config,
-  ...args: Overrides[]
+  cloneFactory: CloneFactory,
+  implementation: FlowERC20,
+  flowERC20Config: FlowERC20Config
 ) => {
   // Building evaluableConfig
   const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
-    flowERC20Config.expressionConfig
+    flowERC20Config.expressionConfig.sources,
+    flowERC20Config.expressionConfig.constants
   );
 
   // Building flowConfig
   const flowConfig: EvaluableConfigStruct[] = [];
   for (let i = 0; i < flowERC20Config.flows.length; i++) {
     const evaluableConfig = await generateEvaluableConfig(
-      flowERC20Config.flows[i]
+      flowERC20Config.flows[i].sources,
+      flowERC20Config.flows[i].constants
     );
     flowConfig.push(evaluableConfig);
   }
@@ -38,15 +64,22 @@ export const flowERC20Deploy = async (
     symbol: flowERC20Config.symbol,
   };
 
-  const txDeploy = await flowERC20Factory.createChildTyped(
-    flowERC20ConfigStruct,
-    ...args
+  const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+    [
+      "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+    ],
+    [flowERC20ConfigStruct]
+  );
+
+  const flowCloneTx = await cloneFactory.clone(
+    implementation.address,
+    encodedConfig
   );
 
   const flow = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(txDeploy, "NewChild", flowERC20Factory)).child
+        (await getEventArgs(flowCloneTx, "NewClone", cloneFactory)).clone
       ),
       20 // address bytes length
     ),
@@ -58,7 +91,7 @@ export const flowERC20Deploy = async (
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  flow.deployTransaction = txDeploy;
+  flow.deployTransaction = flowCloneTx;
 
   return { flow };
 };

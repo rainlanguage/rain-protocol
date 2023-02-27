@@ -1,20 +1,33 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
+import { CloneFactory, Verify } from "../../../../typechain";
+import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
+import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import {
+  AutoApprove,
+  AutoApproveConfigStruct,
   InitializeEvent,
-  ExpressionConfigStruct,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
+  assertError,
+  basicDeploy,
+  getRainDocumentsFromContract,
+  zeroAddress,
+} from "../../../../utils";
+import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
+import {
+  autoApproveCloneDeploy,
+  autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -23,12 +36,20 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {
-  let autoApproveFactory: AutoApproveFactory;
-  let verifyFactory: VerifyFactory;
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should construct and initialize correctly", async () => {
@@ -36,23 +57,56 @@ describe("AutoApprove construction", async function () {
 
     const deployer = signers[1];
 
-    const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
+    const expressionConfig = {
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
 
-    const autoApprove = await autoApproveDeploy(
-      deployer,
-      autoApproveFactory,
-      expressionConfig
+    const evaluableConfig: EvaluableConfigStruct =
+      await generateEvaluableConfig(
+        expressionConfig.sources,
+        expressionConfig.constants
+      );
+
+    const initalConfig: AutoApproveConfigStruct = {
+      owner: deployer.address,
+      evaluableConfig: evaluableConfig,
+    };
+
+    const encodedConfig = ethers.utils.defaultAbiCoder.encode(
+      [
+        "tuple(address owner, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig)",
+      ],
+      [initalConfig]
     );
 
+    const autoApproveClone = await cloneFactory.clone(
+      implementAutoApprove.address,
+      encodedConfig
+    );
+
+    const cloneEvent = (await getEventArgs(
+      autoApproveClone,
+      "NewClone",
+      cloneFactory
+    )) as NewCloneEvent["args"];
+
+    assert(
+      !(cloneEvent.clone === zeroAddress),
+      "Clone autoApprove factory zero address"
+    );
+
+    const autoApprove = (await ethers.getContractAt(
+      "AutoApprove",
+      cloneEvent.clone
+    )) as AutoApprove;
+
     const { sender, config } = (await getEventArgs(
-      autoApprove.deployTransaction,
+      autoApproveClone,
       "Initialize",
       autoApprove
     )) as InitializeEvent["args"];
-    assert(sender === autoApproveFactory.address, "wrong sender");
+    assert(sender === cloneFactory.address, "wrong sender");
     compareStructs(config, expressionConfig);
   });
 
@@ -62,20 +116,53 @@ describe("AutoApprove construction", async function () {
     const deployer = signers[1];
     const admin = signers[2];
 
-    const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
+    const expressionConfig = {
+      sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
-      expressionConfig
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
+      expressionConfig.sources,
+      expressionConfig.constants
     );
 
-    await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
+  });
+
+  it("should fail when deploying with bad callerMeta", async () => {
+    const contractFactory = await ethers.getContractFactory("AutoApprove");
+
+    const touchDeployer = await getTouchDeployer();
+
+    const config_0: InterpreterCallerV1ConstructionConfigStruct = {
+      meta: getRainDocumentsFromContract("autoapprove"),
+      deployer: touchDeployer.address,
+    };
+
+    const autoApprove = (await contractFactory.deploy(config_0)) as AutoApprove;
+    await autoApprove.deployed();
+
+    assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
+
+    const config_1: InterpreterCallerV1ConstructionConfigStruct = {
+      meta: getRainDocumentsFromContract("orderbook"),
+      deployer: touchDeployer.address,
+    };
+
+    await assertError(
+      async () => await contractFactory.deploy(config_1),
+      "UnexpectedMetaHash",
+      "AutoApprove Deployed for bad hash"
+    );
   });
 });

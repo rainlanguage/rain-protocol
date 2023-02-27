@@ -1,19 +1,12 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { standardEvaluableConfig } from "../../../../utils";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
-
-const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainInterpreter MathOps saturating math", async () => {
@@ -21,6 +14,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -31,29 +28,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
   });
 
   it("should perform saturating multiplication", async () => {
-    const constants = [max_uint256, 2];
-    const vMaxUInt256 = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
-    // test case with normal multiplication
-    // prettier-ignore
-    const sourcesUnsat = [
-      concat([
-        // (max_uint256 2 *)
-          vMaxUInt256,
-          v2,
-        op(Opcode.mul, 2),
-      ]),
-    ];
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      await standardEvaluableConfig(`_: mul(${max_uint256} 2);`);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: sourcesUnsat,
-        constants,
-      },
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -69,21 +49,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal multiplication overflow did not error"
     );
 
-    // prettier-ignore
-    const sourcesSat = [
-      concat([
-        // (max_uint256 2 SAT_MUL)
-          vMaxUInt256,
-          v2,
-        op(Opcode.saturatingMul, 2),
-      ]),
-    ];
+    const { sources: sourcesSat, constants: constantsSat } =
+      await standardEvaluableConfig(`_: saturating-mul(${max_uint256} 2);`);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: sourcesSat,
-        constants,
-      },
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );
@@ -102,26 +73,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
   });
 
   it("should perform saturating subtraction", async () => {
-    const constants = [10, 20];
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const v20 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
     // test case with normal subtraction
-    // prettier-ignore
-    const sourcesUnsat = [
-      concat([
-        // (10 20 -)
-          v10,
-          v20,
-        op(Opcode.sub, 2),
-      ]),
-    ];
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      await standardEvaluableConfig(`_: sub(10 20);`);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: sourcesUnsat,
-        constants,
-      },
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -137,21 +95,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal subtraction overflow did not error"
     );
 
-    // prettier-ignore
-    const sourcesSat = [
-      concat([
-        // (10 20 SAT_SUB)
-          v10,
-          v20,
-        op(Opcode.saturatingSub, 2),
-      ]),
-    ];
+    const { sources: sourcesSat, constants: constantsSat } =
+      await standardEvaluableConfig(`_: saturating-sub(10 20);`);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: sourcesSat,
-        constants,
-      },
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );
@@ -170,29 +119,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
   });
 
   it("should perform saturating addition", async () => {
-    const constants = [max_uint256, 10];
-    const vMaxUInt256 = op(
-      Opcode.readMemory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const v10 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-
     // test case with normal addition
-    // prettier-ignore
-    const sourcesUnsat = [
-      concat([
-        // (max_uint256 10 +)
-          vMaxUInt256,
-          v10,
-        op(Opcode.add, 2),
-      ]),
-    ];
+    const { sources: sourcesUnsat, constants: constantsUnsat } =
+      await standardEvaluableConfig(`_: add(${max_uint256} 10);`);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: sourcesUnsat,
-        constants,
-      },
+      sourcesUnsat,
+      constantsUnsat,
       rainInterpreter,
       1
     );
@@ -208,21 +141,12 @@ describe("RainInterpreter MathOps saturating math", async () => {
       "normal addition overflow did not error"
     );
 
-    // prettier-ignore
-    const sourcesSat = [
-      concat([
-        // (max_uint256 1 SAT_ADD)
-          vMaxUInt256,
-          v10,
-        op(Opcode.saturatingAdd, 2),
-      ]),
-    ];
+    const { sources: sourcesSat, constants: constantsSat } =
+      await standardEvaluableConfig(`_: saturating-add(${max_uint256} 10);`);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: sourcesSat,
-        constants,
-      },
+      sourcesSat,
+      constantsSat,
       rainInterpreter,
       1
     );

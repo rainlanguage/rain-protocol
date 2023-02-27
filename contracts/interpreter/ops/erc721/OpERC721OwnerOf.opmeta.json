@@ -1,6 +1,6 @@
 {
-  "name": "erc721-owner-of",
-  "desc": "Get the owner of an ERC20 token of an account and insert it into the stack",
+  "name": "erc-721-owner-of",
+  "desc": "Get the owner of an ERC721 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["erc721-owner"]
+  "aliases": ["erc-721-owner"]
 }

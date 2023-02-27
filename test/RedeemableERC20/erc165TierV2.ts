@@ -1,26 +1,39 @@
 import { assert } from "chai";
 import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ERC20PulleeTest, ReserveToken } from "../../typechain";
-import { CombineTier, StakeFactory } from "../../typechain";
+import type {
+  CloneFactory,
+  ERC20PulleeTest,
+  ReserveToken,
+} from "../../typechain";
+import { CombineTier } from "../../typechain";
 import {
   ERC20ConfigStruct,
   InitializeEvent,
+  RedeemableERC20,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
   assertError,
   basicDeploy,
-  combineTierDeploy,
+  combineTierCloneDeploy,
+  combineTierImplementation,
   compareStructs,
   getEventArgs,
   max_uint256,
-  stakeDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  stakeCloneDeploy,
+  stakeImplementation,
   Tier,
 } from "../../utils";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
@@ -35,10 +48,23 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let reserve: ReserveToken;
   let redeemableERC20Config: ERC20ConfigStruct;
-  let stakeFactory: StakeFactory;
+  let implementationStake: Stake;
+  let implementationRedeemableERC20: RedeemableERC20;
+  let implementationCombineTier: CombineTier;
+
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    stakeFactory = await stakeFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementationStake = await stakeImplementation();
+    implementationRedeemableERC20 = await redeemableERC20DeployImplementation();
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
 
     erc20Pullee = await erc20PulleeDeploy();
 
@@ -60,22 +86,25 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+    const evaluableConfig = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [0],
-    });
-    const tier = (await combineTierDeploy(signers[0], {
-      combinedTiersLength: 0,
-      evaluableConfig,
-    })) as CombineTier;
+      [0]
+    );
+    const tier = await combineTierCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfig
+    );
 
     const minimumTier = Tier.FOUR;
 
@@ -87,7 +116,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await Util.redeemableERC20Deploy(signers[0], tokenConfig);
+    const token = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementationRedeemableERC20,
+      tokenConfig
+    );
 
     const { config } = (await getEventArgs(
       token.deployTransaction,
@@ -108,14 +142,11 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     )) as ReserveToken;
 
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -125,7 +156,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       evaluableConfig,
     };
 
-    const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const tier = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     const minimumTier = Tier.FOUR;
 
@@ -137,8 +173,12 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };
 
-    const token = await Util.redeemableERC20Deploy(signers[0], tokenConfig);
-
+    const token = await redeemableERC20DeployClone(
+      deployer,
+      cloneFactory,
+      implementationRedeemableERC20,
+      tokenConfig
+    );
     const { config } = (await getEventArgs(
       token.deployTransaction,
       "Initialize",
@@ -165,7 +205,13 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     };
 
     await assertError(
-      async () => await Util.redeemableERC20Deploy(signers[0], tokenConfig),
+      async () =>
+        await redeemableERC20DeployClone(
+          signers[0],
+          cloneFactory,
+          implementationRedeemableERC20,
+          tokenConfig
+        ),
       "ERC165_TIERV2",
       "ERC165_TIERV2 check failed"
     );

@@ -4,26 +4,35 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  CloneFactory,
   CombineTier,
   IInterpreterV1Consumer,
   Rainterpreter,
   ReadWriteTier,
   ReserveToken,
-  StakeFactory,
 } from "../../../typechain";
-import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
+  Stake,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
+import {
+  basicDeploy,
   max_uint256,
   max_uint32,
   readWriteTierDeploy,
-  stakeDeploy,
+  stakeCloneDeploy,
+  stakeImplementation,
   THRESHOLDS,
 } from "../../../utils";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
-import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
+import {
+  combineTierCloneDeploy,
+  combineTierImplementation,
+} from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 import {
   generateEvaluableConfig,
@@ -43,11 +52,27 @@ let alice: SignerWithAddress;
 let bob: SignerWithAddress;
 let tokenERC20: ReserveToken;
 let readWriteTier: ReadWriteTier;
-let stakeFactory: StakeFactory;
 let rainInterpreter: Rainterpreter;
 let logic: IInterpreterV1Consumer;
 
 describe("CombineTier report time for tier tests", async function () {
+  let implementationStake: Stake;
+  let implementationCombineTier: CombineTier;
+
+  let cloneFactory: CloneFactory;
+
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementationStake = await stakeImplementation();
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+  });
+
   const ctxAccount = op(Opcode.context, 0x0000);
   const CONST_REPORT_TIME_FOR_TIER = 123;
 
@@ -56,7 +81,7 @@ describe("CombineTier report time for tier tests", async function () {
   const sourceReportDefault = concat([
       op(Opcode.context, 0x0001),
       ctxAccount,
-    op(Opcode.itierV2Report),
+    op(Opcode.itier_v2_report),
   ]);
 
   beforeEach(async () => {
@@ -67,7 +92,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     tokenERC20 = await reserveDeploy();
     readWriteTier = await readWriteTierDeploy();
-    stakeFactory = await stakeFactoryDeploy();
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -78,22 +103,24 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+    const evaluableConfig = await generateEvaluableConfig(
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       ],
-      constants: [
+      [
         numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80]),
         CONST_REPORT_TIME_FOR_TIER, // just return a constant value
-      ],
-    });
+      ]
+    );
 
-    const combineTier = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
-
+    const combineTier = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfig
+    );
     const timeForTier = await combineTier.reportTimeForTier(
       signers[1].address,
       Tier.FIVE, // doesn't matter what tier as we return a constant
@@ -118,19 +145,22 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
         op(Opcode.context, 0x0100), // alice address
         op(Opcode.context, 0x0101), // tier
-      op(Opcode.itierV2ReportTimeForTier)
+      op(Opcode.itier_v2_report_time_for_tier)
     ]);
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants,
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig,
-    })) as CombineTier;
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      constants
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -149,9 +179,12 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract", async () => {
-    const vAlice = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const vAlice = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vTokenAddr = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
     // Transferring bob
@@ -162,34 +195,40 @@ describe("CombineTier report time for tier tests", async function () {
     const sourceTierContractAlice = concat([
       vTokenAddr,
       vAlice,
-      op(Opcode.erc20BalanceOf),
+      op(Opcode.erc_20_balance_of),
     ]);
-    const evaluableConfigAlice = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceTierContractAlice],
-      constants: [alice.address, tokenERC20.address],
-    });
-    const tierContractAlice = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigAlice,
-    })) as CombineTier;
+    const evaluableConfigAlice = await generateEvaluableConfig(
+      [sourceReportDefault, sourceTierContractAlice],
+      [alice.address, tokenERC20.address]
+    );
+    const tierContractAlice = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigAlice
+    );
 
     // BOB
     // prettier-ignore
     const sourceTierContractBob = concat([
         vTokenAddr,
         vAlice,
-      op(Opcode.erc20BalanceOf),
+      op(Opcode.erc_20_balance_of),
     ]);
 
-    const evaluableConfigBob = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceTierContractBob],
-      constants: [bob.address, tokenERC20.address],
-    });
+    const evaluableConfigBob = await generateEvaluableConfig(
+      [sourceReportDefault, sourceTierContractBob],
+      [bob.address, tokenERC20.address]
+    );
 
-    const tierContractBob = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 0,
-      evaluableConfig: evaluableConfigBob,
-    })) as CombineTier;
+    const tierContractBob = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      0,
+      evaluableConfigBob
+    );
 
     // MAIN
     const constants = [
@@ -199,29 +238,32 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceMain = concat([
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
             op(Opcode.context, 0x0000),
             op(Opcode.context, 0x0001),
-          op(Opcode.itierV2ReportTimeForTier, 0),
-        op(Opcode.isZero),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant,1)),
+          op(Opcode.itier_v2_report_time_for_tier, 0),
+        op(Opcode.is_zero),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant,1)),
           op(Opcode.context, 0x0000),
           op(Opcode.context, 0x0001),
-        op(Opcode.itierV2ReportTimeForTier, 0),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.itier_v2_report_time_for_tier, 0),
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)),
           op(Opcode.context, 0x0000),
           op(Opcode.context, 0x0001),
-        op(Opcode.itierV2ReportTimeForTier, 0),
-      op(Opcode.eagerIf)
+        op(Opcode.itier_v2_report_time_for_tier, 0),
+      op(Opcode.eager_if)
     ]);
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants,
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfig,
-    })) as CombineTier;
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      constants
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       signers[1].address,
@@ -269,18 +311,18 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // Contract address
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // Contract address
         op(Opcode.context, 0x0100), // alice address
         op(Opcode.context, 0x0101), // tier
-      op(Opcode.itierV2ReportTimeForTier),
+      op(Opcode.itier_v2_report_time_for_tier),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // Contract address
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // Contract address
         op(Opcode.context, 0x0200), // bob address
         op(Opcode.context, 0x0101), // tier
-      op(Opcode.itierV2ReportTimeForTier),
+      op(Opcode.itier_v2_report_time_for_tier),
     ])
     // ================================ LOGIC TEST
 
@@ -288,20 +330,23 @@ describe("CombineTier report time for tier tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
            sourceAliceReport,
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant,1)), // max_uint32
-        op(Opcode.lessThan),  // 0
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant,1)), // max_uint32
+        op(Opcode.less_than),  // 0
           sourceAliceReport,
           sourceBobReport,
-      op(Opcode.eagerIf)
+      op(Opcode.eager_if)
     ]);
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants,
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig,
-    })) as CombineTier;
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      constants
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -346,18 +391,18 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // Alice's Report
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // Alice's Report
       op(Opcode.context, 0x0100), // alice address
       op(Opcode.context, 0x0101), // TIER
-      op(Opcode.itierV2ReportTimeForTier),
+      op(Opcode.itier_v2_report_time_for_tier),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // Bob's Report
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // Bob's Report
         op(Opcode.context, 0x0200), // bob address
         op(Opcode.context, 0x0101), // TIER
-      op(Opcode.itierV2ReportTimeForTier),
+      op(Opcode.itier_v2_report_time_for_tier),
     ])
 
     // MAIN
@@ -368,20 +413,23 @@ describe("CombineTier report time for tier tests", async function () {
     const sourceMain = concat([
           sourceAliceReport,
           op(Opcode.context, 0x0201), // Alice's expected report
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
           sourceBobReport,
           op(Opcode.context, 0x0202), // Bob's expected report
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
       op(Opcode.every, 2)
     ]);
-    const evaluableConfig = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants,
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig,
-    })) as CombineTier;
+    const evaluableConfig = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      constants
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfig
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -415,14 +463,11 @@ describe("CombineTier report time for tier tests", async function () {
 
   it("should query Stake Contract's report for a Tier using Combine Tier", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -431,7 +476,12 @@ describe("CombineTier report time for tier tests", async function () {
       evaluableConfig: evaluableConfigStake,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -450,7 +500,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceAliceReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
         op(Opcode.context, 0x0100), // alice address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0203), // THRESHOLDS
@@ -461,12 +511,12 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0208),
         op(Opcode.context, 0x0209),
         op(Opcode.context, 0x020a),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceBobReport = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
         op(Opcode.context, 0x0201), // bob address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0203), // THRESHOLDS
@@ -477,7 +527,7 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0208),
         op(Opcode.context, 0x0209),
         op(Opcode.context, 0x020a),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -486,20 +536,23 @@ describe("CombineTier report time for tier tests", async function () {
     const sourceMain = concat([
           sourceAliceReport,
           op(Opcode.context, 0x0200), // Alice's expected report
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
           sourceBobReport,
           op(Opcode.context, 0x0202), // Bob's expected report
-        op(Opcode.equalTo),
+        op(Opcode.equal_to),
       op(Opcode.every, 2)
     ]);
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants: [stake.address],
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 1,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      [stake.address]
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      1,
+      evaluableConfigCombineTier
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -518,14 +571,11 @@ describe("CombineTier report time for tier tests", async function () {
 
   it("should combine reports of 2 staking contracts", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -534,8 +584,18 @@ describe("CombineTier report time for tier tests", async function () {
       evaluableConfig: evaluableConfigStake,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -546,7 +606,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLDS
@@ -557,12 +617,12 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLDS
@@ -573,7 +633,7 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -581,27 +641,27 @@ describe("CombineTier report time for tier tests", async function () {
     // prettier-ignore
     const sourceMain = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // max_uint32
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // max_uint32
+          op(Opcode.less_than),
         op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // FALSE
-      op(Opcode.eagerIf)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // FALSE
+      op(Opcode.eager_if)
     ]);
     const evaluableConfigCombineTier = await generateEvaluableConfig(
-      {
-        sources: [sourceReportDefault, sourceMain],
-        constants: [stake0.address, stake1.address, max_uint32],
-      },
-      false
+      [sourceReportDefault, sourceMain],
+      [stake0.address, stake1.address, max_uint32]
     );
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombineTier
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -642,14 +702,11 @@ describe("CombineTier report time for tier tests", async function () {
 
   it("should combine reports of N staking contracts", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -667,7 +724,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     for (let i = 0; i < MAX_STAKE_CONTRACTS; i++) {
       stakeContracts.push(
-        await stakeDeploy(deployer, stakeFactory, stakeConfigStruct)
+        await stakeCloneDeploy(
+          deployer,
+          cloneFactory,
+          implementationStake,
+          stakeConfigStruct
+        )
       );
       constants.push(stakeContracts[i].address);
 
@@ -685,7 +747,7 @@ describe("CombineTier report time for tier tests", async function () {
 
       // prettier-ignore
       const sourceReportStake = concat([
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant,i)), // ITierV2 contract stake0
+          op(Opcode.read_memory, memoryOperand(MemoryType.Constant,i)), // ITierV2 contract stake0
           op(Opcode.context, 0x0100), // address
           op(Opcode.context, 0x0101), // TIER
           op(Opcode.context, 0x0200), // THRESHOLDS
@@ -696,9 +758,9 @@ describe("CombineTier report time for tier tests", async function () {
           op(Opcode.context, 0x0205),
           op(Opcode.context, 0x0206),
           op(Opcode.context, 0x0207),
-        op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,POSITION_max_uint32)), // max_uint32
-        op(Opcode.lessThan)
+        op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,POSITION_max_uint32)), // max_uint32
+        op(Opcode.less_than)
       ]);
 
       // Pushing source reports
@@ -712,17 +774,20 @@ describe("CombineTier report time for tier tests", async function () {
           ...sourceReports,
         op(Opcode.every, stakeContracts.length), // Condition
         sourceReports[0], // TRUE == 1
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,POSITION_max_uint32)), // FALSE == max_uint32
-      op(Opcode.eagerIf)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,POSITION_max_uint32)), // FALSE == max_uint32
+      op(Opcode.eager_if)
     ]);
-    const evaluableConfigCombineTier = await generateEvaluableConfig({
-      sources: [sourceReportDefault, sourceMain],
-      constants: [...constants, max_uint32],
-    });
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: stakeContracts.length,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const evaluableConfigCombineTier = await generateEvaluableConfig(
+      [sourceReportDefault, sourceMain],
+      [...constants, max_uint32]
+    );
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      stakeContracts.length,
+      evaluableConfigCombineTier
+    );
 
     const result0 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -767,14 +832,11 @@ describe("CombineTier report time for tier tests", async function () {
 
   it("should use ITIERV2_REPORT opcode with context data to query the report time for tier for a CombineTier contract", async () => {
     const evaluableConfigStake = await generateEvaluableConfig(
-      {
-        sources: [
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
-      false
+      [
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      ],
+      [max_uint256]
     );
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -783,8 +845,18 @@ describe("CombineTier report time for tier tests", async function () {
       evaluableConfig: evaluableConfigStake,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
@@ -795,7 +867,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     // prettier-ignore
     const sourceReportStake0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLDS
@@ -806,12 +878,12 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
         op(Opcode.context, 0x0100), // address
         op(Opcode.context, 0x0101), // TIER
         op(Opcode.context, 0x0200), // THRESHOLDS
@@ -822,7 +894,7 @@ describe("CombineTier report time for tier tests", async function () {
         op(Opcode.context, 0x0205),
         op(Opcode.context, 0x0206),
         op(Opcode.context, 0x0207),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length)
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length)
     ]);
 
     // MAIN
@@ -830,30 +902,30 @@ describe("CombineTier report time for tier tests", async function () {
     // prettier-ignore
     const sourceCombineTierContract = concat([
             sourceReportStake0, // stake0 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // max_uint32
+          op(Opcode.less_than),
             sourceReportStake1, // stake1 report
-            op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // max_uint32
-          op(Opcode.lessThan),
+            op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // max_uint32
+          op(Opcode.less_than),
         op(Opcode.every, 2), // Condition
         sourceReportStake0, // TRUE
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant,2)), // FALSE
-      op(Opcode.eagerIf)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant,2)), // FALSE
+      op(Opcode.eager_if)
     ]);
     const evaluableConfigCombineTier = await generateEvaluableConfig(
-      {
-        sources: [sourceReportDefault, sourceCombineTierContract],
-        constants: [stake0.address, stake1.address, max_uint32],
-      },
-      false
+      [sourceReportDefault, sourceCombineTierContract],
+      [stake0.address, stake1.address, max_uint32]
     );
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombineTier
+    );
 
     const sourceMain = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract
       op(Opcode.context, 0x0000), // address
       op(Opcode.context, 0x0001), // TIER
       op(Opcode.context, 0x0002), // THRESHOLDS
@@ -864,14 +936,13 @@ describe("CombineTier report time for tier tests", async function () {
       op(Opcode.context, 0x0007),
       op(Opcode.context, 0x0008),
       op(Opcode.context, 0x0009),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [sourceMain],
-        constants: [combineTierMain.address],
-      },
+      [sourceMain],
+      [combineTierMain.address],
+
       rainInterpreter,
       1
     );

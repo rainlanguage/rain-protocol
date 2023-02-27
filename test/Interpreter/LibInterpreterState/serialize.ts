@@ -25,17 +25,17 @@ describe("LibInterpreterState serialize tests", async function () {
     const sources = [
       concat([
         // sourceIndex 0
-        op(Opcode.blockNumber),
+        op(Opcode.block_number),
       ]),
     ];
     const constants = [];
 
     const serialized_ = await libInterpreterState.callStatic.serialize(
       interpreter.address,
-      {
-        sources,
-        constants,
-      },
+
+      sources,
+      constants,
+
       stackLength
     );
 

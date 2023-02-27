@@ -1,0 +1,48 @@
+{
+  "name": "Lobby",
+  "desc": "",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "alias": "lobby",
+  "methods": [
+    {
+      "name": "",
+      "desc": "",
+      "inputs": [
+        {
+          "name": "Ref must agree",
+          "desc": "If `true` the ref must agree to be the ref before ANY players can join. This guards against the ref being entirely unaware of the lobby and therefore unlikely to sign any data beyond generic results. This MAY be `false` if the outcome of the `Lobby` can be inferred by entirely generic data that the ref is likely to publish regardless of the `Lobby`, such as a winner list that can be produced upon demand from some API.",
+          "path": "[6].inputs[0].components[0]"
+        },
+        {
+          "name": "Referee",
+          "desc": "The ref is some address that is expected to provide signatures of the results that allow the `Lobby` to complete or move to invalid.",
+          "path": "[6].inputs[0].components[1]"
+        },
+        {
+          "name": "Token",
+          "desc": "The token that fees and rewards will be denominated in.",
+          "path": "[6].inputs[0].components[2]"
+        },
+        {
+          "name": "Description",
+          "desc": "IPFS hash or similar of description and rules etc. that can be in JSON for a GUI.",
+          "path": "[6].inputs[0].components[4]"
+        },
+        {
+          "name": "Timeout duration",
+          "desc": "Timeout the whole lobby after this many seconds.",
+          "path": "[6].inputs[0].components[5]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "Lobby expression",
+          "desc": "The expression that defines the rules for this Lobby.",
+          "path": "[6].inputs[0].components[3]",
+          "signedContext": true,
+          "callerContext": true
+        }
+      ]
+    }
+  ]
+}

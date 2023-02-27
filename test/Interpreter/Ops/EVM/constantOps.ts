@@ -1,20 +1,21 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
-import { op } from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-
-const Opcode = AllStandardOps;
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 
 describe("RainInterpreter EInterpreter constant ops", async () => {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -25,18 +26,13 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
   });
 
   it("should return block.timestamp", async () => {
-    const constants = [];
-
-    const source = concat([
-      // (BLOCK_TIMESTAMP)
-      op(Opcode.blockTimestamp),
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: block-timestamp();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );
@@ -56,18 +52,13 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
   });
 
   it("should return block.number", async () => {
-    const constants = [];
-
-    const source = concat([
-      // (BLOCK_NUMBER)
-      op(Opcode.blockNumber),
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `_: block-number();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants,
-      },
+      sources,
+      constants,
       rainInterpreter,
       1
     );

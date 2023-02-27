@@ -1,16 +1,23 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
+import {
+  CloneFactory,
+  ReadWriteTier,
+  ReserveToken,
+  Sale,
+} from "../../../typechain";
+import { basicDeploy, readWriteTierDeploy } from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
-  saleDependenciesDeploy,
-  saleDeploy,
+  saleClone,
+  saleImplementation,
 } from "../../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
@@ -28,12 +35,23 @@ import { Tier } from "../../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale unchecked math", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    signers: SignerWithAddress[];
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
+  let signers: SignerWithAddress[];
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -67,12 +85,15 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vTwo = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -88,15 +109,13 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -155,12 +174,18 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vThree = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -176,15 +201,13 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -237,10 +260,13 @@ describe("Sale unchecked math", async function () {
 
     const constants = [0, 1, startBlock - 1, startBlock + saleDuration - 1];
 
-    const vZero = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vZero = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -256,15 +282,13 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -323,12 +347,15 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vMaxUInt256 = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vOne = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vOne = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -344,15 +371,13 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,

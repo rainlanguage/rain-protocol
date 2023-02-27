@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
-import { BuyEvent } from "../../typechain/contracts/sale/Sale";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
+import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
+import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import {
   fourZeros,
@@ -10,10 +11,8 @@ import {
   RESERVE_ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -31,11 +30,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale calculate price", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -68,15 +78,18 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vFractionMultiplier = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
@@ -87,26 +100,24 @@ describe("Sale calculate price", async function () {
           vBasePrice,
               vFractionMultiplier,
                   op(Opcode.context, 0x0001), // sale address
-                op(Opcode.isaleV2Token),
+                op(Opcode.isale_v2_token),
                 op(Opcode.context, 0x0000), // sender
-              op(Opcode.erc20BalanceOf),
+              op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
-              op(Opcode.isaleV2Token),
-            op(Opcode.erc20TotalSupply),
+              op(Opcode.isale_v2_token),
+            op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale, token] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -159,6 +170,7 @@ describe("Sale calculate price", async function () {
       expected  ${expectedPrice0}
       got       ${receipt0.price}`
     );
+    console.log("Here---");
     const signer1Balance1 = await token.balanceOf(signer1.address);
     const desiredUnits1 = totalTokenSupply.div(10);
     const expectedPrice1 = basePrice.sub(
@@ -217,15 +229,18 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vFractionMultiplier = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
@@ -236,26 +251,24 @@ describe("Sale calculate price", async function () {
           vBasePrice,
               vFractionMultiplier,
                   op(Opcode.context, 0x0001), // sale address
-                op(Opcode.isaleV2Reserve),
+                op(Opcode.isale_v2_reserve),
                 op(Opcode.context, 0x0000), // sender
-              op(Opcode.erc20BalanceOf),
+              op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
-              op(Opcode.isaleV2Reserve),
-            op(Opcode.erc20TotalSupply),
+              op(Opcode.isale_v2_reserve),
+            op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -356,23 +369,24 @@ describe("Sale calculate price", async function () {
       initialSupply: totalTokenSupply,
     };
     const constants = [startBlock - 1, startBlock + saleDuration - 1];
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(99)]),
       concat([]),
     ]; // bad source
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
     await assertError(
       async () =>
-        await saleDeploy(
+        await saleClone(
           signers,
           deployer,
-          saleFactory,
+          cloneFactory,
+          implementation,
           {
             evaluableConfig: evaluableConfig,
             recipient: recipient.address,
@@ -420,15 +434,18 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vSupplyDivisor = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -444,14 +461,12 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -556,15 +571,18 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vReserveDivisor = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -574,7 +592,7 @@ describe("Sale calculate price", async function () {
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         // sale contract
         op(Opcode.context, 0x0001),
-        op(Opcode.isaleV2TotalReserveReceived),
+        op(Opcode.isale_v2_total_reserve_received),
         vReserveDivisor,
         op(Opcode.div, 2),
         vBasePrice,
@@ -582,14 +600,12 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -698,15 +714,18 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vSupplyDivisor = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -715,7 +734,7 @@ describe("Sale calculate price", async function () {
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.context, 0x0001), // sale address
-        op(Opcode.isaleV2RemainingTokenInventory),
+        op(Opcode.isale_v2_remaining_token_inventory),
         vSupplyDivisor,
         op(Opcode.div, 2),
         vBasePrice,
@@ -723,14 +742,12 @@ describe("Sale calculate price", async function () {
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,
@@ -807,11 +824,14 @@ describe("Sale calculate price", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -819,20 +839,18 @@ describe("Sale calculate price", async function () {
         op(Opcode.context, 0x0001),
         // price
         // (BLOCK_NUMBER 75 +)
-        op(Opcode.blockNumber),
+        op(Opcode.block_number),
         vBasePrice,
         op(Opcode.add, 2),
       ]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,

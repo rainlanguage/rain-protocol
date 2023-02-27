@@ -1,7 +1,10 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC1155Factory, ReserveToken18 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  FlowERC1155,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -9,8 +12,11 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
-import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
+import {
+  flowERC1155Clone,
+  flowERC1155Implementation,
+} from "../../../utils/deploy/flow/flowERC1155/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -24,12 +30,20 @@ import { FlowERC1155Config } from "../../../utils/types/flow";
 const Opcode = RainterpreterOps;
 
 describe("FlowERC1155 flowTime tests", async function () {
-  let flowERC1155Factory: FlowERC1155Factory;
+  let implementation: FlowERC1155;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
-    flowERC1155Factory = await flowERC1155FactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowERC1155Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -77,20 +91,20 @@ describe("FlowERC1155 flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const ONE = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const SENTINEL_ERC1155 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
@@ -101,7 +115,7 @@ describe("FlowERC1155 flowTime tests", async function () {
 
     const sourceFlowIO = concat([
       ...FLOW_TIME(),
-      op(Opcode.isZero),
+      op(Opcode.is_zero),
       op(Opcode.ensure, 1),
 
       SENTINEL(), // ERC115 SKIP
@@ -122,7 +136,7 @@ describe("FlowERC1155 flowTime tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.blockTimestamp), // v__
+      op(Opcode.block_timestamp), // v__
       op(Opcode.set),
     ]);
 
@@ -134,9 +148,10 @@ describe("FlowERC1155 flowTime tests", async function () {
       uri: "FlowERC1155",
     };
 
-    const { flow } = await flowERC1155Deploy(
+    const { flow } = await flowERC1155Clone(
       deployer,
-      flowERC1155Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 

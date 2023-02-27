@@ -4,6 +4,9 @@ import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-contract-sizer";
 
+import * as dotenv from "dotenv";
+dotenv.config();
+
 const MOCHA_TESTS_PATH = process.env.TESTS_PATH || "./test";
 const MOCHA_SHOULD_BAIL = process.env.BAIL === "true";
 
@@ -15,6 +18,12 @@ const config: HardhatUserConfig = {
     hardhat: {
       blockGasLimit: 100000000,
       allowUnlimitedContractSize: true,
+    },
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: process.env["DEPLOYMENT_KEY_MUMBAI"]
+        ? [process.env["DEPLOYMENT_KEY_MUMBAI"]]
+        : [],
     },
   },
   solidity: {

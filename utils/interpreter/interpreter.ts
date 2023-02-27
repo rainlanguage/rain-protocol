@@ -1,17 +1,16 @@
-import { BytesLike } from "ethers";
+import { BigNumberish, BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
-import { RainterpreterStore } from "../../typechain";
-import {
-  EvaluableConfigStruct,
-  ExpressionConfigStruct,
-} from "../../typechain/contracts/flow/basic/Flow";
-import { zeroAddress } from "../constants";
+import { PromiseOrValue } from "../../typechain/common";
+import { EvaluableConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
+import { ExpressionConfig, rlc } from "rainlang";
+import { getRainDocumentsFromOpmeta } from "../meta";
+import { MAGIC_NUMBERS, decodeRainDocument } from "../meta/cbor";
 
 export enum MemoryType {
   Stack,
@@ -245,22 +244,49 @@ export function foldContextOperand(
  * @returns operand
  */
 export async function generateEvaluableConfig(
-  expressionConfig: ExpressionConfigStruct,
-  isStore = true
+  sources: PromiseOrValue<BytesLike>[],
+  constants: PromiseOrValue<BigNumberish>[]
 ): Promise<EvaluableConfigStruct> {
   const interpreter = await rainterpreterDeploy();
+  const store = await rainterpreterStoreDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+    interpreter,
+    store
   );
-
-  let interpreterStore: RainterpreterStore = null;
-
-  interpreterStore = await rainterpreterStoreDeploy();
 
   return {
     deployer: expressionDeployer.address,
-    interpreter: interpreter.address,
-    store: isStore ? interpreterStore.address : zeroAddress,
-    expressionConfig: expressionConfig,
+    sources,
+    constants,
   };
 }
+
+/**
+ * @public
+ * Builds sources and constants from a rainlang expression.
+ *
+ * @param expressionString - rainlang expression
+ * @returns sources and constants
+ */
+export const standardEvaluableConfig = async (
+  expression: string
+): Promise<ExpressionConfig> => {
+  const rainDocumentEncoded = getRainDocumentsFromOpmeta();
+
+  const dataDecoded = decodeRainDocument(rainDocumentEncoded);
+
+  // Find the correct element related to OPS_META_V1
+  const opsMetaMap = dataDecoded.find(
+    (elem_) => elem_.get(1) === MAGIC_NUMBERS.OPS_META_V1
+  );
+
+  const hexOpsMeta = hexlify(opsMetaMap.get(0));
+
+  return await rlc(expression, hexOpsMeta)
+    .then((expressionConfig) => {
+      return expressionConfig;
+    })
+    .catch((error) => {
+      throw new Error(JSON.stringify(error, null, 2));
+    });
+};

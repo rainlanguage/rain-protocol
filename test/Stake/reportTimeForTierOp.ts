@@ -2,12 +2,16 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  CloneFactory,
   IInterpreterV1Consumer,
   Rainterpreter,
   ReserveToken18,
-  StakeFactory,
 } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import {
+  Stake,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
+import { stakeCloneDeploy, stakeImplementation } from "../../utils";
 import {
   max_uint256,
   max_uint32,
@@ -16,8 +20,8 @@ import {
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
@@ -30,13 +34,21 @@ import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { Tier } from "../../utils/types/tier";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
-  let stakeFactory: StakeFactory;
+  let implementation: Stake;
+  let cloneFactory: CloneFactory;
   let token: ReserveToken18;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    stakeFactory = await stakeFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await stakeImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -54,26 +66,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   it("should return NEVER time using ITIERV2_REPORT_TIME_FOR_TIER if tier greater than context length", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+
     const alice = signers[1];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -83,7 +93,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -94,17 +109,16 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time0
     const source0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itierV2ReportTimeForTier)
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address, Tier.ONE],
-      },
+      [source0],
+      [stake.address, Tier.ONE],
+
       rainInterpreter,
       1
     );
@@ -120,18 +134,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time1
     const source1 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // context - TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.itierV2ReportTimeForTier, 1),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // context - TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.itier_v2_report_time_for_tier, 1),
     ]);
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source1],
-        constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
-      },
+      [source1],
+      [stake.address, Tier.TWO, THRESHOLDS[0]],
+
       rainInterpreter,
       1
     );
@@ -147,18 +160,16 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time2
     const source2 = concat([
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.context, 0x0000), // Address
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 1).length),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 1).length),
     ]);
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source2],
-        constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
-      },
+      [source2],
+      [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
       rainInterpreter,
       1
     );
@@ -174,19 +185,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time3
     const source3 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 2).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 2).length),
     ]);
 
     const expression3 = await expressionConsumerDeploy(
-      {
-        sources: [source3],
-        constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
-      },
+      [source3],
+      [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
+
       rainInterpreter,
       1
     );
@@ -202,20 +212,19 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time4
     const source4 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 3).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 3).length),
     ]);
 
     const expression4 = await expressionConsumerDeploy(
-      {
-        sources: [source4],
-        constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
-      },
+      [source4],
+      [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
+
       rainInterpreter,
       1
     );
@@ -231,21 +240,20 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time5
     const source5 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 4).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 4).length),
     ]);
 
     const expression5 = await expressionConsumerDeploy(
-      {
-        sources: [source5],
-        constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
-      },
+      [source5],
+      [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
+
       rainInterpreter,
       1
     );
@@ -261,22 +269,21 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time6
     const source6 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 5).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 5).length),
     ]);
 
     const expression6 = await expressionConsumerDeploy(
-      {
-        sources: [source6],
-        constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
-      },
+      [source6],
+      [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
+
       rainInterpreter,
       1
     );
@@ -292,23 +299,22 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time7
     const source7 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)), // TIER
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.slice(0, 6).length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.slice(0, 6).length),
     ]);
 
     const expression7 = await expressionConsumerDeploy(
-      {
-        sources: [source7],
-        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
-      },
+      [source7],
+      [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
+
       rainInterpreter,
       1
     );
@@ -334,26 +340,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   it("should return ALWAYS time using ITIERV2_REPORT_TIME_FOR_TIER for tier ZERO", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+
     const alice = signers[1];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -363,21 +367,25 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itierV2ReportTimeForTier),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.itier_v2_report_time_for_tier),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants: [stake.address, Tier.ZERO],
-      },
+      [source0],
+      [stake.address, Tier.ZERO],
+
       rainInterpreter,
       1
     );
@@ -401,21 +409,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -425,7 +430,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -438,25 +448,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -478,26 +487,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   it("should return earliest time using ITIERV2_REPORT_TIME_FOR_TIER for tier ONE threshold if multiple deposits made after exceeding threshold", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+
     const alice = signers[1];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -507,7 +514,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -520,25 +532,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -585,10 +596,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const blockTime1_ = await getBlockTimestamp();
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.TWO, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.TWO, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -616,26 +626,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   it("should reset earliest time using ITIERV2_REPORT_TIME_FOR_TIER if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+
     const alice = signers[1];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -645,7 +653,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
@@ -657,25 +670,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -740,26 +752,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   it("should reset earliest time using ITIERV2_REPORT_TIME_FOR_TIER if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+
     const alice = signers[1];
 
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
     const evaluableConfig = await generateEvaluableConfig(
-      {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
-      false
+      stakeExpressionConfigSources,
+      stakeExpressionConfigConstants
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -769,7 +779,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementation,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = THRESHOLDS[7].add(1); // exceeds all thresholds
@@ -780,25 +795,24 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // address
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itierV2ReportTimeForTier, THRESHOLDS.length),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
+      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.ONE, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -812,10 +826,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const timeOne0_ = await logic.stackTop();
 
     const expression1 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.EIGHT, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );
@@ -848,10 +861,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const timeOne1_ = await logic.stackTop();
 
     const expression2 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
-      },
+      [source],
+      [stake.address, Tier.FOUR, ...THRESHOLDS],
+
       rainInterpreter,
       1
     );

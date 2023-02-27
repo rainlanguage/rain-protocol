@@ -4,15 +4,15 @@ import { concat } from "ethers/lib/utils";
 import fs from "fs";
 import { ethers } from "hardhat";
 import {
-  FlowERC721Factory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowERC721,
   FlowERC721IOStruct,
   FlowTransferStruct,
-  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -21,8 +21,11 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import {
@@ -36,7 +39,8 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 multicall tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowERC721ABI = JSON.parse(
@@ -46,7 +50,14 @@ describe("FlowERC721 multicall tests", async function () {
     )
   );
   before(async () => {
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
@@ -142,24 +153,26 @@ describe("FlowERC721 multicall tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const HANDLE_TRANSFER = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
 
     const constants_B = [
       RAIN_FLOW_SENTINEL,
@@ -172,14 +185,14 @@ describe("FlowERC721 multicall tests", async function () {
     ];
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO_A = concat([
       SENTINEL(), // ERC1155 END
@@ -216,28 +229,34 @@ describe("FlowERC721 multicall tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
-    const expressionConfigStruct: ExpressionConfigStruct = {
+    const expressionConfigStruct = {
       sources,
       constants: constants_A,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO_A],
-          constants: constants_A,
-        },
-        {
-          sources: [sourceFlowIO_B],
-          constants: constants_B,
-        },
-      ],
-    });
+    const { flow } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO_A],
+            constants: constants_A,
+          },
+          {
+            sources: [sourceFlowIO_B],
+            constants: constants_B,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

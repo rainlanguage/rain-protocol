@@ -1,14 +1,20 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory, ReserveToken18 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { CloneFactory, ReserveToken18 } from "../../../typechain";
+import {
+  Flow,
+  FlowTransferStruct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -21,12 +27,20 @@ import { FlowConfig } from "../../../utils/types/flow";
 const Opcode = RainterpreterOps;
 
 describe("Flow flowTime tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
-    flowFactory = await flowFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -73,15 +87,15 @@ describe("Flow flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
 
@@ -94,7 +108,7 @@ describe("Flow flowTime tests", async function () {
     const sourceFlowIO = concat([
       // CAN FLOW
       FLOW_TIME(),
-      op(Opcode.isZero),
+      op(Opcode.is_zero),
       op(Opcode.ensure, 1),
 
       SENTINEL(), // ERC115 SKIP
@@ -112,7 +126,7 @@ describe("Flow flowTime tests", async function () {
 
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.blockTimestamp), // v__
+      op(Opcode.block_timestamp), // v__
       op(Opcode.set),
     ]);
 
@@ -120,7 +134,12 @@ describe("Flow flowTime tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

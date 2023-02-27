@@ -104,7 +104,8 @@ library LibIntegrityCheck {
     using Math for uint256;
 
     function newState(
-        ExpressionConfig memory config_,
+        bytes[] memory sources_,
+        uint256[] memory constants_,
         function(IntegrityCheckState memory, Operand, StackPointer)
             view
             returns (StackPointer)[]
@@ -112,8 +113,8 @@ library LibIntegrityCheck {
     ) internal pure returns (IntegrityCheckState memory) {
         return
             IntegrityCheckState(
-                config_.sources,
-                config_.constants.length,
+                sources_,
+                constants_.length,
                 INITIAL_STACK_BOTTOM,
                 // Highwater starts underneath stack bottom as it errors on an
                 // greater than _or equal to_ check.

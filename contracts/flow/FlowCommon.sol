@@ -7,9 +7,8 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -37,7 +36,7 @@ contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    IInterpreterCallerV1
+    InterpreterCallerV1
 {
     using LibInterpreterState for InterpreterState;
     using LibStackPointer for StackPointer;
@@ -51,7 +50,10 @@ contract FlowCommon is
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
-    constructor() {
+    constructor(
+        bytes32 metaHash_,
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(metaHash_, config_) {
         _disableInitializers();
     }
 
@@ -66,18 +68,20 @@ contract FlowCommon is
         if (flowMinOutputs_ < MIN_FLOW_SENTINELS) {
             revert BadMinStackLength(flowMinOutputs_);
         }
+        EvaluableConfig memory config_;
+        Evaluable memory evaluable_;
         for (uint256 i_ = 0; i_ < evaluableConfigs_.length; i_++) {
-            address expression_ = evaluableConfigs_[i_]
-                .deployer
-                .deployExpression(
-                    evaluableConfigs_[i_].expressionConfig,
+            config_ = evaluableConfigs_[i_];
+            (
+                IInterpreterV1 interpreter_,
+                IInterpreterStoreV1 store_,
+                address expression_
+            ) = config_.deployer.deployExpression(
+                    config_.sources,
+                    config_.constants,
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
-            Evaluable memory evaluable_ = Evaluable(
-                evaluableConfigs_[i_].interpreter,
-                evaluableConfigs_[i_].store,
-                expression_
-            );
+            evaluable_ = Evaluable(interpreter_, store_, expression_);
             _flows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }

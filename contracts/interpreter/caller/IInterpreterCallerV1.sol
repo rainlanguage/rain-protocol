@@ -20,13 +20,4 @@ interface IInterpreterCallerV1 {
     /// @param sender `msg.sender` building the context.
     /// @param context The context that was built.
     event Context(address sender, uint256[][] context);
-
-    /// This is the literal InterpreterCallerMeta bytes to be used offchain to
-    /// make sense of the contract calling an interpreter, as a human. For
-    /// formats like json that make heavy use of boilerplate, repetition and
-    /// whitespace, some kind of compression is recommended.
-    /// @param sender The `msg.sender` providing the op meta.
-    /// @param callerMeta The raw binary data of the caller meta. Maybe
-    /// compressed data etc. and is intended for offchain consumption.
-    event InterpreterCallerMeta(address sender, bytes callerMeta);
 }

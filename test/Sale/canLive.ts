@@ -1,15 +1,14 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
-import { EndEvent } from "../../typechain/contracts/sale/Sale";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
+import { EndEvent, Sale } from "../../typechain/contracts/sale/Sale";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
@@ -27,11 +26,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale previewCanLive (start/end sale)", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -61,24 +71,25 @@ describe("Sale previewCanLive (start/end sale)", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.readMemory,
+      Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.context, 0x0001), vBasePrice]),
       concat([]),
     ];
-    const evaluableConfig = await generateEvaluableConfig({
-      sources,
-      constants,
-    });
-    const [sale] = await saleDeploy(
+    const evaluableConfig = await generateEvaluableConfig(sources, constants);
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig: evaluableConfig,
         recipient: recipient.address,

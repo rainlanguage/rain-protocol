@@ -2,19 +2,23 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   IInterpreterV1Consumer,
   Rainterpreter,
   Verify,
 } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+
 import * as Util from "../../utils";
 import {
   AllStandardOps,
+  basicDeploy,
   getBlockTimestamp,
   op,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
@@ -22,12 +26,20 @@ const Opcode = AllStandardOps;
 describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   const ONE_SECOND = 1;
 
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -45,24 +57,25 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     const newAdmin = signers[3];
 
     // Deploying verifiy contract
-    const verify = (await Util.verifyDeploy(signers[0], verifyFactory, {
-      admin: admin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      ethers.constants.AddressZero
+    );
 
     // prettier-ignore
     const source = concat([
         op(Opcode.context, 0x0000), // CONTRACT
         op(Opcode.context, 0x0001), // ADDRESS
         op(Opcode.context, 0x0002), // TIMESTAMP
-      op(Opcode.iverifyV1AccountStatusAtTime), // STATUS
+      op(Opcode.iverify_v1_account_status_at_time), // STATUS
     ]);
 
     const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source],
-        constants: [],
-      },
+      [source],
+      [],
       rainInterpreter,
       1
     );
