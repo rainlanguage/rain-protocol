@@ -14,7 +14,7 @@ import {
   assertError,
   getEventArgs,
   getRainContractMetaBytes,
-  getRainContractMetaCborEncoded,
+  getRainDocumentsFromContract,
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -35,12 +35,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
-    const lobbyContractMeta = getRainContractMetaCborEncoded("lobby")
+    const lobbyContractMeta = getRainDocumentsFromContract("orderbook");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: stakeContractMeta,
+        meta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
       }; 
 
@@ -65,11 +64,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
+    const stakeContractMeta = getRainDocumentsFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: stakeContractMeta ,
+        meta: stakeContractMeta,
         deployer: touchDeployer.address,
       };
 
@@ -98,8 +97,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
-
+    const stakeContractMeta = getRainDocumentsFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -160,7 +158,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
+    const stakeContractMeta = getRainDocumentsFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -176,16 +174,16 @@ describe("Caller Test", async function () {
     await assertError(
       async () =>
         await caller.checkMeta(
-          getRainContractMetaCborEncoded("stake"),
-          getRainContractMetaCborEncoded("lobby")
+          getRainDocumentsFromContract("orderbook"),
+          getRainDocumentsFromContract("lobby")
         ),
       "UnexpectedMetaHash",
       "Incorrect Meta Hash"
     );
 
     const correctHash = await caller.checkMeta(
-      getRainContractMetaCborEncoded("stake"),
-      getRainContractMetaCborEncoded("stake")
+      getRainDocumentsFromContract("lobby"),
+      getRainDocumentsFromContract("lobby")
     );
 
     assert(correctHash, "Incorrect Meta Hash"); 
@@ -200,7 +198,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
+    const stakeContractMeta = getRainDocumentsFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -213,7 +211,7 @@ describe("Caller Test", async function () {
       interpreterCallerConfig
     )) as IInterpreterCallerConsumer;
 
-    // getRainContractMetaBytes does not return cbor encoded bytes
+    // getRainDocumentsFromContract does not return cbor encoded bytes
     await assertError(
       async () =>
         await caller.checkMeta(
@@ -234,7 +232,8 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainContractMetaCborEncoded('stake');   
+    const stakeContractMeta = getRainDocumentsFromContract("stake");
+  
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -248,7 +247,7 @@ describe("Caller Test", async function () {
     )) as IInterpreterCallerConsumer;
 
     const validRainMetaV1 = await caller.checkIsRainMetaV1(
-      getRainContractMetaCborEncoded("stake")
+      getRainDocumentsFromContract("stake")
     );  
 
     const inValidRainMetaV1 = await caller.checkIsRainMetaV1(

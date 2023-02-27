@@ -14,7 +14,7 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/
 import {
   assertError,
   basicDeploy,
-  getRainContractMetaBytes,
+  getRainDocumentsFromContract,
   zeroAddress,
 } from "../../../utils";
 import {
@@ -24,7 +24,11 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { memoryOperand, MemoryType, op } from "../../../utils/interpreter/interpreter";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -124,7 +128,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("flow721"),
+        meta: getRainDocumentsFromContract("flow721"),
         deployer: touchDeployer.address,
       };
 
@@ -136,7 +140,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("orderbook"),
+        meta: getRainDocumentsFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
