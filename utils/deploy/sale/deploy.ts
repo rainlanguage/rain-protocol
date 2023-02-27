@@ -105,4 +105,3 @@ export const saleClone = async (
 
   return [sale, token];
 };
-

@@ -60,7 +60,7 @@ describe("FlowERC721 construction tests", async function () {
     const sourceHandleTransfer = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
     ]);
-    
+
     // prettier-ignore
     const sourceTokenURI = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
