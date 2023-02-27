@@ -14,7 +14,7 @@ import {
   areEqualExpressionConfigs,
   assertError,
   getEventArgs,
-  getRainContractMetaBytes,
+  getRainDocumentsFromContract,
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -34,11 +34,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("orderbook");
+    const metaHash_ = getRainDocumentsFromContract("orderbook");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        callerMeta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
@@ -60,11 +60,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const metaHash_ = getRainDocumentsFromContract("lobby");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        callerMeta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
@@ -93,11 +93,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const metaHash_ = getRainDocumentsFromContract("lobby");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        callerMeta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
@@ -154,11 +154,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const metaHash_ = getRainDocumentsFromContract("lobby");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        callerMeta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
@@ -170,16 +170,16 @@ describe("Caller Test", async function () {
     await assertError(
       async () =>
         await caller.checkCallerMeta(
-          getRainContractMetaBytes("orderbook"),
-          getRainContractMetaBytes("lobby")
+          getRainDocumentsFromContract("orderbook"),
+          getRainDocumentsFromContract("lobby")
         ),
       "UnexpectedMetaHash",
       "Incorrect Meta Hash"
     );
 
     const correctHash = await caller.checkCallerMeta(
-      getRainContractMetaBytes("lobby"),
-      getRainContractMetaBytes("lobby")
+      getRainDocumentsFromContract("lobby"),
+      getRainDocumentsFromContract("lobby")
     );
 
     assert(correctHash, "Incorrect Meta Hash");
