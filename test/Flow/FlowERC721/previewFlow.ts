@@ -94,8 +94,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -120,7 +122,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -132,6 +134,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -239,8 +242,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -297,7 +302,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -309,6 +314,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -409,8 +415,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN_A = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -455,7 +463,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -467,6 +475,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -573,8 +582,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -630,7 +641,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -642,6 +653,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -725,8 +737,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -761,7 +775,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -773,6 +787,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -851,8 +866,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -880,7 +897,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -892,6 +909,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -980,8 +998,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
@@ -1021,7 +1041,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -1033,6 +1053,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -1073,8 +1094,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1088,7 +1111,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -1100,6 +1123,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,
@@ -1149,8 +1173,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1162,7 +1188,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
@@ -1174,6 +1200,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       cloneFactory,
       implementation,
       {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
         name: "FlowERC721",
         symbol: "F721",
         expressionConfig: expressionConfigStruct,

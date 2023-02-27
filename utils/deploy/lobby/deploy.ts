@@ -9,7 +9,7 @@ import {
   LobbyConstructorConfigStruct,
 } from "../../../typechain/contracts/lobby/Lobby";
 import { getEventArgs } from "../../events";
-import { getRainContractMetaBytes } from "../../meta";
+import { getRainDocumentsFromContract } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
@@ -18,7 +18,7 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
     await getTouchDeployer();
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("lobby"),
+    meta: getRainDocumentsFromContract("lobby"),
     deployer: touchDeployer.address,
   };
 
