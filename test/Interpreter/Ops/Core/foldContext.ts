@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
@@ -7,18 +6,9 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
-  callOperand,
-  Debug,
-  foldContextOperand,
-  memoryOperand,
   MemoryType,
-  op,
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-import { DebugStyle } from "../../LibInterpreterState/debug";
-
-const Opcode = AllStandardOps;
 
 describe("RainInterpreter FOLD_CONTEXT", async function () {
   let rainInterpreter: Rainterpreter;
@@ -329,79 +319,29 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
-    const inputSize = 2; // Accummulator size
 
     const constants = [0, 2, width];
-    // prettier-ignore
-    const sourceMain = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // even count acc
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // odd count acc
-      op(Opcode.fold_context, foldContextOperand(sourceIndex, column, width, inputSize)),
-    ]);
-
-    // prettier-ignore
-    // even odd a b c d => even odd
-    const sourceCalculate = concat([
-        // counting EVEN numbers
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 5)),
-      op(Opcode.call, callOperand(width, 1, 2)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)), // Duplicating the returned value from call [i.e EVEN count]
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.add, 2),
-      op(Opcode.debug),
-
-          // counting ODD numbers [Total elements - EVEN number count = ODD number count]
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // Total width
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)), // number of even numbers in this context iteration
-        op(Opcode.sub, 2),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.add, 2),
-      op(Opcode.debug, Debug.StatePacked)
-    ]);
-
-    // prettier-ignore
-    const sourceCountEven = concat([
-      // since the width is predetermined and is static, we can read fixed number of values from the stack
-        // (contextVal % 2) == 0 ?
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mod, 2),
-        op(Opcode.is_zero),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mod, 2),
-        op(Opcode.is_zero),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mod, 2),
-        op(Opcode.is_zero),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mod, 2),
-        op(Opcode.is_zero),
-      op(Opcode.add, 4), // Adding all the mod values
-    ]);
 
     const { sources } = await standardEvaluableConfig(
       `
       /* 
         sourceMain
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
+      _ _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
 
       /* 
         sourceCalculate
       */
+       
       evencount oddcount s2 s3 s4 s5: ,
       retevencount: call<1 2>(s2 s3 s4 s5),
-      _: add(retevencount evencount),
 
       /* counting ODD numbers [Total elements - EVEN number count = ODD number count] */
       totalminuseven: sub(read-memory<${MemoryType.Constant} 2>() retevencount),
-      _: add(totalminuseven oddcount);
+      retoddcount: add(totalminuseven oddcount),
+      _: add(retevencount evencount),
+      _: retoddcount;
+
 
       /* 
       sourceCountEvent
@@ -415,8 +355,6 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       `
     );
 
-    console.log("Sources = ", sources);
-    // [sourceMain, sourceCalculate, sourceCountEven],
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
@@ -437,6 +375,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       expression0.dispatch,
       context
     );
+
     const [evenCount, oddCount] = await logic.stack();
 
     let expectedOddCount = 0,

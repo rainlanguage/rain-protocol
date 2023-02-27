@@ -245,61 +245,12 @@ describe("LOOP_N Opcode test", async function () {
       1,
     ];
 
-    // prettier-ignore
-    const sourceShiftRight = concat([
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-            op(Opcode.mul, 2), // 32 * LEVEL
-          op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
-        op(Opcode.mul, 2),
-
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-      op(Opcode.add, 2),
-    ]);
-
-    // prettier-ignore
-    const sourceAddAndShiftRight = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
-        op(Opcode.add, 2),
-
-          // Right Shifting
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-        op(Opcode.call, callOperand(3, 1, 3)),
-
-          // Decrementing the LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturating_sub, 2), // LEVEL - 1
-    ]);
-
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.call, callOperand(3, 3, 2)),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.loop_n, loopNOperand(n, 3, 3, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
-      op(Opcode.explode_32),
-    ]);
     const { sources } = await standardEvaluableConfig(
       `
       /* 
         sourceMain
       */
-        loopoutput: loop-n<${n} 3 1>(
+        _ loopoutput _: loop-n<${n} 3 1>(
             read-memory<${MemoryType.Constant} 0>()
             read-memory<${MemoryType.Constant} 4>()
             read-memory<${MemoryType.Constant} 5>()
@@ -310,7 +261,7 @@ describe("LOOP_N Opcode test", async function () {
         sourceAdd source 
       */
         s0 s1 s2: ,
-        _: call<3 2>(s0 s1 s2);
+        _ _ _: call<3 2>(s0 s1 s2);
       
       /* 
         sourceAddAndShiftRight source 
@@ -335,7 +286,7 @@ describe("LOOP_N Opcode test", async function () {
         op: add(finalmul s1);
       `
     );
-    // [sourceMAIN, sourceADD, sourceAddAndShiftRight, sourceShiftRight],
+
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
@@ -357,7 +308,6 @@ describe("LOOP_N Opcode test", async function () {
       []
     );
     const result0 = await logic.stack();
-
     expectedResult = expectedResult.reverse();
     expect(result0).deep.equal(
       expectedResult,
