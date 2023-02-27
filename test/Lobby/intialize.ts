@@ -126,7 +126,7 @@ describe("Lobby Tests Intialize", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("orderbook"), // Bad callerMeta passed.
+        meta: getRainDocumentsFromContract("orderbook"), // Bad callerMeta passed.
         deployer: touchDeployer.address,
       };
 
@@ -143,7 +143,7 @@ describe("Lobby Tests Intialize", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("lobby"), // Bad callerMeta passed.
+        meta: getRainDocumentsFromContract("lobby"), // Bad callerMeta passed.
         deployer: touchDeployer.address,
       };
 

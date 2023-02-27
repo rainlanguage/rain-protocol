@@ -25,7 +25,7 @@ describe("OrderBook Constructor", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const config0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainDocumentsFromContract("orderbook"),
+      meta: getRainDocumentsFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
     const orderBook = (await orderBookFactory.deploy(config0)) as OrderBook;
@@ -33,7 +33,7 @@ describe("OrderBook Constructor", async function () {
     assert(!(orderBook.address === zeroAddress), "OrderBook did not deploy");
 
     const config1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainDocumentsFromContract("lobby"),
+      meta: getRainDocumentsFromContract("lobby"),
       deployer: touchDeployer.address,
     };
 

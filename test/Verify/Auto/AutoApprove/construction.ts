@@ -145,7 +145,7 @@ describe("AutoApprove construction", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const config_0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainDocumentsFromContract("autoapprove"),
+      meta: getRainDocumentsFromContract("autoapprove"),
       deployer: touchDeployer.address,
     };
 
@@ -155,7 +155,7 @@ describe("AutoApprove construction", async function () {
     assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
 
     const config_1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainDocumentsFromContract("orderbook"),
+      meta: getRainDocumentsFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
 

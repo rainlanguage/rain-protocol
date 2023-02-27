@@ -6,7 +6,6 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 import "../factory/ICloneableV1.sol";
@@ -49,7 +48,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x60722d57072b0f0a4172c079eb1ec750244c63c2672845ebb37a4b499031ce1e
+    0x7b502f0d882b6fb3f4cb8d23df5af06f3b0f4dda66988026f6b7256bc0f559ed
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.

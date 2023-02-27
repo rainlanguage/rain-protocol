@@ -15,7 +15,7 @@ export const combineTierImplementation = async (): Promise<CombineTier> => {
   const combineTierFactory = await ethers.getContractFactory("CombineTier");
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("combinetier"),
+    meta: getRainDocumentsFromContract("combinetier"),
     deployer: touchDeployer.address,
   };
 

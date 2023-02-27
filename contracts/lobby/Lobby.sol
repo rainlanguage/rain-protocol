@@ -32,7 +32,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x3410599f2c8027f73fccfc47673fe1d5c514b83e181809b691b03afa07dab3e8
+    0x21b4833bfa4393d3ff0b93924d914c40261903b9b0d65761b9d801b96d22939e
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.

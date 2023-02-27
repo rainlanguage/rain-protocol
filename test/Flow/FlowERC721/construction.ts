@@ -128,7 +128,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("flow721"),
+        meta: getRainDocumentsFromContract("flow721"),
         deployer: touchDeployer.address,
       };
 
@@ -140,7 +140,7 @@ describe("FlowERC721 construction tests", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("orderbook"),
+        meta: getRainDocumentsFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

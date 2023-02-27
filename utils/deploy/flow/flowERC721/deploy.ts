@@ -25,7 +25,7 @@ export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("flow721"),
+    meta: getRainDocumentsFromContract("flow721"),
     deployer: touchDeployer.address,
   };
 

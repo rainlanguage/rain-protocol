@@ -8,7 +8,7 @@ import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionD
 export const deployOrderBook = async (): Promise<OrderBook> => {
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("orderbook"),
+    meta: getRainDocumentsFromContract("orderbook"),
     deployer: touchDeployer.address,
   };
   const orderBookFactory = await ethers.getContractFactory("OrderBook", {});

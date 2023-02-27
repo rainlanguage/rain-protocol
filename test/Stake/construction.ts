@@ -138,7 +138,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("stake"),
+        meta: getRainDocumentsFromContract("stake"),
         deployer: touchDeployer.address,
       };
 
@@ -150,7 +150,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainDocumentsFromContract("orderbook"),
+        meta: getRainDocumentsFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

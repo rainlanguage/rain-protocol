@@ -22,7 +22,7 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
 
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("autoapprove"),
+    meta: getRainDocumentsFromContract("autoapprove"),
     deployer: touchDeployer.address,
   };
 

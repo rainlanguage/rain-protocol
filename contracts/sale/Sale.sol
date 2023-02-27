@@ -25,7 +25,7 @@ import "../factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x3e1390ea3a9b9814e3b5468f2f1e81b098c6da35f4269273e1811a1ea949b18e
+    0x658ac3bbe4ec4021eac16b1ea33c7f82beeda44adb69f6f7c32fae32b6daa6d1
 );
 
 /// Everything required to construct a Sale (not initialize).

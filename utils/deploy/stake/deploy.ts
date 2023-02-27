@@ -20,7 +20,7 @@ export const stakeImplementation = async (): Promise<Stake> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("stake"),
+    meta: getRainDocumentsFromContract("stake"),
     deployer: touchDeployer.address,
   };
 

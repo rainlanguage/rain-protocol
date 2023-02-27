@@ -18,7 +18,7 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
     await getTouchDeployer();
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainDocumentsFromContract("lobby"),
+    meta: getRainDocumentsFromContract("lobby"),
     deployer: touchDeployer.address,
   };
 
