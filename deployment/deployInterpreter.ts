@@ -20,7 +20,7 @@ const main = async function () {
 
   // RainterpreterStore
   const store = await rainterpreterStoreDeploy();
-  console.log("RainterpreterStore deployed at: ", interpreter.address);
+  console.log("RainterpreterStore deployed at: ", store.address);
 
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
     interpreter,
