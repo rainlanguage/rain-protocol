@@ -64,7 +64,7 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
 
     /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
-        __TierV2_init();
+        tierV2Init();
 
         CombineTierConfig memory config_ = abi.decode(
             data_,

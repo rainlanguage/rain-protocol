@@ -178,7 +178,7 @@ contract Stake is
 
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
-        __TierV2_init();
+        tierV2Init();
 
         (interpreter, , expression) = config_
             .evaluableConfig
