@@ -55,8 +55,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure no more players are able to join after players are finalized", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -161,8 +160,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure non-players are able to join and refs not able to join", async function () {
     const signers = await ethers.getSigners();
-    const ref = signers[0];
-    const alice = signers[1];
+    const [ref, alice] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -280,8 +278,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure player joins lobby on happy path ", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -384,8 +381,7 @@ describe("Lobby Tests join", async function () {
 
   it("should validate context emitted in Context Event", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -529,8 +525,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure that join isn't reentrant", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;

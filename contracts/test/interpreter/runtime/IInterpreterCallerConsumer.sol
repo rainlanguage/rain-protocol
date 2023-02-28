@@ -19,7 +19,7 @@ contract IInterpreterCallerConsumer is InterpreterCallerV1 {
     ) external pure returns (bool) {
         LibMeta.checkMeta(keccak256(expectedHash_), meta_);
         return true;
-    } 
+    }
 
     function checkIsRainMetaV1(
         bytes memory meta_

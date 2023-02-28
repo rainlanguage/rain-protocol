@@ -54,10 +54,7 @@ describe("Sale buy", async function () {
 
   it("should correctly generate receipts", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -190,10 +187,7 @@ describe("Sale buy", async function () {
 
   it("should use calculated maxUnits when processing buy if maxUnits is less than targetUnits", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -313,10 +307,7 @@ describe("Sale buy", async function () {
 
   it("should prevent reentrant buys", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -456,10 +447,7 @@ describe("Sale buy", async function () {
 
   it("should respect buy cooldown when sale is active", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -564,10 +552,7 @@ describe("Sale buy", async function () {
 
   it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -651,10 +636,7 @@ describe("Sale buy", async function () {
 
   it("should support multiple successive buys", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -902,10 +884,7 @@ describe("Sale buy", async function () {
 
   it("should set values from handleBuy entrypoint and accesses it across transactions", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;

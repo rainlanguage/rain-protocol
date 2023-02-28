@@ -29,7 +29,7 @@ describe("OrderBook vaultBalance", async function () {
   it("should record vault balance and allow reading balance via getter", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
+    const [, alice] = signers;
 
     const orderBook = await deployOrderBook();
 

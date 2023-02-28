@@ -58,8 +58,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should support transferPreflight hook", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferStruct = {
       native: [],
@@ -207,8 +206,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should mint and burn tokens per flow in exchange for another token (e.g. native)", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const tokenId = 0;
 
@@ -486,8 +484,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for erc1155<->native on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc1155In = (await basicDeploy(
       "ReserveTokenERC1155",
@@ -683,8 +680,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for erc721<->erc1155 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721In = (await basicDeploy(
       "ReserveTokenERC721",
@@ -874,8 +870,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for erc20<->erc721 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -1041,8 +1036,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for native<->erc20 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20Out = (await basicDeploy(
       "ReserveToken18",
@@ -1212,8 +1206,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc1155In = (await basicDeploy(
       "ReserveTokenERC1155",
@@ -1412,8 +1405,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for ERC721<->ERC721 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721In = (await basicDeploy(
       "ReserveTokenERC721",
@@ -1598,8 +1590,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for ERC20<->ERC20 on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -1771,8 +1762,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should flow for native<->native on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferStruct = {
       native: [
@@ -1927,7 +1917,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should receive Ether", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -1982,9 +1972,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should fail when token burner is not the owner", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
-    const bob = signers[2];
+    const [deployer, you, bob] = signers;
 
     const tokenId = 0;
 
@@ -2142,8 +2130,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should not be able to access values set in a flow across different flows", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferStruct = {
       native: [
@@ -2353,8 +2340,7 @@ describe("FlowERC721 flow tests", async function () {
 
   it("should utilize context in HANDLE_TRANSFER entrypoint", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();

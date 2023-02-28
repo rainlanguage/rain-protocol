@@ -25,18 +25,17 @@ describe("Verify request remove", async function () {
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // signers
-    const signer1 = signers[7];
-    const signer2 = signers[8];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+      signer2,
+    ] = signers;
 
     const verify = await verifyCloneDeploy(
       signers[0],

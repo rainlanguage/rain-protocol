@@ -29,8 +29,6 @@ export type ContractMeta =
   | "autoapprove"
   | "combinetier";
 
-
-
 /**
  * @public
  * Get deplyable compressed bytes of a Rain contract meta

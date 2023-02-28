@@ -50,10 +50,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding with modified receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -172,11 +169,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding with someone else's receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
-    const signer2 = signers[4];
+    const [deployer, recipient, signer1, signer2, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -300,10 +293,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding twice with same receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -407,10 +397,7 @@ describe("Sale refund", async function () {
 
   it("should respect refund cooldown when sale is active, and bypass refund cooldown when sale is fail", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 50;

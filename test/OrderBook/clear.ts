@@ -69,9 +69,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -225,9 +223,7 @@ describe("OrderBook clear order", async function () {
       await tokenA20.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -381,9 +377,7 @@ describe("OrderBook clear order", async function () {
       await tokenA18.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -538,9 +532,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB20.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -692,9 +684,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -848,9 +838,7 @@ describe("OrderBook clear order", async function () {
       await tokenA00.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1005,9 +993,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1142,9 +1128,7 @@ describe("OrderBook clear order", async function () {
       await tokenA20.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1279,9 +1263,7 @@ describe("OrderBook clear order", async function () {
       await tokenA18.initialize();
       await tokenB06.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1416,9 +1398,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB20.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1553,9 +1533,7 @@ describe("OrderBook clear order", async function () {
       await tokenA06.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1690,9 +1668,7 @@ describe("OrderBook clear order", async function () {
       await tokenA00.initialize();
       await tokenB18.initialize();
 
-      const alice = signers[1];
-      const bob = signers[2];
-      const bountyBot = signers[3];
+      const [, alice, bob, bountyBot] = signers;
 
       const orderBook = await deployOrderBook();
 
@@ -1815,9 +1791,7 @@ describe("OrderBook clear order", async function () {
   it("orders must be live to clear (order B)", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -1979,9 +1953,7 @@ describe("OrderBook clear order", async function () {
   it("orders must be live to clear (order A)", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -2144,9 +2116,7 @@ describe("OrderBook clear order", async function () {
   it("should validate input/output tokens", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -2473,9 +2443,7 @@ describe("OrderBook clear order", async function () {
   it("should add Order_A and Order_B and clear the order", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -2675,9 +2643,7 @@ describe("OrderBook clear order", async function () {
     await tokenA06.initialize();
     await tokenB18.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -2833,9 +2799,7 @@ describe("OrderBook clear order", async function () {
   it("should validate context emitted in context event when handleIO dispatch is zero", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
     const aliceInputVault = ethers.BigNumber.from(randomUint256());

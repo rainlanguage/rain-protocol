@@ -1,10 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { IInterpreterCallerConsumer } from "../../../typechain";
-import {
-  
-  InterpreterCallerV1ConstructionConfigStruct,
-} from "../../../typechain/contracts/flow/FlowCommon";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   ExpressionAddressEvent,
   NewExpressionEvent,
@@ -41,8 +38,7 @@ describe("Caller Test", async function () {
       {
         meta: getRainDocumentsFromContract("lobby"),
         deployer: touchDeployer.address,
-      }; 
-
+      };
 
     await assertError(
       async () =>
@@ -50,8 +46,6 @@ describe("Caller Test", async function () {
       "UnexpectedMetaHash",
       "Deployed with incorrect Meta Hash"
     );
-
-    
   });
 
   it("should ensure caller is deployed with correct data for Meta event ", async function () {
@@ -186,9 +180,8 @@ describe("Caller Test", async function () {
       getRainDocumentsFromContract("lobby")
     );
 
-    assert(correctHash, "Incorrect Meta Hash"); 
-
-  });   
+    assert(correctHash, "Incorrect Meta Hash");
+  });
 
   it("should ensure checkCallerMeta fails if contract meta hashes are invalid rain meta", async function () {
     const touchDeployer = await getTouchDeployer();
@@ -215,14 +208,13 @@ describe("Caller Test", async function () {
     await assertError(
       async () =>
         await caller.checkMeta(
-          getRainContractMetaBytes("stake"), 
+          getRainContractMetaBytes("stake"),
           getRainContractMetaBytes("stake")
         ),
       "NotRainMetaV1",
       "Incorrect Rain Hash"
     );
-
-  });  
+  });
 
   it("should ensure that contract meta is valid RainMeta", async function () {
     const touchDeployer = await getTouchDeployer();
@@ -233,7 +225,6 @@ describe("Caller Test", async function () {
     );
 
     const stakeContractMeta = getRainDocumentsFromContract("stake");
-  
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -248,16 +239,13 @@ describe("Caller Test", async function () {
 
     const validRainMetaV1 = await caller.checkIsRainMetaV1(
       getRainDocumentsFromContract("stake")
-    );  
+    );
 
     const inValidRainMetaV1 = await caller.checkIsRainMetaV1(
       getRainContractMetaBytes("stake")
-    ); 
+    );
 
-    assert(validRainMetaV1, "Valid RainMeta"); 
-    assert(!inValidRainMetaV1, "InValid RainMeta"); 
-
+    assert(validRainMetaV1, "Valid RainMeta");
+    assert(!inValidRainMetaV1, "InValid RainMeta");
   });
-
-
 });
