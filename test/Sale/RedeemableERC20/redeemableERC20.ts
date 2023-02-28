@@ -141,7 +141,7 @@ describe("Sale redeemableERC20 token", async function () {
           desiredUnits,
           maximumPrice: staticPrice,
         }),
-      "MIN_TIER",
+      "MinimumTier(4, 0)",
       "singer1 bought units from Sale without meeting minimum tier requirement"
     );
     await readWriteTier.setTier(signer1.address, Tier.FOUR);
@@ -329,28 +329,29 @@ describe("Sale redeemableERC20 token", async function () {
         distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
+    console.log(`OnlyAdmin(${deployer.address})`);
     // deployer cannot add receiver
     await assertError(
       async () => await token.connect(deployer).grantReceiver(deployer.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${deployer.address}\\")`,
       "deployer added receiver, despite not being token admin"
     );
     // deployer cannot add sender
     await assertError(
       async () => await token.connect(deployer).grantSender(deployer.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${deployer.address}\\")`,
       "deployer added sender, despite not being token admin"
     );
     // anon cannot add receiver
     await assertError(
       async () => await token.connect(signer1).grantReceiver(signer1.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${signer1.address}\\")`,
       "anon added receiver, despite not being token admin"
     );
     // anon cannot add sender
     await assertError(
       async () => await token.connect(signer1).grantSender(signer1.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${signer1.address}\\")`,
       "anon added sender, despite not being token admin"
     );
   });

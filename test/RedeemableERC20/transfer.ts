@@ -88,7 +88,7 @@ describe("RedeemableERC20 transfer test", async function () {
     await Util.assertError(
       async () =>
         await token.connect(aliceReceiver).transfer(bobReceiver.address, 1),
-      "2SPOKE",
+      "Spoke2Hop()",
       "alice sent tokens despite not being a 'receiver'"
     );
 
@@ -120,7 +120,7 @@ describe("RedeemableERC20 transfer test", async function () {
     await Util.assertError(
       async () =>
         await token.connect(carolSpoke).transfer(daveSpoke.address, 1),
-      "2SPOKE",
+      "Spoke2Hop()",
       "carol wrongly sent tokens to dave (another spoke)"
     );
 
@@ -173,7 +173,7 @@ describe("RedeemableERC20 transfer test", async function () {
           redeemableERC20.address,
           await redeemableERC20.balanceOf(signers[0].address)
         ),
-      "TOKEN_SEND_SELF",
+      "TokenSelfSend()",
       "user successfully transferred all their redeemables tokens to token contract"
     );
   });
