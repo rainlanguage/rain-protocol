@@ -5,8 +5,8 @@ import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/u
 import "./ITierV2.sol";
 
 abstract contract TierV2 is ITierV2, ERC165 {
-    // solhint-disable-next-line func-name-mixedcase
-    function __TierV2_init() internal onlyInitializing {
+    /// Initializer for TierV2 simply initializes the inherited ERC165.
+    function tierV2Init() internal onlyInitializing {
         __ERC165_init();
     }
 
