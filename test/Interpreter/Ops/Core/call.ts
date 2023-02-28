@@ -1,23 +1,12 @@
 import { assert, expect } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { TierReportTest } from "../../../../typechain";
 import {
-  AllStandardOps,
-  basicDeploy,
-  callOperand,
-  getBlockTimestamp,
-  memoryOperand,
+  assertError,
   MemoryType,
-  op,
-  readWriteTierDeploy,
-  Tier,
-  timewarp,
+  standardEvaluableConfig,
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = AllStandardOps;
 
 describe("CALL Opcode test", async function () {
   before(async () => {
@@ -26,49 +15,68 @@ describe("CALL Opcode test", async function () {
     await deploy1820(signers[0]);
   });
 
-  it("should change the eval's scope using CALL opcode", async () => {
-    const constants = [0, 1];
+  it("should execute a simple call (increment a number)", async () => {
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 1>(2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
-    // input = 3 bits [ 1-7 ]
-    // output = 2 bits [ 1-3]
-    // sourceIndex = 3 bits [ 1-7 ]
-
-    const callADD = op(Opcode.call, callOperand(2, 1, 1));
-
-    // Source to add 2 numbers, input will be provided from another source
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.add, 2),
-    ]);
-
-    // Source for calculating fibonacci sequence uptill 5
-    // prettier-ignore
-    const sourceMAIN = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-        callADD,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-        callADD
-    ]);
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN, sourceADD],
-        constants,
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
-        1
-      );
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
+
+    const result = await consumerLogic.stackTop();
+    const expectedResult = 3;
+
+    assert(result.eq(expectedResult));
+  });
+
+  it("should change the eval's scope using CALL opcode", async () => {
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source calculating fibonacci sequence up to 5 */
+      _ _ _ _ _ _:
+          0
+          1
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+          )
+          call<1 1>(
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+          );
+
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          )
+        ;`
+    );
+
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy(sources, constants, 6);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -85,33 +93,20 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the minimum number of input", async () => {
-    const constants = [10, 2, 20];
-    const minInput = 0;
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source */
+      _:  add(
+            call<1 1>()
+            10
+          );
 
-    // CALL opcode which will take 0 input, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(minInput, 1, 1));
-
-    // Source to multiply 2 numbers, input will be provided from another source
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 20
-      op(Opcode.mul, 2), // 40
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-        call0,
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 10
-        op(Opcode.add, 2) // 50
-    ]);
+      /* source 1 */
+      _:  mul(2 20);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN, source1],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -127,81 +122,97 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of inputs and fail beyond that", async () => {
-    const constants = [2];
-    const maxInputs = 7;
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        `
+      /* main source */
+      _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
 
-    // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(maxInputs, 1, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 5)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 6)),
-      op(Opcode.mul, maxInputs),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0,
-    ]);
-
-    const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        1
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+            read-memory<${MemoryType.Stack} 5>()
+            read-memory<${MemoryType.Stack} 6>()
+            read-memory<${MemoryType.Stack} 7>()
+            read-memory<${MemoryType.Stack} 8>()
+            read-memory<${MemoryType.Stack} 9>()
+            read-memory<${MemoryType.Stack} 10>()
+            read-memory<${MemoryType.Stack} 11>()
+            read-memory<${MemoryType.Stack} 12>()
+            read-memory<${MemoryType.Stack} 13>()
+            read-memory<${MemoryType.Stack} 14>()
+          );`
       );
 
-    await consumerLogic["eval(address,uint256,uint256[][])"](
-      interpreter.address,
-      dispatch,
+    const {
+      consumerLogic: consumerLogic0,
+      interpreter: interpreter0,
+      dispatch: dispatch0,
+    } = await iinterpreterV1ConsumerDeploy(sources0, constants0, 1);
+
+    await consumerLogic0["eval(address,uint256,uint256[][])"](
+      interpreter0.address,
+      dispatch0,
       []
     );
-    const result0 = await consumerLogic.stackTop();
-    const expectedResult0 = ethers.BigNumber.from("128");
+    const result0 = await consumerLogic0.stackTop();
+    const expectedResult0 = ethers.BigNumber.from(2 ** 15);
     assert(
       result0.eq(expectedResult0),
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
+
+    assertError(
+      async () =>
+        await standardEvaluableConfig(
+          `
+      /* main source */
+      _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
+
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+            read-memory<${MemoryType.Stack} 2>()
+            read-memory<${MemoryType.Stack} 3>()
+            read-memory<${MemoryType.Stack} 4>()
+            read-memory<${MemoryType.Stack} 5>()
+            read-memory<${MemoryType.Stack} 6>()
+            read-memory<${MemoryType.Stack} 7>()
+            read-memory<${MemoryType.Stack} 8>()
+            read-memory<${MemoryType.Stack} 9>()
+            read-memory<${MemoryType.Stack} 10>()
+            read-memory<${MemoryType.Stack} 11>()
+            read-memory<${MemoryType.Stack} 12>()
+            read-memory<${MemoryType.Stack} 13>()
+            read-memory<${MemoryType.Stack} 14>()
+            read-memory<${MemoryType.Stack} 15>()
+          );`
+        ),
+      "out-of-range operand args",
+      "did not error when call inputs arg out of range (4 bits)"
+    );
   });
 
   it("should process the minimum number of output", async () => {
-    const constants = [2];
-    const minOutput = 1;
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 1>(2 2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
-    const call0 = op(Opcode.call, callOperand(2, minOutput, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.mul, 2),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0,
-    ]);
+      /* source 1 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          );`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -218,33 +229,23 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of output and fail beyond that", async () => {
-    const constants = [2, 10, 20];
-    const maxOutput = 3;
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source */
+      _ _ _:  call<3 1>(2 2);
 
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
-    const call0 = op(Opcode.call, callOperand(2, maxOutput, 1));
-    const source1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.mul, 2),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN0 = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        call0, // should end up adding 3 elements to the stack
-    ]);
+      /* source 1 */
+      _ _ _:  mul(
+                read-memory<${MemoryType.Stack} 0>()
+                read-memory<${MemoryType.Stack} 1>()
+              )
+              10
+              20
+          ;`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceMAIN0, source1],
-        constants,
-
-        maxOutput
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 3);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -265,94 +266,79 @@ describe("CALL Opcode test", async function () {
   });
 
   it("should process the maximum number of sources", async () => {
-    const constants = [2, 10, 1];
+    /*
+      call<1 1>  4
+      call<1 2>  4 - 1 = 3
+      call<1 3>  3 * 10 = 30
+      call<1 4>  30 / 2 = 15
+      call<1 5>  15 ** 2 = 225
+      call<1 6>  225 + 10 = 235
+      call<1 7>  235 + 1 = 236
+    */
 
-    // CALL opcode which will take 0 input, pass it to source at index 1, and return 1 output
-    const callADD = op(Opcode.call, callOperand(2, 1, 1));
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.add, 2)
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source */
+      _:  call<1 7>(
+            call<1 6>(
+              call<1 5>(
+                call<1 4>(
+                  call<1 3>(
+                    call<1 2>(
+                      call<1 1>(2 2)
+                    )
+                  )
+                )
+              )
+            )
+          );
 
-    const callSUB = op(Opcode.call, callOperand(1, 1, 2));
-    // prettier-ignore
-    const sourceSUB = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1
-      op(Opcode.sub, 2)
-    ]);
+      /* source 1 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            read-memory<${MemoryType.Stack} 1>()
+          );
 
-    const callMUL = op(Opcode.call, callOperand(1, 1, 3));
-    // prettier-ignore
-    const sourceMUL = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 10
-      op(Opcode.mul, 2)
-    ]);
+      /* source 2 */
+      _:  sub(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );
 
-    const callDIV = op(Opcode.call, callOperand(1, 1, 4));
-    // prettier-ignore
-    const sourceDIV = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-      op(Opcode.div, 2)
-    ]);
+      /* source 3 */
+      _:  mul(
+            read-memory<${MemoryType.Stack} 0>()
+            10
+          );
 
-    const callEXP = op(Opcode.call, callOperand(1, 1, 5));
-    // prettier-ignore
-    const sourceEXP = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-      op(Opcode.exp, 2)
-    ]);
+      /* source 4 */
+      _:  div(
+            read-memory<${MemoryType.Stack} 0>()
+            2
+          );
 
-    const callADD10 = op(Opcode.call, callOperand(1, 1, 6));
-    // prettier-ignore
-    const sourceADD10 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // 10
-      op(Opcode.add, 2)
-    ]);
+      /* source 5 */
+      _:  exp(
+            read-memory<${MemoryType.Stack} 0>()
+            2
+          );
 
-    const callADD1 = op(Opcode.call, callOperand(1, 1, 7));
-    // prettier-ignore
-    const sourceADD1 = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 1
-      op(Opcode.add, 2)
-    ]);
+      /* source 6 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            10
+          );
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // 2
-        callADD, // 4
-        callSUB, // 4 - 1 = 3
-        callMUL, // 3 * 10 = 30
-        callDIV, // 30 / 2 = 15
-        callEXP, // 15 ** 2 = 225
-        callADD10, // 225 + 10 = 235
-        callADD1, // 235 + 1 = 236
-    ]);
+      /* source 7 */
+      _:  add(
+            read-memory<${MemoryType.Stack} 0>()
+            1
+          );
+      `
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [
-          sourceMAIN,
-          sourceADD,
-          sourceSUB,
-          sourceMUL,
-          sourceDIV,
-          sourceEXP,
-          sourceADD10,
-          sourceADD1,
-        ],
-        constants,
-
-        1
-      );
+      await iinterpreterV1ConsumerDeploy(sources, constants, 1);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
@@ -368,167 +354,86 @@ describe("CALL Opcode test", async function () {
     );
   });
 
-  it("should execute a function which will calculate the discount based on user's TIER", async () => {
-    const initialTimestamp = await getBlockTimestamp();
-    const [, alice, bob] = await ethers.getSigners();
+  it("should forward inputs to a call while also supporting other aliases", async () => {
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source 0 */
+      _ _:  call<2 1>(10);
 
-    // Tier Factory
-    const readWriteTier = await readWriteTierDeploy();
-
-    const tierReport = (await basicDeploy(
-      "TierReportTest",
-      {}
-    )) as TierReportTest;
-
-    // Setting Alice's Tier
-    await readWriteTier.connect(alice).setTier(alice.address, Tier.TWO);
-    await timewarp(10);
-
-    // Setting Bob's tier
-    await readWriteTier.connect(bob).setTier(bob.address, Tier.FOUR);
-    timewarp(10);
-
-    // Setting Asset price
-    const assetPrice = ethers.BigNumber.from("100");
-
-    const constants = [
-      10, // Discount Multiplier
-      Tier.ONE,
-      Tier.TWO,
-      Tier.THREE,
-      Tier.FOUR,
-      Tier.FIVE,
-      Tier.SIX,
-      Tier.SEVEN,
-      Tier.EIGHT,
-      0, // No Discount
-    ];
-
-    const callGetDiscount = op(Opcode.call, callOperand(1, 1, 1));
-
-    // prettier-ignore
-    const sourceGetDiscount = concat([
-          // IF TIER == 1
-            op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Adding extra copy of Tier being passed to function
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.equal_to),
-          // THEN DISCOUNT = 10
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.mul, 2),
-            // ELSE IF TIER == 2
-              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.equal_to),
-              // THEN DISCOUNT = 20
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.mul, 2),
-                // ELSE IF TIER == 3
-                op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.equal_to),
-                // THEN DISCOUNT = 30
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.mul, 2),
-                  // ELSE IF TIER == 4
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.equal_to),
-                  // THEN DISCOUNT = 40
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                  op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.mul, 2),
-                    // ELSE IF TIER == 5
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.equal_to),
-                    // THEN DISCOUNT = 50
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                    op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.mul, 2),
-                      // ELSE IF TIER == 6
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.equal_to),
-                      // THEN DISCOUNT = 60
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.mul, 2),
-                        // ELSE IF TIER == 7
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.equal_to),
-                        // THEN DISCOUNT = 70
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-                        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.mul, 2),
-                        // ELSE
-                      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
-                    op(Opcode.eager_if), // TIER == 7
-                  op(Opcode.eager_if), // TIER == 6
-                op(Opcode.eager_if), // TIER == 5
-              op(Opcode.eager_if), // TIER == 4
-            op(Opcode.eager_if), // TIER == 3
-          op(Opcode.eager_if), // TIER == 2
-        op(Opcode.eager_if), // TIER == 1
-    ]);
-
-    // prettier-ignore
-    const sourceGetDiscountedPrice = concat([
-        op(Opcode.context, 0x0001), // PRICE
-          op(Opcode.context, 0x0000), // TIER
-        callGetDiscount, // This function takes TIER as an input and returns the discount that will be applied on the price
-      op(Opcode.sub, 2) // PRICE - DISCOUNT
-    ]);
+      /* source 1 */
+      ten: ,
+      twenty: 20,
+      _ _:  ten twenty;
+      `
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [sourceGetDiscountedPrice, sourceGetDiscount],
-        constants,
+      await iinterpreterV1ConsumerDeploy(sources, constants, 2);
 
-        1
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
+
+    const expectedResults = [10, 20];
+    const results = await consumerLogic.stack();
+
+    expectedResults.forEach((expected, i_) => {
+      assert(
+        results[i_].eq(expected),
+        `wrong value at stack position ${i_}
+        expected  ${expected}
+        actual    ${results[i_]}`
       );
+    });
+  });
 
-    // Calculating price for Alice
-    const reportAlice = await readWriteTier.report(alice.address, []);
-    const tierBlockReportAlice = await tierReport.tierAtTimeFromReport(
-      reportAlice,
-      initialTimestamp + 5
+  it("should preserve a stack value in a call", async () => {
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+      /* main source 0 */
+      value: 10,
+      _ _ _:    call<3 1>(value);
+
+      /* source 1 */
+      stack-value: read-memory<${MemoryType.Stack} 0>(),
+      _ _ _:
+            ensure(stack-value)
+
+            stack-value
+
+            eager-if(
+              0
+              20
+              stack-value
+            )
+
+            eager-if(
+              0
+              30
+              eager-if(
+                0
+                40
+                stack-value
+              )
+            );
+      `
     );
+
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy(sources, constants, 3);
 
     await consumerLogic["eval(address,uint256,uint256[][])"](
       interpreter.address,
       dispatch,
-      [[tierBlockReportAlice, assetPrice]]
-    );
-    const resultAlice = await consumerLogic.stackTop();
-
-    const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
-    assert(
-      resultAlice.eq(expectedPriceAlice),
-      `Invalid price returned for Alice. Expected : ${expectedPriceAlice} Actual ${resultAlice}`
+      []
     );
 
-    // Calculating price for Bob
-    const reportBob = await readWriteTier.report(bob.address, []);
-    const tierBlockReportBob = await tierReport.tierAtTimeFromReport(
-      reportBob,
-      initialTimestamp + 15
-    );
+    const results = await consumerLogic.stack();
 
-    await consumerLogic["eval(address,uint256,uint256[][])"](
-      interpreter.address,
-      dispatch,
-      [[tierBlockReportBob, assetPrice]]
-    );
-
-    const resultBob = await consumerLogic.stackTop();
-    const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
-    assert(
-      resultBob.eq(expectedPriceBob),
-      `Invalid price returned for Bob. Expected : ${expectedPriceBob} Actual ${resultBob}`
-    );
+    for (let i_ = 0; i_ < 3; i_++) {
+      assert(results[i_].eq(10));
+    }
   });
 });

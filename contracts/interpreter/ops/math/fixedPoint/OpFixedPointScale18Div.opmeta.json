@@ -6,7 +6,7 @@
       "name": "decimals",
       "desc": "decimals of the first value",
       "bits": [0, 7],
-      "validRange": [[1, 255]]
+      "validRange": [[0, 255]]
     }
   ],
   "inputs": {

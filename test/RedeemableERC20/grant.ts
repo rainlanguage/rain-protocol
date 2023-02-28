@@ -1,13 +1,21 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ERC20PulleeTest,
   ReadWriteTier,
   RedeemableERC20,
   ReserveToken,
 } from "../../typechain";
+import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { readWriteTierDeploy, Tier } from "../../utils";
+import {
+  basicDeploy,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
@@ -15,10 +23,16 @@ describe("RedeemableERC20 grant test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
   let reserve: ReserveToken;
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
     tier = await readWriteTierDeploy();
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -28,8 +42,7 @@ describe("RedeemableERC20 grant test", async function () {
   it("should grant alice sender then receiver and remain as both", async function () {
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
+    const [owner, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -43,13 +56,20 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    };
+
+    const token = await redeemableERC20DeployClone(
+      owner,
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     await erc20Pullee.grantSender(token.address, alice.address);
 
@@ -65,8 +85,7 @@ describe("RedeemableERC20 grant test", async function () {
   it("should grant alice receiver then sender and remain as both", async function () {
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
+    const [owner, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -80,13 +99,20 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    };
+
+    const token = await redeemableERC20DeployClone(
+      owner,
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     await erc20Pullee.grantReceiver(token.address, alice.address);
 
@@ -104,9 +130,7 @@ describe("RedeemableERC20 grant test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [owner, alice, bob] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -123,18 +147,25 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const token = (await Util.redeemableERC20Deploy(owner, {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
-      minimumTier,
+      minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20;
+    };
+
+    const token = await redeemableERC20DeployClone(
+      owner,
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     // alice tries to transfer to bob
     await Util.assertError(
       async () => await token.connect(alice).transfer(bob.address, 1),
-      "2SPOKE", // token sender must be a 'receiver'
+      "Spoke2Hop()", // token sender must be a 'receiver'
       "alice/bob sent/received tokens despite alice not being a 'receiver'"
     );
 

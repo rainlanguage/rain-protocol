@@ -1,17 +1,24 @@
 import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { ContextEvent } from "../../../../typechain/contracts/verify/auto/AutoApprove";
-import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import { CloneFactory } from "../../../../typechain";
+import {
+  AutoApprove,
+  ContextEvent,
+} from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import {
+  ApproveEvent,
+  Verify,
+} from "../../../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
+  autoApproveCloneDeploy,
+  autoApproveImplementation,
 } from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
@@ -23,25 +30,26 @@ import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
-  let autoApproveFactory: AutoApproveFactory;
-  let verifyFactory: VerifyFactory;
+  let implementAutoApprove: AutoApprove;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    autoApproveFactory = await autoApproveFactoryDeploy();
-    verifyFactory = await verifyFactoryDeploy();
+    implementAutoApprove = await autoApproveImplementation();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
-  it("should automatically approve sender iff AutoApprove has APPROVER role", async () => {
+  it("should automatically approve sender if AutoApprove has APPROVER role", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
@@ -57,17 +65,22 @@ describe("AutoApprove afterAdd", async function () {
       constants: [correctID],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
@@ -100,10 +113,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should not approve sender if evidence does not match the correct ID", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
     const badID = hexZeroPad(ethers.utils.randomBytes(32), 32);
@@ -120,17 +130,22 @@ describe("AutoApprove afterAdd", async function () {
       constants: [correctID],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     const deployOwner = await autoApprove.owner();
     assert(
@@ -167,10 +182,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should automatically approve sender if evidence matches the correct ID", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
@@ -186,17 +198,22 @@ describe("AutoApprove afterAdd", async function () {
       constants: [correctID],
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
@@ -230,27 +247,29 @@ describe("AutoApprove afterAdd", async function () {
   it("should trigger afterAdd callback and automatically deny approval of sender when Interpreter script returns 0", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 
@@ -279,27 +298,29 @@ describe("AutoApprove afterAdd", async function () {
   it("should trigger afterAdd callback and automatically approve sender when Interpreter script returns 1", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
@@ -342,27 +363,29 @@ describe("AutoApprove afterAdd", async function () {
   it("should validate Context emitted in Context event", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
-    const autoApprove = await autoApproveDeploy(
+    const autoApprove = await autoApproveCloneDeploy(
       deployer,
-      autoApproveFactory,
+      cloneFactory,
+      implementAutoApprove,
+      deployer,
       expressionConfig.sources,
       expressionConfig.constants
     );
 
-    const verify = await verifyDeploy(deployer, verifyFactory, {
-      admin: admin.address,
-      callback: autoApprove.address,
-    });
+    const verify = await verifyCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementVerify,
+      admin.address,
+      autoApprove.address
+    );
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 

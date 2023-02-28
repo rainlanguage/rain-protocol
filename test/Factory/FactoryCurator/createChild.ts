@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import type {
+  CloneFactory,
   CombineTier,
   FactoryChildTest,
   FactoryCurator,
@@ -9,7 +10,6 @@ import type {
   ReadWriteTier,
   ReserveToken,
   ReserveToken18,
-  StakeFactory,
 } from "../../../typechain";
 import {
   CurationConfigStruct,
@@ -17,17 +17,20 @@ import {
 } from "../../../typechain/contracts/factory/FactoryCurator";
 import {
   EvaluableConfigStruct,
+  Stake,
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/test/factory/Factory/FactoryChildTest";
 import {
-  combineTierDeploy,
+  combineTierCloneDeploy,
+  combineTierImplementation,
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
   Opcode,
-  stakeDeploy,
+  stakeCloneDeploy,
+  stakeImplementation,
   THRESHOLDS,
   THRESHOLDS_18,
   timewarp,
@@ -39,7 +42,6 @@ import {
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
@@ -47,14 +49,20 @@ import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
   let reserve: ReserveToken;
-  let stakeFactory: StakeFactory;
+  let implementationStake: Stake;
+  let cloneFactory: CloneFactory;
+  let implementationCombineTier: CombineTier;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    stakeFactory = await stakeFactoryDeploy();
+    implementationStake = await stakeImplementation();
+    implementationCombineTier = await combineTierImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -64,8 +72,7 @@ describe("FactoryCurator createChild", async function () {
   it("should revert if user does not meet tier requirement", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
+    const [, curator, signer1] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -128,9 +135,7 @@ describe("FactoryCurator createChild", async function () {
   it("should revert if config has not been registered", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
-    const wrongCurator = signers[3];
+    const [, curator, signer1, wrongCurator] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -202,8 +207,7 @@ describe("FactoryCurator createChild", async function () {
   it("should create a child using a registered config", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
-    const signer1 = signers[2];
+    const [, curator, signer1] = signers;
 
     const FEE = 100 + sixZeros;
 
@@ -285,9 +289,7 @@ describe("FactoryCurator createChild", async function () {
 
   it("should test createChild by passing stake tier contract which utilizes context", async () => {
     const signers = await ethers.getSigners();
-    const curator = signers[1];
-    const alice = signers[2];
-    const deployer = signers[3];
+    const [, curator, alice, deployer] = signers;
 
     // Stake expect 18 decimal asset
     const reserve18 = (await basicDeploy(
@@ -311,7 +313,12 @@ describe("FactoryCurator createChild", async function () {
       asset: reserve18.address,
       evaluableConfig: evaluableConfig,
     };
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS_18[1].add(1);
@@ -415,9 +422,7 @@ describe("FactoryCurator createChild", async function () {
 
   it("should test createChild by passing CombineTier contract which utilizes context", async () => {
     const signers = await ethers.getSigners();
-    const curator = signers[1];
-    const alice = signers[2];
-    const deployer = signers[3];
+    const [, curator, alice, deployer] = signers;
 
     const evaluableConfig: EvaluableConfigStruct =
       await generateEvaluableConfig(
@@ -436,8 +441,18 @@ describe("FactoryCurator createChild", async function () {
       evaluableConfig: evaluableConfig,
     };
 
-    const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    const stake1 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake0 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
+    const stake1 = await stakeCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationStake,
+      stakeConfigStruct
+    );
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS[4].add(1); // exceeds all thresholds
@@ -505,10 +520,13 @@ describe("FactoryCurator createChild", async function () {
       [stake0.address, stake1.address, max_uint32]
     );
 
-    const combineTierMain = (await combineTierDeploy(deployer, {
-      combinedTiersLength: 2,
-      evaluableConfig: evaluableConfigCombineTier,
-    })) as CombineTier;
+    const combineTierMain = await combineTierCloneDeploy(
+      deployer,
+      cloneFactory,
+      implementationCombineTier,
+      2,
+      evaluableConfigCombineTier
+    );
 
     const FEE = 100 + sixZeros;
 

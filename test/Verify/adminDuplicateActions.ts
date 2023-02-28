@@ -1,43 +1,50 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
+import type { CloneFactory, Verify } from "../../typechain";
+
 import {
   ApproveEvent,
   BanEvent,
 } from "../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../utils";
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 
 describe("Verify duplicate admin actions", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should support duplicate admin actions", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
-    // other signers
-    const signer1 = signers[7];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+      signer1,
+    ] = signers;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);

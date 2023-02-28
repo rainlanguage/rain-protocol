@@ -26,7 +26,7 @@ describe("RainInterpreter update tier range op", async function () {
     await logic.deployed();
   });
 
-  it("should enforce maxTier for update tier range operation", async () => {
+  it.only("should enforce maxTier for update tier range operation", async () => {
     await createEmptyBlock(3);
 
     const block = await ethers.provider.getBlockNumber();

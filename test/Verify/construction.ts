@@ -1,8 +1,12 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
-import { InitializeEvent } from "../../typechain/contracts/verify/Verify";
+import type { CloneFactory, Verify } from "../../typechain";
+
+import {
+  InitializeEvent,
+  VerifyConfigStruct,
+} from "../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../utils";
 import {
   APPROVER,
   APPROVER_ADMIN,
@@ -11,34 +15,41 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
+
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("Verify construction", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should construct and initialize correctly", async function () {
     const signers = await ethers.getSigners();
     const defaultAdmin = signers[0];
 
-    const verifyConfigStruct = {
+    const verifyConfig: VerifyConfigStruct = {
       admin: defaultAdmin.address,
       callback: ethers.constants.AddressZero,
     };
 
-    const verify = (await verifyDeploy(
+    const verify = await verifyCloneDeploy(
       defaultAdmin,
-      verifyFactory,
-      verifyConfigStruct
-    )) as Verify;
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     assert(
       (await verify.APPROVER_ADMIN()) === APPROVER_ADMIN,
@@ -59,7 +70,7 @@ describe("Verify construction", async function () {
     assert((await verify.BANNER()) === BANNER, "wrong BANNER hash value");
 
     const callback = await verify.callback();
-    assert(callback === verifyConfigStruct.callback, "wrong callback address");
+    assert(callback === verifyConfig.callback, "wrong callback address");
 
     const { sender, config } = (await getEventArgs(
       verify.deployTransaction,
@@ -67,10 +78,7 @@ describe("Verify construction", async function () {
       verify
     )) as InitializeEvent["args"];
 
-    assert(
-      sender === verifyFactory.address,
-      "wrong sender in Initialize event"
-    );
-    compareStructs(config, verifyConfigStruct);
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
+    compareStructs(config, verifyConfig);
   });
 });

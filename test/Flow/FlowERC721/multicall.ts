@@ -4,12 +4,13 @@ import { concat } from "ethers/lib/utils";
 import fs from "fs";
 import { ethers } from "hardhat";
 import {
-  FlowERC721Factory,
+  CloneFactory,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowERC721,
   FlowERC721IOStruct,
   FlowTransferStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
@@ -20,8 +21,10 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
@@ -36,7 +39,8 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 multicall tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
   const ME = () => op(Opcode.context, 0x0001); // base context this
   const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowERC721ABI = JSON.parse(
@@ -50,13 +54,15 @@ describe("FlowERC721 multicall tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721In = (await basicDeploy(
       "ReserveTokenERC721",
@@ -150,7 +156,9 @@ describe("FlowERC721 multicall tests", async function () {
     const SENTINEL_721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
@@ -220,28 +228,34 @@ describe("FlowERC721 multicall tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const expressionConfigStruct = {
       sources,
       constants: constants_A,
     };
 
-    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      expressionConfig: expressionConfigStruct,
-      flows: [
-        {
-          sources: [sourceFlowIO_A],
-          constants: constants_A,
-        },
-        {
-          sources: [sourceFlowIO_B],
-          constants: constants_B,
-        },
-      ],
-    });
+    const { flow } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: [sourceFlowIO_A],
+            constants: constants_A,
+          },
+          {
+            sources: [sourceFlowIO_B],
+            constants: constants_B,
+          },
+        ],
+      }
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

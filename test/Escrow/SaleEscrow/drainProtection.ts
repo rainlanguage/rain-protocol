@@ -2,15 +2,21 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { MockISaleV2, ReserveToken } from "../../../typechain";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 
 describe("SaleEscrow protection from draining", async function () {
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     // Deploy global Claim contract
     const { claim: rTKNClaimEscrow } = await escrowDeploy();

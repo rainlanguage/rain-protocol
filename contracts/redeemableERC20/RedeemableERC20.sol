@@ -10,8 +10,55 @@ import {ITierV2} from "../tier/ITierV2.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
+import "../factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
+
+/// Thrown when the initial supply is less than the minimum upon initialization.
+/// @param supply The supply that was provided (that is too low).
+error MinimumInitialSupply(uint256 supply);
+
+/// Thrown when a referenced tier contract is not self reporting as a `TierV2`
+/// according to ERC165.
+/// @param account The account that is NOT a `TierV2` according to ERC165.
+error BadTierV2(address account);
+
+/// Thrown when the caller is not an admin for an admin-only call.
+/// @param sender The caller.
+error OnlyAdmin(address sender);
+
+/// Thrown when tokens are sent to itself.
+error TokenSelfSend();
+
+/// Thrown when tokens are sent while frozen.
+error Frozen();
+
+/// Thrown when tokens are sent away from the hub/spoke.
+error Spoke2Hop();
+
+/// Thrown when the receiver does not have the minimum tier.
+error MinimumTier(uint256 minimum, uint256 actual);
+
+/// @dev Contract is not yet initialized.
+uint256 constant REDEEMABLE_ERC20_PHASE_UNINITIALIZED = 0;
+/// @dev Token is in the distribution phase and can be transferred freely subject
+/// to tier requirements.
+uint256 constant REDEEMABLE_ERC20_PHASE_DISTRIBUTING = 1;
+/// @dev Token is frozen and cannot be transferred unless the sender/receiver is
+/// authorized as a sender/receiver.
+uint256 constant REDEEMABLE_ERC20_PHASE_FROZEN = 2;
+
+/// @dev Bits for a receiver.
+uint256 constant RECEIVER = 0x1;
+/// @dev Bits for a sender.
+uint256 constant SENDER = 0x2;
+
+/// @dev RedeemableERC20 uses the standard/default 18 ERC20 decimals.
+/// The minimum initial supply enforced by the initializer is "one" token which
+/// is `1e18`
+/// The minimum initial supply does not prevent the supply reducing due to
+/// subsequent redemption/burning.
+uint256 constant REDEEMABLE_ERC20_MINIMUM_INITIAL_SUPPLY = 1e18;
 
 /// Everything required by the `RedeemableERC20` constructor.
 /// @param reserve Reserve token that the associated `Trust` or equivalent
@@ -91,23 +138,8 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
+contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
     using SafeERC20 for IERC20;
-
-    /// @dev Phase constants.
-    /// Contract is not yet initialized.
-    uint256 private constant PHASE_UNINITIALIZED = 0;
-    /// @dev Token is in the distribution phase and can be transferred freely
-    /// subject to tier requirements.
-    uint256 private constant PHASE_DISTRIBUTING = 1;
-    /// @dev Token is frozen and cannot be transferred unless the
-    /// sender/receiver is authorized as a sender/receiver.
-    uint256 private constant PHASE_FROZEN = 2;
-
-    /// @dev Bits for a receiver.
-    uint256 private constant RECEIVER = 0x1;
-    /// @dev Bits for a sender.
-    uint256 private constant SENDER = 0x2;
 
     /// @dev To be clear, this admin is NOT intended to be an EOA.
     /// This contract is designed assuming the admin is a `Sale` or equivalent
@@ -132,12 +164,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// @param grantedReceiver address that is now a token receiver.
     event Receiver(address sender, address grantedReceiver);
 
-    /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
-    /// The minimum supply enforced by the constructor is "one" token which is
-    /// `10 ** 18`.
-    /// The minimum supply does not prevent subsequent redemption/burning.
-    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
-
     /// Tier contract that produces the report that `minimumTier` is checked
     /// against.
     /// Public so external contracts can interface with the required tier.
@@ -161,28 +187,35 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
-    /// @param config_ Initialized configuration.
-    function initialize(
-        RedeemableERC20Config calldata config_
-    ) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         initializePhased();
+
+        RedeemableERC20Config memory config_ = abi.decode(
+            data_,
+            (RedeemableERC20Config)
+        );
 
         tier = ITierV2(config_.tier);
 
-        require(
-            ERC165Checker.supportsInterface(
+        if (
+            !ERC165Checker.supportsInterface(
                 config_.tier,
                 type(ITierV2).interfaceId
-            ),
-            "ERC165_TIERV2"
-        );
+            )
+        ) {
+            revert BadTierV2(config_.tier);
+        }
 
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
 
-        require(
-            config_.erc20Config.initialSupply >= MINIMUM_INITIAL_SUPPLY,
-            "MINIMUM_INITIAL_SUPPLY"
-        );
+        if (
+            config_.erc20Config.initialSupply <
+            REDEEMABLE_ERC20_MINIMUM_INITIAL_SUPPLY
+        ) {
+            revert MinimumInitialSupply(config_.erc20Config.initialSupply);
+        }
+
         minimumTier = config_.minimumTier;
         distributionEndForwardingAddress = config_
             .distributionEndForwardingAddress;
@@ -211,12 +244,14 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
         emit Initialize(msg.sender, config_);
 
-        schedulePhase(PHASE_DISTRIBUTING, block.timestamp);
+        schedulePhase(REDEEMABLE_ERC20_PHASE_DISTRIBUTING, block.timestamp);
     }
 
     /// Require a function is only admin callable.
     modifier onlyAdmin() {
-        require(msg.sender == admin, "ONLY_ADMIN");
+        if (msg.sender != admin) {
+            revert OnlyAdmin(msg.sender);
+        }
         _;
     }
 
@@ -270,8 +305,8 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// BURN the tokens if `address(0)`.
     function endDistribution(
         address distributor_
-    ) external onlyPhase(PHASE_DISTRIBUTING) onlyAdmin {
-        schedulePhase(PHASE_FROZEN, block.timestamp);
+    ) external onlyPhase(REDEEMABLE_ERC20_PHASE_DISTRIBUTING) onlyAdmin {
+        schedulePhase(REDEEMABLE_ERC20_PHASE_FROZEN, block.timestamp);
         address forwardTo_ = distributionEndForwardingAddress;
         uint256 distributorBalance_ = balanceOf(distributor_);
         if (distributorBalance_ > 0) {
@@ -292,7 +327,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     function redeem(
         IERC20[] calldata treasuryAssets_,
         uint256 redeemAmount_
-    ) external onlyPhase(PHASE_FROZEN) {
+    ) external onlyPhase(REDEEMABLE_ERC20_PHASE_FROZEN) {
         _redeem(treasuryAssets_, redeemAmount_);
     }
 
@@ -311,7 +346,9 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
         // Sending tokens to this contract (e.g. instead of redeeming) is
         // always an error.
-        require(receiver_ != address(this), "TOKEN_SEND_SELF");
+        if (receiver_ == address(this)) {
+            revert TokenSelfSend();
+        }
 
         // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount
         // transfer.
@@ -322,24 +359,29 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
             // The sender and receiver lists bypass all access restrictions.
             !(isSender(sender_) || isReceiver(receiver_))
         ) {
-            // During `PHASE_DISTRIBUTING` transfers are only restricted by the
-            // tier of the recipient. Every other phase only allows senders and
-            // receivers as above.
-            require(currentPhase() == PHASE_DISTRIBUTING, "FROZEN");
+            // During `REDEEMABLE_ERC20_PHASE_DISTRIBUTING` transfers are only
+            // restricted by the tier of the recipient. Every other phase only
+            // allows senders and receivers as above.
+            if (currentPhase() != REDEEMABLE_ERC20_PHASE_DISTRIBUTING) {
+                revert Frozen();
+            }
 
             // Receivers act as "hubs" that can send to "spokes".
             // i.e. any address of the minimum tier.
             // Spokes cannot send tokens another "hop" e.g. to each other.
             // Spokes can only send back to a receiver (doesn't need to be
             // the same receiver they received from).
-            require(isReceiver(sender_), "2SPOKE");
-            require(
-                TierReport.tierAtTimeFromReport(
-                    tier.report(receiver_, new uint256[](0)),
-                    block.timestamp
-                ) >= minimumTier,
-                "MIN_TIER"
+            if (!isReceiver(sender_)) {
+                revert Spoke2Hop();
+            }
+            uint256 receiverTier_ = TierReport.tierAtTimeFromReport(
+                tier.report(receiver_, new uint256[](0)),
+                block.timestamp
             );
+            uint256 minimumTier_ = minimumTier;
+            if (receiverTier_ < minimumTier_) {
+                revert MinimumTier(minimumTier_, receiverTier_);
+            }
         }
     }
 }

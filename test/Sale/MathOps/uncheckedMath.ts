@@ -1,7 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
+import {
+  CloneFactory,
+  ReadWriteTier,
+  ReserveToken,
+  Sale,
+} from "../../../typechain";
+import { basicDeploy, readWriteTierDeploy } from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
@@ -10,8 +16,8 @@ import {
 } from "../../../utils/constants/bigNumber";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
-  saleDependenciesDeploy,
-  saleDeploy,
+  saleClone,
+  saleImplementation,
 } from "../../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
@@ -29,16 +35,23 @@ import { Tier } from "../../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale unchecked math", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    signers: SignerWithAddress[];
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
+  let signers: SignerWithAddress[];
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -48,8 +61,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -98,10 +110,11 @@ describe("Sale unchecked math", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -136,8 +149,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with multiplication op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -189,10 +201,11 @@ describe("Sale unchecked math", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -227,8 +240,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -269,10 +281,11 @@ describe("Sale unchecked math", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -307,8 +320,7 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with addition op", async () => {
-    const deployer = signers[0];
-    const recipient = signers[1];
+    const [deployer, recipient] = signers;
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
@@ -357,10 +369,11 @@ describe("Sale unchecked math", async function () {
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
 
-    const [sale] = await saleDeploy(
+    const [sale] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,

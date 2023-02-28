@@ -39,7 +39,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer1 = signers[1];
+    [, signer1] = signers;
 
     tokenERC20Snapshot = (await basicDeploy(
       "ReserveTokenERC20Snapshot",
@@ -49,7 +49,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 total supply snapshot", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `snapshot-id: context<0 0>(),
       _: erc-20-snapshot-total-supply-at(
         ${tokenERC20Snapshot.address}
@@ -85,7 +85,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 balance snapshot", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `snapshot-id: context<0 0>(),
       _: erc-20-snapshot-balance-of-at(
         ${tokenERC20Snapshot.address}

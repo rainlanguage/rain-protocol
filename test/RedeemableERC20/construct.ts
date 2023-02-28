@@ -1,10 +1,18 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
+import { CloneFactory, RedeemableERC20 } from "../../typechain";
+import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import { ERC20PulleeTest } from "../../typechain/contracts/test/redeemableERC20/RedeemableERC20/ERC20PulleeTest";
 import { ReserveToken } from "../../typechain/contracts/test/testToken/ReserveToken";
 import { ReadWriteTier } from "../../typechain/contracts/test/tier/TierV2/ReadWriteTier";
 import * as Util from "../../utils";
-import { readWriteTierDeploy, Tier } from "../../utils";
+import {
+  basicDeploy,
+  readWriteTierDeploy,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+  Tier,
+} from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
@@ -12,10 +20,16 @@ describe("RedeemableERC20 constructor test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let tier: ReadWriteTier;
   let reserve: ReserveToken;
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
 
   before(async () => {
     erc20Pullee = await erc20PulleeDeploy();
     tier = await readWriteTierDeploy();
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -35,14 +49,20 @@ describe("RedeemableERC20 constructor test", async function () {
       initialSupply: totalSupply,
     };
 
-    const token = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
 
+    const token = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
     // token has 18 decimals
     const decimals = await token.decimals();
     assert(decimals === 18, `expected 18 decimals, got ${decimals}`);
@@ -69,12 +89,30 @@ describe("RedeemableERC20 constructor test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalTokenSupplyZero,
     };
+
+    const redeemableConfigZero: RedeemableERC20ConfigStruct = {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20ConfigZero,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    };
+
     const redeemableERC20ConfigOneShort = {
       name: "RedeemableERC20",
       symbol: "RDX",
       distributor: erc20Pullee.address,
       initialSupply: totalTokenSupplyOneShort,
     };
+
+    const redeemableConfigOneShort: RedeemableERC20ConfigStruct = {
+      reserve: reserve.address,
+      erc20Config: redeemableERC20ConfigOneShort,
+      tier: tier.address,
+      minimumTier,
+      distributionEndForwardingAddress: ethers.constants.AddressZero,
+    };
+
     const redeemableERC20ConfigMinimum = {
       name: "RedeemableERC20",
       symbol: "RDX",
@@ -82,39 +120,44 @@ describe("RedeemableERC20 constructor test", async function () {
       initialSupply: totalTokenSupplyMinimum,
     };
 
-    await Util.assertError(
-      async () =>
-        await Util.redeemableERC20Deploy(signers[0], {
-          reserve: reserve.address,
-          erc20Config: redeemableERC20ConfigZero,
-          tier: tier.address,
-          minimumTier,
-          distributionEndForwardingAddress: ethers.constants.AddressZero,
-        }),
-      `MINIMUM_INITIAL_SUPPLY`,
-      `failed to error when constructed with 0 total supply`
-    );
-
-    await Util.assertError(
-      async () =>
-        await Util.redeemableERC20Deploy(signers[0], {
-          reserve: reserve.address,
-          erc20Config: redeemableERC20ConfigOneShort,
-          tier: tier.address,
-          minimumTier,
-          distributionEndForwardingAddress: ethers.constants.AddressZero,
-        }),
-      `MINIMUM_INITIAL_SUPPLY`,
-      `failed to error when constructed with 0 total supply`
-    );
-
-    await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfigConfigMinimum: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20ConfigMinimum,
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    await Util.assertError(
+      async () =>
+        await redeemableERC20DeployClone(
+          signers[0],
+          cloneFactory,
+          implementation,
+          redeemableConfigZero
+        ),
+      `MinimumInitialSupply(0)`,
+      `failed to error when constructed with 0 total supply`
+    );
+
+    await Util.assertError(
+      async () =>
+        await redeemableERC20DeployClone(
+          signers[0],
+          cloneFactory,
+          implementation,
+          redeemableConfigOneShort
+        ),
+      `MinimumInitialSupply(999999999999999999)`,
+      `failed to error when constructed with 0 total supply`
+    );
+
+    await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfigConfigMinimum
+    );
   });
 
   it("should set owner as unfreezable on construction", async function () {
@@ -130,13 +173,20 @@ describe("RedeemableERC20 constructor test", async function () {
       initialSupply: totalSupply,
     };
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
 
     assert(
       await redeemableERC20.isReceiver(erc20Pullee.address),
@@ -162,14 +212,20 @@ describe("RedeemableERC20 constructor test", async function () {
       initialSupply: totalSupply,
     };
 
-    const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
+    const redeemableConfig: RedeemableERC20ConfigStruct = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
       tier: tier.address,
       minimumTier: minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    });
+    };
 
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      signers[0],
+      cloneFactory,
+      implementation,
+      redeemableConfig
+    );
     // admin is made receiver during construction, so required token transfers can go ahead
     assert(
       await redeemableERC20.isReceiver(erc20Pullee.address),

@@ -9,8 +9,7 @@ import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
-import "../interpreter/caller/LibCallerMeta.sol";
+import "../interpreter/caller/InterpreterCallerV1.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -39,7 +38,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 error SameOwner(address owner);
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xf3bf4100d48b104793d6aa60e801a42423d61c57063ba3b42c257b52be8e9ff0
+    0xffcbb17af8a5dfa67579100f93fbf210b354fa7f165212d2fd35802f312f2e38
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -107,11 +106,6 @@ uint256 constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
 /// @dev Length of a vault IO column.
 uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 
-struct OrderBookConstructionConfig {
-    address deployer;
-    bytes callerMeta;
-}
-
 /// @title OrderBook
 /// See `IOrderBookV1` for more documentation.
 contract OrderBook is
@@ -119,7 +113,7 @@ contract OrderBook is
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    IInterpreterCallerV1
+    InterpreterCallerV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -149,13 +143,11 @@ contract OrderBook is
     /// Open Zeppelin upgradeable contracts. Orderbook itself does NOT support
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
-    constructor(OrderBookConstructionConfig memory config_) initializer {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) initializer InterpreterCallerV1(CALLER_META_HASH, config_) {
         __ReentrancyGuard_init();
         __Multicall_init();
-
-        LibCallerMeta.touchDeployer(config_.deployer);
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
-        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
     }
 
     /// @inheritdoc IOrderBookV1

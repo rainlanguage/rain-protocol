@@ -10,19 +10,24 @@ import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
-import "../../interpreter/caller/LibCallerMeta.sol";
-import "../../interpreter/caller/IInterpreterCallerV1.sol";
+import "../../interpreter/caller/InterpreterCallerV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
+import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x813359dbdf359f859b5c8785e822ad08c75e35a838d6c1639c0d51917e006f0d
+    0xa2c909642bc50cf01283947e7b272b2b30ceddd796197ccec74e794de792b775
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
+struct AutoApproveConfig {
+    address owner;
+    EvaluableConfig evaluableConfig;
+}
+
+contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -33,29 +38,34 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
-    event Initialize(address sender, EvaluableConfig config);
+    event Initialize(address sender, AutoApproveConfig config);
 
     Evaluable internal evaluable;
 
-    constructor(bytes memory callerMeta_) {
+    constructor(
+        InterpreterCallerV1ConstructionConfig memory config_
+    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
         _disableInitializers();
-
-        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
-        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
-    function initialize(EvaluableConfig calldata config_) external initializer {
+    /// @inheritdoc ICloneableV1
+    function initialize(bytes calldata data_) external initializer {
         __VerifyCallback_init();
 
-        _transferOwnership(msg.sender);
+        AutoApproveConfig memory config_ = abi.decode(
+            data_,
+            (AutoApproveConfig)
+        );
+
+        _transferOwnership(config_.owner);
         emit Initialize(msg.sender, config_);
         (
             IInterpreterV1 interpreter_,
             IInterpreterStoreV1 store_,
             address expression_
-        ) = config_.deployer.deployExpression(
-                config_.sources,
-                config_.constants,
+        ) = config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.sources,
+                config_.evaluableConfig.constants,
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         evaluable = Evaluable(interpreter_, store_, expression_);

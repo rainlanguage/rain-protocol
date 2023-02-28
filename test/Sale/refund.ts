@@ -1,15 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
-import { BuyEvent } from "../../typechain/contracts/sale/Sale";
+import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
+import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
+import { basicDeploy, readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { max_uint256, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import {
-  saleDependenciesDeploy,
-  saleDeploy,
-} from "../../utils/deploy/sale/deploy";
+import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
@@ -28,15 +26,22 @@ import { Tier } from "../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale refund", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -45,10 +50,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding with modified receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -81,10 +83,11 @@ describe("Sale refund", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -166,11 +169,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding with someone else's receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
-    const signer2 = signers[4];
+    const [deployer, recipient, signer1, signer2, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -203,10 +202,11 @@ describe("Sale refund", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -293,10 +293,7 @@ describe("Sale refund", async function () {
 
   it("should prevent refunding twice with same receipt", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -329,10 +326,11 @@ describe("Sale refund", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -399,10 +397,7 @@ describe("Sale refund", async function () {
 
   it("should respect refund cooldown when sale is active, and bypass refund cooldown when sale is fail", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const feeRecipient = signers[2];
-    const signer1 = signers[3];
+    const [deployer, recipient, signer1, feeRecipient] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 50;
@@ -436,10 +431,11 @@ describe("Sale refund", async function () {
     ];
     const cooldownDuration = 5;
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,

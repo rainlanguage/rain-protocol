@@ -37,14 +37,14 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer1 = signers[1];
+    [, signer1] = signers;
 
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await tokenERC20.initialize();
   });
 
   it("should return ERC20 total supply", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-20-total-supply(${tokenERC20.address});`
     );
 
@@ -69,7 +69,7 @@ describe("RainInterpreter ERC20 ops", async function () {
   });
 
   it("should return ERC20 balance", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-20-balance-of(${tokenERC20.address} ${signer1.address});`
     );
 

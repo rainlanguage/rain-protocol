@@ -37,8 +37,7 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer0 = signers[0];
-    signer1 = signers[1];
+    [signer0, signer1] = signers;
 
     tokenERC721 = (await basicDeploy(
       "ReserveTokenERC721",
@@ -50,7 +49,7 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   it("should return owner of specific ERC721 token", async () => {
     const nftId = 0;
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-721-owner-of(${tokenERC721.address} ${nftId});`
     );
 
@@ -81,7 +80,7 @@ describe("RainInterpreter ERC721 ops", async function () {
   });
 
   it("should return ERC721 balance of signer", async () => {
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-721-balance-of(${tokenERC721.address} ${signer1.address});`
     );
 

@@ -1,14 +1,17 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC721Factory } from "../../../typechain";
+import { CloneFactory, FlowERC721 } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
-import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import {
+  flowERC721Clone,
+  flowERC721Implementation,
+} from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import {
@@ -23,21 +26,23 @@ import { FlowERC721Config } from "../../../utils/types/flow";
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 signed context tests", async function () {
-  let flowERC721Factory: FlowERC721Factory;
+  let cloneFactory: CloneFactory;
+  let implementation: FlowERC721;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowERC721Factory = await flowERC721FactoryDeploy();
+    implementation = await flowERC721Implementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -46,8 +51,10 @@ describe("FlowERC721 signed context tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -58,9 +65,10 @@ describe("FlowERC721 signed context tests", async function () {
       SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const flowConfigStruct: FlowERC721Config = {
+      baseURI: "https://www.rainprotocol.xyz/nft/",
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {
@@ -70,9 +78,10 @@ describe("FlowERC721 signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC721Deploy(
+    const { flow } = await flowERC721Clone(
       deployer,
-      flowERC721Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 
@@ -134,9 +143,7 @@ describe("FlowERC721 signed context tests", async function () {
 
   it("should validate a signed context", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -145,8 +152,10 @@ describe("FlowERC721 signed context tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -157,9 +166,10 @@ describe("FlowERC721 signed context tests", async function () {
       SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const flowConfigStruct: FlowERC721Config = {
+      baseURI: "https://www.rainprotocol.xyz/nft/",
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {
@@ -169,9 +179,10 @@ describe("FlowERC721 signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowERC721Deploy(
+    const { flow } = await flowERC721Clone(
       deployer,
-      flowERC721Factory,
+      cloneFactory,
+      implementation,
       flowConfigStruct
     );
 

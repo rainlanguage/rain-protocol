@@ -2,10 +2,27 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
-import { FlowFactory } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  CloneFactory,
+  RainterpreterExpressionDeployer,
+} from "../../../typechain";
+
+import {
+  Flow,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/basic/Flow";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+import {
+  assertError,
+  basicDeploy,
+  getRainDocumentsFromContract,
+  zeroAddress,
+} from "../../../utils";
+import {
+  deployFlowClone,
+  flowImplementation,
+} from "../../../utils/deploy/flow/basic/deploy";
+import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -14,25 +31,29 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { compareEvaluableConfigs } from "../../../utils/test/compareStructs";
+import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
 describe("Flow construction tests", async function () {
-  let flowFactory: FlowFactory;
+  let implementation: Flow;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    flowFactory = await flowFactoryDeploy();
+    implementation = await flowImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [1, 2];
 
@@ -71,9 +92,10 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const { flow, evaluableConfigs } = await flowDeploy(
+    const { flow } = await deployFlowClone(
       deployer,
-      flowFactory,
+      cloneFactory,
+      implementation,
       flowConfig
     );
 
@@ -83,8 +105,36 @@ describe("Flow construction tests", async function () {
       flow
     )) as InitializeEvent["args"];
 
-    assert(sender === flowFactory.address, "wrong sender in Initialize event");
+    assert(sender === cloneFactory.address, "wrong sender in Initialize event");
+    compareStructs(config, flowConfig);
+  });
 
-    compareEvaluableConfigs(config, evaluableConfigs);
+  it("should fail if flow is deployed with bad callerMeta", async function () {
+    const flowFactory = await ethers.getContractFactory("Flow", {});
+
+    const touchDeployer: RainterpreterExpressionDeployer =
+      await getTouchDeployer();
+
+    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        meta: getRainDocumentsFromContract("flow"),
+        deployer: touchDeployer.address,
+      };
+
+    const flow = (await flowFactory.deploy(interpreterCallerConfig0)) as Flow;
+
+    assert(!(flow.address === zeroAddress), "flow did not deploy");
+
+    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        meta: getRainDocumentsFromContract("orderbook"),
+        deployer: touchDeployer.address,
+      };
+
+    await assertError(
+      async () => await flowFactory.deploy(interpreterCallerConfig1),
+      "UnexpectedMetaHash",
+      "Flow Deployed for bad hash"
+    );
   });
 });

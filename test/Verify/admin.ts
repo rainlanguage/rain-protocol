@@ -1,35 +1,44 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain";
-import { VerifyFactory } from "../../typechain";
-import { zeroAddress } from "../../utils/constants";
+import type { CloneFactory, Verify } from "../../typechain";
+import { basicDeploy } from "../../utils";
+
 import {
-  verifyDeploy,
-  verifyFactoryDeploy,
+  verifyCloneDeploy,
+  verifyImplementation,
 } from "../../utils/deploy/verify/deploy";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify admin", async function () {
-  let verifyFactory: VerifyFactory;
+  let implementVerify: Verify;
+  let cloneFactory: CloneFactory;
 
   before(async () => {
-    verifyFactory = await verifyFactoryDeploy();
+    implementVerify = await verifyImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   it("should allow admins to grant others the same admin role", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin0 = signers[1];
-    const rmvAdmin0 = signers[2];
-    const banAdmin0 = signers[3];
-    const aprAdmin1 = signers[4];
-    const rmvAdmin1 = signers[5];
-    const banAdmin1 = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin0,
+      rmvAdmin0,
+      banAdmin0,
+      aprAdmin1,
+      rmvAdmin1,
+      banAdmin1,
+    ] = signers;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -62,18 +71,23 @@ describe("Verify admin", async function () {
 
   it("should allow admin to delegate admin roles and then renounce them", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    const aprAdmin0 = signers[1];
-    const rmvAdmin0 = signers[2];
-    const banAdmin0 = signers[3];
-    const aprAdmin1 = signers[4];
-    const rmvAdmin1 = signers[5];
-    const banAdmin1 = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin0,
+      rmvAdmin0,
+      banAdmin0,
+      aprAdmin1,
+      rmvAdmin1,
+      banAdmin1,
+    ] = signers;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin0.address);
     await verify.grantRole(await verify.REMOVER_ADMIN(), rmvAdmin0.address);
@@ -142,20 +156,23 @@ describe("Verify admin", async function () {
 
   it("should allow admin to delegate admin roles which can then grant non-admin roles", async function () {
     const signers = await ethers.getSigners();
-    const defaultAdmin = signers[0];
-    // admins
-    const aprAdmin = signers[1];
-    const rmvAdmin = signers[2];
-    const banAdmin = signers[3];
-    // verifiers
-    const approver = signers[4];
-    const remover = signers[5];
-    const banner = signers[6];
+    const [
+      defaultAdmin,
+      aprAdmin,
+      rmvAdmin,
+      banAdmin,
+      approver,
+      remover,
+      banner,
+    ] = signers;
 
-    const verify = (await verifyDeploy(signers[0], verifyFactory, {
-      admin: defaultAdmin.address,
-      callback: ethers.constants.AddressZero,
-    })) as Verify;
+    const verify = await verifyCloneDeploy(
+      signers[0],
+      cloneFactory,
+      implementVerify,
+      defaultAdmin.address,
+      ethers.constants.AddressZero
+    );
 
     // defaultAdmin grants admin roles
     await verify.grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
@@ -193,10 +210,13 @@ describe("Verify admin", async function () {
 
     await assertError(
       async () =>
-        await verifyDeploy(signers[0], verifyFactory, {
-          admin: zeroAddress,
-          callback: zeroAddress,
-        }),
+        await verifyCloneDeploy(
+          signers[0],
+          cloneFactory,
+          implementVerify,
+          ethers.constants.AddressZero,
+          ethers.constants.AddressZero
+        ),
       "0_ACCOUNT",
       "wrongly constructed Verify with admin as zero address"
     );

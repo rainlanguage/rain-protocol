@@ -38,9 +38,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
-    signer0 = signers[0];
-    signer1 = signers[1];
-    signer2 = signers[2];
+    [signer0, signer1, signer2] = signers;
 
     tokenERC1155 = (await basicDeploy(
       "ReserveTokenERC1155",
@@ -51,10 +49,9 @@ describe("RainInterpreter ERC1155 ops", async function () {
 
   it("should return ERC1155 batch balance result for multiple signers", async () => {
     const tokenId = 0;
-    const length = 2;
 
-    const { sources, constants } = standardEvaluableConfig(
-      `_ _: erc-1155-balance-of-batch<${length}>(
+    const { sources, constants } = await standardEvaluableConfig(
+      `_ _: erc-1155-balance-of-batch(
         ${tokenERC1155.address}
         ${signer1.address}
         ${signer2.address}
@@ -110,7 +107,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
   it("should return ERC1155 balance of signer", async () => {
     const tokenId = 0;
 
-    const { sources, constants } = standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       `_: erc-1155-balance-of(${tokenERC1155.address} ${signer1.address} ${tokenId});`
     );
 

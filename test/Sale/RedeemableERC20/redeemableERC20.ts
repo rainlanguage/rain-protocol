@@ -1,13 +1,19 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
+import {
+  CloneFactory,
+  ReadWriteTier,
+  ReserveToken,
+  Sale,
+} from "../../../typechain";
+import { basicDeploy, readWriteTierDeploy } from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../../utils/constants/bigNumber";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
-  saleDependenciesDeploy,
-  saleDeploy,
+  saleClone,
+  saleImplementation,
 } from "../../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
@@ -27,15 +33,22 @@ import { Tier } from "../../../utils/types/tier";
 const Opcode = AllStandardOps;
 
 describe("Sale redeemableERC20 token", async function () {
-  let reserve: ReserveToken,
-    readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+  let reserve: ReserveToken;
+  let readWriteTier: ReadWriteTier;
+
+  let cloneFactory: CloneFactory;
+  let implementation: Sale;
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    readWriteTier = await readWriteTierDeploy();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+
+    implementation = await saleImplementation(cloneFactory);
   });
 
   beforeEach(async () => {
@@ -44,11 +57,8 @@ describe("Sale redeemableERC20 token", async function () {
 
   it("should configure tier correctly", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
+    const [deployer, recipient, signer1, feeRecipient, forwardingAddress] =
+      signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -83,10 +93,11 @@ describe("Sale redeemableERC20 token", async function () {
     const minimumTier = Tier.FOUR;
 
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -130,7 +141,7 @@ describe("Sale redeemableERC20 token", async function () {
           desiredUnits,
           maximumPrice: staticPrice,
         }),
-      "MIN_TIER",
+      "MinimumTier(4, 0)",
       "singer1 bought units from Sale without meeting minimum tier requirement"
     );
     await readWriteTier.setTier(signer1.address, Tier.FOUR);
@@ -161,11 +172,8 @@ describe("Sale redeemableERC20 token", async function () {
 
   it("should set correct phases for token", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
+    const [deployer, recipient, signer1, feeRecipient, forwardingAddress] =
+      signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -198,10 +206,11 @@ describe("Sale redeemableERC20 token", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [sale, token] = await saleDeploy(
+    const [sale, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -266,9 +275,7 @@ describe("Sale redeemableERC20 token", async function () {
     // However, it is still important that only the token admin can grant these roles.
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
+    const [deployer, recipient, signer1] = signers;
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
@@ -301,10 +308,11 @@ describe("Sale redeemableERC20 token", async function () {
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
-    const [, token] = await saleDeploy(
+    const [, token] = await saleClone(
       signers,
       deployer,
-      saleFactory,
+      cloneFactory,
+      implementation,
       {
         evaluableConfig,
         recipient: recipient.address,
@@ -321,28 +329,29 @@ describe("Sale redeemableERC20 token", async function () {
         distributionEndForwardingAddress: ethers.constants.AddressZero,
       }
     );
+    console.log(`OnlyAdmin(${deployer.address})`);
     // deployer cannot add receiver
     await assertError(
       async () => await token.connect(deployer).grantReceiver(deployer.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${deployer.address}\\")`,
       "deployer added receiver, despite not being token admin"
     );
     // deployer cannot add sender
     await assertError(
       async () => await token.connect(deployer).grantSender(deployer.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${deployer.address}\\")`,
       "deployer added sender, despite not being token admin"
     );
     // anon cannot add receiver
     await assertError(
       async () => await token.connect(signer1).grantReceiver(signer1.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${signer1.address}\\")`,
       "anon added receiver, despite not being token admin"
     );
     // anon cannot add sender
     await assertError(
       async () => await token.connect(signer1).grantSender(signer1.address),
-      "ONLY_ADMIN",
+      `OnlyAdmin(\\"${signer1.address}\\")`,
       "anon added sender, despite not being token admin"
     );
   });

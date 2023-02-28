@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
+  CloneFactory,
   ReadWriteTier,
   RedeemableERC20,
   RedeemableERC20ClaimEscrow,
@@ -12,8 +13,14 @@ import {
   WithdrawEvent,
 } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
-import { basicDeploy, getEventArgs } from "../../../utils";
+import {
+  basicDeploy,
+  getEventArgs,
+  redeemableERC20DeployClone,
+  redeemableERC20DeployImplementation,
+} from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
+import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { Status } from "../../../utils/types/sale";
 
@@ -22,8 +29,19 @@ let claim: RedeemableERC20ClaimEscrow,
   readWriteTier: ReadWriteTier;
 
 describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
+  let cloneFactory: CloneFactory;
+  let implementation: RedeemableERC20;
+
   before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+
     ({ claim, readWriteTier } = await escrowDeploy());
+    implementation = await redeemableERC20DeployImplementation();
+
+    //Deploy Clone Factory
+    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
   });
 
   beforeEach(async () => {
@@ -33,9 +51,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
 
   it("should allocate token withdrawals pro rata (sender's proportion of RedeemableERC20 total supply)", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const deployer = signers[3];
+    const [, alice, bob, deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -44,13 +60,19 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: readWriteTier.address,
-      minimumTier: 0,
-      distributionEndForwardingAddress: Util.zeroAddress,
-    })) as RedeemableERC20;
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        reserve: reserve.address,
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: 0,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
@@ -139,9 +161,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
 
   it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[1];
-    const alice = signers[4];
-    const bob = signers[5];
+    const [, deployer, , , alice, bob] = signers;
 
     const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
@@ -152,13 +172,19 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
       distributor: deployer.address,
       initialSupply: totalTokenSupply,
     };
-    const redeemableERC20 = (await Util.redeemableERC20Deploy(deployer, {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: readWriteTier.address,
-      minimumTier: 0,
-      distributionEndForwardingAddress: Util.zeroAddress,
-    })) as RedeemableERC20;
+
+    const redeemableERC20 = await redeemableERC20DeployClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        reserve: reserve.address,
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: 0,
+        distributionEndForwardingAddress: Util.zeroAddress,
+      }
+    );
 
     await sale.setToken(redeemableERC20.address);
 

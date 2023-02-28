@@ -19,7 +19,7 @@ describe("FactoryCurator registerConfig", async function () {
   it("should emit event when config is registered", async () => {
     const signers = await ethers.getSigners();
 
-    const curator = signers[1];
+    const [, curator] = signers;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
