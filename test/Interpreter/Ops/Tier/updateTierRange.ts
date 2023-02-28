@@ -1,21 +1,15 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { Opcode } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { memoryOperand, MemoryType, op, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 import { NEVER } from "../../../../utils/tier";
-import { Tier } from "../../../../utils/types/tier";
-
-const Opcode = AllStandardOps;
+import { Tier } from "../../../../utils/types/tier"; 
 
 /**
  * Generates operand for UPDATE_TIMES_FOR_TIER_RANGE by specifying the range of tiers to be updated. Equivalent to `Util.tierRange` without guards for testing `MAX_TIER` error.
@@ -57,10 +51,7 @@ describe("RainInterpreter update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vBlock = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const source0 = concat([
