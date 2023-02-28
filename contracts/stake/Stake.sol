@@ -544,11 +544,11 @@ contract Stake is
             uint256 len_ = depositRecords[account_].length;
             high_ = len_;
             uint256 mid_;
-            DepositRecord memory depositRecord_;
+            DepositRecord memory record_;
             while (low_ < high_) {
                 mid_ = Math.average(low_, high_);
-                depositRecord_ = depositRecords[account_][mid_];
-                if (uint256(depositRecord_.amount) >= threshold_) {
+                record_ = depositRecords[account_][mid_];
+                if (uint256(record_.amount) >= threshold_) {
                     high_ = mid_;
                 } else {
                     low_ = mid_ + 1;
