@@ -212,7 +212,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
           implementationRedeemableERC20,
           tokenConfig
         ),
-      "ERC165_TIERV2",
+      `BadTierV2`,
       "ERC165_TIERV2 check failed"
     );
   });

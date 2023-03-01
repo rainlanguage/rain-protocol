@@ -57,9 +57,7 @@ describe("Lobby Invalid Refund", async function () {
   it("should ensure players are refunded after lobby is invalidated", async function () {
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
 
@@ -241,9 +239,7 @@ describe("Lobby Invalid Refund", async function () {
   it("should ensure players are not able to invalidate lobby or refund after PHASE_COMPLETE", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
@@ -433,9 +429,7 @@ describe("Lobby Invalid Refund", async function () {
   it("should validate Context emitted in Context event", async function () {
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
 
@@ -628,9 +622,7 @@ describe("Lobby Invalid Refund", async function () {
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     const maliciousReserveFactory = await ethers.getContractFactory(
       "LobbyReentrantSender"

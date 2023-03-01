@@ -25,7 +25,7 @@ import "../factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x41be2587e01bc4b0b759c5110edcd4f6a51ef3e20729778f396b602058d80bb3
+    0x658ac3bbe4ec4021eac16b1ea33c7f82beeda44adb69f6f7c32fae32b6daa6d1
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -595,16 +595,16 @@ contract Sale is
         {
             // Start or end the sale as required.
             (
-                bool canLive0_,
-                IInterpreterStoreV1 canLive0Store_,
-                uint256[] memory canLive0KVs_
+                bool canLivePre_,
+                IInterpreterStoreV1 canLivePreStore_,
+                uint256[] memory canLivePreKVs_
             ) = _previewCanLive();
             // Register state changes with intepreter _before_ potentially ending and
             // returning early.
-            if (canLive0KVs_.length > 0) {
-                canLive0Store_.set(DEFAULT_STATE_NAMESPACE, canLive0KVs_);
+            if (canLivePreKVs_.length > 0) {
+                canLivePreStore_.set(DEFAULT_STATE_NAMESPACE, canLivePreKVs_);
             }
-            if (canLive0_) {
+            if (canLivePre_) {
                 if (saleStatus == SaleStatus.Pending) {
                     _start();
                 }
@@ -754,14 +754,14 @@ contract Sale is
         // The sale ending AFTER the purchase does NOT rollback the purchase,
         // it simply prevents further purchases.
         (
-            bool canLive1_,
-            IInterpreterStoreV1 canLive1Store_,
-            uint256[] memory canLive1KVs_
+            bool canLivePost_,
+            IInterpreterStoreV1 canLivePostStore_,
+            uint256[] memory canLivePostKVs_
         ) = _previewCanLive();
-        if (canLive1KVs_.length > 0) {
-            canLive1Store_.set(DEFAULT_STATE_NAMESPACE, canLive1KVs_);
+        if (canLivePostKVs_.length > 0) {
+            canLivePostStore_.set(DEFAULT_STATE_NAMESPACE, canLivePostKVs_);
         }
-        if (canLive1_) {
+        if (canLivePost_) {
             // This prevents the sale from being left with so little stock that
             // nobody else will want to clear it out. E.g. the dust might be
             // worth significantly less than the price of gas to call `buy`.

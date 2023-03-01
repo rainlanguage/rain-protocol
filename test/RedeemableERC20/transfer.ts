@@ -52,11 +52,7 @@ describe("RedeemableERC20 transfer test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const aliceReceiver = signers[1];
-    const bobReceiver = signers[2];
-    const carolSpoke = signers[3];
-    const daveSpoke = signers[4];
+    const [owner, aliceReceiver, bobReceiver, carolSpoke, daveSpoke] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -92,7 +88,7 @@ describe("RedeemableERC20 transfer test", async function () {
     await Util.assertError(
       async () =>
         await token.connect(aliceReceiver).transfer(bobReceiver.address, 1),
-      "2SPOKE",
+      "Spoke2Hop()",
       "alice sent tokens despite not being a 'receiver'"
     );
 
@@ -124,7 +120,7 @@ describe("RedeemableERC20 transfer test", async function () {
     await Util.assertError(
       async () =>
         await token.connect(carolSpoke).transfer(daveSpoke.address, 1),
-      "2SPOKE",
+      "Spoke2Hop()",
       "carol wrongly sent tokens to dave (another spoke)"
     );
 
@@ -177,7 +173,7 @@ describe("RedeemableERC20 transfer test", async function () {
           redeemableERC20.address,
           await redeemableERC20.balanceOf(signers[0].address)
         ),
-      "TOKEN_SEND_SELF",
+      "TokenSelfSend()",
       "user successfully transferred all their redeemables tokens to token contract"
     );
   });

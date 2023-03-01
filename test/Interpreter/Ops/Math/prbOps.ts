@@ -717,4 +717,596 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     assert(result2.eq("0"), `returned wrong value, got ${result2}`);
   });
+
+  it("should calculate the natural logarithm of x", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-ln(1125000000000000000);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(
+      result0.eq("117783035656383442"),
+      `returned wrong value, got ${result0}`
+    );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-ln(3141592653589793000);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("1144729885849400088"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-ln(max-uint256);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("135999146549453176925"),
+      `returned wrong value, got ${result2}`
+    );
+  });
+
+  it("should calculate the binary logarithm of x", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-log2(8000000000000000000);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(
+      result0.eq("3000000000000000000"),
+      `returned wrong value, got ${result0}`
+    );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-log2(3141592653589793000);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("1651496129472318674"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-log2(max-uint256);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("196205294292027477728"),
+      `returned wrong value, got ${result2}`
+    );
+  });
+
+  it("should calculate the common logarithm of x", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-log10(10000000000000000000);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(
+      result0.eq("1000000000000000000"),
+      `returned wrong value, got ${result0}`
+    );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-log10(3141592653589793000);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("497149872694133817"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-log10(max-uint256);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("59063678889979185987"),
+      `returned wrong value, got ${result2}`
+    );
+
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(`
+        output: prb-log10(10000000000000000000000000000000000000000000000000000000000000000000);
+      `);
+
+    const expression3 = await expressionConsumerDeploy(
+      sources3,
+      constants3,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      []
+    );
+    const result3 = await logic.stackTop();
+
+    assert(
+      result3.eq("49000000000000000000"),
+      `returned wrong value, got ${result3}`
+    );
+  });
+
+  it("should multiply two UD60x18 numbers together, returning a new UD60x18 number", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-mul(0 max-uint256);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(result0.eq(0), `returned wrong value, got ${result0}`);
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-mul(10000000000000000 50000000000000000);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("500000000000000"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-mul(2098000000000000000 1119000000000000000);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("2347662000000000000"),
+      `returned wrong value, got ${result2}`
+    );
+
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(`
+        output: prb-mul(3142857142857142857 2718281828459045400);
+      `);
+
+    const expression3 = await expressionConsumerDeploy(
+      sources3,
+      constants3,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      []
+    );
+    const result3 = await logic.stackTop();
+
+    assert(
+      result3.eq("8543171460871285542"),
+      `returned wrong value, got ${result3}`
+    );
+  });
+
+  it("should raise x to the power of y", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        `output: prb-pow(3142857142857142857 1000000000000000000);`
+      );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(
+      result0.eq("3142857142857142857"),
+      `returned wrong value, got ${result0}`
+    );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-pow(0 0);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("1000000000000000000"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-pow(32150000000000000000 23990000000000000000);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("1436387590627448555101723413293079116943375472179194989"),
+      `returned wrong value, got ${result2}`
+    );
+
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(`
+        output: prb-pow(3142857142857142857 3142857142857142857);
+      `);
+
+    const expression3 = await expressionConsumerDeploy(
+      sources3,
+      constants3,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      []
+    );
+    const result3 = await logic.stackTop();
+
+    assert(
+      result3.eq("36561188055119533206"),
+      `returned wrong value, got ${result3}`
+    );
+  });
+
+  it('should raise x (an UD60x18 number) to the power y (unsigned basic integer) using the famous algorithm "exponentiation by squaring"', async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-powu(3142857142857142857 2);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(
+      result0.eq("9877551020408163264"),
+      `returned wrong value, got ${result0}`
+    );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-powu(0 0);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("1000000000000000000"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-powu(2000000000000000000 100);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(
+      result2.eq("1267650600228229401496703205376000000000000000000"),
+      `returned wrong value, got ${result2}`
+    );
+
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(`
+        output: prb-powu(3142857142857142857 3);
+      `);
+
+    const expression3 = await expressionConsumerDeploy(
+      sources3,
+      constants3,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      []
+    );
+    const result3 = await logic.stackTop();
+
+    assert(
+      result3.eq("31043731778425655971"),
+      `returned wrong value, got ${result3}`
+    );
+  });
+
+  it("should calculate the square root of x, rounding down", async () => {
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(`output: prb-sqrt(0);`);
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+    const result0 = await logic.stackTop();
+
+    assert(result0.eq("0"), `returned wrong value, got ${result0}`);
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(`
+        output: prb-sqrt(3141592653589793000);
+        `);
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+    const result1 = await logic.stackTop();
+
+    assert(
+      result1.eq("1772453850905515960"),
+      `returned wrong value, got ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(`
+        output: prb-sqrt(1);
+      `);
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+    const result2 = await logic.stackTop();
+
+    assert(result2.eq("1000000000"), `returned wrong value, got ${result2}`);
+
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(`
+        output: prb-sqrt(50000000000000000000000000000000000000000000000000000000000);
+      `);
+
+    const expression3 = await expressionConsumerDeploy(
+      sources3,
+      constants3,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      []
+    );
+    const result3 = await logic.stackTop();
+
+    assert(
+      result3.eq("223606797749978969640917366873127623544"),
+      `returned wrong value, got ${result3}`
+    );
+  });
 });

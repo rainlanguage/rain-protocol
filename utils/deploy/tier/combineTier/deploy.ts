@@ -8,14 +8,14 @@ import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lob
 import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/CombineTier";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
-import { getRainContractMetaBytes } from "../../../meta";
+import { getRainDocumentsFromContract } from "../../../meta";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const combineTierImplementation = async (): Promise<CombineTier> => {
   const combineTierFactory = await ethers.getContractFactory("CombineTier");
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("combinetier"),
+    meta: getRainDocumentsFromContract("combinetier"),
     deployer: touchDeployer.address,
   };
 

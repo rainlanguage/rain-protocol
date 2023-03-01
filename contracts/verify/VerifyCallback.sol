@@ -9,8 +9,7 @@ import {OwnableUpgradeable as Ownable} from "@openzeppelin/contracts-upgradeable
 /// so that inheriting contracts only have to override the callbacks they need
 /// to define logic for.
 contract VerifyCallback is IVerifyCallbackV1, Ownable {
-    // solhint-disable-next-line func-name-mixedcase
-    function __VerifyCallback_init() internal onlyInitializing {
+    function verifyCallbackInit() internal onlyInitializing {
         __Ownable_init();
     }
 

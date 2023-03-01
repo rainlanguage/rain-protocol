@@ -42,8 +42,7 @@ describe("RedeemableERC20 grant test", async function () {
   it("should grant alice sender then receiver and remain as both", async function () {
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
+    const [owner, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -86,8 +85,7 @@ describe("RedeemableERC20 grant test", async function () {
   it("should grant alice receiver then sender and remain as both", async function () {
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
+    const [owner, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -132,9 +130,7 @@ describe("RedeemableERC20 grant test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const owner = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [owner, alice, bob] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -169,7 +165,7 @@ describe("RedeemableERC20 grant test", async function () {
     // alice tries to transfer to bob
     await Util.assertError(
       async () => await token.connect(alice).transfer(bob.address, 1),
-      "2SPOKE", // token sender must be a 'receiver'
+      "Spoke2Hop()", // token sender must be a 'receiver'
       "alice/bob sent/received tokens despite alice not being a 'receiver'"
     );
 

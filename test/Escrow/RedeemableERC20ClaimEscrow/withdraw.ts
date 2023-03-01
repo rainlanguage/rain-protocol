@@ -51,8 +51,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
 
   it("should allow withdrawing redeemable tokens on successful raise", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const deployer = signers[3];
+    const [, alice, , deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -159,9 +158,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
 
   it("should support multiple withdrawals per sender if more claimable tokens are deposited after a withdrawal", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const deployer = signers[3];
+    const [, alice, bob, deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -315,9 +312,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
 
   it("should distribute correct withdrawal proportion if RedeemableERC20 tokens are burned", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const deployer = signers[3];
+    const [, alice, bob, deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {

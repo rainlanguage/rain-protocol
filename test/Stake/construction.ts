@@ -14,7 +14,7 @@ import {
 } from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
-  getRainContractMetaBytes,
+  getRainDocumentsFromContract,
   max_uint16,
   max_uint256,
   memoryOperand,
@@ -55,7 +55,7 @@ describe("Stake construction", async function () {
 
   it("should not initialize if requirements not met", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const constants = [max_uint256, max_uint16];
     const max_deposit = op(
@@ -91,7 +91,8 @@ describe("Stake construction", async function () {
 
   it("should initialize correctly on the good path", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
+
     const constants = [max_uint256, max_uint16];
 
     const max_deposit = op(
@@ -138,7 +139,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("stake"),
+        meta: getRainDocumentsFromContract("stake"),
         deployer: touchDeployer.address,
       };
 
@@ -150,7 +151,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("orderbook"),
+        meta: getRainDocumentsFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

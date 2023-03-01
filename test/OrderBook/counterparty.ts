@@ -61,10 +61,7 @@ describe("OrderBook counterparty in context", async function () {
   it("should expose counterparty context to RainInterpreter calculations (e.g. Order_A will noop if Order_B counterparty does not match Carol's address)", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
-    const bountyBot = signers[4];
+    const [, alice, bob, carol, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 

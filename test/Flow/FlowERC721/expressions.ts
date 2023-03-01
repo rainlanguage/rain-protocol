@@ -46,9 +46,7 @@ describe("FlowERC721 expressions tests", async function () {
 
   it("should validate context emitted in context event", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [deployer, alice, bob] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -57,8 +55,11 @@ describe("FlowERC721 expressions tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -69,7 +70,7 @@ describe("FlowERC721 expressions tests", async function () {
       SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const flowConfigStruct: FlowERC721Config = {
       name: "Flow ERC721",
@@ -79,6 +80,7 @@ describe("FlowERC721 expressions tests", async function () {
         constants,
       },
       flows: [{ sources: [sourceFlowIO], constants }],
+      baseURI: "https://www.rainprotocol.xyz/nft/",
     };
 
     const { flow } = await flowERC721Clone(

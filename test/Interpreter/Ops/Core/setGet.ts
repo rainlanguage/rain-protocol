@@ -1,31 +1,22 @@
 import { assert } from "chai";
 import { randomBytes } from "crypto";
-import { concat, keccak256 } from "ethers/lib/utils";
+import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   IInterpreterV1Consumer,
   Rainterpreter,
   RainterpreterStore,
 } from "../../../../typechain";
-
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-  RainterpreterOps,
-  randomUint256,
-} from "../../../../utils";
+import { randomUint256, standardEvaluableConfig } from "../../../../utils";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
-  iinterpreterV1ConsumerDeploy,
   expressionConsumerDeploy,
+  iinterpreterV1ConsumerDeploy,
 } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-
-const Opcode = RainterpreterOps;
 
 describe("SET/GET Opcode tests", async function () {
   before(async () => {
@@ -38,32 +29,15 @@ describe("SET/GET Opcode tests", async function () {
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
 
-    const constants = [key1, val1, val2];
-
-    // prettier-ignore
-    const source = concat([
-        // SET key1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-
-        // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-
-        // SET key1 again
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
-      op(Opcode.set),
-
-        // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0 )), // key
-      op(Opcode.get),
-
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `key1: ${key1},
+      val1: ${val1},
+      val2: ${val2},
+      _ _: set(key1 val1) get(key1) set(key1 val2) get(key1);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy([source], constants, 2);
+      await iinterpreterV1ConsumerDeploy(sources, constants, 2);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -90,32 +64,15 @@ describe("SET/GET Opcode tests", async function () {
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
 
-    const constants = [key1, val1, val2];
-
-    // prettier-ignore
-    const source = concat([
-        // SET key1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-
-        // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-
-        // SET key1 again
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
-      op(Opcode.set),
-
-        // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0 )), // key
-      op(Opcode.get),
-
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `key1: ${key1},
+      val1: ${val1},
+      val2: ${val2},
+      _ _: set(key1 val1) get(key1) set(key1 val2) get(key1);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy([source], constants, 2);
+      await iinterpreterV1ConsumerDeploy(sources, constants, 2);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -138,40 +95,18 @@ describe("SET/GET Opcode tests", async function () {
     const val2 = 0;
     const val3 = 555;
 
-    const constants = [key1, val1, key2, val2, key3, val3];
-
-    // prettier-ignore
-    const source = concat([
-        // SET key1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-
-        // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-
-        // SET key2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // val
-      op(Opcode.set),
-
-        // GET KEY 2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
-      op(Opcode.get),
-
-        // SET key3
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // val
-      op(Opcode.set),
-
-        // GET KEY 3
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // key
-      op(Opcode.get),
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `key1: ${key1},
+      key2: ${key2},
+      key3: ${key3},
+      val1: ${val1},
+      val2: ${val2},
+      val3: ${val3},
+      _ _ _: set(key1 val1) get(key1) set(key2 val2) get(key2) set(key3 val3) get(key3);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy([source], constants, 3);
+      await iinterpreterV1ConsumerDeploy(sources, constants, 3);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -182,9 +117,9 @@ describe("SET/GET Opcode tests", async function () {
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 3, "Invalid stack length");
-    assert(stack[0].eq(constants[1]), "Invalid value was SET / GET for key 1");
-    assert(stack[1].eq(constants[3]), "Invalid value was SET / GET for key 2");
-    assert(stack[2].eq(constants[5]), "Invalid value was SET / GET for key 3");
+    assert(stack[0].eq(val1), "Invalid value was SET / GET for key 1");
+    assert(stack[1].eq(val2), "Invalid value was SET / GET for key 2");
+    assert(stack[2].eq(val3), "Invalid value was SET / GET for key 3");
   });
 
   it("should set and get values of different types", async () => {
@@ -192,26 +127,43 @@ describe("SET/GET Opcode tests", async function () {
     const key = 123;
     const val = 456;
 
-    const constants1 = [key, val];
-
-    // prettier-ignore
-    const source1 = concat([
-        // SET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-        // GET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-    ]);
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val},
+        _: set(key val) get(key);`
+      );
 
     let { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [source1],
-        constants1,
+      await iinterpreterV1ConsumerDeploy(sources0, constants0, 1);
 
-        1
+    // Eval
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
+
+    const stack0 = await consumerLogic.stack();
+
+    // StackPointer
+    const val0_ = stack0[stack0.length - 1];
+
+    assert(val0_.eq(val), "Invalid value was SET / GET");
+
+    // Hashed Key Value pair
+    const hashedKey = keccak256(randomBytes(32));
+    const hashedValue = keccak256(randomBytes(256));
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(
+        `key: ${hashedKey},
+        val: ${hashedValue},
+        _: set(key val) get(key);`
       );
+
+    ({ consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy(sources1, constants1, 1));
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -222,34 +174,27 @@ describe("SET/GET Opcode tests", async function () {
 
     const stack1 = await consumerLogic.stack();
 
-    // StackPointer
     const val1_ = stack1[stack1.length - 1];
 
-    assert(val1_.eq(val), "Invalid value was SET / GET");
+    // StackPointer
+    assert(
+      val1_.eq(hashedValue),
+      "Invalid value was SET / GET for hashed bytes"
+    );
 
-    // Hashed Key Value pair
-    const hashedKey = keccak256(randomBytes(32));
-    const hashedValue = keccak256(randomBytes(256));
-    const constants2 = [hashedKey, hashedValue];
+    // max numeric key value pair
+    const maxKey = ethers.constants.MaxUint256;
+    const maxValue = ethers.constants.MaxUint256;
 
-    // prettier-ignore
-    const source2 = concat([
-        // SET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-        // GET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-    ]);
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(
+        `key: ${maxKey},
+        val: ${maxValue},
+        _: set(key val) get(key);`
+      );
 
     ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [source2],
-        constants2,
-
-        1
-      ));
+      await iinterpreterV1ConsumerDeploy(sources2, constants2, 1));
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -264,33 +209,23 @@ describe("SET/GET Opcode tests", async function () {
 
     // StackPointer
     assert(
-      val2_.eq(hashedValue),
-      "Invalid value was SET / GET for hashed bytes"
+      val2_.eq(maxValue),
+      "Invalid value was SET / GET for max key value pair"
     );
+    const signers = await ethers.getSigners();
+    // address key value pair
+    const addressKey = signers[0].address;
+    const addressValue = signers[1].address;
 
-    // max numeric key value pair
-    const maxKey = ethers.constants.MaxUint256;
-    const maxValue = ethers.constants.MaxUint256;
-    const constants3 = [maxKey, maxValue];
-
-    // prettier-ignore
-    const source3 = concat([
-        // SET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-        // GET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-    ]);
+    const { sources: sources3, constants: constants3 } =
+      await standardEvaluableConfig(
+        `key: ${addressKey},
+        val: ${addressValue},
+        _: set(key val) get(key);`
+      );
 
     ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [source3],
-        constants3,
-
-        1
-      ));
+      await iinterpreterV1ConsumerDeploy(sources3, constants3, 1));
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -305,48 +240,7 @@ describe("SET/GET Opcode tests", async function () {
 
     // StackPointer
     assert(
-      val3_.eq(maxValue),
-      "Invalid value was SET / GET for max key value pair"
-    );
-    const signers = await ethers.getSigners();
-    // address key value pair
-    const addressKey = signers[0].address;
-    const addressValue = signers[1].address;
-    const constants4 = [addressKey, addressValue];
-
-    // prettier-ignore
-    const source4 = concat([
-        // SET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-        // GET
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get),
-    ]);
-
-    ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy(
-        [source4],
-        constants4,
-
-        1
-      ));
-
-    // Eval
-    await consumerLogic["eval(address,uint256,uint256[][])"](
-      interpreter.address,
-      dispatch,
-      []
-    );
-
-    const stack4 = await consumerLogic.stack();
-
-    const val4_ = stack4[stack4.length - 1];
-
-    // StackPointer
-    assert(
-      val4_.eq(addressValue),
+      val3_.eq(addressValue),
       "Invalid value was SET / GET for string key value pair"
     );
   });
@@ -355,17 +249,14 @@ describe("SET/GET Opcode tests", async function () {
     const key = 123;
     const val = 456;
 
-    const constants = [key, val];
-
-    // prettier-ignore
-    const source = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set),
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `key: ${key},
+      val: ${val},
+      : set(key val);`
+    );
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy([source], constants, 1);
+      await iinterpreterV1ConsumerDeploy(sources, constants, 0);
 
     // Eval
     await consumerLogic["eval(address,uint256,uint256[][])"](
@@ -406,21 +297,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
   it("should ensure that set adds keys to state changes array", async () => {
     const key = 123;
     const val = 456;
-    const constants = [key, val];
 
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set)
-
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      `key: ${key},
+      val: ${val},
+      : set(key val);`
+    );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
+      sources,
       constants,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -452,26 +340,21 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val1 = randomUint256();
     const key2 = 222222;
     const val2 = randomUint256();
-    const constantsA = [key1, val1, key2, val2];
-    const constantsB = [key1, key2];
 
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-        op(Opcode.set) ,
-
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // val
-        op(Opcode.set)
-
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key1: ${key1},
+        val1: ${val1},
+        key2: ${key2},
+        val2: ${val2},
+        : set(key1 val1) set(key2 val2);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
+      sourcesA,
       constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -500,20 +383,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(kvs[2].eq(key1), "Invalid Key set in kv");
     assert(kvs[3].eq(val1), "Invalid Value set in kv");
 
-    // prettier-ignore
-    const sourceB = concat([
-      // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // key
-        op(Opcode.get),
-
-        // GET KEY 2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.get)
-
-    ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key1: ${key1},
+        key2: ${key2},
+        _ _: get(key1) get(key2);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
+      sourcesB,
       constantsB,
       rainInterpreter,
       2
@@ -530,27 +408,26 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const stack = await consumerLogicA.stack();
 
     assert(stack.length == 2, "Invalid stack length");
-    assert(stack[0].eq(val2), "Invalid value was SET / GET for key 1");
-    assert(stack[1].eq(val1), "Invalid value was SET / GET for key 2");
+    assert(stack[0].eq(val1), "Invalid value was SET / GET for key 1");
+    assert(stack[1].eq(val2), "Invalid value was SET / GET for key 2");
   });
 
   it("should not share set/get values across expressions for different calling contract if namespace is not set", async () => {
     const key = 111111;
     const val = randomUint256();
-    const constants = [key, val];
 
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set)
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val},
+        : set(key val);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
-      constants,
+      sourcesA,
+      constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -576,17 +453,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(kvs[0].eq(key), "Invalid Key set in kv");
     assert(kvs[1].eq(val), "Invalid Value set in kv");
 
-    // prettier-ignore
-    const sourceB = concat([
-      // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.get),
-
-    ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        _: get(key);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
-      constants,
+      sourcesB,
+      constantsB,
       rainInterpreter,
       1
     );
@@ -611,21 +486,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const namespaceA = 999999;
     const namespaceB = 666666;
 
-    const constants = [key, val];
-
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set)
-
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val},
+        : set(key val);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
-      constants,
+      sourcesA,
+      constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -655,17 +527,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(kvs[1].eq(val), "Invalid Value set in kv");
 
     // B evals on different namespace
-    // prettier-ignore
-    const sourceB = concat([
-      // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.get),
-
-    ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        _: get(key);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
-      constants,
+      sourcesB,
+      constantsB,
       rainInterpreter,
       1
     );
@@ -685,18 +555,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     assert(stackB[0].eq(0), "Invalid value was SET / GET for key 1");
 
     // C evals on correct namespace
-    // prettier-ignore
-    const sourceC = concat([
-      // GET KEY 1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.get),
-
-    ]);
+    const { sources: sourcesC, constants: constantsC } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        _: get(key);`
+      );
 
     const expressionC = await expressionConsumerDeploy(
-      [sourceC],
-      constants,
-
+      sourcesC,
+      constantsC,
       rainInterpreter,
       1
     );
@@ -722,22 +589,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val2 = randomUint256();
     const namespaceA = 999999;
 
-    const constantsA = [key, val1];
-    const constantsB = [key, val2];
-
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set)
-
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val1},
+        : set(key val);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
+      sourcesA,
       constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -758,19 +621,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       _KVsA
     );
 
-    // prettier-ignore
-    const sourceB = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-    op(Opcode.set)
-
-  ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val2},
+        : set(key val);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
+      sourcesB,
       constantsB,
       rainInterpreter,
-      1
+      0
     );
 
     await consumerLogicB.evalWithNamespace(
@@ -806,22 +668,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val1 = 123;
     const key2 = 222222;
 
-    const constantsA = [key1, val1];
-    const constantsB = [key2];
-
-    // prettier-ignore
-    const sourceA = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set)
-
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key: ${key1},
+        val: ${val1},
+        : set(key val);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
+      sourcesA,
       constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -839,16 +697,14 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       await consumerLogicA.store(),
       _KVsA
     );
-
-    // prettier-ignore
-    const sourceB = concat([
-        // GET KEY 2
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.get),
-    ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key: ${key2},
+        _: get(key);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
+      sourcesB,
       constantsB,
       rainInterpreter,
       1
@@ -873,29 +729,19 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val2 = 789;
     const val3 = 123;
 
-    const constantsA = [key, val1, val2];
-    const constantsB = [key, val3];
-    const constantsC = [key];
-
-    // prettier-ignore
-    const sourceA = concat([
-      // set key1
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.set) ,
-
-      // override previous set
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // val
-      op(Opcode.set)
-
-    ]);
+    const { sources: sourcesA, constants: constantsA } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val1: ${val1},
+        val2: ${val2},
+        : set(key val1) set(key val2);`
+      );
 
     const expressionA = await expressionConsumerDeploy(
-      [sourceA],
+      sourcesA,
       constantsA,
       rainInterpreter,
-      1
+      0
     );
 
     const interpreterStore: RainterpreterStore =
@@ -919,20 +765,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       _KVsA
     );
 
-    // prettier-ignore
-    const sourceB = concat([
-      // override set again by different expression
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val
-    op(Opcode.set)
-
-  ]);
+    const { sources: sourcesB, constants: constantsB } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        val: ${val3},
+        : set(key val);`
+      );
 
     const expressionB = await expressionConsumerDeploy(
-      [sourceB],
+      sourcesB,
       constantsB,
       rainInterpreter,
-      1
+      0
     );
 
     await consumerLogicA["eval(address,address,uint256,uint256[][])"](
@@ -954,17 +798,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       _KVsB
     );
 
-    // prettier-ignore
-    const sourceC = concat([
-      // GET latest SET value
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.get)
-    ]);
+    const { sources: sourcesC, constants: constantsC } =
+      await standardEvaluableConfig(
+        `key: ${key},
+        _: get(key);`
+      );
 
     const expressionC = await expressionConsumerDeploy(
-      [sourceC],
+      sourcesC,
       constantsC,
-
       rainInterpreter,
       1
     );

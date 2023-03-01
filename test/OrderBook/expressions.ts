@@ -73,8 +73,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
     const aliceVault = ethers.BigNumber.from(randomUint256());
@@ -273,8 +272,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -483,8 +481,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -677,8 +674,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -880,8 +876,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -1078,8 +1073,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -1301,8 +1295,7 @@ describe("OrderBook expression checks", async () => {
   it("should ensure balance diff is zero in calculateIO and actual value in handleIO", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -1475,8 +1468,7 @@ describe("OrderBook expression checks", async () => {
   it("should ensure accessing calcualtions context during calculation reverts", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -1606,8 +1598,7 @@ describe("OrderBook expression checks", async () => {
     await tokenA18.initialize();
     await tokenB06.initialize();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 

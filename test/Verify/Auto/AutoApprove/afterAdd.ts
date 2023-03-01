@@ -49,10 +49,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should automatically approve sender if AutoApprove has APPROVER role", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
@@ -116,10 +113,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should not approve sender if evidence does not match the correct ID", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
     const badID = hexZeroPad(ethers.utils.randomBytes(32), 32);
@@ -188,10 +182,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should automatically approve sender if evidence matches the correct ID", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
@@ -256,10 +247,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should trigger afterAdd callback and automatically deny approval of sender when Interpreter script returns 0", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
@@ -310,10 +298,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should trigger afterAdd callback and automatically approve sender when Interpreter script returns 1", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],
@@ -378,10 +363,7 @@ describe("AutoApprove afterAdd", async function () {
   it("should validate Context emitted in Context event", async () => {
     const signers = await ethers.getSigners();
 
-    const deployer = signers[1];
-    const admin = signers[2];
-    const signer1 = signers[3];
-    const aprAdmin = signers[4];
+    const [, deployer, admin, signer1, aprAdmin] = signers;
 
     const expressionConfig = {
       sources: [op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0))],

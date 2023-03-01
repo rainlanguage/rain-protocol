@@ -17,8 +17,7 @@ describe("SeedDance commit", async function () {
   it("should allow anybody to make commitments before start", async () => {
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     const secret1 = randomBytes(32);
     const commitment1 = keccak256(secret1);

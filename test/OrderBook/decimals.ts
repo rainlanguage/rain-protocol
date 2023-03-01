@@ -55,7 +55,7 @@ describe("OrderBook decimals", async function () {
     // const tokenADecimals = await tokenA06.decimals();
     const tokenBDecimals = await tokenB18.decimals();
 
-    const alice = signers[1];
+    const [, alice] = signers;
 
     const orderBook = await deployOrderBook();
 
@@ -151,9 +151,7 @@ describe("OrderBook decimals", async function () {
     const tokenADecimals = await tokenA06.decimals();
     const tokenBDecimals = await tokenB18.decimals();
 
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
+    const [, alice, bob, bountyBot] = signers;
 
     const orderBook = await deployOrderBook();
 

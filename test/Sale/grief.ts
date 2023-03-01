@@ -52,12 +52,14 @@ describe("Sale griefer", async function () {
 
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const recipient = signers[1];
-    const signer1 = signers[2];
-    const feeRecipient = signers[3];
-    const forwardingAddress = signers[4];
-    const griefer = signers[5];
+    const [
+      deployer,
+      recipient,
+      signer1,
+      feeRecipient,
+      forwardingAddress,
+      griefer,
+    ] = signers;
     // griefer acquires 1m reserve somehow
     await reserve.transfer(
       griefer.address,
