@@ -22,7 +22,12 @@ library OpHash {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (StackPointer) { 
+
+        if (Operand.unwrap(operand_) == 0) {
+                revert OperandUnderflow(1, 0);
+        } 
+
         return
             integrityCheckState_.applyFn(
                 stackTop_,

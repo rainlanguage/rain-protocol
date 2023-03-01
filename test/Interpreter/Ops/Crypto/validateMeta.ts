@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { BytesLike, concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { max_uint256, memoryOperand, MemoryType, op, Opcode, randomUint256, standardEvaluableConfig } from "../../../../utils";
+import { assertError, max_uint256, memoryOperand, MemoryType, op, Opcode, randomUint256, standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";  
@@ -67,7 +67,7 @@ describe("HASH Opcode test", async function () {
    
   }
 
-  it.only("should hash a single value", async () => {
+  it("should hash ", async () => {
    
     const {sources , constants} = opHashBuilder()
 
@@ -94,7 +94,37 @@ describe("HASH Opcode test", async function () {
       `Invalid output, expected ${expectedValue}, actual ${result}`
     );
 
-  });  
+  });   
+
+  it("should fail with Underflow", async () => {
+    const constants = [ethers.constants.MaxUint256]; 
+
+    let op_ = 1 << 1
+    console.log("op_ : " , op_ ) 
+
+    // prettier-ignore
+    const source = concat([
+        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.hash, op_),
+    ]); 
+
+
+    await assertError(
+        async () =>
+        await expressionConsumerDeploy(
+            [source],
+            constants,
+            rainInterpreter,
+            1
+          ),
+        "OperandUnderflow",
+        "Did not overflow"
+      )
+    
+
+    
+
+  });
 
   
 
