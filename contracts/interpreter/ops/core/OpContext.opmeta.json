@@ -4,11 +4,11 @@
   "operand": [
     {
       "name": "column",
-      "bits": [0, 7]
+      "bits": [8, 15]
     },
     {
       "name": "row",
-      "bits": [8, 15]
+      "bits": [0, 7]
     }
   ],
   "inputs": 0,

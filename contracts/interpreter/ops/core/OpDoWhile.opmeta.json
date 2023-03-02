@@ -3,15 +3,15 @@
   "desc": "Runs a while loop on number of items taken from a stack until a conditions is met",
   "operand": [
     {
+      "name": "source-index",
+      "desc": "index of the source to run",
+      "bits": [8, 11]
+    },
+    {
       "name": "inputs",
       "bits": [0, 3],
       "validRange": [[0, 15]],
       "computation": "arg - 1"
-    },
-    {
-      "name": "source-index",
-      "desc": "index of the source to run",
-      "bits": [8, 11]
     }
   ],
   "inputs": {
