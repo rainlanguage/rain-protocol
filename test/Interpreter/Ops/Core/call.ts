@@ -23,7 +23,7 @@ describe("CALL Opcode test", async function () {
 
       /* source 1 */
       _:  add(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             1
           );`
     );
@@ -51,26 +51,26 @@ describe("CALL Opcode test", async function () {
           0
           1
           call<1 1>(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
           )
           call<1 1>(
-            read-memory<${MemoryType.Stack} 1>()
-            read-memory<${MemoryType.Stack} 2>()
+            read-memory<1 ${MemoryType.Stack}>()
+            read-memory<2 ${MemoryType.Stack}>()
           )
           call<1 1>(
-            read-memory<${MemoryType.Stack} 2>()
-            read-memory<${MemoryType.Stack} 3>()
+            read-memory<2 ${MemoryType.Stack}>()
+            read-memory<3 ${MemoryType.Stack}>()
           )
           call<1 1>(
-            read-memory<${MemoryType.Stack} 3>()
-            read-memory<${MemoryType.Stack} 4>()
+            read-memory<3 ${MemoryType.Stack}>()
+            read-memory<4 ${MemoryType.Stack}>()
           );
 
       /* source 1 */
       _:  add(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
           )
         ;`
     );
@@ -130,21 +130,21 @@ describe("CALL Opcode test", async function () {
 
       /* source 1 */
       _:  mul(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
-            read-memory<${MemoryType.Stack} 2>()
-            read-memory<${MemoryType.Stack} 3>()
-            read-memory<${MemoryType.Stack} 4>()
-            read-memory<${MemoryType.Stack} 5>()
-            read-memory<${MemoryType.Stack} 6>()
-            read-memory<${MemoryType.Stack} 7>()
-            read-memory<${MemoryType.Stack} 8>()
-            read-memory<${MemoryType.Stack} 9>()
-            read-memory<${MemoryType.Stack} 10>()
-            read-memory<${MemoryType.Stack} 11>()
-            read-memory<${MemoryType.Stack} 12>()
-            read-memory<${MemoryType.Stack} 13>()
-            read-memory<${MemoryType.Stack} 14>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
+            read-memory<2 ${MemoryType.Stack}>()
+            read-memory<3 ${MemoryType.Stack}>()
+            read-memory<4 ${MemoryType.Stack}>()
+            read-memory<5 ${MemoryType.Stack}>()
+            read-memory<6 ${MemoryType.Stack}>()
+            read-memory<7 ${MemoryType.Stack}>()
+            read-memory<8 ${MemoryType.Stack}>()
+            read-memory<9 ${MemoryType.Stack}>()
+            read-memory<10 ${MemoryType.Stack}>()
+            read-memory<11 ${MemoryType.Stack}>()
+            read-memory<12 ${MemoryType.Stack}>()
+            read-memory<13 ${MemoryType.Stack}>()
+            read-memory<14 ${MemoryType.Stack}>()
           );`
       );
 
@@ -175,22 +175,22 @@ describe("CALL Opcode test", async function () {
 
       /* source 1 */
       _:  mul(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
-            read-memory<${MemoryType.Stack} 2>()
-            read-memory<${MemoryType.Stack} 3>()
-            read-memory<${MemoryType.Stack} 4>()
-            read-memory<${MemoryType.Stack} 5>()
-            read-memory<${MemoryType.Stack} 6>()
-            read-memory<${MemoryType.Stack} 7>()
-            read-memory<${MemoryType.Stack} 8>()
-            read-memory<${MemoryType.Stack} 9>()
-            read-memory<${MemoryType.Stack} 10>()
-            read-memory<${MemoryType.Stack} 11>()
-            read-memory<${MemoryType.Stack} 12>()
-            read-memory<${MemoryType.Stack} 13>()
-            read-memory<${MemoryType.Stack} 14>()
-            read-memory<${MemoryType.Stack} 15>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
+            read-memory<2 ${MemoryType.Stack}>()
+            read-memory<3 ${MemoryType.Stack}>()
+            read-memory<4 ${MemoryType.Stack}>()
+            read-memory<5 ${MemoryType.Stack}>()
+            read-memory<6 ${MemoryType.Stack}>()
+            read-memory<7 ${MemoryType.Stack}>()
+            read-memory<8 ${MemoryType.Stack}>()
+            read-memory<9 ${MemoryType.Stack}>()
+            read-memory<10 ${MemoryType.Stack}>()
+            read-memory<11 ${MemoryType.Stack}>()
+            read-memory<12 ${MemoryType.Stack}>()
+            read-memory<13 ${MemoryType.Stack}>()
+            read-memory<14 ${MemoryType.Stack}>()
+            read-memory<15 ${MemoryType.Stack}>()
           );`
         ),
       "out-of-range operand args",
@@ -206,8 +206,8 @@ describe("CALL Opcode test", async function () {
 
       /* source 1 */
       _:  mul(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
           );`
     );
 
@@ -232,12 +232,12 @@ describe("CALL Opcode test", async function () {
     const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
-      _ _ _:  call<3 1>(2 2);
+      _ _ _:  call<1 3>(2 2);
 
       /* source 1 */
       _ _ _:  mul(
-                read-memory<${MemoryType.Stack} 0>()
-                read-memory<${MemoryType.Stack} 1>()
+                read-memory<0 ${MemoryType.Stack}>()
+                read-memory<1 ${MemoryType.Stack}>()
               )
               10
               20
@@ -268,23 +268,23 @@ describe("CALL Opcode test", async function () {
   it("should process the maximum number of sources", async () => {
     /*
       call<1 1>  4
-      call<1 2>  4 - 1 = 3
-      call<1 3>  3 * 10 = 30
-      call<1 4>  30 / 2 = 15
-      call<1 5>  15 ** 2 = 225
-      call<1 6>  225 + 10 = 235
-      call<1 7>  235 + 1 = 236
+      call<2 1>  4 - 1 = 3
+      call<3 1>  3 * 10 = 30
+      call<4 1>  30 / 2 = 15
+      call<5 1>  15 ** 2 = 225
+      call<6 1>  225 + 10 = 235
+      call<7 1>  235 + 1 = 236
     */
 
     const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source */
-      _:  call<1 7>(
-            call<1 6>(
-              call<1 5>(
-                call<1 4>(
-                  call<1 3>(
-                    call<1 2>(
+      _:  call<7 1>(
+            call<6 1>(
+              call<5 1>(
+                call<4 1>(
+                  call<3 1>(
+                    call<2 1>(
                       call<1 1>(2 2)
                     )
                   )
@@ -295,43 +295,43 @@ describe("CALL Opcode test", async function () {
 
       /* source 1 */
       _:  add(
-            read-memory<${MemoryType.Stack} 0>()
-            read-memory<${MemoryType.Stack} 1>()
+            read-memory<0 ${MemoryType.Stack}>()
+            read-memory<1 ${MemoryType.Stack}>()
           );
 
       /* source 2 */
       _:  sub(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             1
           );
 
       /* source 3 */
       _:  mul(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             10
           );
 
       /* source 4 */
       _:  div(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             2
           );
 
       /* source 5 */
       _:  exp(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             2
           );
 
       /* source 6 */
       _:  add(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             10
           );
 
       /* source 7 */
       _:  add(
-            read-memory<${MemoryType.Stack} 0>()
+            read-memory<0 ${MemoryType.Stack}>()
             1
           );
       `
@@ -358,7 +358,7 @@ describe("CALL Opcode test", async function () {
     const { sources, constants } = await standardEvaluableConfig(
       `
       /* main source 0 */
-      _ _:  call<2 1>(10);
+      _ _:  call<1 2>(10);
 
       /* source 1 */
       ten: ,
@@ -394,10 +394,10 @@ describe("CALL Opcode test", async function () {
       `
       /* main source 0 */
       value: 10,
-      _ _ _:    call<3 1>(value);
+      _ _ _:    call<1 3>(value);
 
       /* source 1 */
-      stack-value: read-memory<${MemoryType.Stack} 0>(),
+      stack-value: read-memory<0 ${MemoryType.Stack}>(),
       _ _ _:
             ensure(stack-value)
 

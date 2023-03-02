@@ -59,8 +59,9 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [100, 200, 300, 400],
       [1000, 2000, 3000, 4000],
       [5, 6, 7, 8],
-    ];
+    ]; 
 
+    
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expression0.dispatch,
@@ -86,16 +87,16 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
 
       /* 
         sources[1] 
       */
       acc a1 a2 a3 a4: ,
-      a: equal-to(a1 read-memory<${MemoryType.Constant} 1>()),
-      b: equal-to(a2 read-memory<${MemoryType.Constant} 1>()),
-      c: equal-to(a3 read-memory<${MemoryType.Constant} 1>()),
-      d: equal-to(a4 read-memory<${MemoryType.Constant} 1>()),
+      a: equal-to(a1 read-memory<1 ${MemoryType.Constant}>()),
+      b: equal-to(a2 read-memory<1 ${MemoryType.Constant}>()),
+      c: equal-to(a3 read-memory<1 ${MemoryType.Constant}>()),
+      d: equal-to(a4 read-memory<1 ${MemoryType.Constant}>()),
       _: add(acc a b c d),
       `
     );
@@ -145,7 +146,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
 
       /* 
         sources[1] 
@@ -192,7 +193,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
 
       /* 
         sources[1] 
@@ -235,7 +236,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
 
       /* 
         sources[1] 
@@ -327,17 +328,17 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sourceMain
       */
-      _ _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
+      _ _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
 
       /* 
         sourceCalculate
       */
        
       evencount oddcount s2 s3 s4 s5: ,
-      retevencount: call<1 2>(s2 s3 s4 s5),
+      retevencount: call<2 1>(s2 s3 s4 s5),
 
       /* counting ODD numbers [Total elements - EVEN number count = ODD number count] */
-      totalminuseven: sub(read-memory<${MemoryType.Constant} 2>() retevencount),
+      totalminuseven: sub(read-memory<2 ${MemoryType.Constant}>() retevencount),
       retoddcount: add(totalminuseven oddcount),
       _: add(retevencount evencount),
       _: retoddcount;
@@ -347,10 +348,10 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       sourceCountEvent
       */
       s0 s1 s2 s3: ,
-      a: is-zero(mod(s0 read-memory<${MemoryType.Constant} 1>())),
-      b: is-zero(mod(s1 read-memory<${MemoryType.Constant} 1>())),
-      c: is-zero(mod(s2 read-memory<${MemoryType.Constant} 1>())),
-      d: is-zero(mod(s3 read-memory<${MemoryType.Constant} 1>())),
+      a: is-zero(mod(s0 read-memory<1 ${MemoryType.Constant}>())),
+      b: is-zero(mod(s1 read-memory<1 ${MemoryType.Constant}>())),
+      c: is-zero(mod(s2 read-memory<1 ${MemoryType.Constant}>())),
+      d: is-zero(mod(s3 read-memory<1 ${MemoryType.Constant}>())),
       _: add(a b c d);
       `
     );
