@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-log10",
+  "desc": "PRBMath UD60x18: Calculates the common logarithm of x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-log10", "fp-log10"]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "prb-ud60x18-gm",
+  "desc": "PRBMath UD60x18: Calculates the geometric mean of x and y, i.e. $$sqrt(x * y)$$, rounding down.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-gm", "fp-gm"]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-frac",
+  "desc": "PRBMath UD60x18: Yields the excess beyond the floor of x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-frac", "fp-frac"]
+}

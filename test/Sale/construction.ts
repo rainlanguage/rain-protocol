@@ -12,7 +12,7 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
 import {
-  getRainDocumentsFromContract,
+  getRainMetaDocumentFromContract,
   readWriteTierDeploy,
   redeemableERC20DeployImplementation,
 } from "../../utils";
@@ -198,7 +198,7 @@ describe("Sale construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("sale"),
+        meta: getRainMetaDocumentFromContract("sale"),
         deployer: touchDeployer.address,
       };
 
@@ -215,7 +215,7 @@ describe("Sale construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("orderbook"),
+        meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

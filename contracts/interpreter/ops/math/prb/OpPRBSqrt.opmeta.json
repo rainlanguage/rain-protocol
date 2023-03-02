@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-sqrt",
+  "desc": "PRBMath UD60x18: Calculates the square root of x, rounding down.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-sqrt", "fp-sqrt"]
+}

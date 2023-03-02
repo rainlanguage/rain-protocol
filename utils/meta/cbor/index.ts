@@ -91,7 +91,7 @@ export const cborDecode = (dataEncoded_: string): Array<any> => {
  * @param dataEncoded_ The data to be decoded
  * @returns An array with the values decoded.
  */
-export const decodeRainDocument = (dataEncoded_: string): Array<any> => {
+export const decodeRainMetaDocument = (dataEncoded_: string): Array<any> => {
   const metaDocumentHex =
     "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
 
