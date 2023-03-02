@@ -59,7 +59,7 @@ describe("HASH Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       `value0: context<0 0>(),
-      value1: context<1 0>(),
+      value1: context<0 1>(),
       _: hash(value0 value1);`
     );
 
