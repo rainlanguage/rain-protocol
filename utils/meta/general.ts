@@ -225,7 +225,9 @@ export const validateMeta = (
     while (_allAliases.length) {
       const _item = _allAliases.splice(0, 1)[0];
       if (_allAliases.includes(_item))
-        throw new Error(`invalid meta, reason: duplicated names or aliases "${_item}"`);
+        throw new Error(
+          `invalid meta, reason: duplicated names or aliases "${_item}"`
+        );
     }
   }
   return true;

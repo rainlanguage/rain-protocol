@@ -59,9 +59,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [100, 200, 300, 400],
       [1000, 2000, 3000, 4000],
       [5, 6, 7, 8],
-    ]; 
+    ];
 
-    
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expression0.dispatch,

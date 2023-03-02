@@ -274,7 +274,7 @@ describe("Lobby Tests join", async function () {
       "VM Exception while processing transaction: reverted with reason string 'ONLY_NON_REF'",
       "did not revert on ref 'join'"
     );
-  }); 
+  });
 
   it("should ensure players are not able to join lobby until ref allows to agree", async function () {
     const signers = await ethers.getSigners();
@@ -355,18 +355,17 @@ describe("Lobby Tests join", async function () {
         context: context1,
       },
     ];
-    
+
     //Player tries to join before ref agrees
     await assertError(
-      async () =>
-      await Lobby.connect(alice).join([1234], signedContexts0),
+      async () => await Lobby.connect(alice).join([1234], signedContexts0),
       "BadPhase",
       "Intialized before ref agrees"
-    ); 
+    );
 
-    await Lobby.connect(signers[0]).refAgrees()  
+    await Lobby.connect(signers[0]).refAgrees();
 
-    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0); 
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
 
     const { sender } = (await getEventArgs(
       joinTx,
@@ -386,9 +385,7 @@ describe("Lobby Tests join", async function () {
     assert(sender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
-    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase"); 
-
-
+    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
   });
 
   it("should ensure player joins lobby on happy path ", async function () {
