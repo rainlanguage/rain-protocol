@@ -55,7 +55,7 @@
     "prettier": "=2.8.4",
     "prettier-plugin-solidity": "=1.1.1",
     "pretty-quick": "=3.1.3",
-    "rainlang": "rainprotocol/rainlang#874e90f98ef0d7f5a6834cc6e9e2358522afa1e1",
+    "rainlang": "rainprotocol/rainlang#eebc9707d6ffcc749332a8d56cc70f8335f75d89",
     "solc": "=0.8.17",
     "solhint": "=3.3.7",
     "string-math": "^1.2.2",
