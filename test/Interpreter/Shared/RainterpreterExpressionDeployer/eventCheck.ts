@@ -7,7 +7,7 @@ import {
   areEqualExpressionConfigs,
   compareStructs,
   getEventArgs,
-  getRainDocumentsFromOpmeta,
+  getRainMetaDocumentFromOpmeta,
   memoryOperand,
   MemoryType,
   op,
@@ -158,7 +158,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const interpreter = await rainterpreterDeploy();
     const store = await rainterpreterStoreDeploy();
 
-    const bytes_ = getRainDocumentsFromOpmeta();
+    const bytes_ = getRainMetaDocumentFromOpmeta();
     const expressionDeployerFactory = await ethers.getContractFactory(
       "RainterpreterExpressionDeployer"
     );

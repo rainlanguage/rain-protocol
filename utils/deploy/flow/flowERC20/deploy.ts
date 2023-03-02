@@ -14,7 +14,7 @@ import { FlowERC20Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { getRainDocumentsFromContract } from "../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../meta";
 import { assert } from "chai";
 import { zeroAddress } from "../../../constants";
 
@@ -24,7 +24,7 @@ export const flowERC20Implementation = async (): Promise<FlowERC20> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainDocumentsFromContract("flow20"),
+    meta: getRainMetaDocumentFromContract("flow20"),
     deployer: touchDeployer.address,
   };
 

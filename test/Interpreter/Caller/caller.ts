@@ -11,7 +11,7 @@ import {
   assertError,
   getEventArgs,
   getRainContractMetaBytes,
-  getRainDocumentsFromContract,
+  getRainMetaDocumentFromContract,
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -32,11 +32,11 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const lobbyContractMeta = getRainDocumentsFromContract("orderbook");
+    const lobbyContractMeta = getRainMetaDocumentFromContract("orderbook");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("lobby"),
+        meta: getRainMetaDocumentFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
@@ -58,7 +58,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainDocumentsFromContract("stake");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -91,7 +91,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainDocumentsFromContract("stake");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -152,7 +152,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainDocumentsFromContract("stake");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -168,16 +168,16 @@ describe("Caller Test", async function () {
     await assertError(
       async () =>
         await caller.checkMeta(
-          getRainDocumentsFromContract("orderbook"),
-          getRainDocumentsFromContract("lobby")
+          getRainMetaDocumentFromContract("orderbook"),
+          getRainMetaDocumentFromContract("lobby")
         ),
       "UnexpectedMetaHash",
       "Incorrect Meta Hash"
     );
 
     const correctHash = await caller.checkMeta(
-      getRainDocumentsFromContract("lobby"),
-      getRainDocumentsFromContract("lobby")
+      getRainMetaDocumentFromContract("lobby"),
+      getRainMetaDocumentFromContract("lobby")
     );
 
     assert(correctHash, "Incorrect Meta Hash");
@@ -191,7 +191,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainDocumentsFromContract("stake");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -224,7 +224,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const stakeContractMeta = getRainDocumentsFromContract("stake");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
@@ -238,7 +238,7 @@ describe("Caller Test", async function () {
     )) as IInterpreterCallerConsumer;
 
     const validRainMetaV1 = await caller.checkIsRainMetaV1(
-      getRainDocumentsFromContract("stake")
+      getRainMetaDocumentFromContract("stake")
     );
 
     const inValidRainMetaV1 = await caller.checkIsRainMetaV1(
