@@ -1,0 +1,17 @@
+{
+  "name": "prb-ud60x18-avg",
+  "desc": "PRBMath UD60x18: Calculates the arithmetic average of x and y, rounding down.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-avg", "fp-avg"]
+}

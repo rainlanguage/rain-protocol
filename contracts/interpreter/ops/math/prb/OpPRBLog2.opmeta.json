@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-log2",
+  "desc": "PRBMath UD60x18: Calculates the binary logarithm of x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-log2", "fp-log2"]
+}
