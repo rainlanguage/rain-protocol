@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-floor",
+  "desc": "PRBMath UD60x18: Yields the greatest whole UD60x18 number less than or equal to x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-floor", "fp-floor"]
+}

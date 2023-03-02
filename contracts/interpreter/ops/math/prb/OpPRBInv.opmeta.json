@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-inv",
+  "desc": "PRBMath UD60x18: Calculates 1 / x, rounding toward zero.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-inv", "fp-inv"]
+}

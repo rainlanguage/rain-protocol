@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-ln",
+  "desc": "PRBMath UD60x18: Calculates the natural logarithm of x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-ln", "fp-ln"]
+}

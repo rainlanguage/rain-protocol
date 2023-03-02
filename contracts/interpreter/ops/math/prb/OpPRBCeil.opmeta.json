@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-ceil",
+  "desc": "PRBMath UD60x18: Yields the smallest whole UD60x18 number greater than or equal to x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-ceil", "fp-ceil"]
+}

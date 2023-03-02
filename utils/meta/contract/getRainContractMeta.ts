@@ -77,7 +77,7 @@ export const getRainContractMetaFromBytes = (
  * @param contract - Name of a Rain contract, eg "sale", "flowErc20"
  * @returns CBOR sequence as hex string with the Rain Prefix
  */
-export const getRainDocumentsFromContract = (
+export const getRainMetaDocumentFromContract = (
   contract: ContractMeta
 ): string => {
   // Prefixes every rain meta document as an hex string
@@ -120,7 +120,7 @@ export const getRainDocumentsFromContract = (
  * @param contractName_ The contract that will be read to get the ABI
  * @returns The  deflated ABI JSON as hex string.
  */
-const getAbi = (contractName_: ContractMeta): string => {
+export const getAbi = (contractName_: ContractMeta): string => {
   let name: string;
 
   if (contractName_ === "sale") name = "Sale";

@@ -15,7 +15,7 @@ import { FlowERC721Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { getRainDocumentsFromContract } from "../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
 
@@ -25,7 +25,7 @@ export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainDocumentsFromContract("flow721"),
+    meta: getRainMetaDocumentFromContract("flow721"),
     deployer: touchDeployer.address,
   };
 

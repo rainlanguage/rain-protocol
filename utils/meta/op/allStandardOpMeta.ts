@@ -134,7 +134,7 @@ export const getRainterpreterOpMetaFromBytes = (
   return metaFromBytes(bytes, OpMetaSchema, path);
 };
 
-export const getRainDocumentsFromOpmeta = (): string => {
+export const getRainMetaDocumentFromOpmeta = (): string => {
   // Prefixes every rain meta document as an hex string
   const metaDocumentHex =
     "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();

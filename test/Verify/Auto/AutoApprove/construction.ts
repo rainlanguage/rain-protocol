@@ -12,7 +12,7 @@ import {
 import {
   assertError,
   basicDeploy,
-  getRainDocumentsFromContract,
+  getRainMetaDocumentFromContract,
   zeroAddress,
 } from "../../../../utils";
 import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -144,7 +144,7 @@ describe("AutoApprove construction", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const config_0: InterpreterCallerV1ConstructionConfigStruct = {
-      meta: getRainDocumentsFromContract("autoapprove"),
+      meta: getRainMetaDocumentFromContract("autoapprove"),
       deployer: touchDeployer.address,
     };
 
@@ -154,7 +154,7 @@ describe("AutoApprove construction", async function () {
     assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
 
     const config_1: InterpreterCallerV1ConstructionConfigStruct = {
-      meta: getRainDocumentsFromContract("orderbook"),
+      meta: getRainMetaDocumentFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
 

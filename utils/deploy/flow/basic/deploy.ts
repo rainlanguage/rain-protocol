@@ -16,7 +16,7 @@ import { assert } from "chai";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { getRainDocumentsFromContract } from "../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
 
 export const flowImplementation = async (): Promise<Flow> => {
@@ -25,7 +25,7 @@ export const flowImplementation = async (): Promise<Flow> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainDocumentsFromContract("flow"),
+    meta: getRainMetaDocumentFromContract("flow"),
     deployer: touchDeployer.address,
   };
 
