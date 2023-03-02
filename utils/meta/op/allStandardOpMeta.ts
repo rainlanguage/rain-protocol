@@ -4,9 +4,9 @@ import { deflateSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
-import { metaFromBytes } from "../general";
+import { metaFromBytes, validateMeta } from "../general";
 import { MAGIC_NUMBERS, cborEncode } from "../cbor";
-import { arrayify } from "ethers/lib/utils";
+import { arrayify, BytesLike } from "ethers/lib/utils";
 
 /**
  * Generates list of file paths for all `.opmeta.json` files under `contracts/` directory.
@@ -80,6 +80,8 @@ export const getAllStandardOpsEnum = () => {
  * @returns hex string
  */
 export const getRainterpreterOpMetaBytes = (): string => {
+  if (!validateMeta(rainterpreterOpmeta, OpMetaSchema))
+    throw new Error("invalid op meta");
   const opmetaBytes = Uint8Array.from(
     deflateSync(
       format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
@@ -122,11 +124,11 @@ export const getRainterpreterOpMetaJson = (
  * Decompress and convert bytes to Rainterpreter op metas
  *
  * @param bytes - Bytes to decompress and convert back to json meta
- * @param path - Path to write the results to if having the output as a json file is desired
+ * @param path - (optional) Path to write the results to if having the output as a json file is desired
  * @returns
  */
 export const getRainterpreterOpMetaFromBytes = (
-  bytes: string | Uint8Array,
+  bytes: BytesLike,
   path?: string
 ) => {
   return metaFromBytes(bytes, OpMetaSchema, path);

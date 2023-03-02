@@ -8,13 +8,11 @@ import Sale from "../../../contracts/sale/Sale.meta.json";
 import Stake from "../../../contracts/stake/Stake.meta.json";
 import CombineTier from "../../../contracts/tier/CombineTier.meta.json";
 import AutoApprove from "../../../contracts/verify/auto/AutoApprove.meta.json";
-import ContractMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
-import { deflateSync, inflateSync } from "zlib";
-import { format } from "prettier";
-import { metaFromBytes } from "../general";
+import ContractMetaSchema from "../../../schema/meta/v0/contract.meta.schema.json";
+import { deflateJson, metaFromBytes, validateMeta } from "../general";
 import { MAGIC_NUMBERS, cborEncode } from "../cbor";
 import { artifacts } from "hardhat";
-import { arrayify } from "ethers/lib/utils";
+import { arrayify, BytesLike } from "ethers/lib/utils";
 
 export type ContractMeta =
   | "sale"
@@ -47,7 +45,8 @@ export const getRainContractMetaBytes = (contract: ContractMeta): string => {
   if (contract === "lobby") meta = Lobby;
   if (contract === "autoapprove") meta = AutoApprove;
   if (contract === "combinetier") meta = CombineTier;
-
+  if (!validateMeta(meta, ContractMetaSchema))
+    throw new Error("invalid contract meta");
   return deflateJson(meta);
 };
 
@@ -60,7 +59,7 @@ export const getRainContractMetaBytes = (contract: ContractMeta): string => {
  * @returns Rain contract Meta as object
  */
 export const getRainContractMetaFromBytes = (
-  bytes: string | Uint8Array,
+  bytes: BytesLike,
   path?: string
 ) => {
   return metaFromBytes(bytes, ContractMetaSchema, path);
@@ -140,41 +139,4 @@ export const getAbi = (contractName_: ContractMeta): string => {
   const abiJSON = artifacts.readArtifactSync(name).abi;
 
   return deflateJson(abiJSON);
-};
-
-/**
- * @public
- * Take a Object and parset it to a JSON to be deflated and returned as hex string.
- *
- * @param data_ The data object to be encoded
- * @returns An hex string
- */
-export const deflateJson = (data_: any): string => {
-  const content = format(JSON.stringify(data_, null, 4), { parser: "json" });
-  const bytes = Uint8Array.from(deflateSync(content));
-  let hex = "0x";
-  for (let i = 0; i < bytes.length; i++) {
-    hex = hex + bytes[i].toString(16).padStart(2, "0");
-  }
-  return hex;
-};
-
-/**
- * @public
- * `WIP:` Inverse of `deflateJson`. Get a hex string  or Uint8Array and inflate
- * the JSON to obtain an string with the decoded data.
- */
-export const inflateJson = (bytes: string | Uint8Array) => {
-  let _uint8Arr: Uint8Array;
-  if (typeof bytes === "string") {
-    if (bytes.startsWith("0x")) bytes = bytes.slice(2);
-    const _bytesArr = [];
-    for (let i = 0; i < bytes.length; i += 2) {
-      _bytesArr.push(Number("0x" + bytes.slice(i, i + 2)));
-    }
-    _uint8Arr = Uint8Array.from(_bytesArr);
-  } else {
-    _uint8Arr = bytes;
-  }
-  return format(inflateSync(_uint8Arr).toString(), { parser: "json" });
 };

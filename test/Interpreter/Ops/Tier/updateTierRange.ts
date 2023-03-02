@@ -10,7 +10,6 @@ import {
   memoryOperand,
   MemoryType,
   op,
-  standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 import { NEVER } from "../../../../utils/tier";

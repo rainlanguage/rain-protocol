@@ -1,11 +1,4 @@
-import { Chain, Common, Hardfork } from "@ethereumjs/common";
-import { getOpcodesForHF } from "@ethereumjs/evm/dist/opcodes";
 import { ethers } from "hardhat";
-
-const common = new Common({
-  chain: Chain.Mainnet,
-  hardfork: Hardfork.Istanbul,
-});
 
 export function pad(num: number, size: number) {
   let s = num + "";

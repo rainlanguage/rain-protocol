@@ -38,7 +38,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should read a value from CONSTANT and place it on the STACK", async () => {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
-      `_: read-memory<${MemoryType.Constant} 0>();`
+      `_: read-memory<0 ${MemoryType.Constant}>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -66,9 +66,9 @@ describe("READ_MEMORY Opcode test", async function () {
     const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
         block-timestamp()
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Stack} 1>()
-        read-memory<${MemoryType.Stack} 0>();`
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Stack}>()
+        read-memory<0 ${MemoryType.Stack}>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -104,8 +104,8 @@ describe("READ_MEMORY Opcode test", async function () {
     const { sources } = await standardEvaluableConfig(
       `_ _ _:
         block-timestamp()
-        read-memory<${MemoryType.Stack} 0>()
-        read-memory<${MemoryType.Stack} 2>();` // Reading an OOB value
+        read-memory<0 ${MemoryType.Stack}>()
+        read-memory<2 ${MemoryType.Stack}>();` // Reading an OOB value
     );
 
     await assertError(
@@ -120,8 +120,8 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
       `_ _:
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Constant} 1>();` // Reading an OOB value
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>();` // Reading an OOB value
     );
 
     await assertError(
@@ -136,10 +136,10 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Constant} 1>()
-        read-memory<${MemoryType.Stack} 3>()
-        read-memory<${MemoryType.Constant} 2>();`
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<3 ${MemoryType.Stack}>()
+        read-memory<2 ${MemoryType.Constant}>();`
     );
 
     await assertError(
@@ -154,10 +154,10 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Constant} 1>()
-        read-memory<${MemoryType.Constant} 2>()
-        read-memory<${MemoryType.Stack} 3>();`
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<2 ${MemoryType.Constant}>()
+        read-memory<3 ${MemoryType.Stack}>();`
     );
 
     await assertError(
@@ -175,12 +175,12 @@ describe("READ_MEMORY Opcode test", async function () {
 
     const { sources } = await standardEvaluableConfig(
       `_ _ _:
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Constant} 1>()
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
         add(
-          read-memory<${MemoryType.Constant} 2>()
-          read-memory<${MemoryType.Constant} 3>()
-          read-memory<${MemoryType.Stack} 0>()
+          read-memory<2 ${MemoryType.Constant}>()
+          read-memory<3 ${MemoryType.Constant}>()
+          read-memory<0 ${MemoryType.Stack}>()
         );`
     );
 
@@ -212,11 +212,11 @@ describe("READ_MEMORY Opcode test", async function () {
     const { sources } = await standardEvaluableConfig(
       `_ _:
         add(
-          read-memory<${MemoryType.Constant} 0>()
-          read-memory<${MemoryType.Constant} 1>()
-          read-memory<${MemoryType.Constant} 2>()
+          read-memory<0 ${MemoryType.Constant}>()
+          read-memory<1 ${MemoryType.Constant}>()
+          read-memory<2 ${MemoryType.Constant}>()
         )
-        read-memory<${MemoryType.Stack} 0>();`
+        read-memory<0 ${MemoryType.Stack}>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -243,10 +243,10 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
       `_ _ _ _:
-        read-memory<${MemoryType.Constant} 0>()
-        read-memory<${MemoryType.Constant} 1>()
-        read-memory<${MemoryType.Constant} 2>()
-        read-memory<${MemoryType.Stack} 1>();`
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<2 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Stack}>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -272,7 +272,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
     const { sources } = await standardEvaluableConfig(
-      `_: read-memory<${MemoryType.Constant} 1>();`
+      `_: read-memory<1 ${MemoryType.Constant}>();`
     );
 
     await assertError(

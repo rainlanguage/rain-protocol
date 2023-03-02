@@ -36,16 +36,16 @@ describe("DO_WHILE Opcode test", async function () {
       /* 
       sourceMain
       */
-     c0: read-memory<${MemoryType.Constant} 0>(),
-     c2: read-memory<${MemoryType.Constant} 2>(),
+     c0: read-memory<0 ${MemoryType.Constant}>(),
+     c2: read-memory<2 ${MemoryType.Constant}>(),
      condition: less-than(c0 c2),
      _ _: do-while<1>(c0 c0 condition);
      
      
       /* do-while source */
       s0 s1: ,
-      o1: add(s1 read-memory<${MemoryType.Constant} 1>()),
-      o2: less-than(s0 read-memory<${MemoryType.Constant} 2>());
+      o1: add(s1 read-memory<1 ${MemoryType.Constant}>()),
+      o2: less-than(s0 read-memory<2 ${MemoryType.Constant}>());
       `
     );
     const { consumerLogic, interpreter, dispatch } =
@@ -81,16 +81,16 @@ describe("DO_WHILE Opcode test", async function () {
       /* 
         sourceMain
       */
-      constant: read-memory<${MemoryType.Constant} 0>(),
+      constant: read-memory<0 ${MemoryType.Constant}>(),
       _: do-while<1>(constant constant);
 
       /* do-while source */
       s0 : ,
       _: sub(
           s0 
-          read-memory<${MemoryType.Constant} 1>()
+          read-memory<1 ${MemoryType.Constant}>()
         ),
-      _: read-memory<${MemoryType.Stack} 1>();
+      _: read-memory<1 ${MemoryType.Stack}>();
       `
     );
 
@@ -129,14 +129,14 @@ describe("DO_WHILE Opcode test", async function () {
       /* 
         sourceMain
       */
-      c1: read-memory<${MemoryType.Constant} 0>(),
-      condition: less-than(c1 read-memory<${MemoryType.Constant} 2>()),
+      c1: read-memory<0 ${MemoryType.Constant}>(),
+      condition: less-than(c1 read-memory<2 ${MemoryType.Constant}>()),
       _: do-while<1>(c1 condition);
 
       /* do-while source */
       s0: ,
-      o1: add(s0 read-memory<${MemoryType.Constant} 1>()),
-      _: less-than(o1 read-memory<${MemoryType.Constant} 2>());
+      o1: add(s0 read-memory<1 ${MemoryType.Constant}>()),
+      _: less-than(o1 read-memory<2 ${MemoryType.Constant}>());
       `
     );
 
@@ -175,24 +175,24 @@ describe("DO_WHILE Opcode test", async function () {
       /* 
         sourceMain
       */
-      c0: read-memory<${MemoryType.Constant} 0>(),
-      c1: read-memory<${MemoryType.Constant} 1>(),
-      condition: call<1 2>(c1), /* callCheckAcc */
+      c0: read-memory<0 ${MemoryType.Constant}>(),
+      c1: read-memory<1 ${MemoryType.Constant}>(),
+      condition: call<2 1>(c1), /* callCheckAcc */
       _ _: do-while<1>(c0 c1 condition);
       
       /* sourceWHILE */
       s0 s1: ,
-      o0 o1: call<2 3>(s0 s1),
-      condition: call<1 2>(o1); /* callCheckAcc */
+      o0 o1: call<3 2>(s0 s1),
+      condition: call<2 1>(o1); /* callCheckAcc */
 
       /* sourceCheckAcc */
       s0: ,
-      _: less-than(s0 read-memory<${MemoryType.Constant} 4>());
+      _: less-than(s0 read-memory<4 ${MemoryType.Constant}>());
 
       /* sourceIncrease */
       s0 s1: ,
-      _: add(s0 read-memory<${MemoryType.Constant} 2>()),
-      _: add(s1 read-memory<${MemoryType.Constant} 3>());
+      _: add(s0 read-memory<2 ${MemoryType.Constant}>()),
+      _: add(s1 read-memory<3 ${MemoryType.Constant}>());
       `
     );
 

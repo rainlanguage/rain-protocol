@@ -50,11 +50,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
@@ -94,11 +94,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
@@ -138,11 +138,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
@@ -183,16 +183,16 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n outer source */
       s0 : ,
-      op: add(s0 read-memory<${MemoryType.Constant} 1>()),
-      _: loop-n<${n} 1 2>(op);
+      op: add(s0 read-memory<1 ${MemoryType.Constant}>()),
+      _: loop-n<${n} 2 1>(op);
 
       /* loop-n inner source */
       s0 : ,
-      op: add(s0 read-memory<${MemoryType.Constant} 2>());
+      op: add(s0 read-memory<2 ${MemoryType.Constant}>());
       `
     );
 
@@ -250,10 +250,10 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-        _ loopoutput _: loop-n<${n} 3 1>(
-            read-memory<${MemoryType.Constant} 0>()
-            read-memory<${MemoryType.Constant} 4>()
-            read-memory<${MemoryType.Constant} 5>()
+        _ loopoutput _: loop-n<${n} 1 3>(
+            read-memory<0 ${MemoryType.Constant}>()
+            read-memory<4 ${MemoryType.Constant}>()
+            read-memory<5 ${MemoryType.Constant}>()
           ),
         _ _ _ _ _ _ _ _: explode-32(loopoutput);
         
@@ -261,26 +261,26 @@ describe("LOOP_N Opcode test", async function () {
         sourceAdd source 
       */
         s0 s1 s2: ,
-        _ _ _: call<3 2>(s0 s1 s2);
+        _ _ _: call<2 3>(s0 s1 s2);
       
       /* 
         sourceAddAndShiftRight source 
       */
         s0 s1 s2: ,
-        increment: add(s0 read-memory<${MemoryType.Constant} 1>()),
+        increment: add(s0 read-memory<1 ${MemoryType.Constant}>()),
 
         /* right shifting */
-          shrval: call<1 3>(increment s1 s2),
+          shrval: call<3 1>(increment s1 s2),
         
         /* decrementing the level */
-          lvldcr: saturating-sub(s2 read-memory<${MemoryType.Constant} 6>());
+          lvldcr: saturating-sub(s2 read-memory<6 ${MemoryType.Constant}>());
         
       /* 
         sourceShiftRight 
       */
         s0 s1 s2: ,
-        levelmul: mul(read-memory<${MemoryType.Constant} 3>() s2),
-        levelexp: exp(read-memory<${MemoryType.Constant} 2>() levelmul),
+        levelmul: mul(read-memory<3 ${MemoryType.Constant}>() s2),
+        levelexp: exp(read-memory<2 ${MemoryType.Constant}>() levelmul),
         finalmul: mul(levelexp s0),
 
         op: add(finalmul s1);
@@ -450,11 +450,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _ _: loop-n<${n} 2 1>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
+      _ _: loop-n<${n} 1 2>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
@@ -491,11 +491,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
@@ -526,11 +526,11 @@ describe("LOOP_N Opcode test", async function () {
       /* 
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<${MemoryType.Constant} 0>() read-memory<${MemoryType.Constant} 0>());
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<${MemoryType.Constant} 1>());
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
       `
     );
 
