@@ -104,10 +104,10 @@ export const validateMeta = (
           // check bits
           const _range1 = _expandBits(_meta[i].operand[j].bits);
           for (let k = j + 1; k < _meta[i].operand.length; k++) {
-            // check order of operand args by bits index from low bits to high
+            // check order of operand args by bits index from high bits to low
             if (_meta[i].operand[j].bits[0] <= _meta[i].operand[k].bits[1]) {
               throw new Error(
-                `invalid meta for ${_meta[i].name}, reason: bad operand args order, should be from low to high`
+                `invalid meta for ${_meta[i].name}, reason: bad operand args order, should be from high to low`
               );
             }
             // check operand args bits overlap
