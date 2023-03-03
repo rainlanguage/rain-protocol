@@ -1,16 +1,19 @@
 import cbor from "cbor";
-
 import { assert } from "chai";
 import {
-  ContractMeta,
-  getAbi,
   getRainContractMetaBytes,
-  getRainMetaDocumentFromContract,
-  getRainMetaDocumentFromOpmeta,
   getRainterpreterOpMetaBytes,
 } from "../../utils";
 import { MAGIC_NUMBERS } from "../../utils/meta/cbor";
 import { ethers } from "hardhat";
+import {
+  encodeCBORContractMeta,
+  getAbi,
+  getRainMetaDocumentFromContract,
+  getRainMetaDocumentFromOpmeta,
+} from "../../utils/meta/rainMetaDocument";
+
+import type { ContractMeta } from "../../utils/types/contractMeta";
 
 /**
  * Rain Meta Document magic number as hex string
@@ -53,6 +56,76 @@ const findDocInDecodedArray = (
     throw new Error("A value in the decoded value is not a map");
   }
 };
+
+const hexToBin = (hex_: string) => {
+  return parseInt(hex_, 16).toString(2).padStart(8, "0");
+};
+
+const binToDecimal = (bin_: string) => {
+  return parseInt(bin_, 2);
+};
+
+const hexToDecimal = (hex_: string) => {
+  return parseInt(hex_, 16);
+};
+
+/**
+ * CBOR Major Types.
+ *
+ * https://www.rfc-editor.org/rfc/rfc8949#name-major-types
+ */
+enum MajorTypes {
+  /**
+   * An unsigned integer
+   */
+  TYPE_0 = "000",
+
+  /**
+   * A negative integer
+   */
+  TYPE_1 = "001",
+
+  /**
+   * A byte string
+   */
+  TYPE_2 = "010",
+
+  /**
+   * A text string
+   */
+  TYPE_3 = "011",
+
+  /**
+   * An array of data items
+   */
+  TYPE_4 = "100",
+
+  /**
+   * A map of pairs of data items
+   */
+  TYPE_5 = "101",
+
+  /**
+   * A tagged data item
+   */
+  TYPE_6 = "110",
+
+  /**
+   * Floating-point numbers and simple values, as well as the "break" stop code
+   */
+  TYPE_7 = "111",
+}
+
+/**
+ * https://github.com/rainprotocol/specs/blob/main/metadata.md#header-name-aliases-cbor-map-keys
+ */
+enum RainDocumentKeys {
+  Payload,
+  MagicNumber,
+  ContentType,
+  ContentEncoding,
+  ContentLanguage,
+}
 
 describe("Contract Rain Meta Document", function () {
   it("should construct a meta document from a contract with the start magic number", async function () {
@@ -195,5 +268,99 @@ describe("Contract Rain Meta Document", function () {
       contentEncoding === "deflate",
       "Ops Meta does not have the correct encoding type"
     );
+  });
+
+  it("should have the correct major type on the payload of the contract meta", async function () {
+    // The contract name to generate the Rain Meta Document
+    const contractName: ContractMeta = "flow20";
+
+    // Getting the meta document from an arbitrary contract
+    const metaDocument = getRainMetaDocumentFromContract(contractName);
+
+    assert(
+      metaDocument.startsWith(RainMetaDocument),
+      "The rain meta document does not start with the magic number"
+    );
+
+    // The cbor sequence without the magic number.
+    const cborSequence = metaDocument.replace(RainMetaDocument, "");
+
+    let contractMetaBytesCBOR = encodeCBORContractMeta(contractName);
+
+    assert(
+      cborSequence.includes(contractMetaBytesCBOR),
+      "The cbor sequence does not include the contract meta bytes"
+    );
+
+    // --- MAP PAIRS CHECK
+
+    // Get the first bytes from the Contract Meta bytes and parse to bits
+    const mapTypeBin = hexToBin(contractMetaBytesCBOR.slice(0, 2));
+
+    // Removing the previous byte(s)
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    // The high-order 3 are the major type.
+    const mapType = mapTypeBin.slice(0, 3);
+
+    // The low-order 5 bits are additional information.
+    // Total keys should be used from `0` to `n - 1`.
+    // const mapTotalKeys = binToDecimal(mapTypeBin.slice(-5));
+
+    assert(
+      mapType == MajorTypes.TYPE_5,
+      "The cbor data do not have the correct map type"
+    );
+
+    // --- PAYLOAD CHECK
+
+    // Looking in the map following the Rain Meta Documents design.
+    const keyPayload = hexToDecimal(contractMetaBytesCBOR.slice(0, 2));
+
+    // Remove the last byte
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    assert(
+      keyPayload == RainDocumentKeys.Payload,
+      `Wrong key header aliases - expected: "${RainDocumentKeys.Payload}" and got "${keyPayload}"`
+    );
+
+    let payloadLength = 0;
+
+    // Get the next byte
+    const bytesTypeBin_0 = hexToBin(contractMetaBytesCBOR.slice(0, 2));
+
+    // Remove the last byte
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    // The high-order 3 are the major type.
+    const bytesType = bytesTypeBin_0.slice(0, 3);
+
+    assert(
+      bytesType == MajorTypes.TYPE_2,
+      "The cbor data do not have the correct bytes type"
+    );
+
+    // The low-order 5 bits are additional information. For bytes string determined
+    // the length of the string byte
+    const bytesLength = binToDecimal(bytesTypeBin_0.slice(-5));
+
+    if (bytesLength == 25) {
+      // Additional information 25 to indicate that the next two-byte determined the length
+      payloadLength = hexToDecimal(contractMetaBytesCBOR.slice(0, 4));
+      // Remove the last two bytes
+      contractMetaBytesCBOR = contractMetaBytesCBOR.slice(4);
+    } else {
+      // Otherwise, "the number of bytes in the string is equal to the argument."
+      // Which means that the low-order 5 bits itself are the length
+      payloadLength = bytesLength;
+    }
+
+    const payloadData = contractMetaBytesCBOR.slice(0, payloadLength * 2);
+
+    // Getting the originalRain Contract Meta bytes without the init '0x'
+    const contractMetaBytes = getRainContractMetaBytes(contractName).slice(2);
+
+    assert(payloadData == contractMetaBytes, "The payload data is malformed");
   });
 });
