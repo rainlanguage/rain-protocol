@@ -14,7 +14,7 @@ import {
 } from "../../typechain/contracts/stake/Stake";
 import {
   generateEvaluableConfig,
-  getRainDocumentsFromContract,
+  getRainMetaDocumentFromContract,
   max_uint16,
   max_uint256,
   memoryOperand,
@@ -139,7 +139,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("stake"),
+        meta: getRainMetaDocumentFromContract("stake"),
         deployer: touchDeployer.address,
       };
 
@@ -151,7 +151,7 @@ describe("Stake construction", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("orderbook"),
+        meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

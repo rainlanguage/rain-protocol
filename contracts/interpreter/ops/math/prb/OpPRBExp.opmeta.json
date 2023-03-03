@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-exp",
+  "desc": "PRBMath UD60x18: Calculates the natural exponent of x.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-exp", "fp-exp"]
+}

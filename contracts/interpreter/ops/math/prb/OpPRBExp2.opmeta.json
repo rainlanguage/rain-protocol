@@ -1,0 +1,14 @@
+{
+  "name": "prb-ud60x18-exp2",
+  "desc": "PRBMath UD60x18: Calculates the binary exponent of x using the binary fraction method.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-exp2", "fp-exp2"]
+}

@@ -56,14 +56,14 @@ describe("RainInterpreter debug op", async function () {
 
     const { sources } = await standardEvaluableConfig(
       `
-      a: read-memory<${MemoryType.Constant} 0>(),
-      b: read-memory<${MemoryType.Constant} 1>(),
+      a: read-memory<0 ${MemoryType.Constant}>(),
+      b: read-memory<1 ${MemoryType.Constant}>(),
       _: call<1 1>(b),
       : debug<${Debug.StatePacked}>();
       
       : debug<${Debug.StatePacked}>(),
-      c: read-memory<${MemoryType.Stack} 0>(),
-      d: read-memory<${MemoryType.Constant} 2>(),
+      c: read-memory<0 ${MemoryType.Stack}>(),
+      d: read-memory<2 ${MemoryType.Constant}>(),
       : debug<${Debug.StatePacked}>(),
       _: less-than(c d);`
     );
@@ -84,10 +84,10 @@ describe("RainInterpreter debug op", async function () {
     const { sources } = await standardEvaluableConfig(
       `
       /* Main Source */
-      input: read-memory<${MemoryType.Constant} 0>(),
+      input: read-memory<0 ${MemoryType.Constant}>(),
       condition: less-than(
-        read-memory<${MemoryType.Stack} 0>()
-        read-memory<${MemoryType.Constant} 2>()
+        read-memory<0 ${MemoryType.Stack}>()
+        read-memory<2 ${MemoryType.Constant}>()
       ),
 
       _: do-while<1>(
@@ -98,13 +98,13 @@ describe("RainInterpreter debug op", async function () {
       /* do-while source */ 
       : debug<${Debug.StatePacked}>(),
       _: add(
-          read-memory<${MemoryType.Stack} 0>() 
-          read-memory<${MemoryType.Constant} 1>()
+          read-memory<0 ${MemoryType.Stack}>() 
+          read-memory<1 ${MemoryType.Constant}>()
         ),
 
       _: less-than( 
-        read-memory<${MemoryType.Stack} 1>() 
-        read-memory<${MemoryType.Constant} 2>()
+        read-memory<1 ${MemoryType.Stack}>() 
+        read-memory<2 ${MemoryType.Constant}>()
       ),
       : debug<${Debug.StatePacked}>();`
     );
@@ -128,13 +128,13 @@ describe("RainInterpreter debug op", async function () {
     const { sources } = await standardEvaluableConfig(
       `
       /* MAIN SOURCE */
-      input: read-memory<${MemoryType.Constant} 0>(),
+      input: read-memory<0 ${MemoryType.Constant}>(),
       _: loop-n<${loopSize} 1 1>(input);
       
       /* loop-n source */
       _: add(
-          read-memory<${MemoryType.Stack} 0>() 
-          read-memory<${MemoryType.Constant} 1>()
+          read-memory<0 ${MemoryType.Stack}>() 
+          read-memory<1 ${MemoryType.Constant}>()
         ),
       : debug<${Debug.StatePacked}>();`
     );

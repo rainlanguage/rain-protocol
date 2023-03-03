@@ -15,7 +15,7 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/
 import {
   assertError,
   basicDeploy,
-  getRainDocumentsFromContract,
+  getRainMetaDocumentFromContract,
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
@@ -131,7 +131,7 @@ describe("FlowERC20 construction tests", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("flow20"),
+        meta: getRainMetaDocumentFromContract("flow20"),
         deployer: touchDeployer.address,
       };
 
@@ -143,7 +143,7 @@ describe("FlowERC20 construction tests", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        meta: getRainDocumentsFromContract("orderbook"),
+        meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

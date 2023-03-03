@@ -15,7 +15,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context height [COLUMN] up to 16", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: context<0 15>();`
+      `_: context<15 0>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -33,7 +33,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context width [ROW] up to 16", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: context<15 0>();`
+      `_: context<0 15>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -51,7 +51,7 @@ describe("RainInterpreter context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: context<3 0>();`
+      `_: context<0 3>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -73,15 +73,15 @@ describe("RainInterpreter context", async function () {
   it("should not necessarily require square context matrix", async () => {
     const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
-      _: context<1 0>(),
-      _: context<2 0>(),
-      _: context<3 0>(),
       _: context<0 1>(),
-      _: context<1 1>(),
-      _: context<2 1>(),
-      _: context<3 1>(),
       _: context<0 2>(),
+      _: context<0 3>(),
+      _: context<1 0>(),
+      _: context<1 1>(),
       _: context<1 2>(),
+      _: context<1 3>(),
+      _: context<2 0>(),
+      _: context<2 1>(),
       _: context<2 2>();
       `
     );
@@ -109,15 +109,15 @@ describe("RainInterpreter context", async function () {
   it("should return correct context value when specifying context operand for 2D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
-      _: context<1 0>(),
-      _: context<2 0>(),
-      _: context<3 0>(),
       _: context<0 1>(),
-      _: context<1 1>(),
-      _: context<2 1>(),
-      _: context<3 1>(),
       _: context<0 2>(),
-      _: context<1 2>(),`
+      _: context<0 3>(),
+      _: context<1 0>(),
+      _: context<1 1>(),
+      _: context<1 2>(),
+      _: context<1 3>(),
+      _: context<2 0>(),
+      _: context<2 1>(),`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -152,8 +152,8 @@ describe("RainInterpreter context", async function () {
   it("should return correct context value when specifying context operand for 1D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
       `_: context<0 0>(),
-      _: context<1 0>(),
-      _: context<2 0>(),`
+      _: context<0 1>(),
+      _: context<0 2>(),`
     );
 
     const { consumerLogic, interpreter, dispatch } =

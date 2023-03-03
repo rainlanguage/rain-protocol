@@ -1,0 +1,17 @@
+{
+  "name": "prb-ud60x18-pow",
+  "desc": "PRBMath UD60x18: Raises x to the power of y.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-pow"]
+}

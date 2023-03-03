@@ -237,7 +237,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from("100245700");
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: scale-18<${ROUNDING_UP} 8>(${value});`
+      `_: scale-18<8 ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -269,7 +269,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: scale18<${ROUNDING_UP} 24>(${value});`
+      `_: scale18<24 ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -301,7 +301,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: scale18<${ROUNDING_UP} 20>(${value});`
+      `_: scale18<20 ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -335,7 +335,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: scale18<${ROUNDING_DOWN} 20>(${value});`
+      `_: scale18<20 ${ROUNDING_DOWN}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(

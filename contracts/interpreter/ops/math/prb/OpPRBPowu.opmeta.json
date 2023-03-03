@@ -1,0 +1,17 @@
+{
+  "name": "prb-ud60x18-powu",
+  "desc": "PRBMath UD60x18: Raises x (an UD60x18 number) to the power y (unsigned basic integer) using the famous algorithm \"exponentiation by squaring\".",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["prb-powu"]
+}

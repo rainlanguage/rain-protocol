@@ -8,8 +8,9 @@
       "bits": [12, 15]
     },
     {
-      "name": "inputs",
-      "bits": [0, 3]
+      "name": "source-index",
+      "desc": "index of the source to run",
+      "bits": [8, 11]
     },
     {
       "name": "output-size",
@@ -17,9 +18,8 @@
       "bits": [4, 7]
     },
     {
-      "name": "source-index",
-      "desc": "index of the source to run",
-      "bits": [8, 11]
+      "name": "inputs",
+      "bits": [0, 3]
     }
   ],
   "inputs": {
