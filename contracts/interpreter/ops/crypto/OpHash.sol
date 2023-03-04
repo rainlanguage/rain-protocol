@@ -6,6 +6,7 @@ import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
+import "hardhat/console.sol";
 
 /// @title OpHash
 /// @notice Opcode for hashing a list of values.
@@ -23,6 +24,14 @@ library OpHash {
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
+        if (Operand.unwrap(operand_) == 0) {
+            revert OperandUnderflow(1, 0);
+        }
+
+        if (Operand.unwrap(operand_) > 255) {
+            revert OperandOverflow(255, Operand.unwrap(operand_));
+        }
+
         return
             integrityCheckState_.applyFn(
                 stackTop_,

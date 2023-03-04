@@ -1,21 +1,30 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
   Rainterpreter,
   ReserveToken,
 } from "../../../../typechain";
+import { assertError, randomUint256 } from "../../../../utils";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
 let signers: SignerWithAddress[];
 let signer1: SignerWithAddress;
 
 let tokenERC20: ReserveToken;
+const Opcode = AllStandardOps;
 
 describe("RainInterpreter ERC20 ops", async function () {
   let rainInterpreter: Rainterpreter;
@@ -42,6 +51,10 @@ describe("RainInterpreter ERC20 ops", async function () {
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await tokenERC20.initialize();
   });
+
+  const randomUintLen = (len: number): string => {
+    return ethers.utils.hexZeroPad(ethers.utils.randomBytes(len), len);
+  };
 
   it("should return ERC20 total supply", async () => {
     const { sources, constants } = await standardEvaluableConfig(

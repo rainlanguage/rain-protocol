@@ -16,6 +16,16 @@ StackPointer constant INITIAL_STACK_BOTTOM = StackPointer.wrap(
     type(uint256).max / 2
 );
 
+/// Thrown by an integrity check on an op if the operand exceeds the max value
+/// that it can handle. MAY be for a subset of all the operand bits if the range
+/// is over a destructured value from the whole operand.
+error OperandOverflow(uint256 maximum, uint256 actual);
+
+/// Thrown by an integrity check on an op if the operand subseeds the min value
+/// that it can handle. MAY be for a subset of all the operand bits if the range
+/// is over a destructured value from the whole operand.
+error OperandUnderflow(uint256 minimum, uint256 actual);
+
 /// It is a misconfiguration to set the initial stack bottom to zero or some
 /// small value as this trivially exposes the integrity check to potential
 /// underflow issues that are gas intensive to repeatedly guard against on every
