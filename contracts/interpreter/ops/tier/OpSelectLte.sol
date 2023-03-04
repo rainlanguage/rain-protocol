@@ -26,7 +26,10 @@ library OpSelectLte {
 
             return
                 integrityCheckState_.push(
-                    integrityCheckState_.pop(stackTop_, Operand.unwrap(operand_))
+                    integrityCheckState_.pop(
+                        stackTop_,
+                        Operand.unwrap(operand_)
+                    )
                 );
         }
     }
