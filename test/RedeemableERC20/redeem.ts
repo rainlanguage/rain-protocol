@@ -51,8 +51,7 @@ describe("RedeemableERC20 redeem test", async function () {
     const FIFTY_TOKENS = ethers.BigNumber.from("50" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -206,7 +205,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // We cannot send to the token address.
     await Util.assertError(
       async () => await redeemableERC20.transfer(redeemableERC20.address, 10),
-      "TOKEN_SEND_SELF",
+      "TokenSelfSend()",
       "self send was not blocked"
     );
 
@@ -231,7 +230,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[1].address, 1),
-      "FROZEN",
+      "Frozen()",
       "funds were not frozen in next phase"
     );
 
@@ -249,7 +248,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // but not to anyone else.
     await Util.assertError(
       async () => await redeemableERC20.transfer(signers[2].address, 1),
-      "FROZEN",
+      "Frozen()",
       "funds were not frozen 2"
     );
 
@@ -454,8 +453,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -534,7 +532,7 @@ describe("RedeemableERC20 redeem test", async function () {
         await redeemableERC20
           .connect(signer1)
           .redeem([reserve1.address, reserve2.address], redeemAmount),
-      `FROZEN`,
+      `Frozen()`,
       `failed to error when reserve is frozen`
     );
 
@@ -609,7 +607,7 @@ describe("RedeemableERC20 redeem test", async function () {
           signers[2].address,
           1
         ),
-      "MIN_TIER",
+      "MinimumTier(4, 3)",
       "user could receive transfers despite not meeting minimum status"
     );
 
@@ -647,8 +645,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const signer1 = signers[1];
-    const signer2 = signers[2];
+    const [, signer1, signer2] = signers;
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -867,7 +864,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
   it("should guard against null treasury assets redemptions", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

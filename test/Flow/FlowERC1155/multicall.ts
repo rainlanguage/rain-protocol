@@ -62,8 +62,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
+    const [deployer, you] = signers;
 
     const erc721In = (await basicDeploy(
       "ReserveTokenERC721",

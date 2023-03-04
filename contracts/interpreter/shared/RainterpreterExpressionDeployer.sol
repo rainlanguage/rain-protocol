@@ -42,7 +42,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x1748429b8f603c1e0bd117557b9daacdac07bfd2ee9e81b4ac5ddb2c5a9f8484
+    0x9f1227cf9df880bd60e6a851ff211a14f65b3523794957a352d1ba6d96534b3e
 );
 
 /// @dev Hash of the known store bytecode.
@@ -52,7 +52,7 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x9b5d3f1bd2eb442487a1b57bd7f280a164afb97b56340860a88c812926caa2f8
+    0xc633bd425d2c692ef398442774a5c7c81427e04268c7169fcd1670f93ada0731
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -62,7 +62,7 @@ bytes32 constant OP_META_HASH = bytes32(
 struct RainterpreterExpressionDeployerConstructionConfig {
     address interpreter;
     address store;
-    bytes opMeta;
+    bytes meta;
 }
 
 /// @title RainterpreterExpressionDeployer
@@ -133,9 +133,9 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         }
 
         /// This IS a security check. This prevents someone making an exact
-        /// bytecode copy of the interpreter and shipping different opmeta for
-        /// the copy to lie about what each op does.
-        bytes32 opMetaHash_ = keccak256(config_.opMeta);
+        /// bytecode copy of the interpreter and shipping different meta for
+        /// the copy to lie about what each op does in the interpreter.
+        bytes32 opMetaHash_ = keccak256(config_.meta);
         if (opMetaHash_ != OP_META_HASH) {
             revert UnexpectedOpMetaHash(opMetaHash_);
         }
@@ -148,7 +148,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             address(this),
             config_.interpreter,
             config_.store,
-            config_.opMeta
+            config_.meta
         );
 
         IERC1820_REGISTRY.setInterfaceImplementer(

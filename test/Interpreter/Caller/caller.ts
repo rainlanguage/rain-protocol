@@ -1,11 +1,7 @@
 import { assert } from "chai";
-
 import { ethers } from "hardhat";
 import { IInterpreterCallerConsumer } from "../../../typechain";
-import {
-  InterpreterCallerMetaEvent,
-  InterpreterCallerV1ConstructionConfigStruct,
-} from "../../../typechain/contracts/flow/FlowCommon";
+import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   ExpressionAddressEvent,
   NewExpressionEvent,
@@ -15,9 +11,11 @@ import {
   assertError,
   getEventArgs,
   getRainContractMetaBytes,
+  getRainMetaDocumentFromContract,
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+import { MetaEvent } from "../../../typechain/contracts/meta/IMetaV1";
 
 describe("Caller Test", async function () {
   before(async () => {
@@ -34,23 +32,23 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("orderbook");
+    const lobbyContractMeta = getRainMetaDocumentFromContract("orderbook");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        meta: getRainMetaDocumentFromContract("lobby"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
       async () =>
-        await callerFactory.deploy(metaHash_, interpreterCallerConfig),
+        await callerFactory.deploy(lobbyContractMeta, interpreterCallerConfig),
       "UnexpectedMetaHash",
-      "Incorrect Meta Hash"
+      "Deployed with incorrect Meta Hash"
     );
   });
 
-  it("should ensure caller is deployed with correct data for InterpreterCallerMeta event ", async function () {
+  it("should ensure caller is deployed with correct data for Meta event ", async function () {
     const signers = await ethers.getSigners();
 
     const touchDeployer = await getTouchDeployer();
@@ -60,27 +58,27 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        meta: stakeContractMeta,
         deployer: touchDeployer.address,
       };
 
     const caller = (await callerFactory.deploy(
-      metaHash_,
+      stakeContractMeta,
       interpreterCallerConfig
     )) as IInterpreterCallerConsumer;
 
-    const { sender, callerMeta } = (await getEventArgs(
+    const { sender, meta } = (await getEventArgs(
       caller.deployTransaction,
-      "InterpreterCallerMeta",
+      "Meta",
       caller
-    )) as InterpreterCallerMetaEvent["args"];
+    )) as MetaEvent["args"];
 
     assert(sender == signers[0].address, "Incorrect Sender");
-    assert(callerMeta == metaHash_, "Incorrect Meta Hash");
+    assert(meta == stakeContractMeta, "Incorrect Meta Hash");
   });
 
   it("should deploy touch expression with correct config", async function () {
@@ -93,16 +91,16 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        meta: stakeContractMeta,
         deployer: touchDeployer.address,
       };
 
     const caller = (await callerFactory.deploy(
-      metaHash_,
+      stakeContractMeta,
       interpreterCallerConfig
     )) as IInterpreterCallerConsumer;
 
@@ -146,7 +144,7 @@ describe("Caller Test", async function () {
     assert(expressionAddress.sender == caller.address, "Incorrect Sender");
   });
 
-  it("should ensure checkCallerMeta works as expected", async function () {
+  it("should ensure checkCallerMeta fails if contract meta hashes are different", async function () {
     const touchDeployer = await getTouchDeployer();
 
     const callerFactory = await ethers.getContractFactory(
@@ -154,34 +152,100 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const metaHash_ = getRainContractMetaBytes("lobby");
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
     const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("lobby"),
+        meta: stakeContractMeta,
         deployer: touchDeployer.address,
       };
 
     const caller = (await callerFactory.deploy(
-      metaHash_,
+      stakeContractMeta,
       interpreterCallerConfig
     )) as IInterpreterCallerConsumer;
 
     await assertError(
       async () =>
-        await caller.checkCallerMeta(
-          getRainContractMetaBytes("orderbook"),
-          getRainContractMetaBytes("lobby")
+        await caller.checkMeta(
+          getRainMetaDocumentFromContract("orderbook"),
+          getRainMetaDocumentFromContract("lobby")
         ),
       "UnexpectedMetaHash",
       "Incorrect Meta Hash"
     );
 
-    const correctHash = await caller.checkCallerMeta(
-      getRainContractMetaBytes("lobby"),
-      getRainContractMetaBytes("lobby")
+    const correctHash = await caller.checkMeta(
+      getRainMetaDocumentFromContract("lobby"),
+      getRainMetaDocumentFromContract("lobby")
     );
 
     assert(correctHash, "Incorrect Meta Hash");
+  });
+
+  it("should ensure checkCallerMeta fails if contract meta hashes are invalid rain meta", async function () {
+    const touchDeployer = await getTouchDeployer();
+
+    const callerFactory = await ethers.getContractFactory(
+      "IInterpreterCallerConsumer",
+      {}
+    );
+
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
+
+    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        meta: stakeContractMeta,
+        deployer: touchDeployer.address,
+      };
+
+    const caller = (await callerFactory.deploy(
+      stakeContractMeta,
+      interpreterCallerConfig
+    )) as IInterpreterCallerConsumer;
+
+    // getRainDocumentsFromContract does not return cbor encoded bytes
+    await assertError(
+      async () =>
+        await caller.checkMeta(
+          getRainContractMetaBytes("stake"),
+          getRainContractMetaBytes("stake")
+        ),
+      "NotRainMetaV1",
+      "Incorrect Rain Hash"
+    );
+  });
+
+  it("should ensure that contract meta is valid RainMeta", async function () {
+    const touchDeployer = await getTouchDeployer();
+
+    const callerFactory = await ethers.getContractFactory(
+      "IInterpreterCallerConsumer",
+      {}
+    );
+
+    const stakeContractMeta = getRainMetaDocumentFromContract("stake");
+
+    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+      {
+        meta: stakeContractMeta,
+        deployer: touchDeployer.address,
+      };
+
+    const caller = (await callerFactory.deploy(
+      stakeContractMeta,
+      interpreterCallerConfig
+    )) as IInterpreterCallerConsumer;
+
+    const validRainMetaV1 = await caller.checkIsRainMetaV1(
+      getRainMetaDocumentFromContract("stake")
+    );
+
+    const inValidRainMetaV1 = await caller.checkIsRainMetaV1(
+      getRainContractMetaBytes("stake")
+    );
+
+    assert(validRainMetaV1, "Valid RainMeta");
+    assert(!inValidRainMetaV1, "InValid RainMeta");
   });
 });

@@ -136,7 +136,7 @@ describe("RedeemableERC20 constructor test", async function () {
           implementation,
           redeemableConfigZero
         ),
-      `MINIMUM_INITIAL_SUPPLY`,
+      `MinimumInitialSupply(0)`,
       `failed to error when constructed with 0 total supply`
     );
 
@@ -148,7 +148,7 @@ describe("RedeemableERC20 constructor test", async function () {
           implementation,
           redeemableConfigOneShort
         ),
-      `MINIMUM_INITIAL_SUPPLY`,
+      `MinimumInitialSupply(999999999999999999)`,
       `failed to error when constructed with 0 total supply`
     );
 

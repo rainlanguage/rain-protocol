@@ -11,7 +11,7 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
-import { getRainContractMetaBytes } from "../../meta";
+import { getRainMetaDocumentFromContract } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const stakeImplementation = async (): Promise<Stake> => {
@@ -20,7 +20,7 @@ export const stakeImplementation = async (): Promise<Stake> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("stake"),
+    meta: getRainMetaDocumentFromContract("stake"),
     deployer: touchDeployer.address,
   };
 

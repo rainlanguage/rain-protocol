@@ -42,9 +42,7 @@ describe("FlowERC721 signed context tests", async function () {
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -53,8 +51,10 @@ describe("FlowERC721 signed context tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -65,9 +65,10 @@ describe("FlowERC721 signed context tests", async function () {
       SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const flowConfigStruct: FlowERC721Config = {
+      baseURI: "https://www.rainprotocol.xyz/nft/",
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {
@@ -142,9 +143,7 @@ describe("FlowERC721 signed context tests", async function () {
 
   it("should validate a signed context", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const goodSigner = signers[1];
-    const badSigner = signers[2];
+    const [deployer, goodSigner, badSigner] = signers;
 
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
@@ -153,8 +152,10 @@ describe("FlowERC721 signed context tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_TRANSFER = () =>
+    const HANDLE_TRANSFER = () =>
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const TOKEN_URI = () =>
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -165,9 +166,10 @@ describe("FlowERC721 signed context tests", async function () {
       SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [CAN_TRANSFER()];
+    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
 
     const flowConfigStruct: FlowERC721Config = {
+      baseURI: "https://www.rainprotocol.xyz/nft/",
       name: "Flow ERC721",
       symbol: "F721",
       expressionConfig: {

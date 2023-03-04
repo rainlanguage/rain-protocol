@@ -15,7 +15,7 @@ import "../../interpreter/run/LibEvaluable.sol";
 import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xc2c46806c9d57ca5f3548e5cd69cb3cc85bc94808acd83bc0c4d23c7179c8015
+    0xa2c909642bc50cf01283947e7b272b2b30ceddd796197ccec74e794de792b775
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
@@ -50,7 +50,7 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
 
     /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
-        __VerifyCallback_init();
+        verifyCallbackInit();
 
         AutoApproveConfig memory config_ = abi.decode(
             data_,

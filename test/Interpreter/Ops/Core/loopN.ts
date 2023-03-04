@@ -10,6 +10,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  standardEvaluableConfig,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -44,22 +45,21 @@ describe("LOOP_N Opcode test", async function () {
     const incrementValue = 1;
 
     const constants = [initialValue, incrementValue];
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceADD = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.add, 2),
-      ]);
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
-    ]);
+      /* loop-n source */
+      s0 : ,
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADD],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -89,21 +89,21 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
 
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.add, 2),
-      ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
-    ]);
+      /* loop-n source */
+      s0 : ,
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADD],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -133,21 +133,21 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
 
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.add, 2),
-      ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
-    ]);
+      /* loop-n source */
+      s0 : ,
+      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADD],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -178,28 +178,26 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValueOuter, incrementValueInner];
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
-    ]);
-    // prettier-ignore
-    const sourceADDOuter = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.add, 2),
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 2))
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceADDInner = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.add, 2),
-    ]);
+      /* loop-n outer source */
+      s0 : ,
+      op: add(s0 read-memory<1 ${MemoryType.Constant}>()),
+      _: loop-n<${n} 2 1>(op);
+
+      /* loop-n inner source */
+      s0 : ,
+      op: add(s0 read-memory<2 ${MemoryType.Constant}>());
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADDOuter, sourceADDInner],
+      sources,
       constants,
 
       rainInterpreter,
@@ -247,58 +245,50 @@ describe("LOOP_N Opcode test", async function () {
       1,
     ];
 
-    // prettier-ignore
-    const sourceShiftRight = concat([
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-            op(Opcode.mul, 2), // 32 * LEVEL
-          op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
-        op(Opcode.mul, 2),
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+        _ loopoutput _: loop-n<${n} 1 3>(
+            read-memory<0 ${MemoryType.Constant}>()
+            read-memory<4 ${MemoryType.Constant}>()
+            read-memory<5 ${MemoryType.Constant}>()
+          ),
+        _ _ _ _ _ _ _ _: explode-32(loopoutput);
+        
+      /* 
+        sourceAdd source 
+      */
+        s0 s1 s2: ,
+        _ _ _: call<2 3>(s0 s1 s2);
+      
+      /* 
+        sourceAddAndShiftRight source 
+      */
+        s0 s1 s2: ,
+        increment: add(s0 read-memory<1 ${MemoryType.Constant}>()),
 
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-      op(Opcode.add, 2),
-    ]);
+        /* right shifting */
+          shrval: call<3 1>(increment s1 s2),
+        
+        /* decrementing the level */
+          lvldcr: saturating-sub(s2 read-memory<6 ${MemoryType.Constant}>());
+        
+      /* 
+        sourceShiftRight 
+      */
+        s0 s1 s2: ,
+        levelmul: mul(read-memory<3 ${MemoryType.Constant}>() s2),
+        levelexp: exp(read-memory<2 ${MemoryType.Constant}>() levelmul),
+        finalmul: mul(levelexp s0),
 
-    // prettier-ignore
-    const sourceAddAndShiftRight = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
-        op(Opcode.add, 2),
-
-          // Right Shifting
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-        op(Opcode.call, callOperand(3, 1, 3)),
-
-          // Decrementing the LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturating_sub, 2), // LEVEL - 1
-    ]);
-
-    // prettier-ignore
-    const sourceADD = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)),
-      op(Opcode.call, callOperand(3, 3, 2)),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.loop_n, loopNOperand(n, 3, 3, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
-      op(Opcode.explode_32),
-    ]);
+        op: add(finalmul s1);
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADD, sourceAddAndShiftRight, sourceShiftRight],
+      sources,
       constants,
 
       rainInterpreter,
@@ -318,7 +308,6 @@ describe("LOOP_N Opcode test", async function () {
       []
     );
     const result0 = await logic.stack();
-
     expectedResult = expectedResult.reverse();
     expect(result0).deep.equal(
       expectedResult,
@@ -456,23 +445,21 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
 
-    // prettier-ignore
-    const sourceADD = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-        op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
-      ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _ _: loop-n<${n} 1 2>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loop_n, loopNOperand(n, 2, 2, 1))
-    ]);
+      /* loop-n source */
+      s0 s1: ,
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN, sourceADD],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -499,25 +486,23 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
 
-    // prettier-ignore
-    const sourceADD = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-        op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
-      ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loop_n, loopNOperand(n, 1, 1, 1))
-    ]);
+      /* loop-n source */
+      s0 s1: ,
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     await assertError(
       async () =>
         await expressionConsumerDeploy(
-          [sourceMAIN, sourceADD],
+          sources,
           constants,
 
           rainInterpreter,
@@ -536,25 +521,23 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
 
-    // prettier-ignore
-    const sourceADD = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-        op(Opcode.add, 3), // ADD REQUIRES 3 VALUES
-      ]);
+    const { sources } = await standardEvaluableConfig(
+      `
+      /* 
+        sourceMain
+      */
+      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
 
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.loop_n, loopNOperand(n, 2, 1, 1))
-    ]);
+      /* loop-n source */
+      s0 s1: ,
+      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      `
+    );
 
     await assertError(
       async () =>
         await expressionConsumerDeploy(
-          [sourceMAIN, sourceADD],
+          sources,
           constants,
 
           rainInterpreter,

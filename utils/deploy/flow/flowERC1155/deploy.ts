@@ -14,7 +14,7 @@ import { getEventArgs } from "../../../events";
 import { FlowERC1155Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getRainContractMetaBytes } from "../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../meta";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
@@ -25,7 +25,7 @@ export const flowERC1155Implementation = async (): Promise<FlowERC1155> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("flow1155"),
+    meta: getRainMetaDocumentFromContract("flow1155"),
     deployer: touchDeployer.address,
   };
 

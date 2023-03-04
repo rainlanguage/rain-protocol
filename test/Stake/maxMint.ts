@@ -60,9 +60,7 @@ describe("Stake maxMint", async function () {
      */
 
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[1];
-    const bob = signers[2];
+    const [deployer, alice, bob] = signers;
 
     const constants = [max_uint256, max_uint256];
 

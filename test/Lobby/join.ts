@@ -55,8 +55,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure no more players are able to join after players are finalized", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -161,8 +160,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure non-players are able to join and refs not able to join", async function () {
     const signers = await ethers.getSigners();
-    const ref = signers[0];
-    const alice = signers[1];
+    const [ref, alice] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -278,10 +276,121 @@ describe("Lobby Tests join", async function () {
     );
   });
 
+  it("should ensure players are not able to join lobby until ref allows to agree", async function () {
+    const signers = await ethers.getSigners();
+    const [, alice, bob] = signers;
+
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+    const timeoutDuration = 15000000;
+
+    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
+
+    const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
+
+    const constants = [1, depositAmount, leaveAmount, claimAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 0)) ,
+        op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 1))
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+    ]);
+    const claimSource = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
+    ]);
+    const invalidSource = concat([
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    const lobbyExpressionConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig.sources,
+      lobbyExpressionConfig.constants
+    );
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: true,
+      ref: signers[0].address,
+      evaluableConfig: evaluableConfig,
+      token: tokenA.address,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    const Lobby = await deployLobbyClone(
+      signers[0],
+      cloneFactory,
+      lobbyImplementation,
+      initialConfig
+    );
+
+    await tokenA.connect(alice).approve(Lobby.address, depositAmount);
+
+    const context0 = [1, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const context1 = [4, 5, 6];
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    //Player tries to join before ref agrees
+    await assertError(
+      async () => await Lobby.connect(alice).join([1234], signedContexts0),
+      "BadPhase",
+      "Intialized before ref agrees"
+    );
+
+    await Lobby.connect(signers[0]).refAgrees();
+
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+
+    const { sender } = (await getEventArgs(
+      joinTx,
+      "Join",
+      Lobby
+    )) as JoinEvent["args"];
+
+    const {
+      sender: depositSender,
+      token: depositToken,
+      amount,
+    } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
+
+    assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
+    assert(amount.eq(depositAmount), "wrong deposit amount");
+    assert(sender === alice.address, "wrong sender");
+
+    const currentPhase = await Lobby.currentPhase();
+    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
+  });
+
   it("should ensure player joins lobby on happy path ", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -384,8 +493,7 @@ describe("Lobby Tests join", async function () {
 
   it("should validate context emitted in Context Event", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;
@@ -529,8 +637,7 @@ describe("Lobby Tests join", async function () {
 
   it("should ensure that join isn't reentrant", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const depositAmount = ONE;
     const leaveAmount = ONE;

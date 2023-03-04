@@ -14,7 +14,7 @@ import {
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { generateEvaluableConfig } from "../../../../interpreter";
-import { getRainContractMetaBytes } from "../../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../../meta";
 import { getTouchDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const autoApproveImplementation = async (): Promise<AutoApprove> => {
@@ -22,7 +22,7 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
 
   const touchDeployer = await getTouchDeployer();
   const config_: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("autoapprove"),
+    meta: getRainMetaDocumentFromContract("autoapprove"),
     deployer: touchDeployer.address,
   };
 

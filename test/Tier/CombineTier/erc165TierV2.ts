@@ -17,7 +17,7 @@ import {
   combineTierImplementation,
   compareStructs,
   getEventArgs,
-  getRainContractMetaBytes,
+  getRainMetaDocumentFromContract,
   max_uint256,
   stakeCloneDeploy,
   stakeImplementation,
@@ -194,7 +194,7 @@ describe("CombineTier ERC165 tests", async function () {
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const touchDeployer = await getTouchDeployer();
     const config0: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("combinetier"),
+      meta: getRainMetaDocumentFromContract("combinetier"),
       deployer: touchDeployer.address,
     };
 
@@ -209,7 +209,7 @@ describe("CombineTier ERC165 tests", async function () {
     );
 
     const config1: InterpreterCallerV1ConstructionConfigStruct = {
-      callerMeta: getRainContractMetaBytes("orderbook"),
+      meta: getRainMetaDocumentFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
 

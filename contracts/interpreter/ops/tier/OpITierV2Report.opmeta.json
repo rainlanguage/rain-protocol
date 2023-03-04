@@ -11,6 +11,7 @@
   ],
   "inputs": {
     "bits": [0, 7],
+    "computation": "bits + 2",
     "parameters": [
       {
         "name": "itier-address"

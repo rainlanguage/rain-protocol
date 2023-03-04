@@ -52,7 +52,7 @@ describe("Lobby Tests claim", async function () {
 
   it("should ensure SET in ENTRYPOINT_JOIN is avaliable as GET in ENTRYPOINT_LEAVE", async function () {
     const signers = await ethers.getSigners();
-    const alice = signers[1];
+    const [, alice] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
     const lobbyImplementation: Lobby = await deployLobby(15000000);
@@ -166,9 +166,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure SET in ENTRYPOINT_JOIN is avaliable as GET in ENTRYPOINT_CLAIM", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
@@ -344,9 +342,7 @@ describe("Lobby Tests claim", async function () {
   it("should ensure SET in ENTRYPOINT_JOIN is avaliable as GET in ENTRYPOINT_INVALID", async function () {
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const bot = signers[3];
+    const [, alice, bob, bot] = signers;
 
     const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
 
@@ -507,10 +503,7 @@ describe("Lobby Tests claim", async function () {
 
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
-    const alice = signers[1];
-    const bob = signers[2];
-    const carol = signers[3];
-    const bot = signers[4];
+    const [, alice, bob, carol, bot] = signers;
 
     const lobbyImplementation: Lobby = await deployLobby(timeoutDuration);
 

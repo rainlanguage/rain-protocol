@@ -55,11 +55,7 @@ describe("AutoApprove ERC721 ownership", async function () {
   it("should automatically approve only if account owns the NFT", async () => {
     const signers = await ethers.getSigners();
 
-    const signer0 = signers[0];
-    const deployer = signers[1];
-    const admin = signers[2];
-    const aprAdmin = signers[3];
-    const signer1 = signers[4];
+    const [signer0, deployer, admin, signer1, aprAdmin] = signers;
 
     const vTokenAddr = op(
       Opcode.read_memory,

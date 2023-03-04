@@ -51,10 +51,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
   it("should correctly verify tier", async function () {
     const signers = await ethers.getSigners();
-    const admin = signers[0];
-    const verifier = signers[1];
-    const signer1 = signers[2];
-    const newAdmin = signers[3];
+    const [admin, verifier, signer1, newAdmin] = signers;
 
     // Deploying verifiy contract
     const verify = await verifyCloneDeploy(

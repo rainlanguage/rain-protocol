@@ -16,7 +16,7 @@ import "../factory/ICloneableV1.sol";
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x785ad5ed1a4f87b24fefb46f7e16de1190b16e89113a3fd115f239c2b0175b15
+    0xcd5c1ac4c1cbf58bcb991cc5ff7b0d92aa2073d6712b86229a7fb491b543c290
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -64,7 +64,7 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
 
     /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
-        __TierV2_init();
+        tierV2Init();
 
         CombineTierConfig memory config_ = abi.decode(
             data_,

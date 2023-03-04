@@ -46,7 +46,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
     const redeemableERC20Config = {

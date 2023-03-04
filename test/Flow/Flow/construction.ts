@@ -15,7 +15,7 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/
 import {
   assertError,
   basicDeploy,
-  getRainContractMetaBytes,
+  getRainMetaDocumentFromContract,
   zeroAddress,
 } from "../../../utils";
 import {
@@ -53,7 +53,8 @@ describe("Flow construction tests", async function () {
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
-    const deployer = signers[0];
+    const [deployer] = signers;
+
     const constants = [1, 2];
 
     // prettier-ignore
@@ -116,7 +117,7 @@ describe("Flow construction tests", async function () {
 
     const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("flow"),
+        meta: getRainMetaDocumentFromContract("flow"),
         deployer: touchDeployer.address,
       };
 
@@ -126,7 +127,7 @@ describe("Flow construction tests", async function () {
 
     const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
       {
-        callerMeta: getRainContractMetaBytes("orderbook"),
+        meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 

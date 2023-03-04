@@ -15,7 +15,7 @@ import { FlowERC721Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
-import { getRainContractMetaBytes } from "../../../meta";
+import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
 
@@ -25,7 +25,7 @@ export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("flow721"),
+    meta: getRainMetaDocumentFromContract("flow721"),
     deployer: touchDeployer.address,
   };
 
@@ -65,11 +65,12 @@ export const flowERC721Clone = async (
     flowConfig: flowConfig,
     name: flowERC721Config.name,
     symbol: flowERC721Config.symbol,
+    baseURI: flowERC721Config.baseURI,
   };
 
   const encodedConfig = ethers.utils.defaultAbiCoder.encode(
     [
-      "tuple(string name, string symbol, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
+      "tuple(string name, string symbol, string baseURI, tuple(address deployer,bytes[] sources,uint256[] constants) evaluableConfig , tuple(address deployer,bytes[] sources,uint256[] constants)[] flowConfig)",
     ],
     [flowERC721ConfigStruct]
   );

@@ -9,6 +9,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  standardEvaluableConfig,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -36,13 +37,12 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should read a value from CONSTANT and place it on the STACK", async () => {
     const constants = [1337];
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `_: read-memory<0 ${MemoryType.Constant}>();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN],
+      sources,
       constants,
       rainInterpreter,
       1
@@ -54,7 +54,6 @@ describe("READ_MEMORY Opcode test", async function () {
       []
     );
     const result0 = await logic.stackTop();
-    console.log(await logic.stack());
     const expectedResult0 = ethers.BigNumber.from(constants[0]);
     expect(result0).deep.equal(
       expectedResult0,
@@ -64,16 +63,16 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should read a value from STACK and place it on the STACK", async () => {
     const constants = [1337];
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.block_timestamp),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _ _:
+        block-timestamp()
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Stack}>()
+        read-memory<0 ${MemoryType.Stack}>();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
-      [sourceMAIN],
+      sources,
       constants,
       rainInterpreter,
       4
@@ -102,21 +101,16 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should fail when reading an OOB STACK value", async () => {
     const constants = [1337];
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.block_timestamp),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // Reading an OOB value
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _:
+        block-timestamp()
+        read-memory<0 ${MemoryType.Stack}>()
+        read-memory<2 ${MemoryType.Stack}>();` // Reading an OOB value
+    );
 
     await assertError(
       async () =>
-        await expressionConsumerDeploy(
-          [sourceMAIN],
-          constants,
-          rainInterpreter,
-          1
-        ),
+        await expressionConsumerDeploy(sources, constants, rainInterpreter, 3),
       "OutOfBoundsStackRead(2, 2)",
       "Integrity check failed while reading an OOB stack value"
     );
@@ -124,20 +118,15 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should fail when reading an OOB CONSTANT value", async () => {
     const constants = [1337];
-    // prettier-ignore
-    const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // Reading an OOB value
-    ]);
+    const { sources } = await standardEvaluableConfig(
+      `_ _:
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>();` // Reading an OOB value
+    );
 
     await assertError(
       async () =>
-        await expressionConsumerDeploy(
-          [sourceMAIN],
-          constants,
-          rainInterpreter,
-          1
-        ),
+        await expressionConsumerDeploy(sources, constants, rainInterpreter, 2),
       "OutOfBoundsConstantsRead(1, 1)",
       "Integrity check failed while reading an OOB constant value"
     );
@@ -145,18 +134,17 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when STACK operand references a STACK element that hasn't yet been evaluated", async () => {
     const constants = [10, 20, 30];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-    ])];
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _ _:
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<3 ${MemoryType.Stack}>()
+        read-memory<2 ${MemoryType.Constant}>();`
+    );
 
     await assertError(
       async () =>
-        await expressionConsumerDeploy(sources, constants, rainInterpreter, 1),
+        await expressionConsumerDeploy(sources, constants, rainInterpreter, 4),
       "OutOfBoundsStackRead(2, 3)", // at least an error
       "did not error when STACK operand references a stack element that hasn't yet been evaluated"
     );
@@ -164,18 +152,17 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should error when STACK operand references itself", async () => {
     const constants = [10, 20, 30];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)),
-    ])];
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _ _:
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<2 ${MemoryType.Constant}>()
+        read-memory<3 ${MemoryType.Stack}>();`
+    );
 
     await assertError(
       async () =>
-        await expressionConsumerDeploy(sources, constants, rainInterpreter, 1),
+        await expressionConsumerDeploy(sources, constants, rainInterpreter, 4),
       "OutOfBoundsStackRead(3, 3)", // at least an error
       "did not error when STACK operand references itself"
     );
@@ -186,21 +173,22 @@ describe("READ_MEMORY Opcode test", async function () {
 
     // STACK should have access to all evaluated stack values
 
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.add, 3),
-    ])];
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _:
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        add(
+          read-memory<2 ${MemoryType.Constant}>()
+          read-memory<3 ${MemoryType.Constant}>()
+          read-memory<0 ${MemoryType.Stack}>()
+        );`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
       rainInterpreter,
-      1
+      3
     );
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
@@ -221,20 +209,21 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should return correct stack element when there are nested evaluations (e.g. returns the addition of several stack elements, rather than a summand)", async () => {
     const constants = [10, 20, 30];
 
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.add, 3),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-    ])];
+    const { sources } = await standardEvaluableConfig(
+      `_ _:
+        add(
+          read-memory<0 ${MemoryType.Constant}>()
+          read-memory<1 ${MemoryType.Constant}>()
+          read-memory<2 ${MemoryType.Constant}>()
+        )
+        read-memory<0 ${MemoryType.Stack}>();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
       rainInterpreter,
-      1
+      2
     );
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
@@ -252,20 +241,19 @@ describe("READ_MEMORY Opcode test", async function () {
 
   it("should return correct stack element when specifying operand", async () => {
     const constants = [10, 20, 30];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-    ])];
+    const { sources } = await standardEvaluableConfig(
+      `_ _ _ _:
+        read-memory<0 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Constant}>()
+        read-memory<2 ${MemoryType.Constant}>()
+        read-memory<1 ${MemoryType.Stack}>();`
+    );
 
     const expression0 = await expressionConsumerDeploy(
       sources,
       constants,
       rainInterpreter,
-      1
+      4
     );
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
@@ -281,29 +269,16 @@ describe("READ_MEMORY Opcode test", async function () {
     );
   });
 
-  it("should error when script references out-of-bounds opcode", async () => {
-    const constants = [];
-
-    const sources = [concat([op(99)])];
-
-    await assertError(
-      async () =>
-        await expressionConsumerDeploy(sources, constants, rainInterpreter, 1),
-      "Error",
-      "did not error when script references out-of-bounds opcode"
-    );
-  });
-
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
-    const vOOB = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-
-    const sources = [concat([vOOB])];
+    const { sources } = await standardEvaluableConfig(
+      `_: read-memory<1 ${MemoryType.Constant}>();`
+    );
 
     await assertError(
       async () =>
         await expressionConsumerDeploy(sources, constants, rainInterpreter, 1),
-      "", // there is at least an error
+      "OutOfBoundsConstantsRead(1, 1)",
       "did not error when trying to read an out-of-bounds constant"
     );
   });

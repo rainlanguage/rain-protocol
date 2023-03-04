@@ -5,7 +5,7 @@ import {
   RainterpreterStore,
 } from "../../../../../typechain";
 import { RainterpreterExpressionDeployerConstructionConfigStruct } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { getRainterpreterOpMetaBytes } from "../../../../meta";
+import { getRainMetaDocumentFromOpmeta } from "../../../../meta";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
@@ -15,7 +15,7 @@ export const rainterpreterExpressionDeployerDeploy = async (
   interpreter: Rainterpreter,
   store: RainterpreterStore
 ): Promise<RainterpreterExpressionDeployer> => {
-  const bytes_ = getRainterpreterOpMetaBytes();
+  const bytes_ = getRainMetaDocumentFromOpmeta();
 
   const expressionDeployerFactory = await ethers.getContractFactory(
     "RainterpreterExpressionDeployer"
@@ -25,7 +25,7 @@ export const rainterpreterExpressionDeployerDeploy = async (
     {
       interpreter: interpreter.address,
       store: store.address,
-      opMeta: bytes_,
+      meta: bytes_,
     };
 
   const expressionDeployer = (await expressionDeployerFactory.deploy(

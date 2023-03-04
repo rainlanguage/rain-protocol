@@ -18,8 +18,7 @@ describe("Cooldown modifier test", async function () {
 
   beforeEach(async () => {
     const signers = await ethers.getSigners();
-    alice = signers[0];
-    bob = signers[1];
+    [alice, bob] = signers;
     cooldownTest = await cooldownDeploy();
   });
 

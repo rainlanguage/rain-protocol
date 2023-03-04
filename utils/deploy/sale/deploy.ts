@@ -17,7 +17,7 @@ import {
 } from "../../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
-import { getRainContractMetaBytes } from "../../meta";
+import { getRainMetaDocumentFromContract } from "../../meta";
 
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { redeemableERC20DeployImplementation } from "../redeemableERC20/deploy";
@@ -30,7 +30,7 @@ export const saleImplementation = async (
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    callerMeta: getRainContractMetaBytes("sale"),
+    meta: getRainMetaDocumentFromContract("sale"),
     deployer: touchDeployer.address,
   };
 

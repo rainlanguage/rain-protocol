@@ -46,8 +46,7 @@ describe("OrderBook add order", async function () {
   it("should add orders", async function () {
     const signers = await ethers.getSigners();
 
-    const alice = signers[1];
-    const bob = signers[2];
+    const [, alice, bob] = signers;
 
     const orderBook = await deployOrderBook();
 
