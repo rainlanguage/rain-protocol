@@ -223,12 +223,10 @@ library AllStandardOps {
                     OpEncode256.integrity,
                     OpExplode32.integrity,
                     OpChainlinkOraclePrice.integrity,
-
                     OpContext.integrity,
                     OpContextColumnHash.integrity,
                     OpContextRow.integrity,
                     OpFoldContext.integrity,
-
                     OpCall.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
@@ -295,11 +293,9 @@ library AllStandardOps {
                     OpISaleV2Token.integrity,
                     OpISaleV2TotalReserveReceived.integrity,
                     OpIVerifyV1AccountStatusAtTime.integrity,
-
                     // Store
                     OpGet.integrity,
                     OpSet.integrity,
-
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -337,12 +333,10 @@ library AllStandardOps {
                     OpEncode256.run,
                     OpExplode32.run,
                     OpChainlinkOraclePrice.run,
-
                     OpContext.run,
                     OpContextColumnHash.run,
                     OpContextRow.run,
                     OpFoldContext.run,
-
                     OpCall.run,
                     // 1.001kb
                     OpDebug.run,
@@ -411,11 +405,9 @@ library AllStandardOps {
                     OpISaleV2Token.run,
                     OpISaleV2TotalReserveReceived.run,
                     OpIVerifyV1AccountStatusAtTime.run,
-
                     // Store
                     OpGet.run,
                     OpSet.run,
-
                     OpITierV2Report.run,
                     OpITierV2ReportTimeForTier.run,
                     OpSaturatingDiff.run,

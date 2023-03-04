@@ -4,7 +4,6 @@ pragma solidity ^0.8.15;
 import "../../deploy/LibIntegrityCheck.sol";
 import "../../run/LibInterpreterState.sol";
 
-
 /// @title OpContextColumnHash
 /// @notice Hashes a single context column. Useful for snapshotting values
 /// provided by users, whether signed by a third party or provided by the caller.
