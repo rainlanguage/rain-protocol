@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -25,15 +24,11 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
-  memoryOperand,
   MemoryType,
-  op,
+  standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC721 construction tests", async function () {
   let cloneFactory: CloneFactory;
@@ -57,40 +52,68 @@ describe("FlowERC721 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceHandleTransfer = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
+    const { sources} = await standardEvaluableConfig(
+      `
+        /* sourceHandleTransfer */
+        _: read-memory<0 ${MemoryType.Constant}>();
+        
+        /* sourceTokenURI */
+        _: read-memory<0 ${MemoryType.Constant}>();
+      `
+    );
 
-    // prettier-ignore
-    const sourceTokenURI = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    // prettier-ignore
-    // example source, only checking stack length in this test
-    const sourceFlowIO = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
-      op(Opcode.context, 0x0001), // from
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // from
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // BURN END
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // burn amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // MINT END
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // mint amount
-    ]);
-
-    const sources = [sourceHandleTransfer, sourceTokenURI];
+    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+      `
+        /* variables */
+        me: context<0 1>(),
+        to: read-memory<1 ${MemoryType.Constant}>(),
+        amount: read-memory<1 ${MemoryType.Constant}>(),
+        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: seperator,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: seperator,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: seperator,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: seperator,
+          /* 0 */ 
+          nativefrom0: me,
+          nativeto0: to,
+          nativeamount0: amount,
+          /* 1 */ 
+          nativefrom1: to,
+          nativeto1: me,
+          nativeamount1: amount,
+        
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: seperator,
+        burnto: to,
+        burnamount: amount,
+        
+        /**
+         * mints of this erc721 token
+         */
+        mintslist: seperator,
+        mintto: to,
+        mintamount: amount;
+      `
+    );
+    // const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -101,7 +124,7 @@ describe("FlowERC721 construction tests", async function () {
       },
       flows: [
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
       ],
