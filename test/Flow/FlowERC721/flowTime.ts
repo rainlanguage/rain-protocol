@@ -1,4 +1,3 @@
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
@@ -19,22 +18,13 @@ import {
 
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC721Config } from "../../../utils/types/flow";
-
-const Opcode = RainterpreterOps;
 
 describe("FlowERC721 flowTime tests", async function () {
   let cloneFactory: CloneFactory;
   let implementation: FlowERC721;
-  const ME = () => op(Opcode.context, 0x0001); // base context this
-  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
     // Deploy ERC1820Registry
@@ -80,76 +70,83 @@ describe("FlowERC721 flowTime tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount,
-      RAIN_FLOW_ERC721_SENTINEL,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        flow-id: context<1 0>(),
+        
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+        /* CAN FLOW */
+        : ensure(is-zero(get(flow-id))),
 
-    const SENTINEL_ERC721 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.context, 0x0100);
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-    const TOKEN_URI = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+     
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+        */
+        mintslist: sentinel721,
+        
+        /* Setting flow time */
+        : set(flow-id block-timestamp());
+      `
+      );
 
-    const FLOW_TIME = () => [
-      CONTEXT_FLOW_ID(), // k_
-      op(Opcode.get),
-    ];
-
-    const sourceFlowIO = concat([
-      // CAN FLOW
-      ...FLOW_TIME(),
-      op(Opcode.is_zero),
-      op(Opcode.ensure, 1),
-
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-
-      SENTINEL_ERC721(), // BURN SKIP
-      SENTINEL_ERC721(), // MINT END
-
-      // Setting Flow Time
-      CONTEXT_FLOW_ID(), // k_
-      op(Opcode.block_timestamp), // v__
-      op(Opcode.set),
-    ]);
-
-    const sources = [ONE(), TOKEN_URI()]; // can transfer
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+    );
 
     const flowConfigStruct: FlowERC721Config = {
       baseURI: "https://www.rainprotocol.xyz/nft/",
       expressionConfig: { sources, constants },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
       name: "FlowERC721",
       symbol: "FWIN721",
     };

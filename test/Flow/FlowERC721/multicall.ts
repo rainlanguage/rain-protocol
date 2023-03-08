@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat } from "ethers/lib/utils";
 import fs from "fs";
 import { ethers } from "hardhat";
 import {
@@ -28,21 +27,12 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC721 multicall tests", async function () {
   let cloneFactory: CloneFactory;
   let implementation: FlowERC721;
-  const ME = () => op(Opcode.context, 0x0001); // base context this
-  const YOU = () => op(Opcode.context, 0x0000); // base context sender
   const flowERC721ABI = JSON.parse(
     fs.readFileSync(
       "artifacts/contracts/flow/erc721/FlowERC721.sol/FlowERC721.json",
@@ -140,99 +130,129 @@ describe("FlowERC721 multicall tests", async function () {
       flow: flowTransfer_B,
     };
 
-    const constants_A = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      flowTransfer_A.erc721[0].token,
-      flowTransfer_A.erc721[0].id,
-      flowTransfer_A.erc1155[0].token,
-      flowTransfer_A.erc1155[0].id,
-      flowTransfer_A.erc1155[0].amount,
-    ];
+    const { sources: sourceFlowIO_A, constants: constantsFlowIO_A } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc721-token: ${flowTransfer_A.erc721[0].token},
+        flowtransfer-you-to-me-erc721-id: ${flowTransfer_A.erc721[0].id},
+        flowtransfer-me-to-you-erc1155-token:  ${flowTransfer_A.erc1155[0].token},
+        flowtransfer-me-to-you-erc1155-id: ${flowTransfer_A.erc1155[0].id},
+        flowtransfer-me-to-you-erc1155-amount: ${flowTransfer_A.erc1155[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token: flowtransfer-me-to-you-erc1155-token,
+        erc1155-from: me,
+        erc1155-to: you,
+        erc1155-id: flowtransfer-me-to-you-erc1155-id,
+        erc1155-amount: flowtransfer-me-to-you-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        erc721-token: flowtransfer-you-to-me-erc721-token,
+        erc721-from: you,
+        erc721-to: me,
+        erc721-id: flowtransfer-you-to-me-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_721 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+        */
+        mintslist: sentinel721;
+      `
+      );
 
-    const HANDLE_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const TOKEN_URI = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+    const { sources: sourceFlowIO_B, constants: constantsFlowIO_B } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-me-to-you-erc721-token: ${flowTransfer_B.erc721[0].token},
+        flowtransfer-me-to-you-erc721-id: ${flowTransfer_B.erc721[0].id},
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer_B.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer_B.erc20[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        erc721-token: flowtransfer-me-to-you-erc721-token,
+        erc721-from: me,
+        erc721-to: you,
+        erc721-id: flowtransfer-me-to-you-erc721-id,
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        erc20-token: flowtransfer-you-to-me-erc20-token,
+        erc20-from: you,
+        erc20-to: me,
+        erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-
-    const constants_B = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      flowTransfer_B.erc20[0].token,
-      flowTransfer_B.erc20[0].amount,
-      flowTransfer_B.erc721[0].token,
-      flowTransfer_B.erc721[0].id,
-    ];
-
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const sourceFlowIO_A = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_721(),
-      SENTINEL_721(),
-    ]);
-
-    const sourceFlowIO_B = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_721(),
-      SENTINEL_721(),
-    ]);
-
-    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+        */
+        mintslist: sentinel721;
+      `
+      );
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct = {
       sources,
-      constants: constants_A,
+      constants: constants,
     };
 
     const { flow } = await flowERC721Clone(
@@ -246,12 +266,12 @@ describe("FlowERC721 multicall tests", async function () {
         expressionConfig: expressionConfigStruct,
         flows: [
           {
-            sources: [sourceFlowIO_A],
-            constants: constants_A,
+            sources: sourceFlowIO_A,
+            constants: constantsFlowIO_A,
           },
           {
-            sources: [sourceFlowIO_B],
-            constants: constants_B,
+            sources: sourceFlowIO_B,
+            constants: constantsFlowIO_B,
           },
         ],
       }

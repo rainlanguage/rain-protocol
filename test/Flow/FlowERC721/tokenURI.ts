@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
@@ -19,23 +18,14 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
-
 describe("FlowERC721 tokenURI test", async function () {
   let cloneFactory: CloneFactory;
   let implementation: FlowERC721;
-  const ME = () => op(Opcode.context, 0x0001); // base context this
-  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
     // Deploy ERC1820Registry
@@ -88,70 +78,102 @@ describe("FlowERC721 tokenURI test", async function () {
       },
     };
 
-    // for mint flow (redeem native for erc20)
-    const constantsMint = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      flowERC721IOMint.mints[0].id,
-    ];
-    const constantsBurn = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      flowERC721IOBurn.burns[0].id,
-      bob.address,
-    ];
+    const { sources: sourceFlowIOMint, constants: constantsFlowIOMint } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        tokenid: ${flowERC721IOMint.mints[0].id},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_721 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const HANDLE_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+         */
+        mintslist: sentinel721,
+        _ _: you tokenid;
+      `
+      );
+    const { sources: sourceFlowIOBurn, constants: constantsFlowIOBurn } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        bob: ${bob.address},
+        tokenid: ${flowERC721IOBurn.burns[0].id},
 
-    const TOKEN_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BOB = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        _ _: bob tokenid,
+        
+        /**
+         * mints of this erc721 token
+         */
+        mintslist: sentinel721;
+      `
+      );
 
-    const TOKEN_URI_TOKEN_ID = () => op(Opcode.context, 0x0100);
-
-    // Script to generate token URI only if the requesting user is the owner of provided NFT ID
     // prettier-ignore
-    const sourceTokenURI = concat([
-                ME(),
-                TOKEN_URI_TOKEN_ID(),
-            op(Opcode.erc_721_owner_of), // returns the owner of requesting TOKEN_URI_TOKEN_ID
-            YOU(),
-            op(Opcode.equal_to),
-        op(Opcode.ensure, 1),
-        TOKEN_URI_TOKEN_ID()
-    ]);
-
-    const sourceFlowIOMint = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_721(),
-      SENTINEL_721(),
-      YOU(),
-      TOKEN_ID(), // mint
-    ]);
-
-    const sourceFlowIOBurn = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_721(),
-      BOB(),
-      TOKEN_ID(), // burn
-      SENTINEL_721(),
-    ]);
-
-    const sources = [HANDLE_TRANSFER(), sourceTokenURI];
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        me: context<0 1>(),
+        you: context<0 0>(),
+        token-uri-token-id: context<1 0>(),
+        _: ensure(equal-to(erc-721-owner-of(me token-uri-token-id) you)) token-uri-token-id;
+      `
+    );
 
     const stateConfigStruct: FlowERC721Config = {
       baseURI: "https://www.rainprotocol.xyz/nft/",
@@ -159,16 +181,16 @@ describe("FlowERC721 tokenURI test", async function () {
       symbol: "F721",
       expressionConfig: {
         sources,
-        constants: constantsMint, // only needed for HANDLE_TRANSFER
+        constants: constants, // only needed for HANDLE_TRANSFER
       },
       flows: [
         {
-          sources: [sourceFlowIOMint],
-          constants: constantsMint,
+          sources: sourceFlowIOMint,
+          constants: constantsFlowIOMint,
         },
         {
-          sources: [sourceFlowIOBurn],
-          constants: constantsBurn,
+          sources: sourceFlowIOBurn,
+          constants: constantsFlowIOBurn,
         },
       ],
     };
