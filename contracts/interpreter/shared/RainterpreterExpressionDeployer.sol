@@ -3,7 +3,6 @@ pragma solidity =0.8.17;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
-import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -39,11 +38,11 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0b360b450b540bd70be50c3b0c8d0d0b0d370dd00f5b10251153118811a6122e123d124b125a1268127612841292125a12a012ae12bd12cb12d912e812f71306131513241333134213511360136f137e138d139c13ab13f4140614141446145414621470147e148c149a14a814b614c414d214e014ee14fc150a15181526153415421550155f156e157d158b159915a715b515c315d115df15ee15fd160b167d";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0df80e4e0e7a0f13109e10d310f11100110e111d112b113911471155111d116311711180118e119c11ab11ba11c911d811e711f6120512141223123212411250125f126e12b712c912d713091317132513331341134f135d136b13791387139513a313b113bf13cd13db13e913f714051413142214311440144e145c146a14781486149414a215d0165816671676168416f6";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x46fd8b5ce435ff6aca550c3e278743894f4cea2b97c2b47ff4ce3aabbfced341
+    0xbd6cdaee09f8333c706bcb31204f8c4a0b58850f519013eea18afd6c29d5d43a
 );
 
 /// @dev Hash of the known store bytecode.
@@ -53,7 +52,7 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x0791b21df151d29b3fbd10a240d05a212b0ed18db8b4c2ef49c7f396fbf26c57
+    0xc633bd425d2c692ef398442774a5c7c81427e04268c7169fcd1670f93ada0731
 );
 
 /// All config required to construct a `Rainterpreter`.
