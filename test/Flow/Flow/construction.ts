@@ -16,6 +16,7 @@ import {
   assertError,
   basicDeploy,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
 import {
@@ -136,5 +137,10 @@ describe("Flow construction tests", async function () {
       "UnexpectedMetaHash",
       "Flow Deployed for bad hash"
     );
-  });
+  }); 
+
+  it("should validate contract meta with abi", async function () { 
+    assert(validateContractMetaAgainstABI("flow") , "Contract Meta Inconsistent with Contract ABI")
+  }); 
+
 });

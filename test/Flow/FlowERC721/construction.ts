@@ -15,6 +15,7 @@ import {
   assertError,
   basicDeploy,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
 import {
@@ -160,44 +161,9 @@ describe("FlowERC721 construction tests", async function () {
     );
   }); 
 
-  it("should validate contract meta with abi ", async function () { 
+  it("should validate contract meta with abi", async function () { 
+    assert(validateContractMetaAgainstABI("flow721") , "Contract Meta Inconsistent with Contract ABI")
+  });  
 
-    // Get contract ABI
-    const flowERC721Abi = (await artifacts.readArtifact("FlowERC721")).abi    
-
-    // Get methods from meta
-    const methods = FlowERC721Meta.methods
-
-    for (let i = 0 ; i < methods.length ; i++){ 
-
-      // Eval consistenct for meta and abi 
-      let method = methods[i]  
-      let inputs = method.inputs
-      let expressions = method.expressions
-
-      // Check for inputs
-      for(let j = 0 ; j < inputs.length ; j++){
-        if(
-          inputs[j].abiName != _.get(flowERC721Abi, inputs[j].path).name 
-        ){
-          assert.fail(`mismatch input name for method ${method.name},
-                         expected  ${_.get(flowERC721Abi, inputs[j].path).name}
-                         got       ${inputs[j].name}`);
-        }
-      }
-      
-      //Check for expressions
-      for(let k = 0 ; k < expressions.length ; k++){
-        if(
-          expressions[k].abiName != _.get(flowERC721Abi, expressions[k].path).name 
-        ){
-          assert.fail(`mismatch expression name for method ${method.name},
-                         expected  ${_.get(flowERC721Abi, expressions[k].path).name}
-                         got       ${expressions[k].name}`);
-        }
-      }
-
-    }
-  });   
 
 });

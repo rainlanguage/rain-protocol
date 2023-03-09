@@ -21,6 +21,7 @@ import {
   max_uint256,
   stakeCloneDeploy,
   stakeImplementation,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -218,5 +219,9 @@ describe("CombineTier ERC165 tests", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );
-  });
+  });  
+
+  it("should validate contract meta with abi", async function () { 
+    assert(validateContractMetaAgainstABI("sale") , "Contract Meta Inconsistent with Contract ABI")
+  }); 
 });

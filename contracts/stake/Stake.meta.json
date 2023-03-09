@@ -1,34 +1,40 @@
 {
   "name": "Stake",
+  "abiName": "Stake",
   "desc": "Stake contract which allows for staking a ERC20 token as an asset.",
   "alias": "stake",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "",
-      "desc": "Deploys a new Stake contract.",
+      "name": "initialize",
+      "abiName": "initialize",
+      "desc": "Initialize a new Stake contract.",
       "inputs": [
         {
           "name": "Asset",
+          "abiName": "asset",
           "desc": "The underlying ERC20 asset for the 4626 vault.",
-          "path": "[6].inputs[0].components[0]"
+          "path": "[15].inputs[1].components[0]"
         },
         {
           "name": "Name",
+          "abiName": "name",
           "desc": "ERC20 name of the 4626 share token to be minted.",
-          "path": "[6].inputs[0].components[1]"
+          "path": "[15].inputs[1].components[1]"
         },
         {
           "name": "Symbol",
+          "abiName": "symbol",
           "desc": "ERC20 symbol of the 4626 share token to be minted.",
-          "path": "[6].inputs[0].components[2]"
+          "path": "[15].inputs[1].components[2]"
         }
       ],
       "expressions": [
         {
           "name": "Stake Desposits and Withdrawal Range",
+          "abiName": "evaluableConfig",
           "desc": "An expression to calculate max deposits and withdrawals.",
-          "path": "[6].inputs[0].components[3]",
+          "path": "[15].inputs[1].components[3]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

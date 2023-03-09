@@ -23,6 +23,7 @@ import {
   Opcode,
   stakeCloneDeploy,
   stakeImplementation,
+  validateContractMetaAgainstABI,
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -160,5 +161,9 @@ describe("Stake construction", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );
-  });
+  }); 
+
+  it("should validate contract meta with abi", async function () { 
+    assert(validateContractMetaAgainstABI("stake") , "Contract Meta Inconsistent with Contract ABI")
+  }); 
 });

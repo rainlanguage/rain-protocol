@@ -13,6 +13,7 @@ import {
   assertError,
   basicDeploy,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../../utils";
 import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -163,5 +164,9 @@ describe("AutoApprove construction", async function () {
       "UnexpectedMetaHash",
       "AutoApprove Deployed for bad hash"
     );
-  });
+  });  
+
+  it("should validate contract meta with abi", async function () { 
+    assert(validateContractMetaAgainstABI("autoapprove") , "Contract Meta Inconsistent with Contract ABI")
+  }); 
 });
