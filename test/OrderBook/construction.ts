@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { ethers } from "hardhat";
+import { artifacts , ethers } from "hardhat";
 
 import { OrderBook } from "../../typechain/contracts/orderbook/OrderBook";
 
@@ -11,7 +11,9 @@ import {
   assertError,
   getRainMetaDocumentFromContract,
   zeroAddress,
-} from "../../utils";
+} from "../../utils"; 
+import OrderBookMeta from "../../contracts/orderbook/OrderBook.meta.json" 
+import _ from 'lodash';
 
 describe("OrderBook Constructor", async function () {
   before(async () => {
@@ -42,5 +44,47 @@ describe("OrderBook Constructor", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );
-  });
+  });  
+
+  it("should validate contract meta with abi ", async function () { 
+
+    // Get contract ABI
+    const orderBookAbi = (await artifacts.readArtifact("OrderBook")).abi    
+
+    // Get methods from meta
+    const methods = OrderBookMeta.methods
+
+    for (let i = 0 ; i < methods.length ; i++){ 
+
+      // Eval consistenct for meta and abi 
+      let method = methods[i]  
+      let inputs = method.inputs
+      let expressions = method.expressions
+
+      // Check for inputs
+      for(let j = 0 ; j < inputs.length ; j++){
+        if(
+          inputs[j].name != _.get(orderBookAbi, inputs[j].path).name 
+        ){
+          assert.fail(`mismatch input name for method ${method.name},
+                         expected  ${_.get(orderBookAbi, inputs[j].path).name}
+                         got       ${inputs[j].name}`);
+        }
+      }
+      
+      //Check for expressions
+      for(let k = 0 ; k < expressions.length ; k++){
+        if(
+          expressions[k].name != _.get(orderBookAbi, expressions[k].path).name 
+        ){
+          assert.fail(`mismatch expression name for method ${method.name},
+                         expected  ${_.get(orderBookAbi, expressions[k].path).name}
+                         got       ${expressions[k].name}`);
+        }
+      }
+
+    }
+  }); 
+
+
 });
