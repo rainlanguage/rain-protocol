@@ -178,7 +178,7 @@ describe("FlowERC721 construction tests", async function () {
       // Check for inputs
       for(let j = 0 ; j < inputs.length ; j++){
         if(
-          inputs[j].name != _.get(flowERC721Abi, inputs[j].path).name 
+          inputs[j].abiName != _.get(flowERC721Abi, inputs[j].path).name 
         ){
           assert.fail(`mismatch input name for method ${method.name},
                          expected  ${_.get(flowERC721Abi, inputs[j].path).name}
@@ -189,7 +189,7 @@ describe("FlowERC721 construction tests", async function () {
       //Check for expressions
       for(let k = 0 ; k < expressions.length ; k++){
         if(
-          expressions[k].name != _.get(flowERC721Abi, expressions[k].path).name 
+          expressions[k].abiName != _.get(flowERC721Abi, expressions[k].path).name 
         ){
           assert.fail(`mismatch expression name for method ${method.name},
                          expected  ${_.get(flowERC721Abi, expressions[k].path).name}

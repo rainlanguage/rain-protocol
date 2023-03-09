@@ -1,32 +1,38 @@
 {
   "name": "Flow ERC721",
+  "abiName": "FlowERC721",
   "desc": "An ERC721 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
   "alias": "flow-erc721",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
       "name": "initialize",
+      "abiName": "initialize",
       "desc": "Initialize a Flow ERC721 contract. This is an intialized implementation of a Flow ERC721",
       "inputs": [
         {
-          "name": "name",
+          "name": "Name",
+          "abiName": "name",
           "desc": "Name of the token",
           "path": "[15].inputs[1].components[0]"
         },
         {
-          "name": "symbol",
+          "name": "Symbol",
+          "abiName": "symbol",
           "desc": "Symbol for the token",
           "path": "[15].inputs[1].components[1]"
         },
         {
-          "name": "baseURI",
+          "name": "Base URI",
+          "abiName": "baseURI",
           "desc": "baseURI for token",
           "path": "[15].inputs[1].components[2]"
         }
       ],
       "expressions": [
         {
-          "name": "evaluableConfig",
+          "name": "Can transfer",
+          "abiName": "evaluableConfig",
           "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
           "path": "[15].inputs[1].components[3]",
           "signedContext": false,
@@ -78,7 +84,8 @@
           ]
         },
         {
-          "name": "flowConfig",
+          "name": "Flows",
+          "abiName": "flowConfig",
           "desc": "The available flows for this token.",
           "path": "[15].inputs[1].components[4]",
           "signedContext": true,

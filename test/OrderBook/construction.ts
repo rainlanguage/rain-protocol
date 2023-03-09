@@ -64,7 +64,7 @@ describe("OrderBook Constructor", async function () {
       // Check for inputs
       for(let j = 0 ; j < inputs.length ; j++){
         if(
-          inputs[j].name != _.get(orderBookAbi, inputs[j].path).name 
+          inputs[j].abiName != _.get(orderBookAbi, inputs[j].path).name 
         ){
           assert.fail(`mismatch input name for method ${method.name},
                          expected  ${_.get(orderBookAbi, inputs[j].path).name}
@@ -75,7 +75,7 @@ describe("OrderBook Constructor", async function () {
       //Check for expressions
       for(let k = 0 ; k < expressions.length ; k++){
         if(
-          expressions[k].name != _.get(orderBookAbi, expressions[k].path).name 
+          expressions[k].abiName != _.get(orderBookAbi, expressions[k].path).name 
         ){
           assert.fail(`mismatch expression name for method ${method.name},
                          expected  ${_.get(orderBookAbi, expressions[k].path).name}
