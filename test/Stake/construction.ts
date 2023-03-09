@@ -161,9 +161,12 @@ describe("Stake construction", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );
-  }); 
+  });
 
-  it("should validate contract meta with abi", async function () { 
-    assert(validateContractMetaAgainstABI("stake") , "Contract Meta Inconsistent with Contract ABI")
-  }); 
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("stake"),
+      "Contract Meta Inconsistent with Contract ABI"
+    );
+  });
 });

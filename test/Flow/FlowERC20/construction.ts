@@ -153,9 +153,12 @@ describe("FlowERC20 construction tests", async function () {
       "UnexpectedMetaHash",
       "FlowERC20 Deployed for bad hash"
     );
-  }); 
+  });
 
-  it("should validate contract meta with abi", async function () { 
-    assert(validateContractMetaAgainstABI("flow20") , "Contract Meta Inconsistent with Contract ABI")
-  }); 
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("flow20"),
+      "Contract Meta Inconsistent with Contract ABI"
+    );
+  });
 });

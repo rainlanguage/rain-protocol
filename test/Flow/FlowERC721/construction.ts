@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { artifacts, ethers } from "hardhat";
+import { ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
@@ -32,10 +32,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { FlowERC721Config } from "../../../utils/types/flow"; 
-import FlowERC721Meta from "../../../contracts/flow/erc721/FlowERC721.meta.json"
-import _ from 'lodash';
-
+import { FlowERC721Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -159,11 +156,12 @@ describe("FlowERC721 construction tests", async function () {
       "UnexpectedMetaHash",
       "FlowERC721 Deployed for bad hash"
     );
-  }); 
+  });
 
-  it("should validate contract meta with abi", async function () { 
-    assert(validateContractMetaAgainstABI("flow721") , "Contract Meta Inconsistent with Contract ABI")
-  });  
-
-
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("flow721"),
+      "Contract Meta Inconsistent with Contract ABI"
+    );
+  });
 });

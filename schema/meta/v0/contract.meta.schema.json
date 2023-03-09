@@ -9,7 +9,7 @@
         "name": {
           "type": "string",
           "title": "Contract Name"
-        }, 
+        },
         "abiName": {
           "type": "string",
           "title": "Contract ABI name",
@@ -79,7 +79,7 @@
           "minItems": 1
         }
       },
-      "required": ["name", "abiName",  "desc", "expressions"],
+      "required": ["name", "abiName", "desc", "expressions"],
       "additionalProperties": false
     },
     "Input": {
@@ -88,7 +88,7 @@
         "name": {
           "type": "string",
           "title": "Input Name"
-        }, 
+        },
         "abiName": {
           "type": "string",
           "title": "Input ABI Name",
@@ -104,7 +104,7 @@
           "description": "Input's path in contract's ABI."
         }
       },
-      "required": ["name", "abiName",  "desc", "path"],
+      "required": ["name", "abiName", "desc", "path"],
       "additionalProperties": false
     },
     "Expression": {
@@ -113,7 +113,7 @@
         "name": {
           "type": "string",
           "title": "Expression Name"
-        }, 
+        },
         "abiName": {
           "type": "string",
           "title": "Expression ABI Name",

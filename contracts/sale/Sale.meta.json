@@ -11,7 +11,7 @@
       "desc": "Initialize a new Sale contract.",
       "inputs": [
         {
-          "name": "Recepient Address", 
+          "name": "Recepient Address",
           "abiName": "recipient",
           "desc": "The recipient of the proceeds of a Sale, if/when the Sale is successful.",
           "path": "[10].inputs[1].components[0]"

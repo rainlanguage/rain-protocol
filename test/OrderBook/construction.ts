@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { artifacts , ethers } from "hardhat";
+import { ethers } from "hardhat";
 
 import { OrderBook } from "../../typechain/contracts/orderbook/OrderBook";
 
@@ -12,9 +12,7 @@ import {
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
-} from "../../utils"; 
-import OrderBookMeta from "../../contracts/orderbook/OrderBook.meta.json" 
-import _ from 'lodash';
+} from "../../utils";
 
 describe("OrderBook Constructor", async function () {
   before(async () => {
@@ -45,14 +43,12 @@ describe("OrderBook Constructor", async function () {
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );
-  });  
+  });
 
-  it("should validate contract meta with abi ", async function () { 
-
-    assert(validateContractMetaAgainstABI("lobby") , "Contract Meta Inconsistent with Contract ABI")
-  });  
-
-  
-
-
+  it("should validate contract meta with abi ", async function () {
+    assert(
+      validateContractMetaAgainstABI("lobby"),
+      "Contract Meta Inconsistent with Contract ABI"
+    );
+  });
 });

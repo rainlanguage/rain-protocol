@@ -17,7 +17,7 @@
           "path": "[22].inputs[0].components[0]"
         },
         {
-          "name": "Valid outputs", 
+          "name": "Valid outputs",
           "abiName": "validOutputs",
           "desc": "Token address, vault ID and decimals combinations that are valid outputs for this Order.",
           "path": "[22].inputs[0].components[1]"
@@ -145,6 +145,6 @@
           ]
         }
       ]
-    } 
+    }
   ]
 }
