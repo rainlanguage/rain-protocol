@@ -17,6 +17,7 @@ import {
   expressionConsumerDeploy,
   iinterpreterV1ConsumerDeploy,
 } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("SET/GET Opcode tests", async function () {
   before(async () => {
@@ -30,7 +31,7 @@ describe("SET/GET Opcode tests", async function () {
     const val2 = 555;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `key1: ${key1},
+      rainlang`key1: ${key1},
       val1: ${val1},
       val2: ${val2},
       _ _: set(key1 val1) get(key1) set(key1 val2) get(key1);`
@@ -65,7 +66,7 @@ describe("SET/GET Opcode tests", async function () {
     const val2 = 555;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `key1: ${key1},
+      rainlang`key1: ${key1},
       val1: ${val1},
       val2: ${val2},
       _ _: set(key1 val1) get(key1) set(key1 val2) get(key1);`
@@ -96,7 +97,7 @@ describe("SET/GET Opcode tests", async function () {
     const val3 = 555;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `key1: ${key1},
+      rainlang`key1: ${key1},
       key2: ${key2},
       key3: ${key3},
       val1: ${val1},
@@ -129,7 +130,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val},
         _: set(key val) get(key);`
       );
@@ -157,7 +158,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
-        `key: ${hashedKey},
+        rainlang`key: ${hashedKey},
         val: ${hashedValue},
         _: set(key val) get(key);`
       );
@@ -188,7 +189,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(
-        `key: ${maxKey},
+        rainlang`key: ${maxKey},
         val: ${maxValue},
         _: set(key val) get(key);`
       );
@@ -219,7 +220,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(
-        `key: ${addressKey},
+        rainlang`key: ${addressKey},
         val: ${addressValue},
         _: set(key val) get(key);`
       );
@@ -250,7 +251,7 @@ describe("SET/GET Opcode tests", async function () {
     const val = 456;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `key: ${key},
+      rainlang`key: ${key},
       val: ${val},
       : set(key val);`
     );
@@ -299,7 +300,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const val = 456;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `key: ${key},
+      rainlang`key: ${key},
       val: ${val},
       : set(key val);`
     );
@@ -343,7 +344,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key1: ${key1},
+        rainlang`key1: ${key1},
         val1: ${val1},
         key2: ${key2},
         val2: ${val2},
@@ -385,7 +386,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key1: ${key1},
+        rainlang`key1: ${key1},
         key2: ${key2},
         _ _: get(key1) get(key2);`
       );
@@ -418,7 +419,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val},
         : set(key val);`
       );
@@ -455,7 +456,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         _: get(key);`
       );
 
@@ -488,7 +489,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val},
         : set(key val);`
       );
@@ -529,7 +530,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // B evals on different namespace
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         _: get(key);`
       );
 
@@ -557,7 +558,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     // C evals on correct namespace
     const { sources: sourcesC, constants: constantsC } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         _: get(key);`
       );
 
@@ -591,7 +592,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val1},
         : set(key val);`
       );
@@ -623,7 +624,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val2},
         : set(key val);`
       );
@@ -670,7 +671,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key: ${key1},
+        rainlang`key: ${key1},
         val: ${val1},
         : set(key val);`
       );
@@ -699,7 +700,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key: ${key2},
+        rainlang`key: ${key2},
         _: get(key);`
       );
 
@@ -731,7 +732,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesA, constants: constantsA } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val1: ${val1},
         val2: ${val2},
         : set(key val1) set(key val2);`
@@ -767,7 +768,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         val: ${val3},
         : set(key val);`
       );
@@ -800,7 +801,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     const { sources: sourcesC, constants: constantsC } =
       await standardEvaluableConfig(
-        `key: ${key},
+        rainlang`key: ${key},
         _: get(key);`
       );
 

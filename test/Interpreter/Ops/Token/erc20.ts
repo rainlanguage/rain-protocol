@@ -11,6 +11,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let signers: SignerWithAddress[];
 let signer1: SignerWithAddress;
@@ -45,7 +46,7 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   it("should return ERC20 total supply", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: erc-20-total-supply(${tokenERC20.address});`
+      rainlang`_: erc-20-total-supply(${tokenERC20.address});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -70,7 +71,7 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   it("should return ERC20 balance", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: erc-20-balance-of(${tokenERC20.address} ${signer1.address});`
+      rainlang`_: erc-20-balance-of(${tokenERC20.address} ${signer1.address});`
     );
 
     const expression0 = await expressionConsumerDeploy(

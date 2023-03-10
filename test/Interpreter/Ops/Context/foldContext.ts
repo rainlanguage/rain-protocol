@@ -34,7 +34,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const width = 4;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sources[0] 
       */
@@ -82,7 +82,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const width = 4;
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sources[0] 
       */
@@ -141,7 +141,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const width = 4;
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sources[0] 
       */
@@ -188,7 +188,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const width = 0;
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sources[0] 
       */
@@ -231,7 +231,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const width = 4;
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sources[0] 
       */
@@ -323,7 +323,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const constants = [0, 2, width];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */

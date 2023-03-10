@@ -7,6 +7,7 @@ import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../../../utils/tier";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter tier report saturating diff op", async function () {
   let rainInterpreter: Rainterpreter;
@@ -35,7 +36,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -73,7 +74,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -108,7 +109,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
