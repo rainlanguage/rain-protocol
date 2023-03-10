@@ -6,6 +6,7 @@ import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { standardEvaluableConfig } from "../../../../utils";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter MathOps standard math", async () => {
   let rainInterpreter: Rainterpreter;
@@ -27,7 +28,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform a calculation using the block number as a value", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mul(add(sub(2 1) 3 4) div(6 3) block-number());`
+      rainlang`_: mul(add(sub(2 1) 3 4) div(6 3) block-number());`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -90,7 +91,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mod(7 4 2);`
+      rainlang`_: mod(7 4 2);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -117,7 +118,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mod(9 3);`
+      rainlang`_: mod(9 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -144,7 +145,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mod(5 2);`
+      rainlang`_: mod(5 2);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -171,7 +172,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation on a sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: exp(2 4 3);`
+      rainlang`_: exp(2 4 3);`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,
@@ -197,7 +198,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation correctly", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: exp(2 4);`
+      rainlang`_: exp(2 4);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -224,7 +225,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the maximum of a sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: max(22 11 33);`
+      rainlang`_: max(22 11 33);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -247,7 +248,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the minimum of a sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: min(22 11 33);`
+      rainlang`_: min(22 11 33);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -270,7 +271,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: div(mul(add(2 2 2) 3) 2 3);`
+      rainlang`_: div(mul(add(2 2 2) 3) 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -297,7 +298,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mod(13 2 3);`
+      rainlang`_: mod(13 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -324,7 +325,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: div(12 2 3);`
+      rainlang`_: div(12 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -351,7 +352,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should multiply a sequence of numbers together", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mul(3 4 5);`
+      rainlang`_: mul(3 4 5);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -378,7 +379,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should subtract a sequence of numbers from an initial number", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: sub(10 2 3);`
+      rainlang`_: sub(10 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -405,7 +406,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should add a sequence of numbers together", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: add(1 2 3);`
+      rainlang`_: add(1 2 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(

@@ -6,6 +6,7 @@ import { assertError, standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("Encode Op Tests", async function () {
   let rainInterpreter: Rainterpreter;
@@ -35,7 +36,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `_: encode-256<16 16>(${source} ${target});`
+        rainlang`_: encode-256<16 16>(${source} ${target});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -70,7 +71,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `_: encode-256<128 128>(${source} ${target});`
+        rainlang`_: encode-256<128 128>(${source} ${target});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -103,7 +104,7 @@ describe("Encode Op Tests", async function () {
     // startBit + length exceeds 256 bits
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `_: encode-256<128 129>(${source} ${target});`
+        rainlang`_: encode-256<128 129>(${source} ${target});`
       );
 
     await assertError(
@@ -130,7 +131,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `_: encode-256<12 16>(${source0} ${target0});`
+        rainlang`_: encode-256<12 16>(${source0} ${target0});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -164,7 +165,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
-        `_: encode-256<8 32>(${source1} ${target1});`
+        rainlang`_: encode-256<8 32>(${source1} ${target1});`
       );
 
     const expression1 = await expressionConsumerDeploy(
@@ -197,7 +198,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(
-        `_: encode-256<0 124>(${source2} ${target2});`
+        rainlang`_: encode-256<0 124>(${source2} ${target2});`
       );
 
     const expression2 = await expressionConsumerDeploy(
@@ -230,7 +231,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(
-        `_: encode-256<32 224>(${source3} ${target3});`
+        rainlang`_: encode-256<32 224>(${source3} ${target3});`
       );
 
     const expression3 = await expressionConsumerDeploy(
@@ -262,7 +263,7 @@ describe("Encode Op Tests", async function () {
       "0x00000aaaaaaaaa000000aaaaeeeee00000000000000000eeeeeeeeeeaaaaaaaa";
     const { sources: sources4, constants: constants4 } =
       await standardEvaluableConfig(
-        `_: encode-256<32 128>(${source4} ${target4});`
+        rainlang`_: encode-256<32 128>(${source4} ${target4});`
       );
 
     const expression4 = await expressionConsumerDeploy(
@@ -295,7 +296,7 @@ describe("Encode Op Tests", async function () {
 
     const { sources: sources5, constants: constants5 } =
       await standardEvaluableConfig(
-        `_: encode-256<248 8>(${source5} ${target5});`
+        rainlang`_: encode-256<248 8>(${source5} ${target5});`
       );
 
     const expression5 = await expressionConsumerDeploy(

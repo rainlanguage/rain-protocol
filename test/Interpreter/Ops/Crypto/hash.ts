@@ -5,6 +5,7 @@ import { standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("HASH Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
@@ -25,7 +26,7 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a list of values from constant", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: hash(100 200 300);`
+      rainlang`_: hash(100 200 300);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -58,7 +59,7 @@ describe("HASH Opcode test", async function () {
     const context = [[alice.address, 0x12031]];
 
     const { sources, constants } = await standardEvaluableConfig(
-      `value0: context<0 0>(),
+      rainlang`value0: context<0 0>(),
       value1: context<0 1>(),
       _: hash(value0 value1);`
     );
@@ -89,7 +90,7 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a single value", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: hash(${ethers.constants.MaxUint256})`
+      rainlang`_: hash(${ethers.constants.MaxUint256})`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,

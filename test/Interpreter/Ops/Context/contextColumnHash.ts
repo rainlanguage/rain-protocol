@@ -5,6 +5,7 @@ import { standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("ContextColumnHash Opcode test", async function () {
   let rainInterpreter: Rainterpreter;
@@ -25,7 +26,7 @@ describe("ContextColumnHash Opcode test", async function () {
 
   it("should hash an entire context column", async () => {
     const { sources: sources0 } = await standardEvaluableConfig(
-      `_: context-column-hash<0>();`
+      rainlang`_: context-column-hash<0>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -77,7 +78,7 @@ describe("ContextColumnHash Opcode test", async function () {
     );
 
     const { sources: sources2 } = await standardEvaluableConfig(
-      `_: context-column-hash<15>();`
+      rainlang`_: context-column-hash<15>();`
     );
 
     const expression1 = await expressionConsumerDeploy(
@@ -109,7 +110,7 @@ describe("ContextColumnHash Opcode test", async function () {
 
   it("should hash a context row with single value", async () => {
     const { sources: sources0 } = await standardEvaluableConfig(
-      `_: context-column-hash<1>();`
+      rainlang`_: context-column-hash<1>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -140,7 +141,7 @@ describe("ContextColumnHash Opcode test", async function () {
 
   it("should hash a empty context row", async () => {
     const { sources: sources0 } = await standardEvaluableConfig(
-      `_: context-column-hash<2>();`
+      rainlang`_: context-column-hash<2>();`
     );
 
     const expression0 = await expressionConsumerDeploy(

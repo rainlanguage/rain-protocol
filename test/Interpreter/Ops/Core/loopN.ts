@@ -15,6 +15,7 @@ import {
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 const Opcode = AllStandardOps;
 
@@ -46,7 +47,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const constants = [initialValue, incrementValue];
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -90,7 +91,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -134,7 +135,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -179,7 +180,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValueOuter, incrementValueInner];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -246,7 +247,7 @@ describe("LOOP_N Opcode test", async function () {
     ];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -446,7 +447,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -487,7 +488,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -522,7 +523,7 @@ describe("LOOP_N Opcode test", async function () {
     const constants = [initialValue, incrementValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */

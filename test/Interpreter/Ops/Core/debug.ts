@@ -7,6 +7,7 @@ import {
   MemoryType,
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter debug op", async function () {
   before(async () => {
@@ -17,7 +18,7 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: add(10 20),
+      rainlang`_: add(10 20),
       : debug<${Debug.Stack}>();`
     );
 
@@ -35,7 +36,7 @@ describe("RainInterpreter debug op", async function () {
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: add(10 20),
+      rainlang`_: add(10 20),
       : debug<${Debug.StatePacked}>();`
     );
 
@@ -55,7 +56,7 @@ describe("RainInterpreter debug op", async function () {
     const constants = [0, 1, 20];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       a: read-memory<0 ${MemoryType.Constant}>(),
       b: read-memory<1 ${MemoryType.Constant}>(),
       _: call<1 1>(b),
@@ -82,7 +83,7 @@ describe("RainInterpreter debug op", async function () {
     const constants = [3, 2, 7];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* Main Source */
       input: read-memory<0 ${MemoryType.Constant}>(),
       condition: less-than(
@@ -126,7 +127,7 @@ describe("RainInterpreter debug op", async function () {
 
     const constants = [initialValue, incrementValue];
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* MAIN SOURCE */
       input: read-memory<0 ${MemoryType.Constant}>(),
       _: loop-n<${loopSize} 1 1>(input);
