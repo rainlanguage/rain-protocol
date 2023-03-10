@@ -9,6 +9,7 @@ import {
   MemoryType,
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter FOLD_CONTEXT", async function () {
   let rainInterpreter: Rainterpreter;
