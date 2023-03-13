@@ -10,7 +10,7 @@ import { registerContract } from "../utils";
 export const deployOrderbook = async (
   deployer_: RainterpreterExpressionDeployer
 ) => {
-  const orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  const orderBookFactory = await ethers.getContractFactory("OrderBook");
 
   const config: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("orderbook"),

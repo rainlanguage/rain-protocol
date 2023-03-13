@@ -16,7 +16,7 @@ export const deploySale = async (
   cloneFactory_: CloneFactory,
   maximumSaleTimeout_: number
 ) => {
-  const saleFactory = await ethers.getContractFactory("Sale", {});
+  const saleFactory = await ethers.getContractFactory("Sale");
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("sale"),
@@ -24,6 +24,8 @@ export const deploySale = async (
   };
 
   const RedeemableERC20 = await redeemableERC20DeployImplementation();
+
+  await RedeemableERC20.deployed();
 
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: maximumSaleTimeout_,

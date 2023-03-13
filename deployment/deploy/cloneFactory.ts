@@ -7,6 +7,8 @@ export const deployCloneFactory = async () => {
     await ethers.getContractFactory("CloneFactory")
   ).deploy()) as CloneFactory;
 
+  await CloneFactory.deployed();
+
   registerContract("CloneFactory", CloneFactory.address);
 
   return CloneFactory;

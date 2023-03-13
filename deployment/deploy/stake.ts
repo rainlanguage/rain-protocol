@@ -10,7 +10,7 @@ import { registerContract } from "../utils";
 export const deployStake = async (
   deployer_: RainterpreterExpressionDeployer
 ) => {
-  const stakeFactory = await ethers.getContractFactory("Stake", {});
+  const stakeFactory = await ethers.getContractFactory("Stake");
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("stake"),
