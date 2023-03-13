@@ -27,46 +27,46 @@ async function main() {
   // Deploy the DISpair contracts (Rainterpreter, Store and Deployer)
   const { ExpressionDeployer } = await deployDISpair();
 
-  // Deploy CloneFactory
-  const cloneFactory = await deployCloneFactory();
+  // // Deploy CloneFactory
+  // const cloneFactory = await deployCloneFactory();
 
-  // Deploy Flow (Basic)
-  await deployFlow(ExpressionDeployer);
+  // // Deploy Flow (Basic)
+  // await deployFlow(ExpressionDeployer);
 
-  // Deploy FlowERC20
-  await deployFlowErc20(ExpressionDeployer);
+  // // Deploy FlowERC20
+  // await deployFlowErc20(ExpressionDeployer);
 
-  // Deploy FlowERC721
-  await deployFlowErc721(ExpressionDeployer);
+  // // Deploy FlowERC721
+  // await deployFlowErc721(ExpressionDeployer);
 
-  // Deploy FlowERC1155
-  await deployFlowErc1155(ExpressionDeployer);
+  // // Deploy FlowERC1155
+  // await deployFlowErc1155(ExpressionDeployer);
 
-  // Deploy FlowERC1155
-  const timeoutDuration = 15000000;
-  await deployLobby(ExpressionDeployer, timeoutDuration);
+  // // Deploy FlowERC1155
+  // const timeoutDuration = 15000000;
+  // await deployLobby(ExpressionDeployer, timeoutDuration);
 
-  // Deploy OrderBook
-  await deployOrderbook(ExpressionDeployer);
+  // // Deploy OrderBook
+  // await deployOrderbook(ExpressionDeployer);
 
-  // Deploy Sale (and RedeemableERC20)
-  const maximumSaleTimeout = 2592000; // Aprox 1 month
-  await deploySale(ExpressionDeployer, cloneFactory, maximumSaleTimeout);
+  // // Deploy Sale (and RedeemableERC20)
+  // const maximumSaleTimeout = 2592000; // Aprox 1 month
+  // await deploySale(ExpressionDeployer, cloneFactory, maximumSaleTimeout);
 
-  // Deploy Stake
-  await deployStake(ExpressionDeployer);
+  // // Deploy Stake
+  // await deployStake(ExpressionDeployer);
 
-  // Deploy CombineTier
-  await deployCombineTier(ExpressionDeployer);
+  // // Deploy CombineTier
+  // await deployCombineTier(ExpressionDeployer);
 
-  // Deploy ReadWriteTier
-  await deployReadWriteTier();
+  // // Deploy ReadWriteTier
+  // await deployReadWriteTier();
 
-  // Deploy Verify
-  await deployVerify();
+  // // Deploy Verify
+  // await deployVerify();
 
-  // Deploy AutoApprove
-  await deployAutoApprove(ExpressionDeployer);
+  // // Deploy AutoApprove
+  // await deployAutoApprove(ExpressionDeployer);
 
   // Print all the addresses deployed
   printAddresses();
