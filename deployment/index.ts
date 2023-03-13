@@ -19,10 +19,11 @@ import {
 } from "./deploy";
 
 async function main() {
-  const [signer] = await ethers.getSigners();
+  const signers = await ethers.getSigners(); 
+  console.log("signer : " , signers[0].address)
 
   // Checking if the Registry1820 is already deployed in the chain and deploy if not.
-  await deploy1820(signer);
+  await deploy1820(signers[0]);
 
   // Deploy the DISpair contracts (Rainterpreter, Store and Deployer)
   const { ExpressionDeployer } = await deployDISpair();
