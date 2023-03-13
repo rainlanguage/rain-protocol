@@ -18,6 +18,8 @@ export const deployDISpair = async function () {
     RainterpreterStore
   );
 
+  await ExpressionDeployer.deployed();
+
   const contracts = {
     Rainterpreter,
     RainterpreterStore,

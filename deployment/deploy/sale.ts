@@ -25,6 +25,8 @@ export const deploySale = async (
 
   const RedeemableERC20 = await redeemableERC20DeployImplementation();
 
+  await RedeemableERC20.deployed();
+
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: maximumSaleTimeout_,
     cloneFactory: cloneFactory_.address,
