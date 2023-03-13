@@ -27,7 +27,7 @@ import {
 } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { DISpairEvent } from "../../../../typechain/contracts/interpreter/deploy/IExpressionDeployerV1";
 
-describe("Test Rainterpreter Expression Deployer event", async function () {
+describe.only("Test Rainterpreter Expression Deployer event", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
