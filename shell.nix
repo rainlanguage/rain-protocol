@@ -97,6 +97,9 @@ let
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
+    # Init solc only before runnign echidna to save time
+    init-solc
+
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
       configFile=''${file%%.*}.yaml;
@@ -221,6 +224,5 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    init-solc
   '';
 }
