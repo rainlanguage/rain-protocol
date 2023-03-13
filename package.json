@@ -27,7 +27,8 @@
     "opmeta": "ts-node ./scripts/getOpmeta.ts",
     "rainterpreter-opmeta": "ts-node ./scripts/getRainterpreterOpmeta.ts",
     "contract-meta": "ts-node ./scripts/getContractMeta.ts",
-    "rain-contract-meta": "tsnode ./scripts/getRainContractMeta.ts"
+    "rain-contract-meta": "tsnode ./scripts/getRainContractMeta.ts",
+    "rain-deploy": "hardhat run deployment/index.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",

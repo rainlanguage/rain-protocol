@@ -19,11 +19,11 @@ import {
 } from "./deploy";
 
 async function main() {
-  const signers = await ethers.getSigners(); 
-  console.log("signer : " , signers[0].address)
+  const [signer] = await ethers.getSigners();
+  console.log("Signer deployer : ", signer.address);
 
   // Checking if the Registry1820 is already deployed in the chain and deploy if not.
-  await deploy1820(signers[0]);
+  await deploy1820(signer);
 
   // Deploy the DISpair contracts (Rainterpreter, Store and Deployer)
   const { ExpressionDeployer } = await deployDISpair();
@@ -31,8 +31,8 @@ async function main() {
   // Deploy CloneFactory
   const cloneFactory = await deployCloneFactory();
 
-  // // Deploy Flow (Basic)
-  // await deployFlow(ExpressionDeployer);
+  // Deploy Flow (Basic)
+  await deployFlow(ExpressionDeployer);
 
   // Deploy FlowERC20
   await deployFlowErc20(ExpressionDeployer);

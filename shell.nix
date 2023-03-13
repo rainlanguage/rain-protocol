@@ -88,8 +88,8 @@ let
   '';
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
-    # Deploying to mumbai network
-    hardhat run deployment/index.ts --network mumbai
+    # Deploying to given <network>
+    hardhat run deployment/index.ts --network hardhat
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
