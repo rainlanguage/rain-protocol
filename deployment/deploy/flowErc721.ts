@@ -7,7 +7,7 @@ import { registerContract } from "../utils";
 export const deployFlowErc721 = async (
   deployer_: RainterpreterExpressionDeployer
 ) => {
-  const flowFactory = await ethers.getContractFactory("FlowERC721", {});
+  const flowFactory = await ethers.getContractFactory("FlowERC721");
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("flow721"),

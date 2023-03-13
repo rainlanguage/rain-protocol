@@ -12,7 +12,7 @@ export const deployLobby = async (
   deployer_: RainterpreterExpressionDeployer,
   timeoutDuration: number
 ) => {
-  const lobbyFactory = await ethers.getContractFactory("Lobby", {});
+  const lobbyFactory = await ethers.getContractFactory("Lobby");
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("lobby"),

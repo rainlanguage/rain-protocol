@@ -16,7 +16,7 @@ export const deploySale = async (
   cloneFactory_: CloneFactory,
   maximumSaleTimeout_: number
 ) => {
-  const saleFactory = await ethers.getContractFactory("Sale", {});
+  const saleFactory = await ethers.getContractFactory("Sale");
 
   const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("sale"),
