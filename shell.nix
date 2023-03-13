@@ -89,7 +89,11 @@ let
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
     # Deploying to given <network>
-    hardhat run deployment/index.ts --network hardhat
+    if [[ ''$1 == "" ]]; then
+      echo "should specify a network"
+    else
+      hardhat run deployment/index.ts --network ''$1
+    fi
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''

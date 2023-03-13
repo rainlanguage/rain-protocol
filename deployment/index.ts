@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { printAllAddresses } from "./utils";
 import deploy1820 from "../utils/deploy/registry1820/deploy";
 import {
@@ -19,6 +19,9 @@ import {
 } from "./deploy";
 
 async function main() {
+  console.log(
+    `\n----------- Deploying at ${hre.network.name.toUpperCase()} network -----------`
+  );
   const [signer] = await ethers.getSigners();
   console.log("Signer deployer : ", signer.address);
 
