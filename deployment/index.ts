@@ -31,8 +31,8 @@ async function main() {
   // Deploy CloneFactory
   const cloneFactory = await deployCloneFactory();
 
-  // Deploy Flow (Basic)
-  await deployFlow(ExpressionDeployer);
+  // // Deploy Flow (Basic)
+  // await deployFlow(ExpressionDeployer);
 
   // Deploy FlowERC20
   await deployFlowErc20(ExpressionDeployer);
