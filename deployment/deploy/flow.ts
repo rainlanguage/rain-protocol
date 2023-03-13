@@ -17,6 +17,11 @@ export const deployFlow = async (
     deployer: deployer_.address,
   };
 
+  const a = await flowFactory.signer.provider.estimateGas(
+    flowFactory.getDeployTransaction(interpreterCallerConfig)
+  );
+  console.log(a);
+
   const Flow = (await flowFactory.deploy(interpreterCallerConfig)) as FlowType;
 
   registerContract("Flow", Flow.address);
