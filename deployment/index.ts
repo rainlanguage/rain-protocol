@@ -71,9 +71,6 @@ async function main() {
 
   // Deploy AutoApprove
   await deployAutoApprove(ExpressionDeployer);
-
-  // Print all the addresses deployed
-  printAllAddresses();
 }
 
 main()
@@ -85,4 +82,8 @@ main()
     console.error(error);
     const exit = process.exit;
     exit(1);
+  })
+  .finally(() => {
+    // Always print all the addresses deployed.
+    printAllAddresses();
   });

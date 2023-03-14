@@ -88,6 +88,9 @@ let
   '';
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
+    # Generate JSON description input to verification
+    solt-the-earth
+
     # Deploying to given <network>
     if [[ ''$1 == "" ]]; then
       echo "should specify a network"
@@ -196,6 +199,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.nixpkgs-fmt
     pkgs.nodejs-16_x
     pkgs.slither-analyzer
+    pkgs.jq
     local-node
     local-fork
     local-test
