@@ -69,7 +69,7 @@
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
     "@openzeppelin/contracts-upgradeable": "=4.8.2",
-    "@rainprotocol/binmaskflag": "git://github.com/rainprotocol/binmaskflag.git#fc341af37ecacc401f88ea42bd5b0c241fe75fe9"
+    "@rainprotocol/binmaskflag": "git://github.com/rainprotocol/binmaskflag.git#72a09000fffa0ea35ff0e447c1075aa1c85bb056"
   },
   "overrides": {
     "solhint": {
