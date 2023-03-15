@@ -114,7 +114,6 @@ describe("FlowERC721 construction tests", async function () {
         mintamount: amount;
       `
     );
-    // const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
