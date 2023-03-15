@@ -13,8 +13,9 @@ export async function getInputSolt(contractName_: string) {
 
   resolveSource(buildInfo, qualifiedName, sources);
 
-  // Follow a simple format of an Input JSON Description and the HardhatConfig
-  // See: https://docs.soliditylang.org/en/v0.8.17/using-the-compiler.html#input-description
+  // Follow the same format than `solt` for an Input JSON Description and using
+  // the HardhatConfig.
+  // See more: https://docs.soliditylang.org/en/v0.8.17/using-the-compiler.html#input-description
   const input = {
     language: "Solidity",
     sources,
