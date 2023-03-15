@@ -58,6 +58,13 @@ let
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies --fail-high
   '';
 
+  solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
+    mkdir -p solt
+    find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
+    for name in solc-* ; do  content=$(jq '.sources |= with_entries(.key |= sub("\\./"; ""))' "''${name}")
+    cat <<< $content > "''${name}"; done
+    mv solc-* solt
+  '';
 
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
     flush-all
@@ -69,6 +76,7 @@ let
     mv artifacts "dist/''${dir}/"
     mv typechain "dist/''${dir}/"
 
+    solt-the-earth
     mv solt "dist/''${dir}/"
   '';
 
@@ -80,20 +88,11 @@ let
   '';
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
-    # Generate JSON description input to verification
-
-    # Deploying to given <network>
-    if [[ ''$1 == "" ]]; then
-      echo "should specify a network"
-    else
-      hardhat run deployment/index.ts --network ''$1
-    fi
+    # Deploying to mumbai network
+    hardhat run deployment/deployInterpreter.ts --network mumbai
   '';
 
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
-    # Init solc only before runnign echidna to save time
-    init-solc
-
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
       configFile=''${file%%.*}.yaml;
@@ -109,10 +108,6 @@ let
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
     # Change the version
     solcVersion='0.8.17';
-
-    # Use and print message to be notice that use the correct version
-    solc-select use $solcVersion
-
     if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
       solc-select install $solcVersion;
       solc-select use $solcVersion;
@@ -204,6 +199,7 @@ pkgs.stdenv.mkDerivation {
     cut-dist
     prepack
     prepublish
+    solt-the-earth
     flush-all
     # Echidna config
     init-solc
@@ -221,5 +217,6 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
+    init-solc
   '';
 }

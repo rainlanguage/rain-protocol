@@ -21,7 +21,6 @@ const config: HardhatUserConfig = {
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      gasPrice: 20000000000,
       accounts: process.env["DEPLOYMENT_KEY_MUMBAI"]
         ? [process.env["DEPLOYMENT_KEY_MUMBAI"]]
         : [],
@@ -63,12 +62,6 @@ const config: HardhatUserConfig = {
   },
   paths: {
     tests: MOCHA_TESTS_PATH,
-  },
-  verificationApi: {
-    mumbai: {
-      apiKey: process.env["POLYGONSCAN_KEY"],
-      apiUrl: "https://api-testnet.polygonscan.com/api",
-    },
   },
 };
 export default config;
