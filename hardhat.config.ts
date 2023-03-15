@@ -21,7 +21,6 @@ const config: HardhatUserConfig = {
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      gasPrice: 20000000000,
       accounts: process.env["DEPLOYMENT_KEY_MUMBAI"]
         ? [process.env["DEPLOYMENT_KEY_MUMBAI"]]
         : [],
