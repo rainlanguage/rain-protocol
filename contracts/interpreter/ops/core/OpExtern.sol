@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../math/Binary.sol";
+import "@rainprotocol/binmaskflag/src/Binary.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpReadMemory.sol";
 import "../../extern/LibExtern.sol";

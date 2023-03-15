@@ -6,7 +6,7 @@ import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "../../../math/Binary.sol";
+import "@rainprotocol/binmaskflag/src/Binary.sol";
 
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope. The construction of this
