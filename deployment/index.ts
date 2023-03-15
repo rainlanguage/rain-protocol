@@ -29,39 +29,43 @@ async function main() {
   await deploy1820(signer);
 
   // Deploy the DISpair contracts (Rainterpreter, Store and Deployer)
-  const { ExpressionDeployer } = await deployDISpair();
+  const { RainterpreterExpressionDeployer } = await deployDISpair();
 
   // Deploy CloneFactory
   const cloneFactory = await deployCloneFactory();
 
   // Deploy Flow (Basic)
-  await deployFlow(ExpressionDeployer);
+  await deployFlow(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC20
-  await deployFlowErc20(ExpressionDeployer);
+  await deployFlowErc20(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC721
-  await deployFlowErc721(ExpressionDeployer);
+  await deployFlowErc721(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC1155
-  await deployFlowErc1155(ExpressionDeployer);
+  await deployFlowErc1155(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC1155
   const timeoutDuration = 15000000;
-  await deployLobby(ExpressionDeployer, timeoutDuration);
+  await deployLobby(RainterpreterExpressionDeployer, timeoutDuration);
 
   // Deploy OrderBook
-  await deployOrderbook(ExpressionDeployer);
+  await deployOrderbook(RainterpreterExpressionDeployer);
 
   // Deploy Sale (and RedeemableERC20)
   const maximumSaleTimeout = 2592000; // Aprox 1 month
-  await deploySale(ExpressionDeployer, cloneFactory, maximumSaleTimeout);
+  await deploySale(
+    RainterpreterExpressionDeployer,
+    cloneFactory,
+    maximumSaleTimeout
+  );
 
   // Deploy Stake
-  await deployStake(ExpressionDeployer);
+  await deployStake(RainterpreterExpressionDeployer);
 
   // Deploy CombineTier
-  await deployCombineTier(ExpressionDeployer);
+  await deployCombineTier(RainterpreterExpressionDeployer);
 
   // Deploy ReadWriteTier
   await deployReadWriteTier();
@@ -70,20 +74,23 @@ async function main() {
   await deployVerify();
 
   // Deploy AutoApprove
-  await deployAutoApprove(ExpressionDeployer);
+  await deployAutoApprove(RainterpreterExpressionDeployer);
 }
 
+let code: number;
 main()
   .then(() => {
-    const exit = process.exit;
-    exit(0);
+    code = 0;
   })
   .catch((error) => {
     console.error(error);
-    const exit = process.exit;
-    exit(1);
+    code = 1;
   })
   .finally(() => {
     // Always print all the addresses deployed.
     printAllAddresses();
+
+    // And exit
+    const exit = process.exit;
+    exit(code);
   });

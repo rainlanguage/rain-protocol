@@ -58,13 +58,6 @@ let
     slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies --fail-high
   '';
 
-  solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
-    mkdir -p solt
-    find contracts -type f -not -path 'contracts/test/*' | xargs -i solt write '{}' --npm --runs 100000
-    for name in solc-* ; do  content=$(jq '.sources |= with_entries(.key |= sub("\\./"; ""))' "''${name}")
-    cat <<< $content > "''${name}"; done
-    mv solc-* solt
-  '';
 
   cut-dist = pkgs.writeShellScriptBin "cut-dist" ''
     flush-all
@@ -76,7 +69,6 @@ let
     mv artifacts "dist/''${dir}/"
     mv typechain "dist/''${dir}/"
 
-    solt-the-earth
     mv solt "dist/''${dir}/"
   '';
 
@@ -89,7 +81,6 @@ let
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
     # Generate JSON description input to verification
-    solt-the-earth
 
     # Deploying to given <network>
     if [[ ''$1 == "" ]]; then
@@ -199,7 +190,6 @@ pkgs.stdenv.mkDerivation {
     pkgs.nixpkgs-fmt
     pkgs.nodejs-16_x
     pkgs.slither-analyzer
-    pkgs.jq
     local-node
     local-fork
     local-test
@@ -214,7 +204,6 @@ pkgs.stdenv.mkDerivation {
     cut-dist
     prepack
     prepublish
-    solt-the-earth
     flush-all
     # Echidna config
     init-solc

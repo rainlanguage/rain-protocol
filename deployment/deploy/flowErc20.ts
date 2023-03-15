@@ -6,6 +6,7 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
+import { verifyContract } from "../verify";
 
 export const deployFlowErc20 = async (
   deployer_: RainterpreterExpressionDeployer
@@ -22,4 +23,5 @@ export const deployFlowErc20 = async (
   )) as FlowERC20Type;
 
   registerContract("FlowERC20", FlowERC20.address);
+  verifyContract("FlowERC20", FlowERC20.address, interpreterCallerConfig);
 };

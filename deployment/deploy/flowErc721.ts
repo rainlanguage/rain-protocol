@@ -3,6 +3,7 @@ import { FlowERC721 as FlowERC721Type, RainterpreterExpressionDeployer } from ".
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
+import { verifyContract } from "../verify";
 
 export const deployFlowErc721 = async (
   deployer_: RainterpreterExpressionDeployer
@@ -19,4 +20,5 @@ export const deployFlowErc721 = async (
   )) as FlowERC721Type;
 
   registerContract("FlowERC721", FlowERC721.address);
+  verifyContract("FlowERC721", FlowERC721.address, interpreterCallerConfig);
 };
