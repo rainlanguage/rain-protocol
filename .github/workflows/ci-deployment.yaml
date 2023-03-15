@@ -1,7 +1,7 @@
 name: CI deployments
 on: [push]
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -10,6 +10,6 @@ jobs:
       - uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-shell --run ci-deployment
+      - run: nix-shell --run "ci-deployment mumbai"
         env:
           DEPLOYMENT_KEY_MUMBAI: ${{ secrets.DEPLOYMENT_KEY_MUMBAI }}
