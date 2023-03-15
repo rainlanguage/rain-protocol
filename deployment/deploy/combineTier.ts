@@ -6,7 +6,6 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
-import { verifyContract } from "../verify";
 
 export const deployCombineTier = async (
   deployer_: RainterpreterExpressionDeployer
@@ -22,6 +21,5 @@ export const deployCombineTier = async (
     config_
   )) as CombineTierType;
 
-  registerContract("CombineTier", CombineTier.address);
-  verifyContract("CombineTier", CombineTier.address, config_);
+  registerContract("CombineTier", CombineTier.address, config_);
 };

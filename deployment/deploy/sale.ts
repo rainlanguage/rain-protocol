@@ -10,7 +10,6 @@ import {
   Sale as SaleType,
   SaleConstructorConfigStruct,
 } from "../../typechain/contracts/sale/Sale";
-import { verifyContract } from "../verify";
 
 export const deploySale = async (
   deployer_: RainterpreterExpressionDeployer,
@@ -37,12 +36,7 @@ export const deploySale = async (
 
   const Sale = (await saleFactory.deploy(saleConstructorConfig)) as SaleType;
 
-  registerContract("RedeemableERC20", RedeemableERC20.address);
-  registerContract("Sale", Sale.address);
-
-  // Calling verify
   // RedeemableERC20 does not have args !!!
-  verifyContract("RedeemableERC20", RedeemableERC20.address);
-
-  verifyContract("Sale", Sale.address, saleConstructorConfig);
+  registerContract("RedeemableERC20", RedeemableERC20.address);
+  registerContract("Sale", Sale.address, saleConstructorConfig);
 };

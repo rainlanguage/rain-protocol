@@ -6,7 +6,6 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
-import { verifyContract } from "../verify";
 
 export const deployOrderbook = async (
   deployer_: RainterpreterExpressionDeployer
@@ -20,6 +19,5 @@ export const deployOrderbook = async (
 
   const OrderBook = (await orderBookFactory.deploy(config)) as OrderBookType;
 
-  registerContract("OrderBook", OrderBook.address);
-  verifyContract("OrderBook", OrderBook.address, config);
+  registerContract("OrderBook", OrderBook.address, config);
 };

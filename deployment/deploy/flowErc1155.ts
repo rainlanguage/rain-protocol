@@ -1,9 +1,11 @@
 import { ethers } from "hardhat";
-import { FlowERC1155 as FlowERC1155Type, RainterpreterExpressionDeployer } from "../../typechain";
+import {
+  FlowERC1155 as FlowERC1155Type,
+  RainterpreterExpressionDeployer,
+} from "../../typechain";
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
-import { verifyContract } from "../verify";
 
 export const deployFlowErc1155 = async (
   deployer_: RainterpreterExpressionDeployer
@@ -19,6 +21,5 @@ export const deployFlowErc1155 = async (
     interpreterCallerConfig
   )) as FlowERC1155Type;
 
-  registerContract("FlowERC1155", FlowERC1155.address);
-  verifyContract("FlowERC1155", FlowERC1155.address, interpreterCallerConfig);
+  registerContract("FlowERC1155", FlowERC1155.address, interpreterCallerConfig);
 };

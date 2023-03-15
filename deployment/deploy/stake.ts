@@ -6,7 +6,6 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
-import { verifyContract } from "../verify";
 
 export const deployStake = async (
   deployer_: RainterpreterExpressionDeployer
@@ -22,6 +21,5 @@ export const deployStake = async (
     interpreterCallerConfig
   )) as StakeType;
 
-  registerContract("Stake", Stake.address);
-  verifyContract("Stake", Stake.address, interpreterCallerConfig);
+  registerContract("Stake", Stake.address, interpreterCallerConfig);
 };

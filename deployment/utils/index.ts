@@ -1,40 +1,54 @@
-export type AddressPrint = {
-  [contractName: string]: string;
-};
+import { verifyContract } from "../verify";
 
-export type VerificationData = {
+export type ContractData = {
   [contractName: string]: {
     /**
      * The address where the contract was deployed to.
      */
-    contractaddress: string;
+    contractAddress: string;
     /**
-     * The qualified name of the contract. NOT THE SAME THAN CONTRACT NAME.
+     * Flag if this contract was verified to the block explorer
      */
-    contractname: string;
+    isVerified: boolean;
     /**
-     * The compiler version that the contract was compiled.
+     * The argument used to deploy (if needed)
      */
-    compilerversion: string;
-    /**
-     * The solt file. It's a JSON description input.
-     * See: https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description
-     */
-    sourceCode: any;
+    arguments?: string;
   };
 };
 
-const Register: AddressPrint = {};
+const Contracts: ContractData = {};
 
-export function registerContract(name_: string, address_: string): void {
-  Register[name_] = address_;
-  printAddress(name_, address_);
+export function registerContract(
+  name_: string,
+  address_: string,
+  args_: any = null
+): void {
+  Contracts[name_] = {
+    contractAddress: address_,
+    isVerified: false,
+    arguments: args_,
+  };
 }
 
-export function printAddress(name_: string, address_: string) {
-  console.log(`${name_} deployed at: ${address_}`);
+export function updateIsVerified(name_: string, status_: boolean) {
+  if (Contracts[name_]) {
+    Contracts[name_].isVerified = status_;
+  }
 }
 
-export function printAllAddresses() {
-  console.table(Register);
+function printAllAddresses() {
+  console.table(Contracts, ["contractAddress", "isVerified"]);
+}
+
+export async function verifyAll() {
+  const Keys = Object.keys(Contracts);
+  for (let i = 0; i < Keys.length; i++) {
+    const _name = Keys[i];
+    const _contract = Contracts[Keys[i]];
+    await verifyContract(_name, _contract.contractAddress);
+  }
+
+  // Print all the results
+  printAllAddresses();
 }

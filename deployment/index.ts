@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { printAllAddresses } from "./utils";
+import { verifyAll } from "./utils";
 import deploy1820 from "../utils/deploy/registry1820/deploy";
 import {
   deployDISpair,
@@ -86,11 +86,12 @@ main()
     console.error(error);
     code = 1;
   })
-  .finally(() => {
-    // Always print all the addresses deployed.
-    printAllAddresses();
+  .finally(async () => {
+    // Verify all the contracts deployed (and print the results)
+    // Using the finally sentence allow us to verify and print all the registered
+    // contracts even if after some of them failed on deployment
+    await verifyAll();
 
-    // And exit
     const exit = process.exit;
     exit(code);
   });

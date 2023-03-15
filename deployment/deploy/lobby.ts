@@ -7,7 +7,6 @@ import {
   Lobby as LobbyType,
   LobbyConstructorConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { verifyContract } from "../verify";
 
 export const deployLobby = async (
   deployer_: RainterpreterExpressionDeployer,
@@ -29,6 +28,5 @@ export const deployLobby = async (
     lobbyConstructorConfig
   )) as LobbyType;
 
-  registerContract("Lobby", Lobby.address);
-  verifyContract("Lobby", Lobby.address, lobbyConstructorConfig);
+  registerContract("Lobby", Lobby.address, lobbyConstructorConfig);
 };

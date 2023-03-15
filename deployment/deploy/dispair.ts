@@ -7,7 +7,6 @@ import {
   RainterpreterExpressionDeployer,
   RainterpreterExpressionDeployerConstructionConfigStruct,
 } from "../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { verifyContract } from "../verify";
 
 export const deployDISpair = async function () {
   // Rainterpreter
@@ -27,27 +26,20 @@ export const deployDISpair = async function () {
   const RainterpreterExpressionDeployer =
     await deployRainterpreterExpressionDeployer(deployerConfig);
 
-  const contracts = {
-    Rainterpreter,
-    RainterpreterStore,
-    RainterpreterExpressionDeployer,
-  };
-
   // Saving addresses deployed
-  Object.entries(contracts).forEach((item_) => {
-    registerContract(item_[0], item_[1].address);
-  });
-
-  // Calling verification
-  verifyContract("Rainterpreter", Rainterpreter.address);
-  verifyContract("RainterpreterStore", RainterpreterStore.address);
-  verifyContract(
+  registerContract("Rainterpreter", Rainterpreter.address);
+  registerContract("RainterpreterStore", RainterpreterStore.address);
+  registerContract(
     "RainterpreterExpressionDeployer",
     RainterpreterExpressionDeployer.address,
     deployerConfig
   );
 
-  return contracts;
+  return {
+    Rainterpreter,
+    RainterpreterStore,
+    RainterpreterExpressionDeployer,
+  };
 };
 
 async function deployRainterpreter() {

@@ -6,7 +6,6 @@ import {
 import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
-import { verifyContract } from "../verify";
 
 export const deployAutoApprove = async (
   deployer_: RainterpreterExpressionDeployer
@@ -22,6 +21,5 @@ export const deployAutoApprove = async (
     config_
   )) as AutoApproveType;
 
-  registerContract("AutoApprove", AutoApprove.address);
-  verifyContract("AutoApprove", AutoApprove.address, config_);
+  registerContract("AutoApprove", AutoApprove.address, config_);
 };

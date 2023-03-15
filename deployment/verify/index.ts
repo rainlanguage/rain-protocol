@@ -2,6 +2,19 @@ import { Interface } from "ethers/lib/utils";
 import hre, { artifacts } from "hardhat";
 import axios from "axios";
 import { getInputSolt } from "../solc-inputs";
+import { updateIsVerified } from "../utils";
+
+type VerifyBody = {
+  apikey: string;
+  module: "contract";
+  action: "verifysourcecode";
+  sourceCode: string;
+  contractaddress: string;
+  codeformat: "solidity-standard-json-input";
+  contractname: string;
+  compilerversion: string;
+  constructorArguements?: string;
+};
 
 export async function verifyContract(
   contractName_: string,
@@ -12,12 +25,28 @@ export async function verifyContract(
   if (hre.network.name !== "hardhat") {
     const { apiUrl, apiKey } = hre.config.verificationApi[hre.network.name];
 
+    // Checking if contract is already verified
+    const verified = await isVerified(apiKey, address_);
+
+    if (verified) {
+      updateIsVerified(contractName_, true);
+      return;
+    }
+
     const body = await buildBody(contractName_, address_, args_, apiKey);
     await sendVerification(apiUrl, apiKey, body);
   }
 }
 
-async function sendVerification(url: string, apiKey: string, body: any) {
+async function isVerified(apiKey_: string, address_: string): Promise<boolean> {
+  const url = `https://api-testnet.polygonscan.com/api?module=contract&action=getsourcecode&address=${address_}&apikey=${apiKey_}`;
+  const resp = await axios.get(url);
+
+  // If SourceCode is empty, contract not verified
+  return resp.data.result[0].SourceCode !== "";
+}
+
+async function sendVerification(url: string, apiKey: string, body: VerifyBody) {
   const headers = { "Content-Type": "application/x-www-form-urlencoded" };
   const resp = await axios.post(url, body, { headers });
 
@@ -53,16 +82,19 @@ async function sendVerification(url: string, apiKey: string, body: any) {
       if (respCheck.data.status == 1) {
         // The contract is verified
         isVerified = true;
+        const [, name] = body.contractname.split(":");
+        updateIsVerified(name, true);
       }
 
       i++;
     }
   } else {
     // An error happened when the verification was sent
-    message = `contract address "${body.contractaddress}": ${resp.data.result}`;
+    message = `"${body.contractaddress}": ${resp.data.result}`;
   }
 
   console.log(`${body.contractname} - ${message}`);
+  console.log("-----------");
 }
 
 async function buildBody(
@@ -70,7 +102,7 @@ async function buildBody(
   address_: string,
   args_: any,
   apiKey_: string
-) {
+): Promise<VerifyBody> {
   const contractInfo = await getContractInfo(contractName_);
 
   const body: any = {
