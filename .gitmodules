@@ -8,3 +8,6 @@
 [submodule "lib/sol.lib.bytes"]
 	path = lib/sol.lib.bytes
 	url = https://github.com/rainprotocol/sol.lib.bytes
+[submodule "lib/binmaskflag"]
+	path = lib/binmaskflag
+	url = https://github.com/rainprotocol/binmaskflag
