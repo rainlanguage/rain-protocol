@@ -42,12 +42,12 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x8def9821b2b646f3018a58cc20129a384ca99982587995d8bad70d67a0ec3ce7
+    0x23ee78a110222035a4f28f6adce1a1a67d6bd1c76d769273e720db804d88d504
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xa2237cf9ea159842d74ec30f30663abebca95df8728e88fe13f88fbafe90f3c1
+    0xaae8a541c695af6ade07241bb91066d0e6b572828846902da16454272f5c83e6
 );
 
 /// @dev Hash of the known op meta.
