@@ -5,7 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "@rainprotocol/binmaskflag/src/Binary.sol";
+import "binmaskflag/Binary.sol";
 
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly

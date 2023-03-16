@@ -5,7 +5,7 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "@rainprotocol/binmaskflag/src/Binary.sol";
+import "binmaskflag/Binary.sol";
 
 /// Zero inputs to select lte is NOT supported.
 error ZeroInputs();
