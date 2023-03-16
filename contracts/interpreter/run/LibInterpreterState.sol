@@ -184,7 +184,9 @@ library LibInterpreterState {
     }
 
     function serializeSize(
-        bytes[] memory sources_
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        uint256 stackLength_
     ) internal pure returns (uint256) {
         uint256 size_ = 0;
         size_ += stackLength_.size();
@@ -218,19 +220,19 @@ library LibInterpreterState {
         bytes memory opcodeFunctionPointers_
     ) internal pure {
         unchecked {
-            cursor_ = StackPointer.wrap(Cursor.unwrap(cursor_));
+            StackPointer pointer_ = StackPointer.wrap(Cursor.unwrap(cursor_));
             // Copy stack length.
-            cursor_ = cursor_.push(stackLength_);
+            pointer_ = pointer_.push(stackLength_);
 
             // Then the constants.
-            cursor_ = cursor_.pushWithLength(constants_);
+            pointer_ = pointer_.pushWithLength(constants_);
 
             // Last the sources.
             bytes memory source_;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 source_ = sources_[i_];
                 compile(source_, opcodeFunctionPointers_);
-                cursor_ = cursor_.unalignedPushWithLength(source_);
+                pointer_ = pointer_.unalignedPushWithLength(source_);
             }
         }
     }

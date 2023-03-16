@@ -6,6 +6,8 @@ import "sol.lib.datacontract/LibDataContract.sol";
 import "../../../math/Random.sol";
 
 contract RandomTest {
+    using LibBytes for bytes;
+
     address public shuffled;
 
     uint256 private val;
@@ -27,6 +29,8 @@ contract RandomTest {
     ) external returns (bytes memory shuffled_) {
         // uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
+        (DataContractMemoryContainer container_, Cursor cursor_) = LibDataContract.newContainer(shuffled_.length);
+        LibBytes.unsafeCopyBytesTo(shuffled_.cursor(), cursor_, shuffled_.length);
         // uint256 b_ = gasleft();
         // console.log(
         //     "shuffle gas used: %s %s %s",
@@ -35,7 +39,7 @@ contract RandomTest {
         //     (a_ - b_) / len_
         // );
         // a_ = gasleft();
-        shuffled = LibDataContract.write(shuffled_);
+        shuffled = LibDataContract.write(container_);
         // b_ = gasleft();
         // console.log("storage gas used: %s", a_ - b_);
     }
