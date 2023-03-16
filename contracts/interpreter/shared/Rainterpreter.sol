@@ -54,7 +54,7 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
         ) = LibEncodedDispatch.decode(dispatch_);
 
         // Build the interpreter state from the onchain expression.
-        InterpreterState memory state_ = SSTORE2
+        InterpreterState memory state_ = LibDataContract
             .read(expression_)
             .deserialize();
         state_.stateKV = MemoryKV.wrap(0);

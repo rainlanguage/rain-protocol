@@ -35,7 +35,7 @@ contract RandomTest {
         //     (a_ - b_) / len_
         // );
         // a_ = gasleft();
-        shuffled = SSTORE2.write(shuffled_);
+        shuffled = LibDataContract.write(shuffled_);
         // b_ = gasleft();
         // console.log("storage gas used: %s", a_ - b_);
     }

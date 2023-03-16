@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "./IInterpreterV1.sol";
 import "../../array/LibUint256Array.sol";
-import "@rainprotocol/sol.lib.bytes/src/LibBytes.sol";
+import "sol.lib.bytes/LibBytes.sol";
 
 /// Thrown when the length of an array as the result of an applied function does
 /// not match expectations.

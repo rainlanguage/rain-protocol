@@ -265,7 +265,11 @@ library Random {
     ) internal view returns (uint256 id_) {
         unchecked {
             uint256 offset_ = index_ * 2;
-            bytes memory idBytes_ = SSTORE2.read(ptr_, offset_, offset_ + 2);
+            bytes memory idBytes_ = LibDataContract.read(
+                ptr_,
+                offset_,
+                offset_ + 2
+            );
             assembly ("memory-safe") {
                 id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
             }

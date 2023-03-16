@@ -248,10 +248,18 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         // serialization process itself is destructive of the sources in memory.
         emit NewExpression(msg.sender, sources_, constants_, minOutputs_);
 
+        (
+            DataContractMemoryContainer container_,
+            Cursor cursor_
+        ) = LibDataContract.newContainer(
+                LibInterpreterState.serializeSize(sources_)
+            );
+
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
         // provided function pointers.
         bytes memory stateBytes_ = LibInterpreterState.serialize(
+            cursor_,
             sources_,
             constants_,
             stackLength_,
@@ -259,7 +267,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         );
 
         // Deploy the serialized expression onchain.
-        address expression_ = SSTORE2.write(stateBytes_);
+        address expression_ = LibDataContract.write(container_);
 
         // Emit and return the address of the deployed expression.
         emit ExpressionAddress(msg.sender, expression_);
