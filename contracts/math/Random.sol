@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../sstore2/SSTORE2.sol";
+import "@rainprotocol/sol.lib.datacontract/src/LibDataContract.sol";
 
 library Random {
     /// Implements a fisher yates algorithm to report a single result

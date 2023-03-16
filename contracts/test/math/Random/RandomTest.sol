@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "@rainprotocol/sol.lib.datacontract/src/LibDataContract.sol";
+
 import "../../../math/Random.sol";
-import "../../../sstore2/SSTORE2.sol";
 
 contract RandomTest {
     address public shuffled;

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "@rainprotocol/sol.lib.datacontract/src/LibDataContract.sol";
+
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
-import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
