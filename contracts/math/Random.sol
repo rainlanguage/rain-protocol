@@ -268,7 +268,7 @@ library Random {
             bytes memory idBytes_ = LibDataContract.read(
                 ptr_,
                 offset_,
-                offset_ + 2
+                2
             );
             assembly ("memory-safe") {
                 id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
