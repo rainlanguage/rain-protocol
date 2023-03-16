@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "@rainprotocol/sol.lib.datacontract/src/LibDataContract.sol";
+import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../../../math/Random.sol";
 

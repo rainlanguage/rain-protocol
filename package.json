@@ -70,8 +70,7 @@
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
     "@openzeppelin/contracts-upgradeable": "=4.8.2",
-    "@rainprotocol/binmaskflag": "git://github.com/rainprotocol/binmaskflag.git#72a09000fffa0ea35ff0e447c1075aa1c85bb056",
-    "@rainprotocol/sol.lib.datacontract": "git://github.com/rainprotocol/sol.lib.datacontract.git#b23415776139a6dd0a3841e3580bb015ae095b92"
+    "@rainprotocol/binmaskflag": "git://github.com/rainprotocol/binmaskflag.git#72a09000fffa0ea35ff0e447c1075aa1c85bb056"
   },
   "overrides": {
     "solhint": {
