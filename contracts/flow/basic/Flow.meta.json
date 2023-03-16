@@ -1,22 +1,26 @@
 {
   "name": "Flow",
+  "abiName": "Flow",
   "desc": "A flow contract, that can transfer token based on a deployed expression",
   "alias": "flow",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "",
-      "desc": "Deploys a new Flow ERC20 contract.",
+      "name": "initialize",
+      "abiName": "initialize",
+      "desc": "Initialize a new Flow ERC20 contract.",
       "expressions": [
         {
           "name": "Dummy Expression",
+          "abiName": "dummyConfig",
           "desc": "A dummy expression.",
-          "path": "[6].inputs[0].components[0]"
+          "path": "[12].inputs[1].components[0]"
         },
         {
           "name": "Flows",
+          "abiName": "config",
           "desc": "The available flows.",
-          "path": "[6].inputs[0].components[1]",
+          "path": "[12].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

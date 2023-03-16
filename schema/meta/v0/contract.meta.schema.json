@@ -10,6 +10,11 @@
           "type": "string",
           "title": "Contract Name"
         },
+        "abiName": {
+          "type": "string",
+          "title": "Contract ABI name",
+          "description": "Name of the contract corresponding to `contractName` feild in the abi"
+        },
         "desc": {
           "type": "string",
           "title": "Contract Description",
@@ -36,7 +41,7 @@
           "minItems": 1
         }
       },
-      "required": ["name", "desc", "alias", "source", "methods"],
+      "required": ["name", "abiName", "desc", "alias", "source", "methods"],
       "additionalProperties": false,
       "title": "Rain Contract Metadata",
       "description": "Required info about a contract that receives expression in at least one of its methods."
@@ -47,6 +52,11 @@
         "name": {
           "type": "string",
           "title": "Method Name"
+        },
+        "abiName": {
+          "type": "string",
+          "title": "Method ABI Name",
+          "description": "Name of the method corresponding to `name` feild in the abi"
         },
         "desc": {
           "type": "string",
@@ -69,7 +79,7 @@
           "minItems": 1
         }
       },
-      "required": ["name", "desc", "expressions"],
+      "required": ["name", "abiName", "desc", "expressions"],
       "additionalProperties": false
     },
     "Input": {
@@ -78,6 +88,11 @@
         "name": {
           "type": "string",
           "title": "Input Name"
+        },
+        "abiName": {
+          "type": "string",
+          "title": "Input ABI Name",
+          "description": "Name of the input corresponding to `name` feild in the abi"
         },
         "desc": {
           "type": "string",
@@ -89,7 +104,7 @@
           "description": "Input's path in contract's ABI."
         }
       },
-      "required": ["name", "desc", "path"],
+      "required": ["name", "abiName", "desc", "path"],
       "additionalProperties": false
     },
     "Expression": {
@@ -98,6 +113,11 @@
         "name": {
           "type": "string",
           "title": "Expression Name"
+        },
+        "abiName": {
+          "type": "string",
+          "title": "Expression ABI Name",
+          "description": "Name of the expression corresponding to `name` feild in the abi"
         },
         "desc": {
           "type": "string",
@@ -129,7 +149,7 @@
           "maxItems": 256
         }
       },
-      "required": ["name", "desc", "path"],
+      "required": ["name", "abiName", "desc", "path"],
       "additionalProperties": false
     },
     "ContextColumn": {

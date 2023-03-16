@@ -1,24 +1,28 @@
 {
   "name": "Flow ERC1155",
+  "abiName": "FlowERC1155",
   "desc": "An ERC1155 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
   "alias": "flow-erc1155",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "",
-      "desc": "Deploys a new Flow ERC1155 contract.",
+      "name": "initialize",
+      "abiName": "initialize",
+      "desc": "Initialize a Flow ERC1155 contract. This is an intialized implementation of a Flow ERC1155",
       "inputs": [
         {
           "name": "Uri",
+          "abiName": "uri",
           "desc": "A base URI for this contract's tokens.",
-          "path": "[6].inputs[0].components[0]"
+          "path": "[14].inputs[1].components[0]"
         }
       ],
       "expressions": [
         {
           "name": "Can transfer",
+          "abiName": "evaluableConfig",
           "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
-          "path": "[6].inputs[0].components[1]",
+          "path": "[14].inputs[1].components[1]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -69,8 +73,9 @@
         },
         {
           "name": "Flows",
+          "abiName": "flowConfig",
           "desc": "The available flows for this token.",
-          "path": "[6].inputs[0].components[2]",
+          "path": "[14].inputs[1].components[2]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [
