@@ -12,11 +12,10 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-      - name: Run Forge build
-        run: forge build --sizes
-        id: build
 
       - uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-shell --run ci-test
+      - run: |
+          forge install
+          nix-shell --run ci-test
