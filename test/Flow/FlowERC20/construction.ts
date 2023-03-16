@@ -16,6 +16,7 @@ import {
   assertError,
   basicDeploy,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
@@ -151,6 +152,13 @@ describe("FlowERC20 construction tests", async function () {
       async () => await flowERC20Factory.deploy(interpreterCallerConfig1),
       "UnexpectedMetaHash",
       "FlowERC20 Deployed for bad hash"
+    );
+  });
+
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("flow20"),
+      "Contract Meta Inconsistent with Contract ABI"
     );
   });
 });

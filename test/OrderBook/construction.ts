@@ -10,6 +10,7 @@ import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/con
 import {
   assertError,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../utils";
 
@@ -41,6 +42,13 @@ describe("OrderBook Constructor", async function () {
       async () => await orderBookFactory.deploy(config1),
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
+    );
+  });
+
+  it("should validate contract meta with abi ", async function () {
+    assert(
+      validateContractMetaAgainstABI("lobby"),
+      "Contract Meta Inconsistent with Contract ABI"
     );
   });
 });

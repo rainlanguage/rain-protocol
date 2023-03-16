@@ -16,7 +16,7 @@ import "../../factory/ICloneableV1.sol";
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x82d3d18d0534a2bf6c60dde3290a11783af3346ffc6d1c258fcd9baee00c5568
+    0x1c88d1d8ffac69d993ec8160b0007a13848c32e2b103ccbb49a6c7c428aca847
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(

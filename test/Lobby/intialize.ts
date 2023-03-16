@@ -19,6 +19,7 @@ import {
   assertError,
   compareStructs,
   getRainMetaDocumentFromContract,
+  validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
@@ -157,5 +158,12 @@ describe("Lobby Tests Intialize", async function () {
     )) as Lobby;
 
     assert(!(Lobby.address === zeroAddress), "Lobby not deployed");
+  });
+
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("lobby"),
+      "Contract Meta Inconsistent with Contract ABI"
+    );
   });
 });
