@@ -5,7 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "binmaskflag/Binary.sol";
+import "sol.lib.binmaskflag/Binary.sol";
 
 /// @title OpContextRow
 /// @notice Opcode for stacking a dynamic row from the context. Context requires
