@@ -5,8 +5,7 @@ interface ICloneableFactoryV1 {
     event NewClone(
         address sender,
         address implementation,
-        address clone,
-        bytes data
+        address clone
     );
 
     /// Creates a new child contract.
