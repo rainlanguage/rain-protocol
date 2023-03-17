@@ -4,7 +4,7 @@ pragma solidity =0.8.17;
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "@rainprotocol/binmaskflag/src/Binary.sol";
+import "sol.lib.binmaskflag/Binary.sol";
 
 /// Thrown during integrity check when the encoding is truncated due to the end
 /// bit being over 256.

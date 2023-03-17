@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "@rainprotocol/binmaskflag/src/Binary.sol";
+import "sol.lib.binmaskflag/Binary.sol";
 
 /// Thrown when attempting to read a value from the other side of a zero pointer.
 error InvalidPtr(MemoryKVPtr ptr);

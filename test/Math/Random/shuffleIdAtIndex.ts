@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import type { RandomTest } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { assertError } from "../../../utils/test/assertError";
 
 describe("Random shuffleIdAtIndex", async function () {
   let random: RandomTest;
@@ -10,11 +11,10 @@ describe("Random shuffleIdAtIndex", async function () {
   });
 
   it("should not return shuffled id if no shuffled array has been stored", async () => {
-    const id_ = await random.callStatic.shuffleIdAtIndex(5392);
-
-    assert(
-      id_.isZero(),
-      "wrongly returned an id when there exists no shuffled array in storage"
+    await assertError(
+      async() => await random.callStatic.shuffleIdAtIndex(5392),
+      `ReadError`,
+      `did not error on oob index read`
     );
   });
 
@@ -23,9 +23,11 @@ describe("Random shuffleIdAtIndex", async function () {
 
     await random.shuffle(5, length);
 
-    const id_ = await random.callStatic.shuffleIdAtIndex(5392);
-
-    assert(id_.isZero(), "wrongly returned an id when index is out of range");
+    await assertError(
+      async() => await random.callStatic.shuffleIdAtIndex(5392),
+      `ReadError`,
+      `did not error on oob index read`
+    );
   });
 
   it("should return shuffled id if index is within range", async () => {
