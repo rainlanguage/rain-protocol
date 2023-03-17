@@ -48,7 +48,7 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x164531c4c690c69f889886d0696ddd3a1c413e72784da543c2a7724ee3c02e7e
+    0x7fb8885393c44b205d70df5731ebda5f845d705f43924209209e5098958e95dd
 );
 
 /// @dev Hash of the known op meta.
