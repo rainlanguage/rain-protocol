@@ -8,15 +8,14 @@ import "./bytes32/OpDecode256.sol";
 import "./bytes32/OpEncode256.sol";
 import "./bytes32/OpExplode32.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
+import "./context/OpContext.sol";
+import "./context/OpContextColumnHash.sol";
+import "./context/OpContextRow.sol";
+import "./context/OpFoldContext.sol";
 import "./core/OpCall.sol";
-import "./core/OpSet.sol";
-import "./core/OpContext.sol";
-import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpExtern.sol";
-import "./core/OpFoldContext.sol";
-import "./core/OpGet.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpReadMemory.sol";
 import "./crypto/OpHash.sol";
@@ -79,6 +78,10 @@ import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
 import "./rain/ISaleV2/OpISaleV2Token.sol";
 import "./rain/ISaleV2/OpISaleV2TotalReserveReceived.sol";
 import "./rain/IVerifyV1/OpIVerifyV1AccountStatusAtTime.sol";
+
+import "./store/OpGet.sol";
+import "./store/OpSet.sol";
+
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
@@ -90,7 +93,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 80;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 81;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -220,17 +223,16 @@ library AllStandardOps {
                     OpEncode256.integrity,
                     OpExplode32.integrity,
                     OpChainlinkOraclePrice.integrity,
-                    OpCall.integrity,
                     OpContext.integrity,
+                    OpContextColumnHash.integrity,
                     OpContextRow.integrity,
+                    OpFoldContext.integrity,
+                    OpCall.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpExtern.integrity,
-                    OpFoldContext.integrity,
-                    OpGet.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
-                    OpSet.integrity,
                     OpHash.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
@@ -291,6 +293,9 @@ library AllStandardOps {
                     OpISaleV2Token.integrity,
                     OpISaleV2TotalReserveReceived.integrity,
                     OpIVerifyV1AccountStatusAtTime.integrity,
+                    // Store
+                    OpGet.integrity,
+                    OpSet.integrity,
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -328,18 +333,17 @@ library AllStandardOps {
                     OpEncode256.run,
                     OpExplode32.run,
                     OpChainlinkOraclePrice.run,
-                    OpCall.run,
                     OpContext.run,
+                    OpContextColumnHash.run,
                     OpContextRow.run,
+                    OpFoldContext.run,
+                    OpCall.run,
                     // 1.001kb
                     OpDebug.run,
                     OpDoWhile.run,
                     OpExtern.intern,
-                    OpFoldContext.run,
-                    OpGet.run,
                     OpLoopN.run,
                     OpReadMemory.run,
-                    OpSet.run,
                     OpHash.run,
                     OpERC1155BalanceOf.run,
                     OpERC1155BalanceOfBatch.run,
@@ -401,6 +405,9 @@ library AllStandardOps {
                     OpISaleV2Token.run,
                     OpISaleV2TotalReserveReceived.run,
                     OpIVerifyV1AccountStatusAtTime.run,
+                    // Store
+                    OpGet.run,
+                    OpSet.run,
                     OpITierV2Report.run,
                     OpITierV2ReportTimeForTier.run,
                     OpSaturatingDiff.run,

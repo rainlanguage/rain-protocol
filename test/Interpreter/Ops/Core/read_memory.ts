@@ -14,6 +14,7 @@ import {
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 const Opcode = AllStandardOps;
 
@@ -38,7 +39,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should read a value from CONSTANT and place it on the STACK", async () => {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
-      `_: read-memory<0 ${MemoryType.Constant}>();`
+      rainlang`_: read-memory<0 ${MemoryType.Constant}>();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -64,7 +65,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should read a value from STACK and place it on the STACK", async () => {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
-      `_ _ _ _:
+      rainlang`_ _ _ _:
         block-timestamp()
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Stack}>()
@@ -102,7 +103,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should fail when reading an OOB STACK value", async () => {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
-      `_ _ _:
+      rainlang`_ _ _:
         block-timestamp()
         read-memory<0 ${MemoryType.Stack}>()
         read-memory<2 ${MemoryType.Stack}>();` // Reading an OOB value
@@ -119,7 +120,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should fail when reading an OOB CONSTANT value", async () => {
     const constants = [1337];
     const { sources } = await standardEvaluableConfig(
-      `_ _:
+      rainlang`_ _:
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Constant}>();` // Reading an OOB value
     );
@@ -135,7 +136,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should error when STACK operand references a STACK element that hasn't yet been evaluated", async () => {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
-      `_ _ _ _:
+      rainlang`_ _ _ _:
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Constant}>()
         read-memory<3 ${MemoryType.Stack}>()
@@ -153,7 +154,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should error when STACK operand references itself", async () => {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
-      `_ _ _ _:
+      rainlang`_ _ _ _:
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Constant}>()
         read-memory<2 ${MemoryType.Constant}>()
@@ -174,7 +175,7 @@ describe("READ_MEMORY Opcode test", async function () {
     // STACK should have access to all evaluated stack values
 
     const { sources } = await standardEvaluableConfig(
-      `_ _ _:
+      rainlang`_ _ _:
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Constant}>()
         add(
@@ -210,7 +211,7 @@ describe("READ_MEMORY Opcode test", async function () {
     const constants = [10, 20, 30];
 
     const { sources } = await standardEvaluableConfig(
-      `_ _:
+      rainlang`_ _:
         add(
           read-memory<0 ${MemoryType.Constant}>()
           read-memory<1 ${MemoryType.Constant}>()
@@ -242,7 +243,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should return correct stack element when specifying operand", async () => {
     const constants = [10, 20, 30];
     const { sources } = await standardEvaluableConfig(
-      `_ _ _ _:
+      rainlang`_ _ _ _:
         read-memory<0 ${MemoryType.Constant}>()
         read-memory<1 ${MemoryType.Constant}>()
         read-memory<2 ${MemoryType.Constant}>()
@@ -272,7 +273,7 @@ describe("READ_MEMORY Opcode test", async function () {
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
     const { sources } = await standardEvaluableConfig(
-      `_: read-memory<1 ${MemoryType.Constant}>();`
+      rainlang`_: read-memory<1 ${MemoryType.Constant}>();`
     );
 
     await assertError(

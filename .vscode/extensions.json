@@ -4,6 +4,7 @@
     "bbenoist.nix",
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
-    "NomicFoundation.hardhat-solidity"
+    "NomicFoundation.hardhat-solidity",
+    "rainprotocol.rainlang-vscode"
   ]
 }

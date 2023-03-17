@@ -3,7 +3,6 @@ pragma solidity =0.8.17;
 
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
-import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../store/IInterpreterStoreV1.sol";

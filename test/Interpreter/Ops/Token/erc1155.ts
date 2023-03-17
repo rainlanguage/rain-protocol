@@ -11,6 +11,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let signers: SignerWithAddress[];
 let signer0: SignerWithAddress;
@@ -51,7 +52,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
     const tokenId = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_ _: erc-1155-balance-of-batch(
+      rainlang`_ _: erc-1155-balance-of-batch(
         ${tokenERC1155.address}
         ${signer1.address}
         ${signer2.address}
@@ -108,7 +109,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
     const tokenId = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: erc-1155-balance-of(${tokenERC1155.address} ${signer1.address} ${tokenId});`
+      rainlang`_: erc-1155-balance-of(${tokenERC1155.address} ${signer1.address} ${tokenId});`
     );
 
     const expression0 = await expressionConsumerDeploy(

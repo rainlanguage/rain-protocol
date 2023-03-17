@@ -12,6 +12,7 @@ import {
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 const Opcode = AllStandardOps;
 
@@ -32,7 +33,7 @@ describe("DO_WHILE Opcode test", async function () {
     const constants = [initValue, loopValue, minimumValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
       sourceMain
       */
@@ -77,7 +78,7 @@ describe("DO_WHILE Opcode test", async function () {
     const constants = [initValue, loopValue, conditionalValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -125,7 +126,7 @@ describe("DO_WHILE Opcode test", async function () {
     const constants = [initValue, loopValue, minimumValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */
@@ -171,7 +172,7 @@ describe("DO_WHILE Opcode test", async function () {
     const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
 
     const { sources } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* 
         sourceMain
       */

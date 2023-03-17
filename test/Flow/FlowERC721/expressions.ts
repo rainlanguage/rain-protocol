@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
@@ -19,15 +19,8 @@ import {
 } from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC721Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC721 expressions tests", async function () {
   let cloneFactory: CloneFactory;
@@ -48,29 +41,54 @@ describe("FlowERC721 expressions tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, alice, bob] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        `
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC721 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const HANDLE_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
 
-    const TOKEN_URI = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+        */
+        mintslist: sentinel721;
+      `
+      );
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC721(), // BURN END
-      SENTINEL_ERC721(), // MINT END
-    ]);
-
-    const sources = [HANDLE_TRANSFER(), TOKEN_URI()];
+    const { sources, constants } = await standardEvaluableConfig(
+      `
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+    );
 
     const flowConfigStruct: FlowERC721Config = {
       name: "Flow ERC721",
@@ -79,7 +97,7 @@ describe("FlowERC721 expressions tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
       baseURI: "https://www.rainprotocol.xyz/nft/",
     };
 

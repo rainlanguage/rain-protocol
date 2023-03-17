@@ -6,6 +6,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { assertError } from "../../../../utils/test/assertError";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter unchecked math", async () => {
   let rainInterpreter: Rainterpreter;
@@ -27,7 +28,7 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: exp(${max_uint256.div(2)} 2);`
+      rainlang`_: exp(${max_uint256.div(2)} 2);`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,
@@ -50,7 +51,7 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with multiplication op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: mul(${max_uint256.div(2)} 3);`
+      rainlang`_: mul(${max_uint256.div(2)} 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -74,7 +75,7 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator underflows with subtraction op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: sub(0 1);`
+      rainlang`_: sub(0 1);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -98,7 +99,7 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with addition op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `_: add(${max_uint256} 1);`
+      rainlang`_: add(${max_uint256} 1);`
     );
 
     const expression0 = await expressionConsumerDeploy(

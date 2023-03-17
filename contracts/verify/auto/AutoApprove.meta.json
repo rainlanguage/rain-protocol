@@ -1,24 +1,28 @@
 {
   "name": "Auto Approve",
+  "abiName": "AutoApprove",
   "desc": "",
   "alias": "auto-approve",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
-      "name": "",
-      "desc": "Deploys a new AutoApprove contract.",
+      "name": "initialize",
+      "abiName": "initialize",
+      "desc": "Initialize a new AutoApprove contract.",
       "inputs": [
         {
           "name": "Owner",
+          "abiName": "owner",
           "desc": "Sets owner",
-          "path": "[6].inputs[0].components[0]"
+          "path": "[5].inputs[1].components[0]"
         }
       ],
       "expressions": [
         {
           "name": "",
+          "abiName": "evaluableConfig",
           "desc": "",
-          "path": "[6].inputs[0].components[1]",
+          "path": "[5].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

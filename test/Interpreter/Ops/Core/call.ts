@@ -7,6 +7,7 @@ import {
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("CALL Opcode test", async function () {
   before(async () => {
@@ -17,7 +18,7 @@ describe("CALL Opcode test", async function () {
 
   it("should execute a simple call (increment a number)", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source */
       _:  call<1 1>(2);
 
@@ -45,7 +46,7 @@ describe("CALL Opcode test", async function () {
 
   it("should change the eval's scope using CALL opcode", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source calculating fibonacci sequence up to 5 */
       _ _ _ _ _ _:
           0
@@ -94,7 +95,7 @@ describe("CALL Opcode test", async function () {
 
   it("should process the minimum number of input", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source */
       _:  add(
             call<1 1>()
@@ -124,7 +125,7 @@ describe("CALL Opcode test", async function () {
   it("should process the maximum number of inputs and fail beyond that", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        `
+        rainlang`
       /* main source */
       _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
 
@@ -169,7 +170,7 @@ describe("CALL Opcode test", async function () {
     assertError(
       async () =>
         await standardEvaluableConfig(
-          `
+          rainlang`
       /* main source */
       _:  call<1 1>(2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2);
 
@@ -200,7 +201,7 @@ describe("CALL Opcode test", async function () {
 
   it("should process the minimum number of output", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source */
       _:  call<1 1>(2 2);
 
@@ -230,7 +231,7 @@ describe("CALL Opcode test", async function () {
 
   it("should process the maximum number of output and fail beyond that", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source */
       _ _ _:  call<1 3>(2 2);
 
@@ -277,7 +278,7 @@ describe("CALL Opcode test", async function () {
     */
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source */
       _:  call<7 1>(
             call<6 1>(
@@ -356,7 +357,7 @@ describe("CALL Opcode test", async function () {
 
   it("should forward inputs to a call while also supporting other aliases", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source 0 */
       _ _:  call<1 2>(10);
 
@@ -391,7 +392,7 @@ describe("CALL Opcode test", async function () {
 
   it("should preserve a stack value in a call", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* main source 0 */
       value: 10,
       _ _ _:    call<1 3>(value);

@@ -13,7 +13,7 @@ import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iint
 
 import { ethers } from "hardhat";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-
+import { rainlang } from "../../../../utils/extensions/rainlang";
 describe("chainlink-price Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
 
@@ -47,7 +47,7 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 3600;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -95,7 +95,7 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -131,7 +131,7 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -164,7 +164,7 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      `_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
