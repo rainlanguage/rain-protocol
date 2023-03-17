@@ -213,14 +213,14 @@ library LibInterpreterState {
     /// @param opcodeFunctionPointers_ As per `IInterpreterV1.functionPointers`,
     /// bytes to be compiled into the final `InterpreterState.compiledSources`.
     function serialize(
-        Cursor cursor_,
+        Pointer memPointer_,
         bytes[] memory sources_,
         uint256[] memory constants_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure {
         unchecked {
-            StackPointer pointer_ = StackPointer.wrap(Cursor.unwrap(cursor_));
+            StackPointer pointer_ = StackPointer.wrap(Pointer.unwrap(memPointer_));
             // Copy stack length.
             pointer_ = pointer_.push(stackLength_);
 

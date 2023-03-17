@@ -11,7 +11,7 @@ import "hardhat/console.sol";
 /// @title LibInterpreterStateTest
 /// Test wrapper around `LibInterpreterState` library.
 contract LibInterpreterStateTest {
-    using LibBytes for bytes;
+    using LibMemory for bytes;
     using LibInterpreterState for InterpreterState;
     using LibInterpreterState for bytes;
     using LibStackPointer for uint256[];
@@ -79,7 +79,7 @@ contract LibInterpreterStateTest {
     ) public view returns (bytes memory) {
         bytes memory serialized_ = new bytes(LibInterpreterState.serializeSize(sources_, constants_, stackLength_));
         LibInterpreterState.serialize(
-            serialized_.cursor(),
+            serialized_.dataPointer(),
             sources_,
             constants_,
             stackLength_,

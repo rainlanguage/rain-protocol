@@ -6,7 +6,7 @@ import "sol.lib.datacontract/LibDataContract.sol";
 import "../../../math/Random.sol";
 
 contract RandomTest {
-    using LibBytes for bytes;
+    using LibMemory for bytes;
 
     address public shuffled;
 
@@ -29,8 +29,8 @@ contract RandomTest {
     ) external returns (bytes memory shuffled_) {
         // uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
-        (DataContractMemoryContainer container_, Cursor cursor_) = LibDataContract.newContainer(shuffled_.length);
-        LibBytes.unsafeCopyBytesTo(shuffled_.cursor(), cursor_, shuffled_.length);
+        (DataContractMemoryContainer container_, Pointer pointer_) = LibDataContract.newContainer(shuffled_.length);
+        LibMemory.unsafeCopyBytesTo(shuffled_.dataPointer(), pointer_, shuffled_.length);
         // uint256 b_ = gasleft();
         // console.log(
         //     "shuffle gas used: %s %s %s",
@@ -50,14 +50,14 @@ contract RandomTest {
         // uint256 a_ = gasleft();
         address shuffled_ = shuffled;
 
-        id_ = Random.shuffleIdAtIndex(shuffled_, index_);
+        id_ = Random.shuffleIdAtIndex(shuffled_, uint16(index_));
         // uint256 b_ = gasleft();
         // console.log("shuffle id: %s", id_);
         // console.log("shuffle index gas: %s", a_ - b_);
 
         uint256 index2_ = index_ + 1;
         // a_ = gasleft();
-        Random.shuffleIdAtIndex(shuffled_, index2_);
+        Random.shuffleIdAtIndex(shuffled_, uint16(index2_));
         // b_ = gasleft();
         // console.log("shuffle index gas 2: %s", a_ - b_);
     }

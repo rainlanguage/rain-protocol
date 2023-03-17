@@ -261,11 +261,11 @@ library Random {
     /// etc. are typically uint256 values.
     function shuffleIdAtIndex(
         address ptr_,
-        uint256 index_
+        uint16 index_
     ) internal view returns (uint256 id_) {
         unchecked {
-            uint256 offset_ = index_ * 2;
-            bytes memory idBytes_ = LibDataContract.read(
+            uint16 offset_ = index_ * 2;
+            bytes memory idBytes_ = LibDataContract.readSlice(
                 ptr_,
                 offset_,
                 2

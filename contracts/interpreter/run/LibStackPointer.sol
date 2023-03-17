@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "./IInterpreterV1.sol";
 import "../../array/LibUint256Array.sol";
-import "sol.lib.bytes/LibBytes.sol";
+import "sol.lib.memory/LibMemory.sol";
 
 /// Thrown when the length of an array as the result of an applied function does
 /// not match expectations.
@@ -42,7 +42,7 @@ library LibStackPointer {
     using LibStackPointer for uint256[];
     using LibStackPointer for bytes;
     using LibUint256Array for uint256[];
-    using LibBytes for uint256;
+    using LibMemory for uint256;
 
     /// Reads the value above the stack pointer. If the stack pointer is the
     /// current stack top this is an out of bounds read! The caller MUST ensure
@@ -337,9 +337,9 @@ library LibStackPointer {
         StackPointer stackPointer_,
         bytes memory bytes_
     ) internal pure returns (StackPointer) {
-        LibBytes.unsafeCopyBytesTo(
-            Cursor.wrap(StackPointer.unwrap(bytes_.asStackPointer().up())),
-            Cursor.wrap(StackPointer.unwrap(stackPointer_)),
+        LibMemory.unsafeCopyBytesTo(
+            Pointer.wrap(StackPointer.unwrap(bytes_.asStackPointer().up())),
+            Pointer.wrap(StackPointer.unwrap(stackPointer_)),
             bytes_.length
         );
         return stackPointer_.upBytes(bytes_.length);
