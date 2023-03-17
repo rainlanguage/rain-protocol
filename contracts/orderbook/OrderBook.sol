@@ -473,17 +473,20 @@ contract OrderBook is
     ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();
-            uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
+            uint256[][] memory callingContext_ = new uint256[][](
+                CONTEXT_COLUMNS
+            );
 
             {
-                context_[CONTEXT_CALLING_CONTEXT_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        orderHash_,
-                        uint256(uint160(order_.owner)),
-                        uint256(uint160(counterparty_))
-                    );
+                callingContext_[
+                    CONTEXT_CALLING_CONTEXT_COLUMN
+                ] = LibUint256Array.arrayFrom(
+                    orderHash_,
+                    uint256(uint160(order_.owner)),
+                    uint256(uint160(counterparty_))
+                );
 
-                context_[CONTEXT_VAULT_INPUTS_COLUMN] = LibUint256Array
+                callingContext_[CONTEXT_VAULT_INPUTS_COLUMN] = LibUint256Array
                     .arrayFrom(
                         uint256(
                             uint160(order_.validInputs[inputIOIndex_].token)
@@ -497,7 +500,7 @@ contract OrderBook is
                         0
                     );
 
-                context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = LibUint256Array
+                callingContext_[CONTEXT_VAULT_OUTPUTS_COLUMN] = LibUint256Array
                     .arrayFrom(
                         uint256(
                             uint160(order_.validOutputs[outputIOIndex_].token)
@@ -511,6 +514,11 @@ contract OrderBook is
                         0
                     );
             }
+            uint256[][] memory context_ = LibContext.build(
+                callingContext_,
+                new uint256[](0),
+                new SignedContext[](0)
+            );
 
             // The state changes produced here are handled in _recordVaultIO so
             // that local storage writes happen before writes on the interpreter.

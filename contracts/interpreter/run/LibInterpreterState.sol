@@ -220,7 +220,9 @@ library LibInterpreterState {
         bytes memory opcodeFunctionPointers_
     ) internal pure {
         unchecked {
-            StackPointer pointer_ = StackPointer.wrap(Pointer.unwrap(memPointer_));
+            StackPointer pointer_ = StackPointer.wrap(
+                Pointer.unwrap(memPointer_)
+            );
             // Copy stack length.
             pointer_ = pointer_.push(stackLength_);
 
