@@ -16,6 +16,6 @@ jobs:
       - uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-shell --run 'forge-install && ci-deployment'
+      - run: nix-shell --run 'forge install && ci-deployment'
         env:
           DEPLOYMENT_KEY_MUMBAI: ${{ secrets.DEPLOYMENT_KEY_MUMBAI }}
