@@ -71,7 +71,7 @@ uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
 /// as accounting limits such as current vault balances, etc.
 /// The token address and decimals for vault inputs and outputs IS available to
 /// the calculate order entrypoint, but not the final vault balances/diff.
-uint256 constant CONTEXT_COLUMNS = 5;
+uint256 constant CALLING_CONTEXT_COLUMNS = 4;
 /// @dev Base context from LibContext.
 uint256 constant CONTEXT_BASE_COLUMN = 0;
 /// @dev Contextual data available to both calculate order and handle IO. The
@@ -297,7 +297,8 @@ contract OrderBook is
                         order_,
                         takeOrder_.inputIOIndex,
                         takeOrder_.outputIOIndex,
-                        msg.sender
+                        msg.sender,
+                        takeOrder_.signedContext
                     );
 
                 // Skip orders that are too expensive rather than revert as we have
@@ -367,7 +368,9 @@ contract OrderBook is
     function clear(
         Order memory a_,
         Order memory b_,
-        ClearConfig calldata clearConfig_
+        ClearConfig calldata clearConfig_,
+        SignedContext[] memory aSignedContext_,
+        SignedContext[] memory bSignedContext_
     ) external nonReentrant {
         {
             if (a_.owner == b_.owner) {
@@ -412,13 +415,15 @@ contract OrderBook is
             a_,
             clearConfig_.aInputIOIndex,
             clearConfig_.aOutputIOIndex,
-            b_.owner
+            b_.owner,
+            bSignedContext_
         );
         OrderIOCalculation memory bOrderIOCalculation_ = _calculateOrderIO(
             b_,
             clearConfig_.bInputIOIndex,
             clearConfig_.bOutputIOIndex,
-            a_.owner
+            a_.owner,
+            aSignedContext_
         );
         ClearStateChange memory clearStateChange_ = LibOrderBook
             ._clearStateChange(aOrderIOCalculation_, bOrderIOCalculation_);
@@ -471,56 +476,56 @@ contract OrderBook is
         Order memory order_,
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
-        address counterparty_
+        address counterparty_,
+        SignedContext[] memory signedContext_
     ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();
-            uint256[][] memory callingContext_ = new uint256[][](
-                CONTEXT_COLUMNS
-            );
 
+            uint256[][] memory context_;
             {
+                uint256[][] memory callingContext_ = new uint256[][](
+                    CALLING_CONTEXT_COLUMNS
+                );
                 callingContext_[
-                    CONTEXT_CALLING_CONTEXT_COLUMN
+                    CONTEXT_CALLING_CONTEXT_COLUMN - 1
                 ] = LibUint256Array.arrayFrom(
                     orderHash_,
                     uint256(uint160(order_.owner)),
                     uint256(uint160(counterparty_))
                 );
 
-                callingContext_[CONTEXT_VAULT_INPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validInputs[inputIOIndex_].token)
-                        ),
-                        order_.validInputs[inputIOIndex_].decimals,
-                        order_.validInputs[inputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validInputs[inputIOIndex_].token
-                        ][order_.validInputs[inputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_INPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validInputs[inputIOIndex_].token)),
+                    order_.validInputs[inputIOIndex_].decimals,
+                    order_.validInputs[inputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validInputs[inputIOIndex_].token
+                    ][order_.validInputs[inputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
 
-                callingContext_[CONTEXT_VAULT_OUTPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validOutputs[outputIOIndex_].token)
-                        ),
-                        order_.validOutputs[outputIOIndex_].decimals,
-                        order_.validOutputs[outputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validOutputs[outputIOIndex_].token
-                        ][order_.validOutputs[outputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_OUTPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validOutputs[outputIOIndex_].token)),
+                    order_.validOutputs[outputIOIndex_].decimals,
+                    order_.validOutputs[outputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validOutputs[outputIOIndex_].token
+                    ][order_.validOutputs[outputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
+                context_ = LibContext.build(
+                    callingContext_,
+                    new uint256[](0),
+                    signedContext_
+                );
             }
-            uint256[][] memory context_ = LibContext.build(
-                callingContext_,
-                new uint256[](0),
-                new SignedContext[](0)
-            );
 
             // The state changes produced here are handled in _recordVaultIO so
             // that local storage writes happen before writes on the interpreter.

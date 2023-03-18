@@ -38,7 +38,6 @@ import { compareStructs } from "../../utils/test/compareStructs";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
-
 const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
@@ -56,7 +55,7 @@ describe("OrderBook expression checks", async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-  }); 
+  });
 
   it("should ensure order sender and contract address are visible in calculateIO and handleIO", async function () {
     const signers = await ethers.getSigners();
@@ -129,12 +128,10 @@ describe("OrderBook expression checks", async () => {
       Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 3)
     );
-    
 
     const orderSender = () => op(Opcode.context, 0x0000);
-    const contractAddress = () => op(Opcode.context, 0x0001); 
+    const contractAddress = () => op(Opcode.context, 0x0001);
 
-    
     // prettier-ignore
     const calculateSoruce = concat([
       orderSender(),
@@ -147,7 +144,7 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ensure, 1) , 
         vOutputMax,
         vRatio,
-    ]); 
+    ]);
 
     // prettier-ignore
     const handleIOSource = concat([
@@ -161,9 +158,7 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ensure, 1) 
     ]);
 
-
     // prettier-ignore
-    
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
       [calculateSoruce, handleIOSource],
@@ -201,83 +196,74 @@ describe("OrderBook expression checks", async () => {
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(OrderConfigAlice); 
+      .addOrder(OrderConfigAlice);
 
-     
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
-      const { order: Order_A } = (await getEventArgs(
-        txAddOrderAlice,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
-  
-      
-  
-      // TAKE ORDER BOB
-  
-      const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-        order: Order_A,
-        inputIOIndex: 0,
-        outputIOIndex: 1,
-      };
-  
-      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
-      const maximumIORatio = fixedPointMul(
-        ratio_A,
-        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
-      );
-  
-      const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
-        output: tokenA18.address,
-        input: tokenB06.address,
-        minimumInput: depositAmountB,
-        maximumInput: depositAmountB,
-        maximumIORatio,
-        orders: [takeOrderConfigStructBob],
-      };
-  
-      await tokenA18.transfer(bob.address, depositAmountA);
-      await tokenA18.connect(bob).approve(orderBook.address, depositAmountA);
-  
-      const txTakeOrders = await orderBook
-        .connect(bob)
-        .takeOrders(takeOrdersConfigStruct);
-  
-      const { sender, config, input, output } = (await getEventArgs(
-        txTakeOrders,
-        "TakeOrder",
-        orderBook
-      )) as TakeOrderEvent["args"];
-  
-      assert(sender === bob.address, "wrong sender");
-      assert(input.eq(depositAmountB), "wrong input");
-      assert(output.eq(depositAmountA), "wrong output");
-  
-      compareStructs(config, takeOrderConfigStructBob);
-  
-      const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
-      const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
-      const tokenABobBalance = await tokenA18.balanceOf(bob.address);
-      const tokenBBobBalance = await tokenB06.balanceOf(bob.address);
-  
-      assert(tokenAAliceBalance.isZero()); // Alice has not yet withdrawn
-      assert(tokenBAliceBalance.isZero());
-      assert(tokenABobBalance.isZero());
-      assert(tokenBBobBalance.eq(depositAmountB));
-  
-      await orderBook.connect(alice).withdraw({
-        token: tokenA18.address,
-        vaultId: aliceVault,
-        amount: depositAmountA.mul(2),
-      });
-  
-      const tokenAAliceBalanceWithdrawn = await tokenA18.balanceOf(alice.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.mul(2)));
-  
+    // TAKE ORDER BOB
 
+    const takeOrderConfigStructBob: TakeOrderConfigStruct = {
+      order: Order_A,
+      inputIOIndex: 0,
+      outputIOIndex: 1,
+    };
 
-    
+    // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+    const maximumIORatio = fixedPointMul(
+      ratio_A,
+      ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+    );
 
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA18.address,
+      input: tokenB06.address,
+      minimumInput: depositAmountB,
+      maximumInput: depositAmountB,
+      maximumIORatio,
+      orders: [takeOrderConfigStructBob],
+    };
+
+    await tokenA18.transfer(bob.address, depositAmountA);
+    await tokenA18.connect(bob).approve(orderBook.address, depositAmountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const { sender, config, input, output } = (await getEventArgs(
+      txTakeOrders,
+      "TakeOrder",
+      orderBook
+    )) as TakeOrderEvent["args"];
+
+    assert(sender === bob.address, "wrong sender");
+    assert(input.eq(depositAmountB), "wrong input");
+    assert(output.eq(depositAmountA), "wrong output");
+
+    compareStructs(config, takeOrderConfigStructBob);
+
+    const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
+    const tokenBAliceBalance = await tokenB06.balanceOf(alice.address);
+    const tokenABobBalance = await tokenA18.balanceOf(bob.address);
+    const tokenBBobBalance = await tokenB06.balanceOf(bob.address);
+
+    assert(tokenAAliceBalance.isZero()); // Alice has not yet withdrawn
+    assert(tokenBAliceBalance.isZero());
+    assert(tokenABobBalance.isZero());
+    assert(tokenBBobBalance.eq(depositAmountB));
+
+    await orderBook.connect(alice).withdraw({
+      token: tokenA18.address,
+      vaultId: aliceVault,
+      amount: depositAmountA.mul(2),
+    });
+
+    const tokenAAliceBalanceWithdrawn = await tokenA18.balanceOf(alice.address);
+    assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.mul(2)));
   });
 
   it("should ensure OWNER and COUNTERPARTY are visible in calculateIO and handleIO", async function () {
@@ -396,8 +382,6 @@ describe("OrderBook expression checks", async () => {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
-
-    
 
     // Alice and Bob will each deposit 2 units of tokenB
     const depositAmountB = ethers.BigNumber.from(1 + sixZeros);
@@ -624,8 +608,6 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    
-
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
@@ -816,8 +798,6 @@ describe("OrderBook expression checks", async () => {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
-
-    
 
     // TAKE ORDER BOB
 
@@ -1019,8 +999,6 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    
-
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
@@ -1215,8 +1193,6 @@ describe("OrderBook expression checks", async () => {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
-
-    
 
     // TAKE ORDER BOB
 
@@ -1451,8 +1427,6 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    
-
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
@@ -1602,8 +1576,6 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    
-
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
       vaultId: aliceOutputVault,
@@ -1747,8 +1719,6 @@ describe("OrderBook expression checks", async () => {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
-
-    
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -1899,8 +1869,6 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    
-
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB06.address,
       vaultId: aliceOutputVault,
@@ -1980,7 +1948,5 @@ describe("OrderBook expression checks", async () => {
 
     const tokenAAliceBalanceWithdrawn = await tokenA18.balanceOf(alice.address);
     assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA));
-  }); 
-
-
+  });
 });
