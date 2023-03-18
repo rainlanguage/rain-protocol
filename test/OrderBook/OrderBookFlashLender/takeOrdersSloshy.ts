@@ -133,6 +133,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: []
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -342,6 +343,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: []
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {

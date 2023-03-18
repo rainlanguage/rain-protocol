@@ -191,12 +191,12 @@ describe("OrderBook decimals", async function () {
     );
     // prettier-ignore
     const source_A = concat([
-      op(Opcode.context, 0x0201), // input decimals
+      op(Opcode.context, 0x0301), // input decimals
       vTokenADecimals,
       op(Opcode.equal_to),
       op(Opcode.ensure, 1),
 
-      op(Opcode.context, 0x0301), // output decimals
+      op(Opcode.context, 0x0401), // output decimals
       vTokenBDecimals,
       op(Opcode.equal_to),
       op(Opcode.ensure, 1),
@@ -328,6 +328,6 @@ describe("OrderBook decimals", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig, [], []);
   });
 });

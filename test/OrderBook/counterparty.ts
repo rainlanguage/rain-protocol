@@ -40,7 +40,7 @@ import deploy1820 from "../../utils/deploy/registry1820/deploy";
 const Opcode = AllStandardOps;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.context, 0x0002);
+  const cCounterparty = op(Opcode.context, 0x0102);
 
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
@@ -317,7 +317,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const badClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     const {
       sender: badClearSender,
@@ -357,7 +357,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_C, clearConfig);
+      .clear(Order_A, Order_C, clearConfig,[],[]);
 
     const {
       sender: clearSender,

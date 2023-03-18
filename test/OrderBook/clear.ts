@@ -176,7 +176,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -330,7 +330,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -485,7 +485,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -637,7 +637,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -791,7 +791,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -944,7 +944,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1096,7 +1096,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1231,7 +1231,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1366,7 +1366,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1501,7 +1501,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1636,7 +1636,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1770,7 +1770,7 @@ describe("OrderBook clear order", async function () {
         bBountyVaultId: bountyBotVaultB,
       };
 
-      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+      await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1933,7 +1933,7 @@ describe("OrderBook clear order", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     const {
       sender: clearSender,
@@ -2096,7 +2096,7 @@ describe("OrderBook clear order", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     const {
       sender: clearSender,
@@ -2274,7 +2274,7 @@ describe("OrderBook clear order", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(Order_A, bigConfigInvalid1, clearConfig),
+          .clear(Order_A, bigConfigInvalid1, clearConfig,[],[]),
       `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
       "did not validate input token"
     );
@@ -2282,7 +2282,7 @@ describe("OrderBook clear order", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(Order_A, bigConfigInvalid0, clearConfig),
+          .clear(Order_A, bigConfigInvalid0, clearConfig,[],[]),
       `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
       "did not validate output token"
     );
@@ -2431,7 +2431,7 @@ describe("OrderBook clear order", async function () {
 
     const txClearOrder = orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     await assertError(
       async () => await txClearOrder,
@@ -2580,7 +2580,7 @@ describe("OrderBook clear order", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     const {
       sender: clearSender,
@@ -2755,7 +2755,7 @@ describe("OrderBook clear order", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
+    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig,[],[]);
 
     const aliceInputVaultBalance = await orderBook.vaultBalance(
       alice.address,
@@ -2943,7 +2943,7 @@ describe("OrderBook clear order", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig,[],[]);
 
     const {
       sender: clearSender,
@@ -3006,6 +3006,10 @@ describe("OrderBook clear order", async function () {
 
     const expectedEvent0 = [
       [
+        ethers.BigNumber.from(bountyBot.address),
+        ethers.BigNumber.from(orderBook.address),
+      ],
+      [
         hashOrder_A,
         ethers.BigNumber.from(alice.address),
         ethers.BigNumber.from(bob.address),
@@ -3040,6 +3044,10 @@ describe("OrderBook clear order", async function () {
     }
 
     const expectedEvent1 = [
+      [
+        ethers.BigNumber.from(bountyBot.address),
+        ethers.BigNumber.from(orderBook.address),
+      ],
       [
         hashOrder_B,
         ethers.BigNumber.from(bob.address),
