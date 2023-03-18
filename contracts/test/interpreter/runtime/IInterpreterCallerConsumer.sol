@@ -17,7 +17,7 @@ contract IInterpreterCallerConsumer is InterpreterCallerV1 {
         bytes memory expectedHash_,
         bytes memory meta_
     ) external pure returns (bool) {
-        LibMeta.checkMeta(keccak256(expectedHash_), meta_);
+        LibMeta.checkMetaHashed(keccak256(expectedHash_), meta_);
         return true;
     }
 
