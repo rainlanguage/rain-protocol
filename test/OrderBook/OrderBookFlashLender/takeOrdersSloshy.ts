@@ -218,7 +218,16 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },
-                  { name: "outputIOIndex", type: "uint256" },
+                  { name: "outputIOIndex", type: "uint256" }, 
+                  {
+                    type: "tuple[]",
+                    name: "signedContext",
+                    components: [
+                      {name: "signer", type: "address"},
+                      {name: "signature", type: "bytes"},
+                      {name: "context" , type: "uint256[]"}
+                    ]
+                  }
                 ],
               },
             ],
