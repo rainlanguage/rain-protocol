@@ -29,18 +29,25 @@ import {
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import {
-  Debug,
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { compareSolStructs, compareStructs } from "../../utils/test/compareStructs";
+import {
+  compareSolStructs,
+  compareStructs,
+} from "../../utils/test/compareStructs";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
-import { AfterClearEvent, ClearConfigStruct, ClearEvent, ClearStateChangeStruct, SignedContextStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
-import { getOrderConfig } from "../../utils/orderBook/order";
+import {
+  AfterClearEvent,
+  ClearConfigStruct,
+  ClearEvent,
+  ClearStateChangeStruct,
+  SignedContextStruct,
+} from "../../typechain/contracts/orderbook/IOrderBookV1";
 
 const Opcode = RainterpreterOps;
 
@@ -59,7 +66,7 @@ describe("OrderBook expression checks", async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-  });  
+  });
 
   it("should add Order_A and Order_B and clear the order", async function () {
     const signers = await ethers.getSigners();
@@ -73,26 +80,28 @@ describe("OrderBook expression checks", async () => {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
-    const bountyBotVaultB = ethers.BigNumber.from(randomUint256()); 
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    //Random Context Values 
+    //Random Context Values
 
-    const contextValA = randomUint256()
-    const contextValB = randomUint256()
-
+    const contextValA = randomUint256();
+    const contextValB = randomUint256();
 
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");  
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    
-    
     const constantsA = [max_uint256, ratio_A, bob.address, contextValB];
-    const vOpMaxA = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const vRatioA = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)); 
-
+    const vOpMaxA = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vRatioA = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const calculateSoruceA = concat([   
@@ -110,7 +119,7 @@ describe("OrderBook expression checks", async () => {
 
        vOpMaxA,
        vRatioA,
-      ]);  
+      ]);
 
     // prettier-ignore
     const handleIOSourceA = concat([
@@ -146,10 +155,9 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceOutputVault,
         },
       ],
-      evaluableConfig : evaluableConfigA,
-      data: aliceOrder
+      evaluableConfig: evaluableConfigA,
+      data: aliceOrder,
     };
-
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -168,14 +176,17 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B"); 
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    const constantsB = [max_uint256,ratio_B,alice.address,contextValA];
-    const vOpMaxB = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const vRatioB = op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));  
-
-    
-    
+    const constantsB = [max_uint256, ratio_B, alice.address, contextValA];
+    const vOpMaxB = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vRatioB = op(
+      Opcode.read_memory,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const calculateSoruceB = concat([ 
@@ -193,7 +204,7 @@ describe("OrderBook expression checks", async () => {
 
        vOpMaxB,
        vRatioB,
-      ]);  
+      ]);
 
     // prettier-ignore
     const handleIOSourceB = concat([
@@ -213,7 +224,7 @@ describe("OrderBook expression checks", async () => {
     const evaluableConfigB = await generateEvaluableConfig(
       [calculateSoruceB, handleIOSourceB],
       constantsB
-    ); 
+    );
 
     const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
@@ -230,11 +241,9 @@ describe("OrderBook expression checks", async () => {
           vaultId: bobOutputVault,
         },
       ],
-      evaluableConfig : evaluableConfigB,
-      data: bobOrder
+      evaluableConfig: evaluableConfigB,
+      data: bobOrder,
     };
-
-    
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
@@ -316,20 +325,18 @@ describe("OrderBook expression checks", async () => {
     const hashA = solidityKeccak256(["uint256[]"], [contextA]);
     const goodSignatureA = await alice.signMessage(arrayify(hashA));
 
-
     const signedContextsA: SignedContextStruct[] = [
       {
         signer: alice.address,
         signature: goodSignatureA,
         context: contextA,
       },
-    ];   
+    ];
 
     //Building Signed Context B
     const contextB = [contextValB];
     const hashB = solidityKeccak256(["uint256[]"], [contextB]);
     const goodSignatureB = await bob.signMessage(arrayify(hashB));
-
 
     const signedContextsB: SignedContextStruct[] = [
       {
@@ -337,13 +344,11 @@ describe("OrderBook expression checks", async () => {
         signature: goodSignatureB,
         context: contextB,
       },
-    ]; 
-
-
+    ];
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig,signedContextsA,signedContextsB);
+      .clear(Order_A, Order_B, clearConfig, signedContextsA, signedContextsB);
 
     const {
       sender: clearSender,
@@ -409,12 +414,11 @@ describe("OrderBook expression checks", async () => {
 
     const orderBook = await deployOrderBook();
 
-    const aliceVault = ethers.BigNumber.from(randomUint256()); 
-    
-    // Random Context Value
-    const contextVal1 = randomUint256()
-    const contextVal2 = randomUint256()
+    const aliceVault = ethers.BigNumber.from(randomUint256());
 
+    // Random Context Value
+    const contextVal1 = randomUint256();
+    const contextVal2 = randomUint256();
 
     const depositAmountA = ethers.BigNumber.from(1 + eighteenZeros);
 
@@ -448,7 +452,13 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, bob.address, contextVal1, contextVal2];
+    const constants_A = [
+      max_uint256,
+      ratio_A,
+      bob.address,
+      contextVal1,
+      contextVal2,
+    ];
     const vOutputMax = op(
       Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 0)
@@ -457,7 +467,6 @@ describe("OrderBook expression checks", async () => {
       Opcode.read_memory,
       memoryOperand(MemoryType.Constant, 1)
     );
-
 
     // prettier-ignore
     const calculateSoruce = concat([ 
@@ -551,9 +560,9 @@ describe("OrderBook expression checks", async () => {
       orderBook
     )) as AddOrderEvent["args"];
 
-    // TAKE ORDER BOB 
+    // TAKE ORDER BOB
 
-    const context1 = [contextVal1,contextVal2];
+    const context1 = [contextVal1, contextVal2];
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
@@ -569,7 +578,7 @@ describe("OrderBook expression checks", async () => {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
-      signedContext: signedContexts1 
+      signedContext: signedContexts1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -779,7 +788,7 @@ describe("OrderBook expression checks", async () => {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
-      signedContext: []
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -975,7 +984,7 @@ describe("OrderBook expression checks", async () => {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
-      signedContext: []
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1185,7 +1194,7 @@ describe("OrderBook expression checks", async () => {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
-      signedContext: []
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1377,7 +1386,7 @@ describe("OrderBook expression checks", async () => {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
-      signedContext: []
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1577,8 +1586,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 1, 
-      signedContext: []
+      outputIOIndex: 1,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1773,8 +1782,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 1, 
-      signedContext: []
+      outputIOIndex: 1,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2007,8 +2016,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 1, 
-      signedContext: []
+      outputIOIndex: 1,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2184,8 +2193,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 0, 
-      signedContext: []
+      outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -2329,8 +2338,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 0, 
-      signedContext: []
+      outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -2465,8 +2474,8 @@ describe("OrderBook expression checks", async () => {
     const takeOrderConfigStructAlice: TakeOrderConfigStruct = {
       order: Order_A,
       inputIOIndex: 0,
-      outputIOIndex: 0, 
-      signedContext: []
+      outputIOIndex: 0,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.

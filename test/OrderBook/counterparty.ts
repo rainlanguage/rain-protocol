@@ -317,7 +317,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const badClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig,[],[]);
+      .clear(Order_A, Order_B, clearConfig, [], []);
 
     const {
       sender: badClearSender,
@@ -357,7 +357,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_C, clearConfig,[],[]);
+      .clear(Order_A, Order_C, clearConfig, [], []);
 
     const {
       sender: clearSender,

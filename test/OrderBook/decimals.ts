@@ -328,6 +328,8 @@ describe("OrderBook decimals", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig, [], []);
+    await orderBook
+      .connect(bountyBot)
+      .clear(Order_A, Order_B, clearConfig, [], []);
   });
 });
