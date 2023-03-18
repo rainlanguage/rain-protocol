@@ -27,7 +27,8 @@
     "opmeta": "ts-node ./scripts/getOpmeta.ts",
     "rainterpreter-opmeta": "ts-node ./scripts/getRainterpreterOpmeta.ts",
     "contract-meta": "ts-node ./scripts/getContractMeta.ts",
-    "rain-contract-meta": "tsnode ./scripts/getRainContractMeta.ts"
+    "rain-contract-meta": "tsnode ./scripts/getRainContractMeta.ts",
+    "rain-deploy": "hardhat run deployment/index.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",
@@ -44,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "=5.48.0",
     "@typescript-eslint/parser": "=5.48.0",
     "ajv": "=8.12.0",
+    "axios": "^1.3.4",
     "cbor": "=8.1.0",
     "dotenv": "=16.0.3",
     "eslint": "=8.31.0",
