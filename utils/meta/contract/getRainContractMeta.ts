@@ -10,6 +10,8 @@ import CombineTier from "../../../contracts/tier/CombineTier.meta.json";
 import AutoApprove from "../../../contracts/verify/auto/AutoApprove.meta.json";
 import ContractMetaSchema from "../../../schema/meta/v0/contract.meta.schema.json";
 import { deflateJson, metaFromBytes, validateMeta } from "../general";
+import { artifacts } from "hardhat";
+import _ from "lodash";
 
 import type { BytesLike } from "ethers/lib/utils";
 import type { ContractMeta } from "../../types/contractMeta";
@@ -51,4 +53,88 @@ export const getRainContractMetaFromBytes = (
   path?: string
 ) => {
   return metaFromBytes(bytes, ContractMetaSchema, path);
+};
+
+export const validateContractMetaAgainstABI = (
+  contractName_: ContractMeta
+): boolean => {
+  let meta, name;
+
+  if (contractName_ === "sale") {
+    (meta = Sale), (name = "Sale");
+  }
+  if (contractName_ === "stake") {
+    (meta = Stake), (name = "Stake");
+  }
+  if (contractName_ === "orderbook") {
+    (meta = Orderbook), (name = "Orderbook");
+  }
+  if (contractName_ === "flow") {
+    (meta = Flow), (name = "Flow");
+  }
+  if (contractName_ === "flow20") {
+    (meta = FlowERC20), (name = "FlowERC20");
+  }
+  if (contractName_ === "flow721") {
+    (meta = FlowERC721), (name = "FlowERC721");
+  }
+  if (contractName_ === "flow1155") {
+    (meta = FlowERC1155), (name = "FlowERC1155");
+  }
+  if (contractName_ === "lobby") {
+    (meta = Lobby), (name = "Lobby");
+  }
+  if (contractName_ === "autoapprove") {
+    (meta = AutoApprove), (name = "AutoApprove");
+  }
+  if (contractName_ === "combinetier") {
+    (meta = CombineTier), (name = "CombineTier");
+  }
+
+  if (!validateMeta(meta, ContractMetaSchema))
+    throw new Error("invalid contract meta");
+
+  if (!name) throw new Error("Invalid contract name");
+
+  const abiJSON = artifacts.readArtifactSync(name).abi;
+
+  // Get methods from meta
+  const methods = meta.methods;
+
+  for (let i = 0; i < methods.length; i++) {
+    // Eval consistenct for meta and abi
+    const method = methods[i];
+
+    if (method.inputs) {
+      const inputs = method.inputs;
+      // Check for inputs
+      for (let j = 0; j < inputs.length; j++) {
+        if (inputs[j].abiName != _.get(abiJSON, inputs[j].path).name) {
+          throw new Error(
+            `mismatch input name for method ${method.name},
+                        expected  ${_.get(abiJSON, inputs[j].path).name}
+                        got       ${inputs[j].abiName}`
+          );
+        }
+      }
+    }
+
+    if (method.expressions) {
+      const expressions = method.expressions;
+      //Check for expressions
+      for (let k = 0; k < expressions.length; k++) {
+        if (
+          expressions[k].abiName != _.get(abiJSON, expressions[k].path).name
+        ) {
+          throw new Error(
+            `mismatch expression name for method ${method.name},
+                        expected  ${_.get(abiJSON, expressions[k].path).name}
+                        got       ${expressions[k].abiName}`
+          );
+        }
+      }
+    }
+  }
+
+  return true;
 };
