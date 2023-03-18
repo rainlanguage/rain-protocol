@@ -20,3 +20,6 @@ dumpfile
 
 # Echidna
 crytic-export
+
+cache_forge
+out

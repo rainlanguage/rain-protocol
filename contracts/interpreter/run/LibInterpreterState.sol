@@ -183,6 +183,20 @@ library LibInterpreterState {
         }
     }
 
+    function serializeSize(
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        uint256 stackLength_
+    ) internal pure returns (uint256) {
+        uint256 size_ = 0;
+        size_ += stackLength_.size();
+        size_ += constants_.size();
+        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+            size_ += sources_[i_].size();
+        }
+        return size_;
+    }
+
     /// Efficiently serializes some `IInterpreterV1` state config into bytes that
     /// can be deserialized to an `InterpreterState` without memory allocation or
     /// copying of data on the return trip. This is achieved by mutating data in
@@ -199,35 +213,27 @@ library LibInterpreterState {
     /// @param opcodeFunctionPointers_ As per `IInterpreterV1.functionPointers`,
     /// bytes to be compiled into the final `InterpreterState.compiledSources`.
     function serialize(
+        Pointer memPointer_,
         bytes[] memory sources_,
         uint256[] memory constants_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
-    ) internal pure returns (bytes memory) {
+    ) internal pure {
         unchecked {
-            uint256 size_ = 0;
-            size_ += stackLength_.size();
-            size_ += constants_.size();
-            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-                size_ += sources_[i_].size();
-            }
-            bytes memory serialized_ = new bytes(size_);
-            StackPointer cursor_ = serialized_.asStackPointer().up();
-
+            StackPointer pointer_ = StackPointer.wrap(Pointer.unwrap(memPointer_));
             // Copy stack length.
-            cursor_ = cursor_.push(stackLength_);
+            pointer_ = pointer_.push(stackLength_);
 
             // Then the constants.
-            cursor_ = cursor_.pushWithLength(constants_);
+            pointer_ = pointer_.pushWithLength(constants_);
 
             // Last the sources.
             bytes memory source_;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 source_ = sources_[i_];
                 compile(source_, opcodeFunctionPointers_);
-                cursor_ = cursor_.unalignedPushWithLength(source_);
+                pointer_ = pointer_.unalignedPushWithLength(source_);
             }
-            return serialized_;
         }
     }
 

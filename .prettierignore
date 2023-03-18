@@ -21,3 +21,5 @@ docs/api
 versions.json
 
 crytic-export
+
+lib

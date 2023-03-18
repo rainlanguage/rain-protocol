@@ -15,6 +15,7 @@ import {
   getRainMetaDocumentFromContract,
   readWriteTierDeploy,
   redeemableERC20DeployImplementation,
+  validateContractMetaAgainstABI,
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
@@ -229,6 +230,13 @@ describe("Sale construction", async function () {
       async () => await saleFactory.deploy(saleConstructorConfig1),
       "UnexpectedMetaHash",
       "Sale Deployed for bad hash"
+    );
+  });
+
+  it("should validate contract meta with abi", async function () {
+    assert(
+      validateContractMetaAgainstABI("combinetier"),
+      "Contract Meta Inconsistent with Contract ABI"
     );
   });
 });
