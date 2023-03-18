@@ -38,7 +38,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 error SameOwner(address owner);
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9773273e61696a8cb91a5c73017490844ca866548743541f8ace84f9d5fa2102
+    0xf5f4ae426432e8c620153f872be1bef5a9425932a6868758bd1083521bf4863b
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -74,22 +74,23 @@ uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
 uint256 constant CALLING_CONTEXT_COLUMNS = 4;
 /// @dev Base context from LibContext.
 uint256 constant CONTEXT_BASE_COLUMN = 0;
+
 /// @dev Contextual data available to both calculate order and handle IO. The
 /// order hash, order owner and order counterparty. IMPORTANT NOTE that the
 /// typical base context of an order with the caller will often be an unrelated
 /// clearer of the order rather than the owner or counterparty.
-uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 1;
+uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 0;
 /// @dev Calculations column contains the DECIMAL RESCALED calculations but
 /// otherwise provided as-is according to calculate order entrypoint
-uint256 constant CONTEXT_CALCULATIONS_COLUMN = 2;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
 /// @dev Vault inputs are the literal token amounts and vault balances before and
 /// after for the input token from the perspective of the order. MAY be
 /// significantly different to the calculated amount due to insufficient vault
 /// balances from either the owner or counterparty, etc.
-uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 3;
+uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
 /// @dev Vault outputs are the same as vault inputs but for the output token from
 /// the perspective of the order.
-uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 4;
+uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
 
 /// @dev Row of the token address for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_TOKEN = 0;
@@ -571,7 +572,7 @@ contract OrderBook is
 
             // Populate the context with the output max rescaled and vault capped
             // and the rescaled ratio.
-            context_[CONTEXT_CALCULATIONS_COLUMN] = LibUint256Array.arrayFrom(
+            context_[CONTEXT_CALCULATIONS_COLUMN + 1] = LibUint256Array.arrayFrom(
                 orderOutputMax_,
                 orderIORatio_
             );
@@ -603,10 +604,10 @@ contract OrderBook is
         uint256 output_,
         OrderIOCalculation memory orderIOCalculation_
     ) internal virtual {
-        orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN][
+        orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN + 1][
             CONTEXT_VAULT_IO_BALANCE_DIFF
         ] = input_;
-        orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN][
+        orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN + 1][
             CONTEXT_VAULT_IO_BALANCE_DIFF
         ] = output_;
 
@@ -616,12 +617,12 @@ contract OrderBook is
                 address(
                     uint160(
                         orderIOCalculation_.context[
-                            CONTEXT_VAULT_INPUTS_COLUMN
+                            CONTEXT_VAULT_INPUTS_COLUMN + 1
                         ][CONTEXT_VAULT_IO_TOKEN]
                     )
                 )
             ][
-                orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN][
+                orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN+1][
                     CONTEXT_VAULT_IO_VAULT_ID
                 ]
             ] += input_;
@@ -632,12 +633,12 @@ contract OrderBook is
                 address(
                     uint160(
                         orderIOCalculation_.context[
-                            CONTEXT_VAULT_OUTPUTS_COLUMN
+                            CONTEXT_VAULT_OUTPUTS_COLUMN + 1
                         ][CONTEXT_VAULT_IO_TOKEN]
                     )
                 )
             ][
-                orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN + 1][
                     CONTEXT_VAULT_IO_VAULT_ID
                 ]
             ] -= output_;

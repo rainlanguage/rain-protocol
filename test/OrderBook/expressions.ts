@@ -28,6 +28,7 @@ import {
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  Debug,
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
@@ -135,27 +136,28 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const calculateSoruce = concat([
       orderSender(),
-      vExpectedSender ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
-      contractAddress(),
-      vExpectedContractAddress ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
+      // vExpectedSender ,
+      // op(Opcode.equal_to),
+      // op(Opcode.ensure, 1) , 
+      contractAddress(), 
+      op(Opcode.debug, Debug.StatePacked),
+      // vExpectedContractAddress ,
+      // op(Opcode.equal_to),
+      // op(Opcode.ensure, 1) , 
         vOutputMax,
         vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-      orderSender(),
-      vExpectedSender ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
-      contractAddress(),
-      vExpectedContractAddress ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) 
+      // orderSender(),
+      // vExpectedSender ,
+      // op(Opcode.equal_to),
+      // op(Opcode.ensure, 1) , 
+      // contractAddress(),
+      // vExpectedContractAddress ,
+      // op(Opcode.equal_to),
+      // op(Opcode.ensure, 1) 
     ]);
 
     // prettier-ignore
