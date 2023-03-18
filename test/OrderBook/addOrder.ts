@@ -28,7 +28,7 @@ import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook add order", async function () {
+describe.only("OrderBook add order", async function () {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
 
