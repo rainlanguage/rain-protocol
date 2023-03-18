@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { verifyAll } from "./utils";
+import { delay, verifyAll } from "./utils";
 import deploy1820 from "../utils/deploy/registry1820/deploy";
 import {
   deployDISpair,
@@ -87,6 +87,10 @@ main()
     code = 1;
   })
   .finally(async () => {
+    // Wait 15sec before trying to Verify. That way, if the code was deployed,
+    // it will be available for locate it.
+    await delay(15000);
+
     // Verify all the contracts deployed (and print the results)
     // Using the finally sentence allow us to verify and print all the registered
     // contracts even if after some of them failed on deployment

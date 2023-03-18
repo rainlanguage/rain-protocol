@@ -54,3 +54,6 @@ export async function verifyAll() {
   // Print all the results
   printAllAddresses();
 }
+
+export const delay = (ms: number): unknown =>
+  new Promise((res) => setTimeout(res, ms));

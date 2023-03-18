@@ -2,7 +2,7 @@ import { Interface } from "ethers/lib/utils";
 import hre, { artifacts } from "hardhat";
 import axios from "axios";
 import { getInputSolt } from "../solc-inputs";
-import { updateIsVerified } from "../utils";
+import { delay, updateIsVerified } from "../utils";
 
 type VerifyBody = {
   apikey: string;
@@ -60,9 +60,6 @@ async function sendVerification(url: string, apiKey: string, body: VerifyBody) {
       module: "contract",
       action: "checkverifystatus",
     };
-
-    const delay = (ms: number): unknown =>
-      new Promise((res) => setTimeout(res, ms));
 
     let isVerified = false;
     let i = 0;

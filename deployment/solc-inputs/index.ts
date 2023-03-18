@@ -69,30 +69,47 @@ const getBuildInfoFromName = async (
  * This function works recursively to found every import required for the contract
  * using the build information created when Hardhat compile the contract.
  *
+ * @dev The difference between an `importPath` and `absolutePath` is where that
+ * path is being used. The `importPath` is the path that is inside Solidity,
+ * basically is where the resolution com from and could be a relative import.
+ * The `absolutePath` is the resolution solved, where really is the contract code.
+ *
  * @param buildInfo_ The build information from Hardhat.
  * @param qualifiedNameOrPath_ The qualified name or path of the contract to resolve
  * the sources.
  * @param sources_ The object instance that hold all the sources resolved for the
  * contract.
+ * @param filePath_ It is the file path inside the Solidity code
  */
 const resolveSource = (
   buildInfo_: BuildInfo,
   qualifiedNameOrPath_: string,
-  sources_: any
+  sources_: any,
+  filePath_?: string
 ) => {
   // It will need the path, but could be obtained from the qualified name. For
   // that reason make senses to support both. Eg:
   // <ContractPath>:<ContractName> -> <ContractPath>
-  let path = qualifiedNameOrPath_;
-  if (path.includes(":")) {
-    [path] = qualifiedNameOrPath_.split(":");
+  let importPath = qualifiedNameOrPath_;
+  let absolutePath = qualifiedNameOrPath_;
+  if (importPath.includes(":")) {
+    [importPath] = qualifiedNameOrPath_.split(":");
+    [absolutePath] = qualifiedNameOrPath_.split(":");
   }
 
-  // If the source instance object does not have the current path, then
-  // add it.
-  if (!sources_[path]) {
-    sources_[path] = {
-      content: buildInfo_.input.sources[path].content.toString(),
+  if (
+    filePath_ &&
+    !filePath_.startsWith("../") &&
+    !filePath_.startsWith("./")
+  ) {
+    importPath = filePath_;
+  }
+
+  if (!sources_[importPath]) {
+    // If the source instance object does not have the current path, then
+    // add it.
+    sources_[importPath] = {
+      content: buildInfo_.input.sources[absolutePath].content.toString(),
     };
   }
 
@@ -101,22 +118,28 @@ const resolveSource = (
   // Using the ast and his node when can iterate on each contract and check
   // for their own imports. The nodes could be different types, but the contract
   // imports are 'ImportDirective', so only save those.
-  buildInfo_.output.sources[path].ast.nodes.forEach((item) => {
+  buildInfo_.output.sources[absolutePath].ast.nodes.forEach((item) => {
     // Check if the node type is a contract import.
     if (item.nodeType == "ImportDirective") {
       // Check if this contract import with the `absolutePath` is already added.
       // Just skip if already added.
-      if (!sources_[item.absolutePath]) {
+
+      const importPath =
+        item.file.startsWith("../") || item.file.startsWith("./")
+          ? item.absolutePath
+          : item.file;
+
+      if (!sources_[importPath]) {
         // For some reason, it should be assigned this way. If not the verifaction
         // process in the block explorer throw an error.
-        sources_[item.absolutePath] = {
+        sources_[importPath] = {
           content:
             buildInfo_.input.sources[item.absolutePath].content.toString(),
         };
 
         // Using recursivity to check if the current absolutePath have contract
         // imports and add his import to required sources.
-        resolveSource(buildInfo_, item.absolutePath, sources_);
+        resolveSource(buildInfo_, item.absolutePath, sources_, importPath);
       }
     }
   });
