@@ -13,7 +13,7 @@ export type ContractData = {
     /**
      * The argument used to deploy (if needed)
      */
-    arguments?: string;
+    contractArguments: any | null;
   };
 };
 
@@ -27,7 +27,7 @@ export function registerContract(
   Contracts[name_] = {
     contractAddress: address_,
     isVerified: false,
-    arguments: args_,
+    contractArguments: args_,
   };
 }
 
@@ -45,8 +45,10 @@ export async function verifyAll() {
   const Keys = Object.keys(Contracts);
   for (let i = 0; i < Keys.length; i++) {
     const _name = Keys[i];
-    const _contract = Contracts[Keys[i]];
-    await verifyContract(_name, _contract.contractAddress);
+    const _contractRegistered = Contracts[Keys[i]];
+    const { contractAddress, contractArguments } = _contractRegistered;
+
+    await verifyContract(_name, contractAddress, contractArguments);
   }
 
   // Print all the results
