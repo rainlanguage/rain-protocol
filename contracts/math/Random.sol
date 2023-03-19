@@ -265,11 +265,7 @@ library Random {
     ) internal view returns (uint256 id_) {
         unchecked {
             uint16 offset_ = index_ * 2;
-            bytes memory idBytes_ = LibDataContract.readSlice(
-                ptr_,
-                offset_,
-                2
-            );
+            bytes memory idBytes_ = LibDataContract.readSlice(ptr_, offset_, 2);
             assembly ("memory-safe") {
                 id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
             }

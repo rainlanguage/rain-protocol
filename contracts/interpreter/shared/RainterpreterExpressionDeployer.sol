@@ -43,12 +43,12 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac70ad60ae50b680b760bc80c380cb60d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x8a0fa3f441674ab57a76249304294332a3173a3bb5692618f1d896b371c855ad
+    0xf9277edaa426246a317517714c6ea09c1a8f67230d0be9e7e3f4abb0229a73d5
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x3127c1cbb73ee770456a668cc59e412d84539a4b117a6b72a9decfdabbc45255
+    0xf229ec48ab47979c15b94ee5c2ecf4405f44691f43667387d0caa1713197b445
 );
 
 /// @dev Hash of the known op meta.
@@ -252,7 +252,11 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(
-                LibInterpreterState.serializeSize(sources_, constants_, stackLength_)
+                LibInterpreterState.serializeSize(
+                    sources_,
+                    constants_,
+                    stackLength_
+                )
             );
 
         // Serialize the state config into bytes that can be deserialized later

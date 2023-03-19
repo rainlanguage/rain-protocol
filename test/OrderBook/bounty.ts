@@ -233,7 +233,7 @@ describe("OrderBook bounty", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig);
+      .clear(Order_A, Order_B, clearConfig, [], []);
 
     const {
       sender: _clearSender,
