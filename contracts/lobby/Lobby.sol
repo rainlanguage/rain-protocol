@@ -8,7 +8,8 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
@@ -40,10 +41,10 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param maxTimeoutDuration A max timeout is enforced in the constructor so
 /// that all cloned proxies share it, which prevents an initiator from setting a
 /// far future timeout and effectively disabling it to trap funds.
-/// @param callerMeta caller meta as per `IInterpreterCallerV1`.
+/// @param deployerDiscoverableMetaConfig as per `DeployerDiscoverableMetaV1`.
 struct LobbyConstructorConfig {
     uint256 maxTimeoutDuration;
-    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
+    DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
 
 /// Configuration for a `Lobby` to initialize.
@@ -126,7 +127,7 @@ uint256 constant PHASE_COMPLETE = 3;
 // refund on their deposit.
 uint256 constant PHASE_INVALID = 4;
 
-contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
+contract Lobby is ICloneableV1, IInterpreterCallerV1, Phased, ReentrancyGuard, DeployerDiscoverableMetaV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -181,7 +182,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     constructor(
         LobbyConstructorConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_.deployerDiscoverableMetaConfig) {
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 

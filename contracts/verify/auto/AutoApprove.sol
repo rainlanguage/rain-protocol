@@ -7,10 +7,11 @@ import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
+import "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
-import "../../interpreter/caller/InterpreterCallerV1.sol";
+import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
 import "../../factory/ICloneableV1.sol";
 
@@ -27,7 +28,7 @@ struct AutoApproveConfig {
     EvaluableConfig evaluableConfig;
 }
 
-contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
+contract AutoApprove is ICloneableV1, VerifyCallback, IInterpreterCallerV1, DeployerDiscoverableMetaV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -43,8 +44,8 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

@@ -5,7 +5,8 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 import "../factory/ICloneableV1.sol";
@@ -140,7 +141,8 @@ contract Stake is
     TierV2,
     ICloneableV1,
     ReentrancyGuard,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -162,8 +164,8 @@ contract Stake is
     address internal expression;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

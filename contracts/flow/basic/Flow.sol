@@ -24,7 +24,7 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     event Initialize(address sender, FlowConfig config);
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1

@@ -2,12 +2,13 @@
 pragma solidity =0.8.17;
 
 import "./libraries/LibFlow.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -36,7 +37,8 @@ contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using LibInterpreterState for InterpreterState;
     using LibStackPointer for StackPointer;
@@ -52,8 +54,8 @@ contract FlowCommon is
 
     constructor(
         bytes32 metaHash_,
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(metaHash_, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(metaHash_, config_) {
         _disableInitializers();
     }
 

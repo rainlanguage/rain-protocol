@@ -4,12 +4,19 @@ pragma solidity =0.8.17;
 import "./Factory.sol";
 import "./ICloneableV1.sol";
 import "./ICloneFactoryV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// Thrown when an implementation is the zero address which is always a mistake.
 error ZeroImplementation();
 
-contract CloneFactory is ICloneableFactoryV1 {
+bytes32 constant CLONE_FACTORY_META_HASH = bytes32(0);
+
+contract CloneFactory is ICloneableFactoryV1, DeployerDiscoverableMetaV1 {
+    constructor(DeployerDiscoverableMetaV1ConstructionConfig memory config_) DeployerDiscoverableMetaV1(CLONE_FACTORY_META_HASH, config_) {
+
+    }
+
     /// @inheritdoc ICloneableFactoryV1
     function clone(
         address implementation_,

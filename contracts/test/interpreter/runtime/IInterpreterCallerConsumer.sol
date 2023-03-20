@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../interpreter/caller/InterpreterCallerV1.sol";
+import "../../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "../../../interpreter/deploy/LibDeployerDiscoverable.sol";
 
-contract IInterpreterCallerConsumer is InterpreterCallerV1 {
+contract IInterpreterCallerConsumer is DeployerDiscoverableMetaV1 {
     constructor(
-        bytes memory metaHash_,
-        InterpreterCallerV1ConstructionConfig memory interpreterCallerConfig_
-    ) InterpreterCallerV1(keccak256(metaHash_), interpreterCallerConfig_) {}
+        bytes memory meta_,
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(keccak256(meta_), config_) {}
 
     function deployTouchExpression(address deployer_) external {
-        LibCaller.touchDeployer(deployer_);
+        LibDeployerDiscoverable.touchDeployer(deployer_);
     }
 
     function checkMeta(

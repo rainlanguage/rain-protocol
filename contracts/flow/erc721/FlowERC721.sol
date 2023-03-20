@@ -76,7 +76,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     string private baseURI;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1

@@ -79,7 +79,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity ^0.8.17;
 
-import "../deploy/IExpressionDeployerV1.sol";
+import "./IExpressionDeployerV1.sol";
 
-library LibCaller {
+library LibDeployerDiscoverable {
     /// Hack so that some deployer will emit an event with the sender as the
     /// caller of `touchDeployer`. This MAY be needed by indexers such as
     /// subgraph that can only index events from the first moment they are aware
