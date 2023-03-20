@@ -201,6 +201,5 @@ describe("CloneFactory tests", async function () {
       cloneEvent.implementation == implementationStake.address,
       "Incorrect implementation"
     );
-    assert(cloneEvent.data == encodedConfig, "Incorrect data");
   });
 });

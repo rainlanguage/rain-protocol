@@ -12,7 +12,7 @@ describe("Random shuffleIdAtIndex", async function () {
 
   it("should not return shuffled id if no shuffled array has been stored", async () => {
     await assertError(
-      async() => await random.callStatic.shuffleIdAtIndex(5392),
+      async () => await random.callStatic.shuffleIdAtIndex(5392),
       `ReadError`,
       `did not error on oob index read`
     );
@@ -24,7 +24,7 @@ describe("Random shuffleIdAtIndex", async function () {
     await random.shuffle(5, length);
 
     await assertError(
-      async() => await random.callStatic.shuffleIdAtIndex(5392),
+      async () => await random.callStatic.shuffleIdAtIndex(5392),
       `ReadError`,
       `did not error on oob index read`
     );

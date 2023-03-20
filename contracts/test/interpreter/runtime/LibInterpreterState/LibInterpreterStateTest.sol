@@ -77,7 +77,13 @@ contract LibInterpreterStateTest {
         uint256[] memory constants_,
         uint256 stackLength_
     ) public view returns (bytes memory) {
-        bytes memory serialized_ = new bytes(LibInterpreterState.serializeSize(sources_, constants_, stackLength_));
+        bytes memory serialized_ = new bytes(
+            LibInterpreterState.serializeSize(
+                sources_,
+                constants_,
+                stackLength_
+            )
+        );
         LibInterpreterState.serialize(
             serialized_.dataPointer(),
             sources_,

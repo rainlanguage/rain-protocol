@@ -26,7 +26,7 @@ contract CloneFactory is ICloneableFactoryV1, DeployerDiscoverableMetaV1 {
             revert ZeroImplementation();
         }
         address clone_ = Clones.clone(implementation_);
-        emit NewClone(msg.sender, implementation_, clone_, data_);
+        emit NewClone(msg.sender, implementation_, clone_);
         ICloneableV1(clone_).initialize(data_);
         return clone_;
     }

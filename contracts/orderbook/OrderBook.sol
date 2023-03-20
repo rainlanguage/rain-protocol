@@ -39,7 +39,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 error SameOwner(address owner);
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9773273e61696a8cb91a5c73017490844ca866548743541f8ace84f9d5fa2102
+    0xb1b8568ca6c343c6c33bef9de2e89d113ba9baecff1bd5c75b1217f7d004033d
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -72,23 +72,26 @@ uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
 /// as accounting limits such as current vault balances, etc.
 /// The token address and decimals for vault inputs and outputs IS available to
 /// the calculate order entrypoint, but not the final vault balances/diff.
-uint256 constant CONTEXT_COLUMNS = 4;
+uint256 constant CALLING_CONTEXT_COLUMNS = 4;
+/// @dev Base context from LibContext.
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+
 /// @dev Contextual data available to both calculate order and handle IO. The
 /// order hash, order owner and order counterparty. IMPORTANT NOTE that the
 /// typical base context of an order with the caller will often be an unrelated
 /// clearer of the order rather than the owner or counterparty.
-uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 0;
+uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 1;
 /// @dev Calculations column contains the DECIMAL RESCALED calculations but
 /// otherwise provided as-is according to calculate order entrypoint
-uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 2;
 /// @dev Vault inputs are the literal token amounts and vault balances before and
 /// after for the input token from the perspective of the order. MAY be
 /// significantly different to the calculated amount due to insufficient vault
 /// balances from either the owner or counterparty, etc.
-uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
+uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 3;
 /// @dev Vault outputs are the same as vault inputs but for the output token from
 /// the perspective of the order.
-uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
+uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 4;
 
 /// @dev Row of the token address for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_TOKEN = 0;
@@ -297,7 +300,8 @@ contract OrderBook is
                         order_,
                         takeOrder_.inputIOIndex,
                         takeOrder_.outputIOIndex,
-                        msg.sender
+                        msg.sender,
+                        takeOrder_.signedContext
                     );
 
                 // Skip orders that are too expensive rather than revert as we have
@@ -367,7 +371,9 @@ contract OrderBook is
     function clear(
         Order memory a_,
         Order memory b_,
-        ClearConfig calldata clearConfig_
+        ClearConfig calldata clearConfig_,
+        SignedContext[] memory aSignedContext_,
+        SignedContext[] memory bSignedContext_
     ) external nonReentrant {
         {
             if (a_.owner == b_.owner) {
@@ -412,13 +418,15 @@ contract OrderBook is
             a_,
             clearConfig_.aInputIOIndex,
             clearConfig_.aOutputIOIndex,
-            b_.owner
+            b_.owner,
+            bSignedContext_
         );
         OrderIOCalculation memory bOrderIOCalculation_ = _calculateOrderIO(
             b_,
             clearConfig_.bInputIOIndex,
             clearConfig_.bOutputIOIndex,
-            a_.owner
+            a_.owner,
+            aSignedContext_
         );
         ClearStateChange memory clearStateChange_ = LibOrderBook
             ._clearStateChange(aOrderIOCalculation_, bOrderIOCalculation_);
@@ -471,47 +479,55 @@ contract OrderBook is
         Order memory order_,
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
-        address counterparty_
+        address counterparty_,
+        SignedContext[] memory signedContext_
     ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();
-            uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
+            uint256[][] memory context_;
             {
-                context_[CONTEXT_CALLING_CONTEXT_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        orderHash_,
-                        uint256(uint160(order_.owner)),
-                        uint256(uint160(counterparty_))
-                    );
+                uint256[][] memory callingContext_ = new uint256[][](
+                    CALLING_CONTEXT_COLUMNS
+                );
+                callingContext_[
+                    CONTEXT_CALLING_CONTEXT_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    orderHash_,
+                    uint256(uint160(order_.owner)),
+                    uint256(uint160(counterparty_))
+                );
 
-                context_[CONTEXT_VAULT_INPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validInputs[inputIOIndex_].token)
-                        ),
-                        order_.validInputs[inputIOIndex_].decimals,
-                        order_.validInputs[inputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validInputs[inputIOIndex_].token
-                        ][order_.validInputs[inputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_INPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validInputs[inputIOIndex_].token)),
+                    order_.validInputs[inputIOIndex_].decimals,
+                    order_.validInputs[inputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validInputs[inputIOIndex_].token
+                    ][order_.validInputs[inputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
 
-                context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validOutputs[outputIOIndex_].token)
-                        ),
-                        order_.validOutputs[outputIOIndex_].decimals,
-                        order_.validOutputs[outputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validOutputs[outputIOIndex_].token
-                        ][order_.validOutputs[outputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_OUTPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validOutputs[outputIOIndex_].token)),
+                    order_.validOutputs[outputIOIndex_].decimals,
+                    order_.validOutputs[outputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validOutputs[outputIOIndex_].token
+                    ][order_.validOutputs[outputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
+                context_ = LibContext.build(
+                    callingContext_,
+                    new uint256[](0),
+                    signedContext_
+                );
             }
 
             // The state changes produced here are handled in _recordVaultIO so

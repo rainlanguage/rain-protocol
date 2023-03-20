@@ -29,8 +29,15 @@ contract RandomTest {
     ) external returns (bytes memory shuffled_) {
         // uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
-        (DataContractMemoryContainer container_, Pointer pointer_) = LibDataContract.newContainer(shuffled_.length);
-        LibMemory.unsafeCopyBytesTo(shuffled_.dataPointer(), pointer_, shuffled_.length);
+        (
+            DataContractMemoryContainer container_,
+            Pointer pointer_
+        ) = LibDataContract.newContainer(shuffled_.length);
+        LibMemory.unsafeCopyBytesTo(
+            shuffled_.dataPointer(),
+            pointer_,
+            shuffled_.length
+        );
         // uint256 b_ = gasleft();
         // console.log(
         //     "shuffle gas used: %s %s %s",

@@ -296,7 +296,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig0);
+      .clear(Order_A, Order_B, clearConfig0, [], []);
 
     const {
       sender: clearSender0,
@@ -351,7 +351,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
-      .clear(Order_A, Order_B, clearConfig1);
+      .clear(Order_A, Order_B, clearConfig1, [], []);
 
     const {
       sender: clearSender1,

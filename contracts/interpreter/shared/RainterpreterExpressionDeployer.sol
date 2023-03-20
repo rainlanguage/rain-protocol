@@ -252,7 +252,11 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(
-                LibInterpreterState.serializeSize(sources_, constants_, stackLength_)
+                LibInterpreterState.serializeSize(
+                    sources_,
+                    constants_,
+                    stackLength_
+                )
             );
 
         // Serialize the state config into bytes that can be deserialized later
