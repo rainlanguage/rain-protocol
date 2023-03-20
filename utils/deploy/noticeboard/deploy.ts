@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { NoticeBoard } from "../../../typechain/contracts/noticeboard/NoticeBoard";
+import { NoticeBoard } from "../../../typechain/contracts/noticeboard/";
 
 export const noticeboardDeploy = async () => {
   const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");

@@ -15,22 +15,22 @@ import { FlowERC1155Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getRainMetaDocumentFromContract } from "../../../meta";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowERC1155Implementation = async (): Promise<FlowERC1155> => {
   const flowFactory = await ethers.getContractFactory("FlowERC1155", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("flow1155"),
     deployer: touchDeployer.address,
   };
 
   const flow = (await flowFactory.deploy(
-    interpreterCallerConfig
+    deployerDiscoverableMetaConfig
   )) as FlowERC1155;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");

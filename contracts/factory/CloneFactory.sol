@@ -10,7 +10,9 @@ import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/p
 /// Thrown when an implementation is the zero address which is always a mistake.
 error ZeroImplementation();
 
-bytes32 constant CLONE_FACTORY_META_HASH = bytes32(0);
+bytes32 constant CLONE_FACTORY_META_HASH = bytes32(
+    0xfab9a7b02c14c255d07522a0e87cf7fa96624b25fe2d4cd439315983d2fbf8ef
+);
 
 contract CloneFactory is ICloneableFactoryV1, DeployerDiscoverableMetaV1 {
     constructor(DeployerDiscoverableMetaV1ConstructionConfig memory config_) DeployerDiscoverableMetaV1(CLONE_FACTORY_META_HASH, config_) {

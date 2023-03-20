@@ -11,6 +11,7 @@ import {
   Verify,
 } from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
@@ -43,7 +44,7 @@ describe("AutoApprove afterAdd", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should automatically approve sender if AutoApprove has APPROVER role", async () => {

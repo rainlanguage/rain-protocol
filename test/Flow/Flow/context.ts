@@ -11,6 +11,7 @@ import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowComm
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
@@ -44,7 +45,7 @@ describe("Flow context tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should register and load flow times into context (throttle flow output amount)", async () => {

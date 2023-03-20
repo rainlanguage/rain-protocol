@@ -5,6 +5,7 @@ import type { CloneFactory, CombineTier } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   combineTierCloneDeploy,
@@ -39,7 +40,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   // report time for tier context

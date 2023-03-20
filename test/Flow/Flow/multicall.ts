@@ -33,6 +33,7 @@ import { FlowConfig } from "../../../utils/types/flow";
 import fs from "fs";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 
 const Opcode = AllStandardOps;
 
@@ -56,7 +57,7 @@ describe("Flow multiCall tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {

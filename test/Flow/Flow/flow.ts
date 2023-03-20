@@ -18,6 +18,7 @@ import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
@@ -50,7 +51,7 @@ describe("Flow flow tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should flow for erc1155<->native on the good path", async () => {

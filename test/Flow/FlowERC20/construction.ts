@@ -5,12 +5,12 @@ import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
 import {
   FlowERC20,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 
 import {
   assertError,
@@ -20,6 +20,7 @@ import {
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
@@ -50,7 +51,7 @@ describe("FlowERC20 construction tests", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should initialize on the good path", async () => {
@@ -130,26 +131,26 @@ describe("FlowERC20 construction tests", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("flow20"),
         deployer: touchDeployer.address,
       };
 
     const flowERC20 = (await flowERC20Factory.deploy(
-      interpreterCallerConfig0
+      deployerDiscoverableMetaConfig0
     )) as FlowERC20;
 
     assert(!(flowERC20.address === zeroAddress), "flowERC20 did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await flowERC20Factory.deploy(interpreterCallerConfig1),
+      async () => await flowERC20Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC20 Deployed for bad hash"
     );

@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory, Verify } from "../../../../typechain";
-import { NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct, NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
 import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import {
   AutoApprove,
@@ -16,6 +15,7 @@ import {
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../../utils";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import { getTouchDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
@@ -50,7 +50,7 @@ describe("AutoApprove construction", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should construct and initialize correctly", async () => {
@@ -144,7 +144,7 @@ describe("AutoApprove construction", async function () {
 
     const touchDeployer = await getTouchDeployer();
 
-    const config_0: InterpreterCallerV1ConstructionConfigStruct = {
+    const config_0: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("autoapprove"),
       deployer: touchDeployer.address,
     };
@@ -154,7 +154,7 @@ describe("AutoApprove construction", async function () {
 
     assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
 
-    const config_1: InterpreterCallerV1ConstructionConfigStruct = {
+    const config_1: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("orderbook"),
       deployer: touchDeployer.address,
     };

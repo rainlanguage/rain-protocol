@@ -22,6 +22,7 @@ import {
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { deployLobby, deployLobbyClone } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../utils/events";
@@ -47,7 +48,7 @@ describe("Lobby Tests claim", async function () {
     await deploy1820(signers[0]);
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory()
   });
 
   beforeEach(async () => {

@@ -26,6 +26,7 @@ import {
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 
 const Opcode = RainterpreterOps;
 
@@ -43,7 +44,7 @@ describe("FlowERC20 flowTime tests", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {

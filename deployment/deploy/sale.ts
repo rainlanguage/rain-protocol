@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { CloneFactory, RainterpreterExpressionDeployer } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   getRainMetaDocumentFromContract,
   redeemableERC20DeployImplementation,
@@ -10,6 +9,7 @@ import {
   Sale as SaleType,
   SaleConstructorConfigStruct,
 } from "../../typechain/contracts/sale/Sale";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 
 export const deploySale = async (
   deployer_: RainterpreterExpressionDeployer,
@@ -18,7 +18,7 @@ export const deploySale = async (
 ) => {
   const saleFactory = await ethers.getContractFactory("Sale");
 
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("sale"),
     deployer: deployer_.address,
   };
@@ -31,7 +31,7 @@ export const deploySale = async (
     maximumSaleTimeout: maximumSaleTimeout_,
     cloneFactory: cloneFactory_.address,
     redeemableERC20Implementation: RedeemableERC20.address,
-    interpreterCallerConfig: interpreterCallerConfig,
+    deployerDiscoverableMetaConfig: deployerDiscoverableMetaConfig,
   };
 
   const Sale = (await saleFactory.deploy(saleConstructorConfig)) as SaleType;

@@ -3,12 +3,12 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  CloneFactory,
+  
   RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
+import { CloneFactory, DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   InitializeEvent,
   Lobby,
@@ -24,6 +24,7 @@ import {
 } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { deployLobby, deployLobbyClone } from "../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
@@ -45,10 +46,10 @@ describe("Lobby Tests Intialize", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);
+    await deploy1820(signers[0]);   
 
-    //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory()
+
   });
 
   beforeEach(async () => {
@@ -56,7 +57,8 @@ describe("Lobby Tests Intialize", async function () {
     await tokenA.initialize();
   });
 
-  it("Lobby is intialized correctly", async function () {
+  it("Lobby is intialized correctly", async function () { 
+
     const signers = await ethers.getSigners();
 
     const timeoutDuration = 15000000;
@@ -125,7 +127,7 @@ describe("Lobby Tests Intialize", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const interpreterCallerConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"), // Bad callerMeta passed.
         deployer: touchDeployer.address,
@@ -133,7 +135,7 @@ describe("Lobby Tests Intialize", async function () {
 
     const lobbyConstructorConfig0: LobbyConstructorConfigStruct = {
       maxTimeoutDuration: timeoutDuration,
-      interpreterCallerConfig: interpreterCallerConfig0,
+      deployerDiscoverableMetaConfig: interpreterCallerConfig0,
     };
 
     await assertError(
@@ -142,7 +144,7 @@ describe("Lobby Tests Intialize", async function () {
       "Lobby Deployed for bad hash"
     );
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const interpreterCallerConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("lobby"), // Bad callerMeta passed.
         deployer: touchDeployer.address,
@@ -150,7 +152,7 @@ describe("Lobby Tests Intialize", async function () {
 
     const lobbyConstructorConfig1: LobbyConstructorConfigStruct = {
       maxTimeoutDuration: timeoutDuration,
-      interpreterCallerConfig: interpreterCallerConfig1,
+      deployerDiscoverableMetaConfig: interpreterCallerConfig1,
     };
 
     const Lobby: Lobby = (await lobbyFactory.deploy(

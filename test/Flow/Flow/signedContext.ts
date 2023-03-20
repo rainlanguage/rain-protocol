@@ -8,6 +8,7 @@ import {
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { basicDeploy } from "../../../utils";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
@@ -37,7 +38,7 @@ describe("Flow signed context tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {

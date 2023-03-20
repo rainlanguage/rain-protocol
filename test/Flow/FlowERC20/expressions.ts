@@ -13,6 +13,7 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
@@ -41,7 +42,7 @@ describe("FlowERC20 expressions test", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate context emitted in context event", async () => {

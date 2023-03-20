@@ -24,6 +24,7 @@ import {
   stakeImplementation,
   THRESHOLDS,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
@@ -70,7 +71,7 @@ describe("CombineTier report time for tier tests", async function () {
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   const ctxAccount = op(Opcode.context, 0x0000);

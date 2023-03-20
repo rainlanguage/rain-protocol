@@ -14,6 +14,7 @@ import {
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   saleClone,
@@ -49,7 +50,7 @@ describe("Sale unchecked math", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });

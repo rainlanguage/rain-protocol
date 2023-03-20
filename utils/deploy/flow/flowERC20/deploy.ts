@@ -13,22 +13,22 @@ import { getEventArgs } from "../../../events";
 import { FlowERC20Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../../meta";
 import { assert } from "chai";
 import { zeroAddress } from "../../../constants";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowERC20Implementation = async (): Promise<FlowERC20> => {
   const flowFactory = await ethers.getContractFactory("FlowERC20", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("flow20"),
     deployer: touchDeployer.address,
   };
 
-  const flow = (await flowFactory.deploy(interpreterCallerConfig)) as FlowERC20;
+  const flow = (await flowFactory.deploy(deployerDiscoverableMetaConfig)) as FlowERC20;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 

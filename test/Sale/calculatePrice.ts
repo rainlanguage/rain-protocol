@@ -11,6 +11,7 @@ import {
   RESERVE_ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
@@ -43,7 +44,7 @@ describe("Sale calculate price", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });
