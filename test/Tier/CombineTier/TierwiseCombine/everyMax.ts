@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
 import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";

@@ -3,7 +3,6 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
 import {
-  basicDeploy,
   combineTierCloneDeploy,
   combineTierImplementation,
 } from "../../../../utils";

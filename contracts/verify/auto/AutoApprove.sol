@@ -28,7 +28,12 @@ struct AutoApproveConfig {
     EvaluableConfig evaluableConfig;
 }
 
-contract AutoApprove is ICloneableV1, VerifyCallback, IInterpreterCallerV1, DeployerDiscoverableMetaV1 {
+contract AutoApprove is
+    ICloneableV1,
+    VerifyCallback,
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
+{
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];

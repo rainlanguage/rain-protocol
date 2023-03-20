@@ -32,7 +32,9 @@ async function main() {
   const { RainterpreterExpressionDeployer } = await deployDISpair();
 
   // Deploy CloneFactory
-  const cloneFactory = await deployCloneFactory(RainterpreterExpressionDeployer);
+  const cloneFactory = await deployCloneFactory(
+    RainterpreterExpressionDeployer
+  );
 
   // Deploy Flow (Basic)
   await deployFlow(RainterpreterExpressionDeployer);

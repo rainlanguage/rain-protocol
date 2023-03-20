@@ -15,7 +15,10 @@ import {
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
-import { DeployerDiscoverableMetaV1ConstructionConfigStruct, MetaV1Event } from "../../../typechain/contracts/factory/CloneFactory";
+import {
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+  MetaV1Event,
+} from "../../../typechain/contracts/factory/CloneFactory";
 
 describe("Caller Test", async function () {
   before(async () => {
@@ -42,7 +45,10 @@ describe("Caller Test", async function () {
 
     await assertError(
       async () =>
-        await callerFactory.deploy(lobbyContractMeta, deployerDiscoverableMetaConfig),
+        await callerFactory.deploy(
+          lobbyContractMeta,
+          deployerDiscoverableMetaConfig
+        ),
       "UnexpectedMetaHash",
       "Deployed with incorrect Meta Hash"
     );

@@ -12,14 +12,19 @@ export const deployFlowErc721 = async (
 ) => {
   const flowFactory = await ethers.getContractFactory("FlowERC721");
 
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow721"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow721"),
+      deployer: deployer_.address,
+    };
 
   const FlowERC721 = (await flowFactory.deploy(
     deployerDiscoverableMetaConfig
   )) as FlowERC721Type;
 
-  registerContract("FlowERC721", FlowERC721.address, deployerDiscoverableMetaConfig);
+  registerContract(
+    "FlowERC721",
+    FlowERC721.address,
+    deployerDiscoverableMetaConfig
+  );
 };

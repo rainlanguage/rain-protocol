@@ -8,7 +8,7 @@ import {
   SaleReentrant,
 } from "../../typechain";
 import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
-import { basicDeploy, readWriteTierDeploy } from "../../utils";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";

@@ -14,10 +14,11 @@ export const deployLobby = async (
 ) => {
   const lobbyFactory = await ethers.getContractFactory("Lobby");
 
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("lobby"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("lobby"),
+      deployer: deployer_.address,
+    };
 
   const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
     maxTimeoutDuration: timeoutDuration,

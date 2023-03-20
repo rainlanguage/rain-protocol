@@ -43,7 +43,7 @@ describe("Lobby Tests claim", async function () {
     await deploy1820(signers[0]);
 
     //Deploy Clone Factory
-    cloneFactory = await flowCloneFactory() ;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

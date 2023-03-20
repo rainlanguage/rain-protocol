@@ -127,7 +127,13 @@ uint256 constant PHASE_COMPLETE = 3;
 // refund on their deposit.
 uint256 constant PHASE_INVALID = 4;
 
-contract Lobby is ICloneableV1, IInterpreterCallerV1, Phased, ReentrancyGuard, DeployerDiscoverableMetaV1 {
+contract Lobby is
+    ICloneableV1,
+    IInterpreterCallerV1,
+    Phased,
+    ReentrancyGuard,
+    DeployerDiscoverableMetaV1
+{
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -182,7 +188,12 @@ contract Lobby is ICloneableV1, IInterpreterCallerV1, Phased, ReentrancyGuard, D
 
     constructor(
         LobbyConstructorConfig memory config_
-    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_.deployerDiscoverableMetaConfig) {
+    )
+        DeployerDiscoverableMetaV1(
+            CALLER_META_HASH,
+            config_.deployerDiscoverableMetaConfig
+        )
+    {
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 

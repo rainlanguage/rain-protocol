@@ -23,12 +23,15 @@ export const flowERC20Implementation = async (): Promise<FlowERC20> => {
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow20"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow20"),
+      deployer: touchDeployer.address,
+    };
 
-  const flow = (await flowFactory.deploy(deployerDiscoverableMetaConfig)) as FlowERC20;
+  const flow = (await flowFactory.deploy(
+    deployerDiscoverableMetaConfig
+  )) as FlowERC20;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 

@@ -16,7 +16,6 @@ import {
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import {
-  basicDeploy,
   max_uint256,
   max_uint32,
   readWriteTierDeploy,

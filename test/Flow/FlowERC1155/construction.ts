@@ -14,7 +14,6 @@ import {
 
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
@@ -144,7 +143,8 @@ describe("FlowERC1155 construction tests", async function () {
       };
 
     await assertError(
-      async () => await flowERC1155Factory.deploy(deployerDiscoverableMetaConfig1),
+      async () =>
+        await flowERC1155Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC1155 Deployed for bad hash"
     );

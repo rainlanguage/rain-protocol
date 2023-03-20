@@ -60,26 +60,26 @@ export async function verifyAll() {
 }
 
 export const delay = (ms: number): unknown =>
-  new Promise((res) => setTimeout(res, ms)); 
+  new Promise((res) => setTimeout(res, ms));
 
-export const getCloneFactoryMeta = ():string => {
+export const getCloneFactoryMeta = (): string => {
   const metaDocumentHex =
     "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
-  
-    // Get ABI clone abi and deflate it
-    let cloneAbi = deflateJson(artifacts.readArtifactSync("CloneFactory").abi);
-    let abiJson = arrayify(cloneAbi).buffer;  
 
-    const abiEncoded = cborEncode(
-      abiJson,
-      MAGIC_NUMBERS.SOLIDITY_ABIV2,
-      "application/json",
-      {
-        contentEncoding: "deflate",
-      } 
-    ); 
+  // Get ABI clone abi and deflate it
+  const cloneAbi = deflateJson(artifacts.readArtifactSync("CloneFactory").abi);
+  const abiJson = arrayify(cloneAbi).buffer;
 
-    const meta = metaDocumentHex + abiEncoded   
+  const abiEncoded = cborEncode(
+    abiJson,
+    MAGIC_NUMBERS.SOLIDITY_ABIV2,
+    "application/json",
+    {
+      contentEncoding: "deflate",
+    }
+  );
 
-    return meta
-}
+  const meta = metaDocumentHex + abiEncoded;
+
+  return meta;
+};

@@ -3,7 +3,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
 import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
-import { basicDeploy, readWriteTierDeploy } from "../../utils";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { max_uint256, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";

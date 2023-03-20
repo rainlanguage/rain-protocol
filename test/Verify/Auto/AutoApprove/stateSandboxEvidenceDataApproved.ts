@@ -5,7 +5,6 @@ import {
   ApproveEvent,
   Verify,
 } from "../../../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../../../utils";
 import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {

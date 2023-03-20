@@ -7,7 +7,7 @@ import {
   ReserveToken,
   Sale,
 } from "../../../typechain";
-import { basicDeploy, readWriteTierDeploy } from "../../../utils";
+import { readWriteTierDeploy } from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,

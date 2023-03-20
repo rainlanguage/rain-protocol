@@ -2,7 +2,6 @@ import { ethers } from "hardhat";
 import { OrderBook } from "../../../typechain";
 import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
-
 import { getRainMetaDocumentFromContract } from "../../meta";
 import { getTouchDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 

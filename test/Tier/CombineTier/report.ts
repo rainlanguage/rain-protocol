@@ -16,7 +16,6 @@ import {
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import {
-  basicDeploy,
   getBlockTimestamp,
   max_uint256,
   readWriteTierDeploy,

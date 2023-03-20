@@ -7,7 +7,7 @@ import {
   ReserveToken,
   Sale,
 } from "../../typechain";
-import { basicDeploy, readWriteTierDeploy } from "../../utils";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
@@ -109,14 +109,14 @@ describe("Sale noticeboard", async function () {
         distributionEndForwardingAddress: forwardingAddress.address,
       }
     );
-    // const noticeboard = await noticeboardDeploy();
+    const noticeboard = await noticeboardDeploy();
     const message = "foo";
     const notice = {
       subject: sale.address,
       data: hexlify([...Buffer.from(message)]),
-    }; 
+    };
 
-    console.log("notice ************** : " , notice )
+    console.log("notice ************** : ", notice);
     const event0 = await getEventArgs(
       await noticeboard.connect(signer1).createNotices([notice]),
       "NewNotice",

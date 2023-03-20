@@ -12,10 +12,11 @@ export const deployStake = async (
 ) => {
   const stakeFactory = await ethers.getContractFactory("Stake");
 
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("stake"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("stake"),
+      deployer: deployer_.address,
+    };
 
   const Stake = (await stakeFactory.deploy(
     deployerDiscoverableMetaConfig

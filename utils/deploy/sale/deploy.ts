@@ -29,10 +29,11 @@ export const saleImplementation = async (
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("sale"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("sale"),
+      deployer: touchDeployer.address,
+    };
 
   const redeemableERC20Implementation: RedeemableERC20 =
     await redeemableERC20DeployImplementation();

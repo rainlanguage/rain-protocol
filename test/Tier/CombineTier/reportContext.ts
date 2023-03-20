@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../typechain";
-import { basicDeploy } from "../../../utils";
 import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {

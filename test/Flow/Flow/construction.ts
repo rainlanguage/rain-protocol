@@ -14,7 +14,6 @@ import {
 } from "../../../typechain/contracts/flow/basic/Flow";
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
@@ -123,7 +122,9 @@ describe("Flow construction tests", async function () {
         deployer: touchDeployer.address,
       };
 
-    const flow = (await flowFactory.deploy(deployerDiscoverableMetaConfig0)) as Flow;
+    const flow = (await flowFactory.deploy(
+      deployerDiscoverableMetaConfig0
+    )) as Flow;
 
     assert(!(flow.address === zeroAddress), "flow did not deploy");
 

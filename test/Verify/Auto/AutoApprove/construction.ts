@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory, Verify } from "../../../../typechain";
-import { DeployerDiscoverableMetaV1ConstructionConfigStruct, NewCloneEvent } from "../../../../typechain/contracts/factory/CloneFactory";
+import {
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+  NewCloneEvent,
+} from "../../../../typechain/contracts/factory/CloneFactory";
 import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import {
   AutoApprove,
@@ -10,7 +13,6 @@ import {
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,

@@ -15,9 +15,9 @@ bytes32 constant CLONE_FACTORY_META_HASH = bytes32(
 );
 
 contract CloneFactory is ICloneableFactoryV1, DeployerDiscoverableMetaV1 {
-    constructor(DeployerDiscoverableMetaV1ConstructionConfig memory config_) DeployerDiscoverableMetaV1(CLONE_FACTORY_META_HASH, config_) {
-
-    }
+    constructor(
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CLONE_FACTORY_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableFactoryV1
     function clone(

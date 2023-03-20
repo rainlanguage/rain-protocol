@@ -24,12 +24,15 @@ export const flowImplementation = async (): Promise<Flow> => {
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow"),
+      deployer: touchDeployer.address,
+    };
 
-  const flow = (await flowFactory.deploy(deployerDiscoverableMetaConfig)) as Flow;
+  const flow = (await flowFactory.deploy(
+    deployerDiscoverableMetaConfig
+  )) as Flow;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 

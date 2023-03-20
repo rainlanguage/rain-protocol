@@ -18,10 +18,11 @@ export const deploySale = async (
 ) => {
   const saleFactory = await ethers.getContractFactory("Sale");
 
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("sale"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("sale"),
+      deployer: deployer_.address,
+    };
 
   const RedeemableERC20 = await redeemableERC20DeployImplementation();
 

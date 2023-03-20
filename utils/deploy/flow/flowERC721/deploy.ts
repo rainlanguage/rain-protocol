@@ -24,10 +24,11 @@ export const flowERC721Implementation = async (): Promise<FlowERC721> => {
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow721"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow721"),
+      deployer: touchDeployer.address,
+    };
 
   const flow = (await flowFactory.deploy(
     deployerDiscoverableMetaConfig

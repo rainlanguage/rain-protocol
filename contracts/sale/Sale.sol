@@ -268,7 +268,12 @@ contract Sale is
 
     constructor(
         SaleConstructorConfig memory config_
-    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_.deployerDiscoverableMetaConfig) {
+    )
+        DeployerDiscoverableMetaV1(
+            CALLER_META_HASH,
+            config_.deployerDiscoverableMetaConfig
+        )
+    {
         _disableInitializers();
 
         maximumSaleTimeout = config_.maximumSaleTimeout;

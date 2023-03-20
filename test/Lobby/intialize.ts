@@ -3,11 +3,13 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  
   RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
-import { CloneFactory, DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
+import {
+  CloneFactory,
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+} from "../../typechain/contracts/factory/CloneFactory";
 
 import {
   InitializeEvent,
@@ -46,10 +48,9 @@ describe("Lobby Tests Intialize", async function () {
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
-    await deploy1820(signers[0]);   
+    await deploy1820(signers[0]);
 
-    cloneFactory = await flowCloneFactory()
-
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {
@@ -57,8 +58,7 @@ describe("Lobby Tests Intialize", async function () {
     await tokenA.initialize();
   });
 
-  it("Lobby is intialized correctly", async function () { 
-
+  it("Lobby is intialized correctly", async function () {
     const signers = await ethers.getSigners();
 
     const timeoutDuration = 15000000;

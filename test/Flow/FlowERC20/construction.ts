@@ -14,7 +14,6 @@ import {
 
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
@@ -150,7 +149,8 @@ describe("FlowERC20 construction tests", async function () {
       };
 
     await assertError(
-      async () => await flowERC20Factory.deploy(deployerDiscoverableMetaConfig1),
+      async () =>
+        await flowERC20Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC20 Deployed for bad hash"
     );
