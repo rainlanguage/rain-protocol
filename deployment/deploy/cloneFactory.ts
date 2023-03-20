@@ -1,15 +1,24 @@
-import { ethers } from "hardhat";
-import { CloneFactory } from "../../typechain";
-import { registerContract } from "../utils";
+import {  ethers } from "hardhat";
+import { CloneFactory, RainterpreterExpressionDeployer } from "../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
+import { getCloneFactoryMeta, registerContract } from "../utils";
 
-export const deployCloneFactory = async () => {
-  const CloneFactory = (await (
-    await ethers.getContractFactory("CloneFactory")
-  ).deploy()) as CloneFactory;
+export const deployCloneFactory = async (
+  deployer_: RainterpreterExpressionDeployer
+) => { 
+   
+    const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
+        meta: getCloneFactoryMeta(), 
+        deployer: deployer_.address,
+    };  
 
-  await CloneFactory.deployed();
+    const CloneFactory = (await (
+      await ethers.getContractFactory("CloneFactory")
+    ).deploy(config_)) as CloneFactory;
 
-  registerContract("CloneFactory", CloneFactory.address);
+    await CloneFactory.deployed();
 
-  return CloneFactory;
+   registerContract("CloneFactory", CloneFactory.address); 
+
+   return CloneFactory;
 };

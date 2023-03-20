@@ -52,7 +52,7 @@ describe("Sale noticeboard", async function () {
     reserve = await reserveDeploy();
   });
 
-  it.skip("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
+  it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
     const signers = await ethers.getSigners();
     const [deployer, recipient, signer1, forwardingAddress] = signers;
 
@@ -109,14 +109,14 @@ describe("Sale noticeboard", async function () {
         distributionEndForwardingAddress: forwardingAddress.address,
       }
     );
-    const noticeboard = await noticeboardDeploy();
+    // const noticeboard = await noticeboardDeploy();
     const message = "foo";
     const notice = {
       subject: sale.address,
       data: hexlify([...Buffer.from(message)]),
     }; 
 
-    console.log("notice : " , notice )
+    console.log("notice ************** : " , notice )
     const event0 = await getEventArgs(
       await noticeboard.connect(signer1).createNotices([notice]),
       "NewNotice",
