@@ -3,6 +3,7 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-contract-sizer";
+import "@nomicfoundation/hardhat-foundry";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -33,7 +34,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 1000000000,
+            runs: 1000000,
             details: {
               peephole: true,
               inliner: true,
@@ -62,6 +63,12 @@ const config: HardhatUserConfig = {
   },
   paths: {
     tests: MOCHA_TESTS_PATH,
+  },
+  verificationApi: {
+    mumbai: {
+      apiKey: process.env["POLYGONSCAN_KEY"],
+      apiUrl: "https://api-testnet.polygonscan.com/api",
+    },
   },
 };
 export default config;

@@ -64,7 +64,7 @@ describe("LibInterpreterState deserialize tests", async function () {
       "wrong length, got" + state_.compiledSources[1].length
     );
     assert(
-      state_.constantsBottom < state_.stackBottom,
+      state_.constantsBottom.lt(state_.stackBottom),
       `wrong constants position
       constantsBottom  ${state_.constantsBottom}
       stackBottom      ${state_.stackBottom}`

@@ -5,6 +5,7 @@ import "../ierc3156/IERC3156FlashLender.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 
 /// Configuration for a deposit. All deposits are processed by and for
 /// `msg.sender` so the vaults are unambiguous here.
@@ -133,10 +134,13 @@ struct TakeOrdersConfig {
 /// take order output.
 /// @param outputIOIndex The index of the output token in `order` to match with
 /// the take order input.
+/// @param signedContext Optional additional signed context relevant to the
+/// taken order.
 struct TakeOrderConfig {
     Order order;
     uint256 inputIOIndex;
     uint256 outputIOIndex;
+    SignedContext[] signedContext;
 }
 
 /// Additional config to a `clear` that allows two orders to be fully matched to
@@ -538,9 +542,13 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// @param b Another order to clear.
     /// @param clearConfig Additional configuration for the clearance such as
     /// how to handle the bounty payment for the `msg.sender`.
+    /// @param aSignedContext Optional signed context that is relevant to A.
+    /// @param bSignedContext Optional signed context that is relevant to B.
     function clear(
         Order memory a,
         Order memory b,
-        ClearConfig calldata clearConfig
+        ClearConfig calldata clearConfig,
+        SignedContext[] memory aSignedContext,
+        SignedContext[] memory bSignedContext
     ) external;
 }

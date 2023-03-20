@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "sol.lib.datacontract/LibDataContract.sol";
+
 import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
-import "../../sstore2/SSTORE2.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
@@ -38,16 +39,16 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0b3f0b4e0b5d0be00bee0c400cb00d2e0df80e4e0e7a0f13109e10d310f11100110e111d112b113911471155111d116311711180118e119c11ab11ba11c911d811e711f6120512141223123212411250125f126e12b712c912d713091317132513331341134f135d136b13791387139513a313b113bf13cd13db13e913f714051413142214311440144e145c146a14781486149414a215d0165816671676168416f6";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac70ad60ae50b680b760bc80c380cb60d800dd60e020e9b102f106410821091109f10ae10bc10ca10d810e610ae10f411021111111f112d113c114b115a116911781187119611a511b411c311d211e111f011ff1248125a1268129a12a812b612c412d212e012ee12fc130a13181326133413421350135e136c137a1388139613a413b313c213d113df13ed13fb1409141714251433156115e915f8160716151687";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x5b05e228776518e6b3c289e9462b8bd8ba2e0222230885d6e1e0a59d66b03340
+    0xf9277edaa426246a317517714c6ea09c1a8f67230d0be9e7e3f4abb0229a73d5
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x33612e3d92c79aeb4108030de9f132698ba8563f5219fa6c32d88b3ea02040ae
+    0xf229ec48ab47979c15b94ee5c2ecf4405f44691f43667387d0caa1713197b445
 );
 
 /// @dev Hash of the known op meta.
@@ -247,10 +248,22 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         // serialization process itself is destructive of the sources in memory.
         emit NewExpression(msg.sender, sources_, constants_, minOutputs_);
 
+        (
+            DataContractMemoryContainer container_,
+            Pointer pointer_
+        ) = LibDataContract.newContainer(
+                LibInterpreterState.serializeSize(
+                    sources_,
+                    constants_,
+                    stackLength_
+                )
+            );
+
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
         // provided function pointers.
-        bytes memory stateBytes_ = LibInterpreterState.serialize(
+        LibInterpreterState.serialize(
+            pointer_,
             sources_,
             constants_,
             stackLength_,
@@ -258,7 +271,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         );
 
         // Deploy the serialized expression onchain.
-        address expression_ = SSTORE2.write(stateBytes_);
+        address expression_ = LibDataContract.write(container_);
 
         // Emit and return the address of the deployed expression.
         emit ExpressionAddress(msg.sender, expression_);

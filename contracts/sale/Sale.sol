@@ -13,7 +13,6 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../sstore2/SSTORE2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
@@ -25,7 +24,7 @@ import "../factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x658ac3bbe4ec4021eac16b1ea33c7f82beeda44adb69f6f7c32fae32b6daa6d1
+    0x2341cb348a1e1326291c79bf03383ab4a1fe05312f37ba7a5789ed657dfd4721
 );
 
 /// Everything required to construct a Sale (not initialize).
