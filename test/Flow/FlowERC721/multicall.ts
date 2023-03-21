@@ -30,6 +30,7 @@ import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 multicall tests", async function () {
   let cloneFactory: CloneFactory;
@@ -133,7 +134,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const { sources: sourceFlowIO_A, constants: constantsFlowIO_A } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -190,7 +191,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const { sources: sourceFlowIO_B, constants: constantsFlowIO_B } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -242,7 +243,7 @@ describe("FlowERC721 multicall tests", async function () {
       `
       );
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
