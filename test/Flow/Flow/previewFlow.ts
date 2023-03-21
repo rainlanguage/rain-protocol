@@ -13,6 +13,7 @@ import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowComm
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
@@ -38,7 +39,7 @@ describe("Flow previewFlow tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should preview defined flow IO for native Ether", async () => {

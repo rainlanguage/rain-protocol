@@ -2,8 +2,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { EvaluableConfigStruct } from "../../../../typechain/contracts/lobby/Lobby";
 import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/CombineTier";
 import { zeroAddress } from "../../../constants";
@@ -14,7 +14,7 @@ import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressi
 export const combineTierImplementation = async (): Promise<CombineTier> => {
   const combineTierFactory = await ethers.getContractFactory("CombineTier");
   const touchDeployer = await getTouchDeployer();
-  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+  const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("combinetier"),
     deployer: touchDeployer.address,
   };

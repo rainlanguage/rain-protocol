@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
@@ -7,15 +7,16 @@ import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
+import "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
-import "../../interpreter/caller/InterpreterCallerV1.sol";
+import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
 import "../../factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xbf2a964c553d2605b25d842dc9288c569dd83d7a335b7b781c50681559b3535f
+    0x5ca2c16fbf02f00514cdb68a42de1aa7b150b73b548bdbb2f9671db43290a7ca
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
@@ -27,7 +28,12 @@ struct AutoApproveConfig {
     EvaluableConfig evaluableConfig;
 }
 
-contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
+contract AutoApprove is
+    ICloneableV1,
+    VerifyCallback,
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
+{
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -43,8 +49,8 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

@@ -108,7 +108,7 @@ let
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
     # Change the version
-    solcVersion='0.8.17';
+    solcVersion='0.8.18';
 
     # Use and print message to be notice that use the correct version
     solc-select use $solcVersion

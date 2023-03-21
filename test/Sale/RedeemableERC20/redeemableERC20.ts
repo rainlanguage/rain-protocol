@@ -7,9 +7,10 @@ import {
   ReserveToken,
   Sale,
 } from "../../../typechain";
-import { basicDeploy, readWriteTierDeploy } from "../../../utils";
+import { readWriteTierDeploy } from "../../../utils";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import {
   saleClone,
@@ -46,7 +47,7 @@ describe("Sale redeemableERC20 token", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
@@ -9,14 +9,14 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1b4cad4ce93782ba918b76faef40045b82d9310226ef1cbb23d4d917e20f28b6
+    0x7d8aa21afd2770c33544d507993b60f6abc6a060fe126de39d5533c41c358801
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -45,7 +45,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
+contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -57,8 +57,8 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

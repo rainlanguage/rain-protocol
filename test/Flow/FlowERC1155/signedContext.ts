@@ -3,11 +3,11 @@ import { ethers } from "hardhat";
 import { CloneFactory, FlowERC1155 } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -32,7 +32,7 @@ describe("FlowERC1155 signed context tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {

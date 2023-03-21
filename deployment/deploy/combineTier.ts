@@ -3,7 +3,7 @@ import {
   CombineTier as CombineTierType,
   RainterpreterExpressionDeployer,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 
@@ -12,7 +12,7 @@ export const deployCombineTier = async (
 ) => {
   const combineTierFactory = await ethers.getContractFactory("CombineTier");
 
-  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+  const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("combinetier"),
     deployer: deployer_.address,
   };

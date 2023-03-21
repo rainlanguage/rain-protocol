@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../sentinel/LibSentinel.sol";
 import "../libraries/LibFlow.sol";
@@ -36,7 +36,7 @@ struct FlowERC1155IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xc0ea0c4bc3c851959676c4a9c2b0474d35437fbffbde3dc0203bf388ffbdc567
+    0x27a3c4014babbb0c4370760d8ef2aed49d39aeb8872f6357cbd8268cdf9998f8
 );
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -56,7 +56,7 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1

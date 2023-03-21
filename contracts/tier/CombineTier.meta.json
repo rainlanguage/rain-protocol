@@ -14,7 +14,7 @@
           "name": "combinedTiersLength",
           "abiName": "combinedTiersLength",
           "desc": "The first N values in the constants array of the expressionConfig MUST be all the combined tiers that are known statically. Of course some tier addresses MAY only be known at runtime and so these cannotbe included.",
-          "path": "[5].inputs[1].components[0]"
+          "path": "[4].inputs[1].components[0]"
         }
       ],
       "expressions": [
@@ -22,7 +22,7 @@
           "name": "CombineTier Expression",
           "abiName": "evaluableConfig",
           "desc": "An expression that determines the report of a CombineTier contract.",
-          "path": "[5].inputs[1].components[1]",
+          "path": "[4].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true
         }

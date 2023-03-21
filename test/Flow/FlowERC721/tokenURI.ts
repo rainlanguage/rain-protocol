@@ -10,7 +10,7 @@ import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC721Clone,
   flowERC721Implementation,
@@ -36,7 +36,7 @@ describe("FlowERC721 tokenURI test", async function () {
     implementation = await flowERC721Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should generate tokenURI based on the expression result", async () => {

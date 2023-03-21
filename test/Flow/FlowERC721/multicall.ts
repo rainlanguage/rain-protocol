@@ -20,6 +20,7 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC721Clone,
   flowERC721Implementation,
@@ -48,7 +49,7 @@ describe("FlowERC721 multicall tests", async function () {
     implementation = await flowERC721Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should call multiple flows from same flow contract at once using multicall", async () => {

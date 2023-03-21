@@ -21,6 +21,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -39,7 +40,7 @@ describe("Stake reportTimeForTier", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

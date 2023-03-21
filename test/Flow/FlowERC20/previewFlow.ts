@@ -17,6 +17,7 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
@@ -41,7 +42,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should preview defined flow IO for native Ether", async () => {

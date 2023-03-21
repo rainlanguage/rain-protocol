@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {TierV2} from "../../../tier/TierV2.sol";
 import {ITierV2} from "../../../tier/ITierV2.sol";

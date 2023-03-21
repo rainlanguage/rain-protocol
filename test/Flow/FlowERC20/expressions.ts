@@ -8,11 +8,11 @@ import {
   FlowERC20,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
@@ -35,7 +35,7 @@ describe("FlowERC20 expressions test", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate context emitted in context event", async () => {

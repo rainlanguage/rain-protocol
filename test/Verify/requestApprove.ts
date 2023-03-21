@@ -5,6 +5,7 @@ import type { CloneFactory, Verify } from "../../typechain";
 
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
   verifyImplementation,
@@ -19,7 +20,7 @@ describe("Verify request approve", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should allow anyone to add data to support verification", async function () {

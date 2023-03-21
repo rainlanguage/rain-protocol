@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../math/LibFixedPointMath.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -39,7 +40,7 @@ error SameOwner(address owner);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xb1b8568ca6c343c6c33bef9de2e89d113ba9baecff1bd5c75b1217f7d004033d
+    0x295bf57b1f715df5fbc21f89597608f86bfc85ef4576b452f5659ff3ea465aa5
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -117,7 +118,8 @@ contract OrderBook is
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -148,8 +150,8 @@ contract OrderBook is
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) initializer InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) initializer DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         __ReentrancyGuard_init();
         __Multicall_init();
     }

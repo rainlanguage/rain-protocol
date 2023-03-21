@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";

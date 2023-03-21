@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
@@ -17,14 +17,15 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x2341cb348a1e1326291c79bf03383ab4a1fe05312f37ba7a5789ed657dfd4721
+    0x27dfcfba244497248e18c3748315ff9c32cf018474c9166bdab2e83ae8c177de
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -33,12 +34,12 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// that never end, or perhaps never even start.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
-/// @param callerMeta As per `IInterpreterCallerV1`.
+/// @param deployerDiscoverableMetaConfig As per `DeployerDiscoverableMetaV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     CloneFactory cloneFactory;
     address redeemableERC20Implementation;
-    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
+    DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -165,7 +166,8 @@ contract Sale is
     Cooldown,
     ISaleV2,
     ReentrancyGuard,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using Math for uint256;
     using LibFixedPointMath for uint256;
@@ -266,7 +268,12 @@ contract Sale is
 
     constructor(
         SaleConstructorConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+    )
+        DeployerDiscoverableMetaV1(
+            CALLER_META_HASH,
+            config_.deployerDiscoverableMetaConfig
+        )
+    {
         _disableInitializers();
 
         maximumSaleTimeout = config_.maximumSaleTimeout;

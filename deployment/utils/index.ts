@@ -1,3 +1,7 @@
+import { artifacts } from "hardhat";
+import { arrayify } from "rainlang";
+import { deflateJson } from "../../utils";
+import { cborEncode, MAGIC_NUMBERS } from "../../utils/meta/cbor";
 import { verifyContract } from "../verify";
 
 export type ContractData = {
@@ -57,3 +61,25 @@ export async function verifyAll() {
 
 export const delay = (ms: number): unknown =>
   new Promise((res) => setTimeout(res, ms));
+
+export const getCloneFactoryMeta = (): string => {
+  const metaDocumentHex =
+    "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
+
+  // Get ABI clone abi and deflate it
+  const cloneAbi = deflateJson(artifacts.readArtifactSync("CloneFactory").abi);
+  const abiJson = arrayify(cloneAbi).buffer;
+
+  const abiEncoded = cborEncode(
+    abiJson,
+    MAGIC_NUMBERS.SOLIDITY_ABIV2,
+    "application/json",
+    {
+      contentEncoding: "deflate",
+    }
+  );
+
+  const meta = metaDocumentHex + abiEncoded;
+
+  return meta;
+};

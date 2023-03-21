@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { IInterpreterCallerConsumer } from "../../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+
 import {
   ExpressionAddressEvent,
   NewExpressionEvent,
@@ -15,7 +15,10 @@ import {
 } from "../../../utils";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
-import { MetaEvent } from "../../../typechain/contracts/meta/IMetaV1";
+import {
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+  MetaV1Event,
+} from "../../../typechain/contracts/factory/CloneFactory";
 
 describe("Caller Test", async function () {
   before(async () => {
@@ -34,7 +37,7 @@ describe("Caller Test", async function () {
 
     const lobbyContractMeta = getRainMetaDocumentFromContract("orderbook");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("lobby"),
         deployer: touchDeployer.address,
@@ -42,7 +45,10 @@ describe("Caller Test", async function () {
 
     await assertError(
       async () =>
-        await callerFactory.deploy(lobbyContractMeta, interpreterCallerConfig),
+        await callerFactory.deploy(
+          lobbyContractMeta,
+          deployerDiscoverableMetaConfig
+        ),
       "UnexpectedMetaHash",
       "Deployed with incorrect Meta Hash"
     );
@@ -60,7 +66,7 @@ describe("Caller Test", async function () {
 
     const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: stakeContractMeta,
         deployer: touchDeployer.address,
@@ -68,14 +74,14 @@ describe("Caller Test", async function () {
 
     const caller = (await callerFactory.deploy(
       stakeContractMeta,
-      interpreterCallerConfig
+      deployerDiscoverableMetaConfig
     )) as IInterpreterCallerConsumer;
 
     const { sender, meta } = (await getEventArgs(
       caller.deployTransaction,
-      "Meta",
+      "MetaV1",
       caller
-    )) as MetaEvent["args"];
+    )) as MetaV1Event["args"];
 
     assert(sender == signers[0].address, "Incorrect Sender");
     assert(meta == stakeContractMeta, "Incorrect Meta Hash");
@@ -93,7 +99,7 @@ describe("Caller Test", async function () {
 
     const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: stakeContractMeta,
         deployer: touchDeployer.address,
@@ -101,7 +107,7 @@ describe("Caller Test", async function () {
 
     const caller = (await callerFactory.deploy(
       stakeContractMeta,
-      interpreterCallerConfig
+      deployerDiscoverableMetaConfig
     )) as IInterpreterCallerConsumer;
 
     const deployTouchExpression = await caller.deployTouchExpression(
@@ -154,7 +160,7 @@ describe("Caller Test", async function () {
 
     const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: stakeContractMeta,
         deployer: touchDeployer.address,
@@ -162,7 +168,7 @@ describe("Caller Test", async function () {
 
     const caller = (await callerFactory.deploy(
       stakeContractMeta,
-      interpreterCallerConfig
+      deployerDiscoverableMetaConfig
     )) as IInterpreterCallerConsumer;
 
     await assertError(
@@ -193,7 +199,7 @@ describe("Caller Test", async function () {
 
     const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: stakeContractMeta,
         deployer: touchDeployer.address,
@@ -201,7 +207,7 @@ describe("Caller Test", async function () {
 
     const caller = (await callerFactory.deploy(
       stakeContractMeta,
-      interpreterCallerConfig
+      deployerDiscoverableMetaConfig
     )) as IInterpreterCallerConsumer;
 
     // getRainDocumentsFromContract does not return cbor encoded bytes
@@ -226,7 +232,7 @@ describe("Caller Test", async function () {
 
     const stakeContractMeta = getRainMetaDocumentFromContract("stake");
 
-    const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: stakeContractMeta,
         deployer: touchDeployer.address,
@@ -234,7 +240,7 @@ describe("Caller Test", async function () {
 
     const caller = (await callerFactory.deploy(
       stakeContractMeta,
-      interpreterCallerConfig
+      deployerDiscoverableMetaConfig
     )) as IInterpreterCallerConsumer;
 
     const validRainMetaV1 = await caller.checkIsRainMetaV1(

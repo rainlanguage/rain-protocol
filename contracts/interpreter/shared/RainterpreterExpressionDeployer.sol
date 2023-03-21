@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "sol.lib.datacontract/LibDataContract.sol";
 
@@ -43,12 +43,12 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac70ad60ae50b680b760bc80c380cb60d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x0c010c2191f3301f8abe5fa206c6376db1a0a81957c9186e929976d589554952
+    0x8eff8bfc8290850e798eb48eaa1b461d22afe19ab6ed95e099652916387edc16
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xf229ec48ab47979c15b94ee5c2ecf4405f44691f43667387d0caa1713197b445
+    0x7b5acdcd4f435bc3ffa8333bb07e4c6cdd215a1710ec4f0d3a03dd00a2fd43da
 );
 
 /// @dev Hash of the known op meta.

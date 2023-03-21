@@ -8,11 +8,11 @@ import {
   FlowERC1155,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -35,7 +35,7 @@ describe("FlowERC1155 expressions tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {

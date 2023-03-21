@@ -3,7 +3,7 @@ import {
   AutoApprove as AutoApproveType,
   RainterpreterExpressionDeployer,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 
@@ -12,7 +12,7 @@ export const deployAutoApprove = async (
 ) => {
   const contractFactory = await ethers.getContractFactory("AutoApprove");
 
-  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+  const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("autoapprove"),
     deployer: deployer_.address,
   };

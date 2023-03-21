@@ -16,6 +16,7 @@ import {
 } from "../../utils";
 import { max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   stakeCloneDeploy,
@@ -35,7 +36,7 @@ describe("Stake maxMint", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

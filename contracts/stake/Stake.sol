@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 import "../factory/ICloneableV1.sol";
@@ -48,7 +49,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xe7ddc799b7dbc0606db72f6e3b8cca16989a0ed26065d8d1368022f4bb278210
+    0xfda3e312131b18108342db42392704625a23073885003c38b013a7a695f0a9d6
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
@@ -140,7 +141,8 @@ contract Stake is
     TierV2,
     ICloneableV1,
     ReentrancyGuard,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -162,8 +164,8 @@ contract Stake is
     address internal expression;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 

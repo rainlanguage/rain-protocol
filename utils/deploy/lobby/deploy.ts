@@ -1,8 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { artifacts, ethers } from "hardhat";
 import { RainterpreterExpressionDeployer } from "../../../typechain";
-import { CloneFactory } from "../../../typechain/contracts/factory/CloneFactory";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+import {
+  CloneFactory,
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+} from "../../../typechain/contracts/factory/CloneFactory";
 import {
   Lobby,
   LobbyConfigStruct,
@@ -17,14 +19,15 @@ export const deployLobby = async (timeoutDuration: number): Promise<Lobby> => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
 
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("lobby"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("lobby"),
+      deployer: touchDeployer.address,
+    };
 
   const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
     maxTimeoutDuration: timeoutDuration,
-    interpreterCallerConfig,
+    deployerDiscoverableMetaConfig,
   };
 
   const Lobby = (await lobbyFactory.deploy(lobbyConstructorConfig)) as Lobby;

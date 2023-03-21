@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
@@ -16,7 +16,7 @@ import "../../factory/ICloneableV1.sol";
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1c88d1d8ffac69d993ec8160b0007a13848c32e2b103ccbb49a6c7c428aca847
+    0xd3d6fac8ef3c2af1a6aef6a758d8577421b6ef6bd7609c9fa7ca3a8ecc1c14e8
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
@@ -79,7 +79,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1
