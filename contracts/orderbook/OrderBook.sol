@@ -474,6 +474,8 @@ contract OrderBook is
     /// @param outputIOIndex_ The index of the output token being calculated for.
     /// @param counterparty_ The counterparty of the order as it is currently
     /// being cleared against.
+    /// @param signedContext_ Any signed context provided by the clearer/taker
+    /// that the order may need for its calculations.
     function _calculateOrderIO(
         Order memory order_,
         uint256 inputIOIndex_,
