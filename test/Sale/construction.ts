@@ -237,7 +237,7 @@ describe("Sale construction", async function () {
 
   it("should validate contract meta with abi", async function () {
     assert(
-      validateContractMetaAgainstABI("combinetier"),
+      validateContractMetaAgainstABI("sale"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });

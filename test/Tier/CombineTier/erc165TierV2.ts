@@ -224,7 +224,7 @@ describe("CombineTier ERC165 tests", async function () {
 
   it("should validate contract meta with abi", async function () {
     assert(
-      validateContractMetaAgainstABI("sale"),
+      validateContractMetaAgainstABI("combinetier"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });

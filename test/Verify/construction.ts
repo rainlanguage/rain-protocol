@@ -15,6 +15,7 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 
 import {
   verifyCloneDeploy,
@@ -31,7 +32,7 @@ describe("Verify construction", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory =await flowCloneFactory();
   });
 
   it("should construct and initialize correctly", async function () {

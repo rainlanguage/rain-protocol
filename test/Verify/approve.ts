@@ -12,6 +12,7 @@ import {
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 
 describe("Verify approve", async function () {
   let implementVerify: Verify;
@@ -21,7 +22,7 @@ describe("Verify approve", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should not grant approver ability to remove or ban if they only have APPROVER role", async function () {

@@ -24,6 +24,7 @@ import {
 } from "../../../utils";
 
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import { deployLobby } from "../../../utils/deploy/lobby/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
@@ -43,7 +44,7 @@ describe("CloneFactory tests", async function () {
     implementationStake = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should revert if implementation address is zero", async () => {

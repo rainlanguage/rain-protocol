@@ -16,6 +16,7 @@ import {
   redeemableERC20DeployImplementation,
   Tier,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
@@ -32,7 +33,7 @@ describe("RedeemableERC20 unsold token test", async function () {
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

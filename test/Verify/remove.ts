@@ -5,6 +5,7 @@ import type { CloneFactory, Verify } from "../../typechain";
 
 import { RemoveEvent } from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
   verifyImplementation,
@@ -20,7 +21,7 @@ describe("Verify remove", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should not grant remover ability to approve or ban if they only have REMOVER role", async function () {
