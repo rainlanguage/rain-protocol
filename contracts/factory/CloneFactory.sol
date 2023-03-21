@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "./Factory.sol";
 import "./ICloneableV1.sol";
@@ -11,7 +11,7 @@ import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/p
 error ZeroImplementation();
 
 bytes32 constant CLONE_FACTORY_META_HASH = bytes32(
-    0xfab9a7b02c14c255d07522a0e87cf7fa96624b25fe2d4cd439315983d2fbf8ef
+    0xae0fb5b68fe1791c72509bf46ea6abf6a982d21451265be0a017f7959712a67e
 );
 
 contract CloneFactory is ICloneableFactoryV1, DeployerDiscoverableMetaV1 {

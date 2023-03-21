@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
@@ -49,7 +49,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xab78726db28c64d100b090e5c1722f0bf466a43584786a5ec0cc4532078473c2
+    0xfda3e312131b18108342db42392704625a23073885003c38b013a7a695f0a9d6
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.

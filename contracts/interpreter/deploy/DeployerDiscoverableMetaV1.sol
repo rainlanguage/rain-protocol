@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "sol.metadata/IMetaV1.sol";
 import "sol.metadata/LibMeta.sol";
@@ -22,7 +22,7 @@ abstract contract DeployerDiscoverableMetaV1 is IMetaV1 {
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) {
         LibMeta.checkMetaHashed(metaHash_, config_.meta);
-        emit MetaV1(msg.sender, config_.meta);
+        emit MetaV1(msg.sender, uint256(uint160(address(this))), config_.meta);
         LibDeployerDiscoverable.touchDeployer(config_.deployer);
     }
 }

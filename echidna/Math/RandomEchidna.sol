@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {Random} from "../../contracts/math/Random.sol";
 import "../../contracts/sstore2/SSTORE2.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../array/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -33,7 +33,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xa1313acbee7e38abaf1b7c5efec7af033c35836a45412e142d59c6690b211712
+    0x9b2d564af04618063cfea638988b2d5c0d21122dafc9759a41444ac9fc70c5eb
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
