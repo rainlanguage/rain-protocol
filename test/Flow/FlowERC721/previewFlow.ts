@@ -27,6 +27,7 @@ import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 previewFlow tests", async function () {
   let cloneFactory: CloneFactory;
@@ -73,7 +74,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -124,7 +125,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
@@ -231,7 +232,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -310,7 +311,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* sourceHandleTransfer */
       _: 1;
       
@@ -413,7 +414,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -485,7 +486,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
@@ -593,7 +594,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -672,7 +673,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
@@ -761,7 +762,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -819,7 +820,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* sourceHandleTransfer */
       _: 1;
       
@@ -905,7 +906,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -962,7 +963,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
       /* sourceHandleTransfer */
       _: 1;
       
@@ -1056,7 +1057,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -1120,7 +1121,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
@@ -1174,7 +1175,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -1216,7 +1217,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     // prettier-ignore
     const { sources, constants} = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         
@@ -1281,7 +1282,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -1320,7 +1321,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         

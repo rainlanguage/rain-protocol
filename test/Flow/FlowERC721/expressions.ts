@@ -21,6 +21,7 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
 import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC721Config } from "../../../utils/types/flow";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 expressions tests", async function () {
   let cloneFactory: CloneFactory;
@@ -43,7 +44,7 @@ describe("FlowERC721 expressions tests", async function () {
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -81,7 +82,7 @@ describe("FlowERC721 expressions tests", async function () {
       );
 
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         

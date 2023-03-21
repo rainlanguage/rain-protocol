@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -27,24 +26,19 @@ import {
 } from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
+import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
 import {
-  memoryOperand,
   MemoryType,
-  op,
+  standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
-
 describe("FlowERC20 flow tests", async function () {
   let implementation: FlowERC20;
   let cloneFactory: CloneFactory;
-  const ME = () => op(Opcode.context, 0x0001); // base context this
-  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
     // Deploy ERC1820Registry
@@ -105,33 +99,56 @@ describe("FlowERC20 flow tests", async function () {
       0,
     ];
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        mintamount: ${mint},
+        burnamount: ${burn},
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+         */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
+    // prettier-ignore
+    const { sources } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: ensure(read-memory<5 ${MemoryType.Constant}>()) 1;
+        
+      `
+    );
 
     const expressionConfigStructCanTransfer: FlowERC20Config = {
       name: "FlowERC20",
@@ -142,8 +159,8 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [sourceFlowIO],
-          constants: constantsCanTransfer,
+          sources: sourceFlowIO,
+          constants: constantsFlowIO,
         },
       ],
     };
@@ -156,8 +173,8 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [sourceFlowIO],
-          constants: constantsCannotTransfer,
+          sources: sourceFlowIO,
+          constants: constantsFlowIO,
         },
       ],
     };
@@ -287,79 +304,131 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransferBurn,
     };
 
-    const constantsMint = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      mintMint,
-      burnMint,
-      flowTransferMint.native[0].amount,
-      flowTransferMint.native[1].amount,
-    ];
+    const { sources: sourceFlowIOMint, constants: constantsFlowIOMint } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        flowio-input-native-amount: ${flowERC20IOMint.flow.native[0].amount},
+        flowio-output-native-amount: ${flowERC20IOMint.flow.native[1].amount},
+        mintamount: ${mintMint},
+        burnamount: ${burnMint},
 
-    const constantsBurn = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      mintBurn,
-      burnBurn,
-      flowTransferBurn.native[0].amount,
-      flowTransferBurn.native[1].amount,
-    ];
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+          /* 0 */
+          native-from-0 native-to-0 native-amount-0: you me flowio-input-native-amount,
+          /* 1 */
+          native-from-1 native-to-1 native-amount-1: me you flowio-output-native-amount,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+    const { sources: sourceFlowIOBurn, constants: constantsFlowIOBurn } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        flowio-input-native-amount: ${flowERC20IOBurn.flow.native[0].amount},
+        flowio-output-native-amount: ${flowERC20IOBurn.flow.native[1].amount},
+        mintamount: ${mintBurn},
+        burnamount: ${burnBurn},
 
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+          /* 0 */
+          native-from-0 native-to-0 native-amount-0: you me flowio-input-native-amount,
+          /* 1 */
+          native-from-1 native-to-1 native-amount-1: me you flowio-output-native-amount,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const sources = [CAN_TRANSFER()];
+    // prettier-ignore
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+      `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
       expressionConfig: {
         sources,
-        constants: constantsMint, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
+        constants, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
       },
       flows: [
         {
-          sources: [sourceFlowIO],
-          constants: constantsMint,
+          sources: sourceFlowIOMint,
+          constants: constantsFlowIOMint,
         },
         {
-          sources: [sourceFlowIO],
-          constants: constantsBurn,
+          sources: sourceFlowIOBurn,
+          constants: constantsFlowIOBurn,
         },
       ],
     };
@@ -553,68 +622,72 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token: flowtransfer-you-to-me-erc1155-token,
+        erc1155-from: you,
+        erc1155-to: me,
+        erc1155-id: flowtransfer-you-to-me-erc1155-id,
+        erc1155-amount: flowtransfer-you-to-me-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0 native-to-0 native-amount-0: you me flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1 native-to-1 native-amount-1: me you flowtransfer-me-to-you-native-amount,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -623,7 +696,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -766,65 +839,72 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
+        
+        flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
+        flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
+        flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token: flowtransfer-me-to-you-erc1155-token,
+        erc1155-from: me,
+        erc1155-to: you,
+        erc1155-id: flowtransfer-me-to-you-erc1155-id,
+        erc1155-amount: flowtransfer-me-to-you-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        erc721-token: flowtransfer-you-to-me-erc721-token,
+        erc721-from: you,
+        erc721-to: me,
+        erc721-id: flowtransfer-you-to-me-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+          /* sourceHandleTransfer */
+          _: 1;
+          `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -833,7 +913,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -963,63 +1043,69 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[0].token},
+        flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[0].id},
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        erc721-token: flowtransfer-me-to-you-erc721-token,
+        erc721-from: me,
+        erc721-to: you,
+        erc721-id: flowtransfer-me-to-you-erc721-id,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        erc20-token: flowtransfer-you-to-me-erc20-token,
+        erc20-from: you,
+        erc20-to: me,
+        erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        
+         /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1028,7 +1114,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -1139,58 +1225,67 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.native[0].amount,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        erc20-token: flowtransfer-me-to-you-erc20-token,
+        erc20-from: me,
+        erc20-to: you,
+        erc20-amount: flowtransfer-me-to-you-erc20-amount,
 
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        native-from: you,
+        native-to: me,
+        native-amount: flowtransfer-you-to-me-native-amount,
 
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
+       /**
+         * burns of this erc20 token
+         */
+       burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+          /* sourceHandleTransfer */
+          _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1199,7 +1294,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -1327,71 +1422,75 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-      flowTransfer.erc1155[1].token,
-      flowTransfer.erc1155[1].id,
-      flowTransfer.erc1155[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[1].token},
+        flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[1].id},
+        flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token-0: flowtransfer-you-to-me-erc1155-token,
+        erc1155-from-0: you,
+        erc1155-to-0: me,
+        erc1155-id-0: flowtransfer-you-to-me-erc1155-id,
+        erc1155-amount-0: flowtransfer-you-to-me-erc1155-amount,
+        /* 1 */
+        erc1155-token-1: flowtransfer-me-to-you-erc1155-token,
+        erc1155-from-1: me,
+        erc1155-to-1: you,
+        erc1155-id-1: flowtransfer-me-to-you-erc1155-id,
+        erc1155-amount-1: flowtransfer-me-to-you-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+       
+         /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 10));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+          /* sourceHandleTransfer */
+          _: 1;
+          `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1400,7 +1499,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -1536,62 +1635,73 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-      flowTransfer.erc721[1].token,
-      flowTransfer.erc721[1].id,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
+        flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
+        
+        flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[1].token},
+        flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[1].id},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        /* 0 */
+        erc721-token-0: flowtransfer-you-to-me-erc721-token,
+        erc721-from-0: you,
+        erc721-to-0: me,
+        erc721-id-0: flowtransfer-you-to-me-erc721-id,
+        
+        /* 1 */
+        erc721-token-1: flowtransfer-me-to-you-erc721-token,
+        erc721-from-1: me,
+        erc721-to-1: you,
+        erc721-id-1: flowtransfer-me-to-you-erc721-id,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        
+       /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1600,7 +1710,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -1618,7 +1728,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const me = flow;
 
-    // Ensure parties hold ERC721 tokens
+    // Ensure parties hold erc20 tokens
     await erc721In.mintNewToken();
     await erc721Out.mintNewToken();
 
@@ -1728,63 +1838,71 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount}, 
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+     
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1793,7 +1911,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -1901,54 +2019,67 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        burnamount: ${flowERC20IO.burns[0].amount},
+        mintamount: ${flowERC20IO.mints[0].amount}, 
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0: you,
+        native-to-0: me,
+        native-amount-0: flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1: me,
+        native-to-1: you,
+        native-amount-1: flowtransfer-me-to-you-native-amount,
 
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
+        /**
+       * burns of this erc20 token
+       */
+        burnslist: sentinel20,
+        burn-account burn-amount: you burnamount,
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20,
+        mint-account mint-amount: you mintamount;
+      `
+      );
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -1957,7 +2088,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -2034,26 +2165,51 @@ describe("FlowERC20 flow tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC20(), // BURN END
-      SENTINEL_ERC20(), // MINT END
-    ]);
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20;
+      `
+      );
 
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+          /* sourceHandleTransfer */
+          _: 1;
+          `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -2062,7 +2218,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -2118,87 +2274,125 @@ describe("FlowERC20 flow tests", async function () {
 
     // Sample key
     const key = 1337;
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-      key,
-    ];
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+    const { sources: sourceFlowIOA, constants: constantsFlowIOA } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      key: ${key},
+      flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+      flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel,
+      /* 0 */
+      native-from-0: you,
+      native-to-0: me,
+      native-amount-0: flowtransfer-you-to-me-native-amount,
+      /* 1 */
+      native-from-1: me,
+      native-to-1: you,
+      native-amount-1: flowtransfer-me-to-you-native-amount,
 
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const KEY = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
+      /**
+       * burns of this erc20 token
+       */
+      burnslist: sentinel20,
+      
+      /**
+       * mints of this erc20 token
+      */
+      mintslist: sentinel20,
+      
+      /* Setting a value */
+      : set(key block-timestamp());
+    `
+      );
 
-    const sourceFlowIOA = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
+    const { sources: sourceFlowIOB, constants: constantsFlowIOB } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      key: ${key},
+      flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+      flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+      
+      /* Getting the value set in flowA and ensuring if that value is not set */
+      : ensure(is-zero(get(key))), 
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
 
-      // Setting a value
-      KEY(), // k_
-      op(Opcode.block_timestamp), // v_
-      op(Opcode.set),
-    ]);
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
 
-    const sourceFlowIOB = concat([
-      // Getting the value set in flowA
-      KEY(), // k_
-      op(Opcode.get), // Getting a value with the same key set in flowA
-      op(Opcode.is_zero),
-      op(Opcode.ensure, 1), // Ensures that the value is not set
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel,
+      /* 0 */
+      native-from-0: you,
+      native-to-0: me,
+      native-amount-0: flowtransfer-you-to-me-native-amount,
+      /* 1 */
+      native-from-1: me,
+      native-to-1: you,
+      native-amount-1: flowtransfer-me-to-you-native-amount,
 
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+      /**
+       * burns of this erc20 token
+       */
+      burnslist: sentinel20,
+      
+      /**
+       * mints of this erc20 token
+      */
+      mintslist: sentinel20,
+      
+      /* Setting a value */
+      : set(key block-timestamp());
+    `
+      );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -2208,8 +2402,8 @@ describe("FlowERC20 flow tests", async function () {
         constants,
       },
       flows: [
-        { sources: [sourceFlowIOA], constants },
-        { sources: [sourceFlowIOB], constants },
+        { sources: sourceFlowIOA, constants: constantsFlowIOA },
+        { sources: sourceFlowIOB, constants: constantsFlowIOB },
       ],
     };
 
@@ -2358,87 +2552,78 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      1,
-      flowERC20IO.mints[0].amount,
-      flowERC20IO.burns[0].amount,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount, // Base Amount
-      ethers.BigNumber.from(4 + eighteenZeros), // Bonus Amount
-      0,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-base-amount: ${
+          flowTransfer.erc20[1].amount
+        },
+        flowtransfer-me-to-you-erc20-bonus-amount: ${ethers.BigNumber.from(
+          4 + eighteenZeros
+        )},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        erc20-amount-1: if(greater-than(get(you) 0) flowtransfer-me-to-you-erc20-bonus-amount flowtransfer-me-to-you-erc20-base-amount),
 
-    const MINT_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+     
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        
+        /**
+         * mints of this erc20 token
+        */
+        mintslist: sentinel20;
+      `
+      );
 
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9));
-    const ZERO = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 10));
-
-    // prettier-ignore
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      // Setting a dynamic price which changes once a flow has been run
-            YOU(),
-          op(Opcode.get),
-          ZERO(),
-        op(Opcode.greater_than),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BONUS_AMOUNT(),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_BASE_AMOUNT(),
-      op(Opcode.eager_if),
-
-      SENTINEL(), // NATIVE SKIP
-      SENTINEL_ERC20(), // BURN END
-      YOU(),
-      BURN_AMOUNT(),
-      SENTINEL_ERC20(), // MINT END
-      YOU(),
-      MINT_AMOUNT(),
-    ]);
-
-    const sources = [
-      concat([
-        CAN_TRANSFER(),
-        // Setting a value for msg.sender.
-        // This will only be set _afterTokenTransfer
-        YOU(), // setting blocknumber for msg.sender as the key
-        op(Opcode.block_number),
-        op(Opcode.set),
-      ]),
-    ];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        you: context<0 0>(),
+        _: 1,
+        /* Setting a value for msg.sender */
+        /* This will only be set _afterTokenTransfer */
+        : set(you block-number());
+        `
+    );
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -2447,7 +2632,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
