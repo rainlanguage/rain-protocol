@@ -22,6 +22,7 @@ import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter"
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 tokenURI test", async function () {
   let cloneFactory: CloneFactory;
@@ -80,7 +81,7 @@ describe("FlowERC721 tokenURI test", async function () {
 
     const { sources: sourceFlowIOMint, constants: constantsFlowIOMint } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -121,7 +122,7 @@ describe("FlowERC721 tokenURI test", async function () {
       );
     const { sources: sourceFlowIOBurn, constants: constantsFlowIOBurn } =
       await standardEvaluableConfig(
-        `
+        rainlang`
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -163,7 +164,7 @@ describe("FlowERC721 tokenURI test", async function () {
 
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: 1;
         

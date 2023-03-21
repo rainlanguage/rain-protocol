@@ -30,6 +30,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 construction tests", async function () {
   let cloneFactory: CloneFactory;
@@ -54,7 +55,7 @@ describe("FlowERC721 construction tests", async function () {
 
     // prettier-ignore
     const { sources} = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: read-memory<0 ${MemoryType.Constant}>();
         
@@ -64,7 +65,7 @@ describe("FlowERC721 construction tests", async function () {
     );
 
     const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* variables */
         me: context<0 1>(),
         to: read-memory<1 ${MemoryType.Constant}>(),
@@ -114,7 +115,6 @@ describe("FlowERC721 construction tests", async function () {
         mintamount: amount;
       `
     );
-    // const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
@@ -19,15 +19,9 @@ import {
 } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { rainlang } from "../../../utils/extensions/rainlang";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC1155Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC1155 expressions tests", async function () {
   let implementation: FlowERC1155;
@@ -48,26 +42,51 @@ describe("FlowERC1155 expressions tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, alice, bob] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC1155 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC1155(), // BURN END
-      SENTINEL_ERC1155(), // MINT END
-    ]);
+        /**
+         * burns of this erc1155 token
+         */
+        burnslist: sentinel1155,
+        
+        /**
+         * mints of this erc1155 token
+        */
+        mintslist: sentinel1155;
+      `
+      );
 
-    const sources = [CAN_TRANSFER()];
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* sourceHandleTransfer */
+      _: 1;
+      `
+    );
 
     const flowConfigStruct: FlowERC1155Config = {
       uri: "F1155",
@@ -75,7 +94,7 @@ describe("FlowERC1155 expressions tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC1155Clone(

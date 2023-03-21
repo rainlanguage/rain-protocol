@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -26,16 +25,13 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
+import { rainlang } from "../../../utils/extensions/rainlang";
 import {
-  memoryOperand,
   MemoryType,
-  op,
+  standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC1155Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC1155 construction tests", async function () {
   let implementation: FlowERC1155;
@@ -59,26 +55,48 @@ describe("FlowERC1155 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
+    const { sources} = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: read-memory<0 ${MemoryType.Constant}>();
+      `
+    );
 
-    // prettier-ignore
-    // example source, only checking stack length in this test
-    const sourceFlowIO = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // outputNative
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // inputNative
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
-    ]);
-
-    const sources = [sourceCanTransfer];
+    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+      rainlang`
+      /* variables */
+      seperator: read-memory<1 ${MemoryType.Constant}>(),
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: seperator,
+      
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: seperator,
+      
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: seperator,
+      
+      /**
+       * native (gas) token transfers
+       */
+      transfernativeslist: seperator,
+      
+      /**
+       * burns of this erc1155 token
+       */
+      burnslist: seperator,
+      
+      /**
+       * mints of this erc1155 token
+       */
+      mintslist: seperator,
+    `
+    );
 
     const flowERC1155Config: FlowERC1155Config = {
       uri: "F1155",
@@ -88,7 +106,7 @@ describe("FlowERC1155 construction tests", async function () {
       },
       flows: [
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
       ],

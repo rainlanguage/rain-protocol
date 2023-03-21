@@ -1,4 +1,4 @@
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
@@ -14,16 +14,10 @@ import {
 } from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { rainlang } from "../../../utils/extensions/rainlang";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowConfig } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("Flow signed context tests", async function () {
   let implementation: Flow;
@@ -44,20 +38,36 @@ describe("Flow signed context tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, 1];
-
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-    ]);
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -127,20 +137,36 @@ describe("Flow signed context tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, 1];
-
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-    ]);
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
