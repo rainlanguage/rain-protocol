@@ -55,7 +55,7 @@ let
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
     # Dependencies and tests are out of scope.
-    slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies --fail-high
+    slither . --npx-disable --filter-paths="contracts/test,node_modules" --exclude-dependencies --fail-high
   '';
 
 

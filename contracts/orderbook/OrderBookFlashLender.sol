@@ -8,6 +8,12 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "../ierc3156/IERC3156FlashBorrower.sol";
 import "../ierc3156/IERC3156FlashLender.sol";
 
+/// Thrown when `flashLoan` token is zero address.
+error ZeroToken();
+
+/// Thrown when `flashLoadn` receiver is zero address.
+error ZeroReceiver();
+
 /// Thrown when the `onFlashLoan` callback returns anything other than
 /// ON_FLASH_LOAN_CALLBACK_SUCCESS.
 /// @param result The value that was returned by `onFlashLoan`.
@@ -128,10 +134,18 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         // The active debt is set beyond the scope of `flashLoan` to facilitate
         // early repayment via. `_decreaseFlashDebtThenSendToken`.
         {
+            if (token_ == address(0)) {
+                revert ZeroToken();
+            }
+            if (address(receiver_) == address(0)) {
+                revert ZeroReceiver();
+            }
             _token = token_;
             _receiver = receiver_;
             _amount = amount_;
-            IERC20(token_).safeTransfer(address(receiver_), amount_);
+            if (amount_ > 0) {
+                IERC20(token_).safeTransfer(address(receiver_), amount_);
+            }
         }
 
         bytes32 result_ = receiver_.onFlashLoan(

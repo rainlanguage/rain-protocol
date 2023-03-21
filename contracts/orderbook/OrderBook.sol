@@ -37,6 +37,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
 
+/// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
     0xb1b8568ca6c343c6c33bef9de2e89d113ba9baecff1bd5c75b1217f7d004033d
 );
