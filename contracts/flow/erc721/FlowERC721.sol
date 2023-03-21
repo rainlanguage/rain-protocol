@@ -46,7 +46,7 @@ struct FlowERC721IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1c58bfd502a0145de75d58789fd945a63cc815bc5611717ed9537d0b48433cce
+    0x65c93ef964415b7cc6e0331eb19807823856d9114fda90eafd10f5375e843a1d
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
