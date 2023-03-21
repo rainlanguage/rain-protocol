@@ -38,6 +38,7 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
 
+/// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
     0xc90fac627e34abed4073c003a91efda23b98f909940f215d0423758c32c2a365
 );
@@ -475,6 +476,8 @@ contract OrderBook is
     /// @param outputIOIndex_ The index of the output token being calculated for.
     /// @param counterparty_ The counterparty of the order as it is currently
     /// being cleared against.
+    /// @param signedContext_ Any signed context provided by the clearer/taker
+    /// that the order may need for its calculations.
     function _calculateOrderIO(
         Order memory order_,
         uint256 inputIOIndex_,

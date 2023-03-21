@@ -51,27 +51,13 @@ struct IO {
 
 /// Config the order owner may provide to define their order. The `msg.sender`
 /// that adds an order cannot modify the owner nor bypass the integrity check of
-/// the expression deployer that they specify.
-/// @param expressionDeployer Runs the integrity check for the interpreter as an
-/// `IExpressionDeployerV1`. As the `msg.sender` has direct control over this
-/// they MAY select a malicious/buggy deployer that DOES NOT apply the correct
-/// integrity check for the associated interpreter. The `expressionDeployer`
-/// appears in the `AddOrder` event so that anyone taking or clearing orders
-/// MUST ignore this order if the deployer/interpreter pairing is untrusted.
-/// @param interpreter The interpreter to execute the associated
-/// `ExpressionConfig` once deployed. As the `msg.sender` has direct control over
-/// this they MAY select a malicious/buggy interpreter that produces garbage
-/// results. The interpreter is included in the `Order` so it appears in the
-/// `addOrder` event. Anyone taking or clearing orders MUST ignore this order if
-/// the deployer/interpreter pairing is untrusted.
-/// @param interpreterExpressionConfig The `ExpressionConfig` for the expression deployer
-/// that will be deployed then evaluated by the interpreter as `IInterpreterV1`
-/// under the encoded dispatches on the `Order`. Source 0 is the calculate order
-/// entrypoint and source 1 is the handle IO entrypoint. Handle IO MAY be zero
-/// length in which case it won't be evaluated at all which saves gas when it is
-/// not used.
+/// the expression deployer that they specify. However they MAY specify a
+/// deployer with a corrupt integrity check, so counterparties and clearers MUST
+/// check the DISpair of the order and avoid untrusted pairings.
 /// @param validInputs As per `validInputs` on the `Order`.
 /// @param validOutputs As per `validOutputs` on the `Order`.
+/// @param evaluableConfig Standard `EvaluableConfig` used to produce the
+/// `Evaluable` on the order.
 /// @param data As per `data` on the `Order`.
 struct OrderConfig {
     IO[] validInputs;
@@ -82,11 +68,9 @@ struct OrderConfig {
 
 /// Defines a fully deployed order ready to evaluate by Orderbook.
 /// @param owner The owner of the order is the `msg.sender` that added the order.
-/// @param interpreter The interpreter is selected by the owner as part of config
-/// and can be any `IInterpreterV1` compatible interpreter.
-/// @param dispatch The encoded dispatch for calculate order.
-/// @param handleIODispatch The encoded dispatch for handle IO OR `0` if the
-/// handle IO entrypoint was an empty source.
+/// @param evaluable Standard `Evaluable` with entrypoints for both
+/// "calculate order" and "handle IO". The latter MAY be empty bytes, in which
+/// case it will be skipped at runtime to save gas.
 /// @param validInputs A list of input tokens that are economically equivalent
 /// for the purpose of processing this order. Inputs are relative to the order
 /// so these tokens will be sent to the owners vault.
