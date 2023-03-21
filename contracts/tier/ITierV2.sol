@@ -67,6 +67,13 @@ interface ITierV2 {
     /// The return value is a `uint256` for gas efficiency but the values will
     /// be bounded by `type(uint32).max` as no single tier can report a value
     /// higher than this.
+    /// @param account The address to get a report time for.
+    /// @param tier The tier that the address MUST have held CONTINUOUSLY since
+    /// some time.
+    /// @param context Additional data the `ITierV2` contract MAY use to
+    /// calculate the report time.
+    /// @return time The time that the tier has been held continuously since, or
+    /// `type(uint32).max` if the tier has never been held.
     function reportTimeForTier(
         address account,
         uint256 tier,
@@ -87,8 +94,13 @@ interface ITierV2 {
     ///
     /// `context` supercedes `setTier` function and `TierChange` event from
     /// `ITier` at the interface level.
+    /// @param account The address to get the report for.
+    /// @param context Additional data the `ITierV2` contract MAY use to
+    /// calculate the report.
+    /// @return times All of the times for every tier the `account` has held
+    /// continuously, encoded as 8x `uint32` values within a single `uint256`.
     function report(
         address account,
         uint256[] calldata context
-    ) external view returns (uint256 report);
+    ) external view returns (uint256 times);
 }
