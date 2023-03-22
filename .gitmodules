@@ -11,3 +11,6 @@
 [submodule "lib/sol.metadata"]
 	path = lib/sol.metadata
 	url = https://github.com/rainprotocol/sol.metadata
+[submodule "lib/rain.cooldown"]
+	path = lib/rain.cooldown
+	url = https://github.com/rainprotocol/rain.cooldown
