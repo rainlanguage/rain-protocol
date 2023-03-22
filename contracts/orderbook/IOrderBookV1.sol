@@ -387,7 +387,12 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// @param alice One of the orders.
     /// @param bob The other order.
     /// @param clearConfig Additional config required to process the clearance.
-    event Clear(address sender, Order alice, Order bob, ClearConfig clearConfig);
+    event Clear(
+        address sender,
+        Order alice,
+        Order bob,
+        ClearConfig clearConfig
+    );
 
     /// Emitted after two orders clear. Includes all final state changes in the
     /// vault balances, including the clearer's vaults.

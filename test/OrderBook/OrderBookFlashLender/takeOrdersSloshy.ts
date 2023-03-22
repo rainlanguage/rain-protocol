@@ -211,7 +211,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                             type: "uint256",
                           },
                         ],
-                      }
+                      },
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },

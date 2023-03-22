@@ -72,9 +72,7 @@ describe("OrderBook bounty", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    
-    let aliceOrder = encodeMeta("Order_A")
-   
+    let aliceOrder = encodeMeta("Order_A");
 
     // Order_A
 
@@ -143,7 +141,7 @@ describe("OrderBook bounty", async function () {
       bRatio,
     ]);
 
-    const bobOrder = encodeMeta("Order_B")
+    const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [bidSource, []],

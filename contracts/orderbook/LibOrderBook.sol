@@ -62,16 +62,18 @@ library LibOrderBook {
     ) internal pure returns (ClearStateChange memory) {
         ClearStateChange memory clearStateChange_;
         {
-            clearStateChange_.aliceOutput = aliceOrderIOCalculation_.outputMax.min(
-                // B's input is A's output.
-                // A cannot output more than their max.
-                // B wants input of their IO ratio * their output.
-                // Always round IO calculations up.
-                bobOrderIOCalculation_.outputMax.fixedPointMul(
-                    bobOrderIOCalculation_.IORatio,
-                    Math.Rounding.Up
-                )
-            );
+            clearStateChange_.aliceOutput = aliceOrderIOCalculation_
+                .outputMax
+                .min(
+                    // B's input is A's output.
+                    // A cannot output more than their max.
+                    // B wants input of their IO ratio * their output.
+                    // Always round IO calculations up.
+                    bobOrderIOCalculation_.outputMax.fixedPointMul(
+                        bobOrderIOCalculation_.IORatio,
+                        Math.Rounding.Up
+                    )
+                );
             clearStateChange_.bobOutput = bobOrderIOCalculation_.outputMax.min(
                 // A's input is B's output.
                 // B cannot output more than their max.
@@ -85,16 +87,20 @@ library LibOrderBook {
 
             // A's input is A's output * their IO ratio.
             // Always round IO calculations up.
-            clearStateChange_.aliceInput = clearStateChange_.aliceOutput.fixedPointMul(
-                aliceOrderIOCalculation_.IORatio,
-                Math.Rounding.Up
-            );
+            clearStateChange_.aliceInput = clearStateChange_
+                .aliceOutput
+                .fixedPointMul(
+                    aliceOrderIOCalculation_.IORatio,
+                    Math.Rounding.Up
+                );
             // B's input is B's output * their IO ratio.
             // Always round IO calculations up.
-            clearStateChange_.bobInput = clearStateChange_.bobOutput.fixedPointMul(
-                bobOrderIOCalculation_.IORatio,
-                Math.Rounding.Up
-            );
+            clearStateChange_.bobInput = clearStateChange_
+                .bobOutput
+                .fixedPointMul(
+                    bobOrderIOCalculation_.IORatio,
+                    Math.Rounding.Up
+                );
         }
         return clearStateChange_;
     }

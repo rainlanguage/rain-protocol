@@ -435,7 +435,10 @@ contract OrderBook is
             aliceSignedContext_
         );
         ClearStateChange memory clearStateChange_ = LibOrderBook
-            ._clearStateChange(aliceOrderIOCalculation_, bobOrderIOCalculation_);
+            ._clearStateChange(
+                aliceOrderIOCalculation_,
+                bobOrderIOCalculation_
+            );
 
         _recordVaultIO(
             alice_,

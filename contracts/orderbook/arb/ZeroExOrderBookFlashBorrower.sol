@@ -146,7 +146,9 @@ contract ZeroExOrderBookFlashBorrower is
             type(uint256).max
         );
 
-        if (!orderBook.flashLoan(this, flashLoanToken_, flashLoanAmount_, data_)) {
+        if (
+            !orderBook.flashLoan(this, flashLoanToken_, flashLoanAmount_, data_)
+        ) {
             revert FlashLoanFailed();
         }
 

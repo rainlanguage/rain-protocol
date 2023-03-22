@@ -288,7 +288,12 @@ contract SeedDance {
         // Enforce individual time constraints.
         require(
             block.timestamp <=
-                canRevealUntil(sharedSeed, danceStartedAt, timeBound_, msg.sender),
+                canRevealUntil(
+                    sharedSeed,
+                    danceStartedAt,
+                    timeBound_,
+                    msg.sender
+                ),
             "CANT_REVEAL"
         );
 

@@ -50,12 +50,16 @@ export const getOrderConfig = async (
       },
     ],
     evaluableConfig,
-    meta: orderData
+    meta: orderData,
   };
 
   return orderConfig;
-}; 
+};
 
-export const encodeMeta = (data:string) => {
-  return "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase() + hexlify(ethers.utils.toUtf8Bytes(data)).split('x')[1]
-}
+export const encodeMeta = (data: string) => {
+  return (
+    "0x" +
+    MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase() +
+    hexlify(ethers.utils.toUtf8Bytes(data)).split("x")[1]
+  );
+};

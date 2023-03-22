@@ -32,7 +32,7 @@ describe("Verify construction", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory =await flowCloneFactory();
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should construct and initialize correctly", async function () {
