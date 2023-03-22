@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import {Cooldown} from "../cooldown/Cooldown.sol";
+import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
 import "../math/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
@@ -66,8 +66,8 @@ struct SaleConstructorConfig {
 struct SaleConfig {
     address recipient;
     address reserve;
-    uint256 saleTimeout;
-    uint256 cooldownDuration;
+    uint32 saleTimeout;
+    uint32 cooldownDuration;
     uint256 minimumRaise;
     uint256 dustSize;
     EvaluableConfig evaluableConfig;
