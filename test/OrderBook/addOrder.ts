@@ -25,6 +25,7 @@ import { fixedPointDiv } from "../../utils/math";
 import { compareStructs } from "../../utils/test/compareStructs";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -55,7 +56,7 @@ describe("OrderBook add order", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     // Order_A
 
@@ -128,7 +129,7 @@ describe("OrderBook add order", async function () {
       bRatio,
     ]);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [source_B, []],
