@@ -2307,7 +2307,7 @@ describe("OrderBook clear order", async function () {
         await orderBook
           .connect(bountyBot)
           .clear(Order_A, bigConfigInvalid0, clearConfig, [], []),
-      `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
+      `TokenMismatch("${tokenA.address}", "${tokenB.address}")`,
       "did not validate output token"
     );
   });
