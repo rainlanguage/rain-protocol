@@ -12,3 +12,4 @@ export * from "./readWriteTier";
 export * from "./sale";
 export * from "./stake";
 export * from "./verify";
+export * from "./zeroExOrderBookFlashBorrower";

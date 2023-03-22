@@ -20,4 +20,6 @@ export const deployOrderbook = async (
   const OrderBook = (await orderBookFactory.deploy(config)) as OrderBookType;
 
   registerContract("OrderBook", OrderBook.address, config);
+
+  return OrderBook;
 };
