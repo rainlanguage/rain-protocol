@@ -86,7 +86,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         baseURI = config_.baseURI;
-        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+        flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
 
         if (config_.evaluableConfig.sources.length > 0) {
             evalHandleTransfer = config_.evaluableConfig.sources[0].length > 0;

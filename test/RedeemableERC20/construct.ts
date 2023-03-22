@@ -7,7 +7,6 @@ import { ReserveToken } from "../../typechain/contracts/test/testToken/ReserveTo
 import { ReadWriteTier } from "../../typechain/contracts/test/tier/TierV2/ReadWriteTier";
 import * as Util from "../../utils";
 import {
-  basicDeploy,
   readWriteTierDeploy,
   redeemableERC20DeployClone,
   redeemableERC20DeployImplementation,

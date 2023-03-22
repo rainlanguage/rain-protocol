@@ -99,7 +99,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
 
-        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+        flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     function _dispatch(

@@ -6,7 +6,6 @@ import type { CloneFactory, Verify } from "../../typechain";
 import { BanEvent } from "../../typechain/contracts/verify/Verify";
 import {
   assertError,
-  basicDeploy,
   getBlockTimestamp,
   getEventArgs,
   verifyCloneDeploy,

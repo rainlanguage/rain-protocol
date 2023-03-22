@@ -10,7 +10,6 @@ import type {
 import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
 import {
-  basicDeploy,
   readWriteTierDeploy,
   redeemableERC20DeployClone,
   redeemableERC20DeployImplementation,

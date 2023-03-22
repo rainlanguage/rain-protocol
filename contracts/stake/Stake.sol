@@ -182,6 +182,7 @@ contract Stake is
         __ERC4626_init(config_.asset);
         tierV2Init();
 
+        emit Initialize(msg.sender, config_);
         (interpreter, , expression) = config_
             .evaluableConfig
             .deployer
@@ -193,7 +194,6 @@ contract Stake is
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
-        emit Initialize(msg.sender, config_);
     }
 
     /// General purpose eval for setting context, dispatching and catching the
@@ -345,10 +345,10 @@ contract Stake is
         if (receiver_ == address(0)) {
             revert ZeroDepositReceiver();
         }
-        if (assets_ == 0) {
+        if (assets_ < 1) {
             revert ZeroDepositAssets();
         }
-        if (shares_ == 0) {
+        if (shares_ < 1) {
             revert ZeroDepositShares();
         }
 
@@ -371,10 +371,10 @@ contract Stake is
         if (owner_ == address(0)) {
             revert ZeroWithdrawOwner();
         }
-        if (assets_ == 0) {
+        if (assets_ < 1) {
             revert ZeroWithdrawAssets();
         }
-        if (shares_ == 0) {
+        if (shares_ < 1) {
             revert ZeroWithdrawShares();
         }
 

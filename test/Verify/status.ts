@@ -2,8 +2,6 @@ import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
-
-import { basicDeploy } from "../../utils";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,

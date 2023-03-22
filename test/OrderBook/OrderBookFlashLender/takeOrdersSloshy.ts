@@ -34,6 +34,7 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+import { encodeMeta } from "../../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -99,7 +100,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -211,10 +212,6 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                           },
                         ],
                       },
-                      {
-                        name: "data",
-                        type: "bytes",
-                      },
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },
@@ -305,7 +302,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook

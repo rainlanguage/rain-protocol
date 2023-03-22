@@ -80,7 +80,7 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
 
-        __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
+        flowCommonInit(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
     }
 
     function _dispatch(

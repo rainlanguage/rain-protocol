@@ -210,11 +210,11 @@ contract SeedDance {
 
     /// The current shared seed that embodies all current revealed secrets from
     /// the dance. Will be initialized when `_start` is called and zero before.
-    Seed internal _sharedSeed;
+    Seed public sharedSeed;
 
     /// The timestamp the dance was started at. Will be 0 before the dance has
     /// started.
-    uint32 private _startedAt;
+    uint32 public danceStartedAt;
 
     /// All AVAILABLE commitments from all addresses who called `_commit`.
     /// Each commitment is DELETED from storage when the owner calls `_reveal`.
@@ -223,8 +223,8 @@ contract SeedDance {
 
     /// Require this function to only be callable before the dance has started.
     modifier onlyNotStarted() {
-        if (_startedAt > 0) {
-            require(block.timestamp < _startedAt, "STARTED");
+        if (danceStartedAt > 0) {
+            require(block.timestamp < danceStartedAt, "STARTED");
         }
         _;
     }
@@ -237,8 +237,8 @@ contract SeedDance {
     /// into oblivion during the dance.
     function _start(Seed initialSeed_) internal onlyNotStarted {
         // Initialize the dance.
-        _startedAt = uint32(block.timestamp);
-        _sharedSeed = initialSeed_;
+        danceStartedAt = uint32(block.timestamp);
+        sharedSeed = initialSeed_;
 
         // Tell the world.
         emit Start(msg.sender, initialSeed_);
@@ -288,7 +288,12 @@ contract SeedDance {
         // Enforce individual time constraints.
         require(
             block.timestamp <=
-                canRevealUntil(_sharedSeed, _startedAt, timeBound_, msg.sender),
+                canRevealUntil(
+                    sharedSeed,
+                    danceStartedAt,
+                    timeBound_,
+                    msg.sender
+                ),
             "CANT_REVEAL"
         );
 
@@ -303,8 +308,8 @@ contract SeedDance {
         _commitments[msg.sender] = LibCommitment.nil();
 
         // Build the new shared seed.
-        Seed newSeed_ = LibSeed.with(_sharedSeed, Secret.unwrap(secret_));
-        _sharedSeed = newSeed_;
+        Seed newSeed_ = LibSeed.with(sharedSeed, Secret.unwrap(secret_));
+        sharedSeed = newSeed_;
 
         // Notify the world.
         emit Reveal(msg.sender, secret_, newSeed_);

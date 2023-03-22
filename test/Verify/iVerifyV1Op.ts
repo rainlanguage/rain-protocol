@@ -11,7 +11,6 @@ import type {
 import * as Util from "../../utils";
 import {
   AllStandardOps,
-  basicDeploy,
   getBlockTimestamp,
   op,
   verifyCloneDeploy,

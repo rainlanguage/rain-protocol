@@ -7,10 +7,6 @@ import {SeedDance, Seed, Commitment, TimeBound, Secret} from "../../../dance/See
 /// Thin wrapper around the `SeedDance` contract to expose internal functions
 /// for testing
 contract SeedDanceTest is SeedDance {
-    function sharedSeed() external view returns (Seed) {
-        return _sharedSeed;
-    }
-
     function start(Seed initialSeed_) external {
         _start(initialSeed_);
     }
