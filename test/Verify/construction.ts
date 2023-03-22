@@ -6,7 +6,6 @@ import {
   InitializeEvent,
   VerifyConfigStruct,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils";
 import {
   APPROVER,
   APPROVER_ADMIN,

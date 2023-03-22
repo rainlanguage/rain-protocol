@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
 import {
@@ -35,8 +35,6 @@ import {
 } from "../../utils/test/compareStructs";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
-import { MAGIC_NUMBERS } from "../../utils/meta/cbor";
-import { arrayify } from "rainlang";
 import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
@@ -72,7 +70,7 @@ describe("OrderBook bounty", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    let aliceOrder = encodeMeta("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     // Order_A
 

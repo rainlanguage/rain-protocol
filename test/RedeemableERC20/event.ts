@@ -15,7 +15,6 @@ import {
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
 import {
-  basicDeploy,
   getEventArgs,
   readWriteTierDeploy,
   redeemableERC20DeployClone,

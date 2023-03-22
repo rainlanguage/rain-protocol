@@ -3,7 +3,6 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import {
-  basicDeploy,
   getBlockTimestamp,
   max_uint32,
   verifyCloneDeploy,

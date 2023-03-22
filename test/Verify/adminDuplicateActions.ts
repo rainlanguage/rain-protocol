@@ -7,7 +7,6 @@ import {
   ApproveEvent,
   BanEvent,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,

@@ -4,7 +4,6 @@ import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
