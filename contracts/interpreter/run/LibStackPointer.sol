@@ -232,7 +232,7 @@ library LibStackPointer {
         assembly ("memory-safe") {
             for {
                 let refCursor_ := add(refs_, 0x20)
-                let refEnd_ := add(refCursor_, mul(structsLength_, 0x20))
+                let refEnd_ := add(refCursor_, mul(mload(refs_), 0x20))
                 let tempCursor_ := add(tempArray_, 0x20)
                 let tempStepSize_ := mul(structSize_, 0x20)
             } lt(refCursor_, refEnd_) {

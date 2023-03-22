@@ -25,9 +25,9 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 error NotOrderOwner(address sender, address owner);
 
 /// Thrown when the input and output tokens don't match, in either direction.
-/// @param a The input or output of one order.
-/// @param b The input or output of the other order that doesn't match a.
-error TokenMismatch(address a, address b);
+/// @param aliceToken The input or output of one order.
+/// @param bobToken The input or output of the other order that doesn't match a.
+error TokenMismatch(address aliceToken, address bobToken);
 
 /// Thrown when the minimum input is not met.
 /// @param minimumInput The minimum input required.
@@ -37,10 +37,6 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// Thrown when two orders have the same owner during clear.
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
-
-/// Thrown when an order already exists and is live but is being added again.
-/// @param orderHash The order hash that is already live.
-error DuplicateOrder(uint256 orderHash);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
@@ -220,15 +216,6 @@ contract OrderBook is
             config_.validOutputs
         );
         uint256 orderHash_ = order_.hash();
-
-        // Adding the same order more than once is an error. It would be
-        // idempotent to add it a second time, except that the metadata would be
-        // re-emitted and potentially cause confusion with two different metas
-        // referencing the same onchain hash, without first removing the old
-        // order.
-        if (orders[orderHash_] != DEAD_ORDER) {
-            revert DuplicateOrder(orderHash_);
-        }
 
         orders[orderHash_] = LIVE_ORDER;
         emit AddOrder(
@@ -413,8 +400,8 @@ contract OrderBook is
                 alice_.validInputs[clearConfig_.aliceInputIOIndex].token
             ) {
                 revert TokenMismatch(
-                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token,
-                    alice_.validInputs[clearConfig_.aliceInputIOIndex].token
+                    alice_.validInputs[clearConfig_.aliceInputIOIndex].token,
+                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token
                 );
             }
 

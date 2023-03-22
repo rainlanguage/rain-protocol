@@ -371,10 +371,10 @@ contract Stake is
         if (owner_ == address(0)) {
             revert ZeroWithdrawOwner();
         }
-        if (assets_ == 0) {
+        if (assets_ < 1) {
             revert ZeroWithdrawAssets();
         }
-        if (shares_ == 0) {
+        if (shares_ < 1) {
             revert ZeroWithdrawShares();
         }
 
