@@ -59,8 +59,7 @@ contract FlowCommon is
         _disableInitializers();
     }
 
-    // solhint-disable-next-line func-name-mixedcase
-    function __FlowCommon_init(
+    function flowCommonInit(
         EvaluableConfig[] memory evaluableConfigs_,
         uint256 flowMinOutputs_
     ) internal onlyInitializing {
