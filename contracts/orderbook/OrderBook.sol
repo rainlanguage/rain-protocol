@@ -38,6 +38,10 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
 
+/// Thrown when an order already exists and is live but is being added again.
+/// @param orderHash The order hash that is already live.
+error DuplicateOrder(uint256 orderHash);
+
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
     0x295bf57b1f715df5fbc21f89597608f86bfc85ef4576b452f5659ff3ea465aa5
@@ -213,10 +217,19 @@ contract OrderBook is
                 .length > 0,
             Evaluable(interpreter_, store_, expression_),
             config_.validInputs,
-            config_.validOutputs,
-            config_.data
+            config_.validOutputs
         );
         uint256 orderHash_ = order_.hash();
+
+        // Adding the same order more than once is an error. It would be
+        // idempotent to add it a second time, except that the metadata would be
+        // re-emitted and potentially cause confusion with two different metas
+        // referencing the same onchain hash, without first removing the old
+        // order.
+        if (orders[orderHash_] != DEAD_ORDER) {
+            revert DuplicateOrder(orderHash_);
+        }
+
         orders[orderHash_] = LIVE_ORDER;
         emit AddOrder(
             msg.sender,
@@ -224,6 +237,11 @@ contract OrderBook is
             order_,
             orderHash_
         );
+
+        if (config_.meta.length > 0) {
+            LibMeta.checkMetaUnhashed(config_.meta);
+            emit MetaV1(msg.sender, orderHash_, config_.meta);
+        }
     }
 
     function _calculateOrderDispatch(
@@ -370,97 +388,97 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function clear(
-        Order memory a_,
-        Order memory b_,
+        Order memory alice_,
+        Order memory bob_,
         ClearConfig calldata clearConfig_,
-        SignedContext[] memory aSignedContext_,
-        SignedContext[] memory bSignedContext_
+        SignedContext[] memory aliceSignedContext_,
+        SignedContext[] memory bobSignedContext_
     ) external nonReentrant {
         {
-            if (a_.owner == b_.owner) {
-                revert SameOwner(a_.owner);
+            if (alice_.owner == bob_.owner) {
+                revert SameOwner(alice_.owner);
             }
             if (
-                a_.validOutputs[clearConfig_.aOutputIOIndex].token !=
-                b_.validInputs[clearConfig_.bInputIOIndex].token
+                alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token !=
+                bob_.validInputs[clearConfig_.bobInputIOIndex].token
             ) {
                 revert TokenMismatch(
-                    a_.validOutputs[clearConfig_.aOutputIOIndex].token,
-                    b_.validInputs[clearConfig_.bInputIOIndex].token
+                    alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token,
+                    bob_.validInputs[clearConfig_.bobInputIOIndex].token
                 );
             }
 
             if (
-                b_.validOutputs[clearConfig_.bOutputIOIndex].token !=
-                a_.validInputs[clearConfig_.aInputIOIndex].token
+                bob_.validOutputs[clearConfig_.bobOutputIOIndex].token !=
+                alice_.validInputs[clearConfig_.aliceInputIOIndex].token
             ) {
                 revert TokenMismatch(
-                    b_.validOutputs[clearConfig_.bOutputIOIndex].token,
-                    a_.validInputs[clearConfig_.aInputIOIndex].token
+                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token,
+                    alice_.validInputs[clearConfig_.aliceInputIOIndex].token
                 );
             }
 
             // If either order is dead the clear is a no-op other than emitting
             // `OrderNotFound`. Returning rather than erroring makes it easier to
             // bulk clear using `Multicall`.
-            if (orders[a_.hash()] == DEAD_ORDER) {
-                emit OrderNotFound(msg.sender, a_.owner, a_.hash());
+            if (orders[alice_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, alice_.owner, alice_.hash());
                 return;
             }
-            if (orders[b_.hash()] == DEAD_ORDER) {
-                emit OrderNotFound(msg.sender, b_.owner, b_.hash());
+            if (orders[bob_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, bob_.owner, bob_.hash());
                 return;
             }
 
             // Emit the Clear event before `eval`.
-            emit Clear(msg.sender, a_, b_, clearConfig_);
+            emit Clear(msg.sender, alice_, bob_, clearConfig_);
         }
-        OrderIOCalculation memory aOrderIOCalculation_ = _calculateOrderIO(
-            a_,
-            clearConfig_.aInputIOIndex,
-            clearConfig_.aOutputIOIndex,
-            b_.owner,
-            bSignedContext_
+        OrderIOCalculation memory aliceOrderIOCalculation_ = _calculateOrderIO(
+            alice_,
+            clearConfig_.aliceInputIOIndex,
+            clearConfig_.aliceOutputIOIndex,
+            bob_.owner,
+            bobSignedContext_
         );
-        OrderIOCalculation memory bOrderIOCalculation_ = _calculateOrderIO(
-            b_,
-            clearConfig_.bInputIOIndex,
-            clearConfig_.bOutputIOIndex,
-            a_.owner,
-            aSignedContext_
+        OrderIOCalculation memory bobOrderIOCalculation_ = _calculateOrderIO(
+            bob_,
+            clearConfig_.bobInputIOIndex,
+            clearConfig_.bobOutputIOIndex,
+            alice_.owner,
+            aliceSignedContext_
         );
         ClearStateChange memory clearStateChange_ = LibOrderBook
-            ._clearStateChange(aOrderIOCalculation_, bOrderIOCalculation_);
+            ._clearStateChange(aliceOrderIOCalculation_, bobOrderIOCalculation_);
 
         _recordVaultIO(
-            a_,
-            clearStateChange_.aInput,
-            clearStateChange_.aOutput,
-            aOrderIOCalculation_
+            alice_,
+            clearStateChange_.aliceInput,
+            clearStateChange_.aliceOutput,
+            aliceOrderIOCalculation_
         );
         _recordVaultIO(
-            b_,
-            clearStateChange_.bInput,
-            clearStateChange_.bOutput,
-            bOrderIOCalculation_
+            bob_,
+            clearStateChange_.bobInput,
+            clearStateChange_.bobOutput,
+            bobOrderIOCalculation_
         );
 
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            uint256 aBounty_ = clearStateChange_.aOutput -
-                clearStateChange_.bInput;
-            uint256 bBounty_ = clearStateChange_.bOutput -
-                clearStateChange_.aInput;
-            if (aBounty_ > 0) {
+            uint256 aliceBounty_ = clearStateChange_.aliceOutput -
+                clearStateChange_.bobInput;
+            uint256 bobBounty_ = clearStateChange_.bobOutput -
+                clearStateChange_.aliceInput;
+            if (aliceBounty_ > 0) {
                 vaultBalance[msg.sender][
-                    a_.validOutputs[clearConfig_.aOutputIOIndex].token
-                ][clearConfig_.aBountyVaultId] += aBounty_;
+                    alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token
+                ][clearConfig_.aliceBountyVaultId] += aliceBounty_;
             }
-            if (bBounty_ > 0) {
+            if (bobBounty_ > 0) {
                 vaultBalance[msg.sender][
-                    b_.validOutputs[clearConfig_.bOutputIOIndex].token
-                ][clearConfig_.bBountyVaultId] += bBounty_;
+                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token
+                ][clearConfig_.bobBountyVaultId] += bobBounty_;
             }
         }
 
