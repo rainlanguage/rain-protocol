@@ -345,10 +345,10 @@ contract Stake is
         if (receiver_ == address(0)) {
             revert ZeroDepositReceiver();
         }
-        if (assets_ == 0) {
+        if (assets_ < 1) {
             revert ZeroDepositAssets();
         }
-        if (shares_ == 0) {
+        if (shares_ < 1) {
             revert ZeroDepositShares();
         }
 
