@@ -39,7 +39,7 @@ import {
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { getOrderConfig } from "../../utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../../utils/orderBook/order";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
@@ -82,7 +82,7 @@ describe("OrderBook take orders", async function () {
 
     const outputMax_A = amountB.sub(1); // will only sell 999 tokenBs to each buyer
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -96,7 +96,7 @@ describe("OrderBook take orders", async function () {
       aliceOrder
     );
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -205,7 +205,7 @@ describe("OrderBook take orders", async function () {
     // ORDERS
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -219,7 +219,7 @@ describe("OrderBook take orders", async function () {
       aliceOrder
     );
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -401,7 +401,7 @@ describe("OrderBook take orders", async function () {
         { token: tokenY.address, decimals: YDec, vaultId },
       ],
       evaluableConfig: evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
@@ -542,7 +542,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -554,7 +554,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -792,7 +792,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -804,7 +804,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1042,7 +1042,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1054,7 +1054,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1292,7 +1292,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1304,7 +1304,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1542,7 +1542,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1554,7 +1554,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1792,7 +1792,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1804,7 +1804,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2040,7 +2040,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2052,7 +2052,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2242,7 +2242,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2254,7 +2254,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2444,7 +2444,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2456,7 +2456,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2646,7 +2646,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2658,7 +2658,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2848,7 +2848,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2860,7 +2860,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -3050,7 +3050,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -3062,7 +3062,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -3226,8 +3226,8 @@ describe("OrderBook take orders", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const aliceOrder = encodeMeta("Order_A");
+    const bobOrder = encodeMeta("Order_B");
 
     // ORDERS
 
@@ -3365,7 +3365,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 0
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
@@ -3497,8 +3497,8 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder0 = ethers.utils.toUtf8Bytes("Order0");
-    const aliceOrder1 = ethers.utils.toUtf8Bytes("Order1");
+    const aliceOrder0 = encodeMeta("Order0");
+    const aliceOrder1 = encodeMeta("Order1");
 
     // ASK ORDER 0
 
@@ -3623,7 +3623,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     // ASK ORDER
 
@@ -3735,8 +3735,8 @@ describe("OrderBook take orders", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const aliceOrder = encodeMeta("Order_A");
+    const bobOrder = encodeMeta("Order_B");
 
     // ORDERS
 
@@ -3910,7 +3910,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     // ASK ORDER
 
@@ -4113,7 +4113,7 @@ describe("OrderBook take orders", async function () {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -4370,7 +4370,7 @@ describe("OrderBook take orders", async function () {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -4450,7 +4450,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     // ASK ORDER
 
@@ -4656,7 +4656,7 @@ describe("OrderBook take orders", async function () {
       tokenB06.address,
       tokenBDecimals,
       aliceOutputVault,
-      null
+      encodeMeta("")
     );
 
     const txAddOrderAlice = await orderBook
@@ -4789,7 +4789,7 @@ describe("OrderBook take orders", async function () {
       tokenB18.address,
       tokenBDecimals,
       aliceOutputVault,
-      null
+      encodeMeta("")
     );
 
     const txAddOrderAlice = await orderBook

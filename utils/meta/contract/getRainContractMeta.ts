@@ -87,7 +87,11 @@ export const getRainMetaDocumentFromContract = (
 
   // -- Encoding ContractMeta with CBOR
   // Obtain Contract Meta as string (Deflated JSON) and parse it to an ArrayBuffer
-  const contractMeta = arrayify(getRainContractMetaBytes(contract)).buffer;
+  const contractMeta = arrayify(getRainContractMetaBytes(contract)).buffer; 
+  // console.log("contractMeta : " , contractMeta )
+  // console.log("getRainContractMetaBytes(contract) : " , getRainContractMetaBytes(contract) )
+
+  
   const contractMetaEncoded = cborEncode(
     contractMeta,
     MAGIC_NUMBERS.CONTRACT_META_V1,
@@ -95,7 +99,9 @@ export const getRainMetaDocumentFromContract = (
     {
       contentEncoding: "deflate",
     }
-  );
+  ); 
+
+  // console.log("contractMetaEncoded : " , contractMetaEncoded )
 
   // -- Enconding Contract JSON ABIv2 with CBOR
   // Obtain ABIv2 as string (Deflated JSON) and parse it to an ArrayBuffer

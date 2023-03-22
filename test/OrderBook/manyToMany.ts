@@ -35,6 +35,7 @@ import {
 } from "../../utils/test/compareStructs";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -88,7 +89,7 @@ describe("OrderBook many-to-many", async function () {
       vMaxAmount,
       vThreshold,
     ]);
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     const evaluableConfig = await generateEvaluableConfig(
       [source, []],
@@ -109,7 +110,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
       evaluableConfig: evaluableConfig,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const _txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
@@ -146,7 +147,7 @@ describe("OrderBook many-to-many", async function () {
       aOpMax,
       aRatio,
     ]);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
       [source_A, []],
@@ -163,7 +164,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenD.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
@@ -194,7 +195,7 @@ describe("OrderBook many-to-many", async function () {
       bOpMax,
       bRatio,
     ]);
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [source_B, []],
@@ -211,7 +212,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenC.address, decimals: 18, vaultId: bobInputVault },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);
@@ -287,12 +288,12 @@ describe("OrderBook many-to-many", async function () {
     // BOUNTY BOT CLEARS THE ORDERS
 
     const clearConfig0: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
@@ -300,8 +301,8 @@ describe("OrderBook many-to-many", async function () {
 
     const {
       sender: clearSender0,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: clearBountyConfig0,
     } = (await getEventArgs(
       txClearOrder0,
@@ -328,10 +329,10 @@ describe("OrderBook many-to-many", async function () {
     );
 
     const expectedClearStateChange0: ClearStateChangeStruct = {
-      aOutput: aOutputExpected0,
-      bOutput: bOutputExpected0,
-      aInput: fixedPointMul(ratio_A, aOutputExpected0),
-      bInput: fixedPointMul(ratio_B, bOutputExpected0),
+      aliceOutput: aOutputExpected0,
+      bobOutput: bOutputExpected0,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected0),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected0),
     };
 
     assert(afterClearSender0 === bountyBot.address);
@@ -342,12 +343,12 @@ describe("OrderBook many-to-many", async function () {
     compareStructs(clearStateChange0, expectedClearStateChange0);
 
     const clearConfig1: ClearConfigStruct = {
-      aInputIOIndex: 1,
-      aOutputIOIndex: 1,
-      bInputIOIndex: 1,
-      bOutputIOIndex: 1,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 1,
+      aliceOutputIOIndex: 1,
+      bobInputIOIndex: 1,
+      bobOutputIOIndex: 1,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
@@ -355,8 +356,8 @@ describe("OrderBook many-to-many", async function () {
 
     const {
       sender: clearSender1,
-      a: clearC_,
-      b: clearD_,
+      alice: clearC_,
+      bob: clearD_,
       clearConfig: clearBountyConfig1,
     } = (await getEventArgs(
       txClearOrder1,
@@ -383,10 +384,10 @@ describe("OrderBook many-to-many", async function () {
     );
 
     const expectedClearStateChange1: ClearStateChangeStruct = {
-      aOutput: cOutputExpected1,
-      bOutput: dOutputExpected1,
-      aInput: fixedPointMul(ratio_A, cOutputExpected1),
-      bInput: fixedPointMul(ratio_B, dOutputExpected1),
+      aliceOutput: cOutputExpected1,
+      bobOutput: dOutputExpected1,
+      aliceInput: fixedPointMul(ratio_A, cOutputExpected1),
+      bobInput: fixedPointMul(ratio_B, dOutputExpected1),
     };
 
     assert(afterClearSender1 === bountyBot.address);
@@ -426,7 +427,7 @@ describe("OrderBook many-to-many", async function () {
       aOpMax,
       aRatio,
     ]);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
       [source_A, []],
@@ -443,7 +444,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
@@ -474,7 +475,7 @@ describe("OrderBook many-to-many", async function () {
       bOpMax,
       bRatio,
     ]);
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [source_B, []],
@@ -491,7 +492,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);

@@ -44,7 +44,7 @@ error DuplicateOrder(uint256 orderHash);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x295bf57b1f715df5fbc21f89597608f86bfc85ef4576b452f5659ff3ea465aa5
+    0xd29334e2c559599e3489772471f4b04d042e95b690d25989ef139d0555cb868a
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.

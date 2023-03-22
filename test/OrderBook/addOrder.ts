@@ -88,7 +88,7 @@ describe("OrderBook add order", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
@@ -143,7 +143,7 @@ describe("OrderBook add order", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txOrderB = await orderBook.connect(bob).addOrder(orderConfig_B);

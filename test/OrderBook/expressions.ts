@@ -48,6 +48,7 @@ import {
   ClearStateChangeStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/orderbook/IOrderBookV1";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = RainterpreterOps;
 
@@ -91,7 +92,7 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const constantsA = [max_uint256, ratio_A, bob.address, contextValB];
     const vOpMaxA = op(
@@ -156,7 +157,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: evaluableConfigA,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txAddOrderAlice = await orderBook
@@ -176,7 +177,7 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const constantsB = [max_uint256, ratio_B, alice.address, contextValA];
     const vOpMaxB = op(
@@ -242,7 +243,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: evaluableConfigB,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
@@ -312,12 +313,12 @@ describe("OrderBook expression checks", async () => {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     //Building Signed Context A
@@ -352,8 +353,8 @@ describe("OrderBook expression checks", async () => {
 
     const {
       sender: clearSender,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -380,10 +381,10 @@ describe("OrderBook expression checks", async () => {
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
-      aOutput: aOutputExpected,
-      bOutput: bOutputExpected,
-      aInput: fixedPointMul(ratio_A, aOutputExpected),
-      bInput: fixedPointMul(ratio_B, bOutputExpected),
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(afterClearSender === bountyBot.address);
@@ -547,7 +548,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -769,7 +770,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -949,7 +950,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -1175,7 +1176,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -1367,7 +1368,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -1568,7 +1569,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -1764,7 +1765,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -1998,7 +1999,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -2135,7 +2136,7 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ensure, 1)
    ]);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     const EvaluableConfig = await generateEvaluableConfig(
       [calculateSoruce, handleSource],
@@ -2150,7 +2151,7 @@ describe("OrderBook expression checks", async () => {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
@@ -2281,7 +2282,7 @@ describe("OrderBook expression checks", async () => {
       vRatio
     ]);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
     const EvaluableConfig = await generateEvaluableConfig(
       [calculateSoruce, []],
       constants_A
@@ -2295,7 +2296,7 @@ describe("OrderBook expression checks", async () => {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
@@ -2443,7 +2444,7 @@ describe("OrderBook expression checks", async () => {
         },
       ],
       evaluableConfig: EvaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook

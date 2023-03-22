@@ -26,7 +26,7 @@ import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { getOrderConfig } from "../../utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../../utils/orderBook/order";
 import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
@@ -98,7 +98,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        ethers.utils.toUtf8Bytes("Order_A")
+        encodeMeta("Order_A")
       );
 
       const txAddOrderAlice = await orderBook
@@ -123,7 +123,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txBobAddOrder = await orderBook
         .connect(bob)
@@ -168,12 +168,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -254,7 +254,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -279,7 +279,7 @@ describe("OrderBook clear order", async function () {
         tokenA20.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txBobAddOrder = await orderBook
         .connect(bob)
@@ -324,12 +324,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -410,7 +410,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -435,7 +435,7 @@ describe("OrderBook clear order", async function () {
         tokenA18.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderBob = await orderBook
@@ -481,12 +481,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -567,7 +567,7 @@ describe("OrderBook clear order", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -590,7 +590,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -635,12 +635,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -721,7 +721,7 @@ describe("OrderBook clear order", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -746,7 +746,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -791,12 +791,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -877,7 +877,7 @@ describe("OrderBook clear order", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -901,7 +901,7 @@ describe("OrderBook clear order", async function () {
         tokenA00.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -946,12 +946,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1031,7 +1031,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1055,7 +1055,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1100,12 +1100,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1168,7 +1168,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1192,7 +1192,7 @@ describe("OrderBook clear order", async function () {
         tokenA20.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1237,12 +1237,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1305,7 +1305,7 @@ describe("OrderBook clear order", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1329,7 +1329,7 @@ describe("OrderBook clear order", async function () {
         tokenA18.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1374,12 +1374,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1442,7 +1442,7 @@ describe("OrderBook clear order", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1466,7 +1466,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1511,12 +1511,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1579,7 +1579,7 @@ describe("OrderBook clear order", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1603,7 +1603,7 @@ describe("OrderBook clear order", async function () {
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1648,12 +1648,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1716,7 +1716,7 @@ describe("OrderBook clear order", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1740,7 +1740,7 @@ describe("OrderBook clear order", async function () {
         tokenA00.address,
         tokenADecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -1784,12 +1784,12 @@ describe("OrderBook clear order", async function () {
       // BOUNTY BOT CLEARS THE ORDER
 
       const clearConfig: ClearConfigStruct = {
-        aInputIOIndex: 0,
-        aOutputIOIndex: 0,
-        bInputIOIndex: 0,
-        bOutputIOIndex: 0,
-        aBountyVaultId: bountyBotVaultA,
-        bBountyVaultId: bountyBotVaultB,
+        aliceInputIOIndex: 0,
+        aliceOutputIOIndex: 0,
+        bobInputIOIndex: 0,
+        bobOutputIOIndex: 0,
+        aliceBountyVaultId: bountyBotVaultA,
+        bobBountyVaultId: bountyBotVaultB,
       };
 
       await orderBook
@@ -1829,7 +1829,7 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -1859,7 +1859,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -1947,12 +1947,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -1991,7 +1991,7 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -2026,7 +2026,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -2110,12 +2110,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -2155,7 +2155,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -2185,7 +2185,7 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -2266,12 +2266,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     // Override Order_B config
@@ -2331,7 +2331,7 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -2362,7 +2362,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -2445,12 +2445,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = orderBook
@@ -2482,7 +2482,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -2513,7 +2513,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -2594,12 +2594,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -2608,8 +2608,8 @@ describe("OrderBook clear order", async function () {
 
     const {
       sender: clearSender,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -2636,10 +2636,10 @@ describe("OrderBook clear order", async function () {
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
-      aOutput: aOutputExpected,
-      bOutput: bOutputExpected,
-      aInput: fixedPointMul(ratio_A, aOutputExpected),
-      bInput: fixedPointMul(ratio_B, bOutputExpected),
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(afterClearSender === bountyBot.address);
@@ -2693,7 +2693,7 @@ describe("OrderBook clear order", async function () {
       tokenB18.address,
       tokenBDecimals,
       aliceOutputVault,
-      null
+      encodeMeta("")
     );
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -2718,7 +2718,7 @@ describe("OrderBook clear order", async function () {
       tokenA06.address,
       incorrectTokenADecimals,
       bobOutputVault,
-      []
+      encodeMeta("")
     );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
@@ -2771,12 +2771,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     await orderBook
@@ -2839,7 +2839,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -2874,7 +2874,7 @@ describe("OrderBook clear order", async function () {
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_B,
@@ -2959,12 +2959,12 @@ describe("OrderBook clear order", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -2973,8 +2973,8 @@ describe("OrderBook clear order", async function () {
 
     const {
       sender: clearSender,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -3000,10 +3000,10 @@ describe("OrderBook clear order", async function () {
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
-      aOutput: aOutputExpected,
-      bOutput: bOutputExpected,
-      aInput: fixedPointMul(ratio_A, aOutputExpected),
-      bInput: fixedPointMul(ratio_B, bOutputExpected),
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(clearSender === bountyBot.address);
