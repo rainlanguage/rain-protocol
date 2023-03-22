@@ -182,6 +182,7 @@ contract Stake is
         __ERC4626_init(config_.asset);
         tierV2Init();
 
+        emit Initialize(msg.sender, config_);
         (interpreter, , expression) = config_
             .evaluableConfig
             .deployer
@@ -193,7 +194,6 @@ contract Stake is
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
-        emit Initialize(msg.sender, config_);
     }
 
     /// General purpose eval for setting context, dispatching and catching the
