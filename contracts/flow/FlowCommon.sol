@@ -48,7 +48,7 @@ contract FlowCommon is
     using LibEvaluable for Evaluable;
 
     /// Evaluable hash => is registered
-    mapping(bytes32 => uint256) internal _flows;
+    mapping(bytes32 => uint256) internal registeredFlows;
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
@@ -83,7 +83,7 @@ contract FlowCommon is
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
             evaluable_ = Evaluable(interpreter_, store_, expression_);
-            _flows[evaluable_.hash()] = 1;
+            registeredFlows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }
     }
@@ -101,7 +101,7 @@ contract FlowCommon is
 
     modifier onlyRegisteredEvaluable(Evaluable memory evaluable_) {
         bytes32 hash_ = evaluable_.hash();
-        if (_flows[hash_] == 0) {
+        if (registeredFlows[hash_] == 0) {
             revert UnregisteredFlow(hash_);
         }
         _;

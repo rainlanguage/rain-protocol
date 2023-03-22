@@ -30,8 +30,9 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
         FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
-        flowCommonInit(config_.config, MIN_FLOW_SENTINELS);
         emit Initialize(msg.sender, config_);
+
+        flowCommonInit(config_.config, MIN_FLOW_SENTINELS);
     }
 
     function _previewFlow(
