@@ -512,7 +512,7 @@ describe("Sale refund", async function () {
     await sale.connect(signer1).refund(receipt0);
     await assertError(
       async () => await sale.connect(signer1).refund(receipt1),
-      "COOLDOWN",
+      "ActiveCooldown",
       "did not respect refund cooldown while sale was active"
     );
     await createEmptyBlock(cooldownDuration);

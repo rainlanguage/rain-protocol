@@ -14,79 +14,79 @@
           "name": "Recepient Address",
           "abiName": "recipient",
           "desc": "The recipient of the proceeds of a Sale, if/when the Sale is successful.",
-          "path": "[10].inputs[1].components[0]"
+          "path": "[14].inputs[1].components[0]"
         },
         {
           "name": "Reserve Token Address",
           "abiName": "reserve",
           "desc": "The reserve token address that the Sale is deonominated in.",
-          "path": "[10].inputs[1].components[1]"
+          "path": "[14].inputs[1].components[1]"
         },
         {
           "name": "Sale Timeout",
           "abiName": "saleTimeout",
           "desc": "The number of seconds before this sale can timeout. SHOULD be well after the expected end time as a timeout will fail an active or pending sale regardless of any funds raised.",
-          "path": "[10].inputs[1].components[2]"
+          "path": "[14].inputs[1].components[2]"
         },
         {
           "name": "Cooldown Duration",
           "abiName": "cooldownDuration",
           "desc": "Forwarded to `Cooldown` contract initialization.",
-          "path": "[10].inputs[1].components[3]"
+          "path": "[14].inputs[1].components[3]"
         },
         {
           "name": "Minimum Raise Threshold",
           "abiName": "minimumRaise",
           "desc": "Defines the amount of reserve required to raise that defines success/fail of the sale. Reaching the minimum raise DOES NOT cause the raise to end early (unless the 'can live' expression allows it of course).",
-          "path": "[10].inputs[1].components[4]"
+          "path": "[14].inputs[1].components[4]"
         },
         {
           "name": "Dust Size",
           "abiName": "dustSize",
           "desc": "The minimum amount of rTKN that must remain in the Sale contract unless it is all purchased, clearing the raise to 0 stock and thus ending the raise.",
-          "path": "[10].inputs[1].components[5]"
+          "path": "[14].inputs[1].components[5]"
         },
         {
           "name": "Reddemable ERC20 Name",
           "abiName": "name",
           "desc": "Name of the Redeemable ERC20 token as defined by Open Zeppelin ERC20.",
-          "path": "[10].inputs[2].components[0].components[0]"
+          "path": "[14].inputs[2].components[0].components[0]"
         },
         {
           "name": "Reddemable ERC20 Symbol",
           "abiName": "symbol",
           "desc": "Symbol of the Redeemable ERC20 token as defined by Open Zeppelin ERC20.",
-          "path": "[10].inputs[2].components[0].components[1]"
+          "path": "[14].inputs[2].components[0].components[1]"
         },
         {
           "name": "Reddemable ERC20 Distributor",
           "abiName": "distributor",
           "desc": "Reddemable ERC20 distributor address of the initial supply, MAY be zero.",
-          "path": "[10].inputs[2].components[0].components[2]"
+          "path": "[14].inputs[2].components[0].components[2]"
         },
         {
           "name": "Reddemable ERC20 Initial Supply",
           "abiName": "initialSupply",
           "desc": "Redeemable ERC20 Initial supply to mint, MAY be zero.",
-          "path": "[10].inputs[2].components[0].components[3]"
+          "path": "[14].inputs[2].components[0].components[3]"
         },
         {
           "name": "Tier Address",
           "abiName": "tier",
           "desc": "Tier contract address to gate the sale",
-          "path": "[10].inputs[2].components[1]"
+          "path": "[14].inputs[2].components[1]"
         },
         {
           "name": "Minimum Tier",
           "abiName": "minimumTier",
           "desc": "Minimum tier level of the Tier contract that is gating the sale required in order to be able to participate in the sale",
-          "path": "[10].inputs[2].components[2]"
+          "path": "[14].inputs[2].components[2]"
         },
         {
           "name": "Distribution End Forwarding Address",
           "abiName": "distributionEndForwardingAddress",
           "desc": "Determines if the remaining Redeemable ERC20 tokens after the sale has ended in success should be burned or transfered to the Recepient address, 0x00 address would burn the remaining rTKNs.",
-          "path": "[10].inputs[2].components[3]"
+          "path": "[14].inputs[2].components[3]"
         }
       ],
       "expressions": [
@@ -94,7 +94,7 @@
           "name": "Sale Expression",
           "abiName": "evaluableConfig",
           "desc": "An expression to calculate the rTKN price and sale's can live state.",
-          "path": "[10].inputs[1].components[6]",
+          "path": "[14].inputs[1].components[6]",
           "contextColumns": [
             {
               "name": "Base",

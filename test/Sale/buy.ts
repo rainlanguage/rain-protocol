@@ -374,7 +374,7 @@ describe("Sale buy", async function () {
             distributionEndForwardingAddress: ethers.constants.AddressZero,
           }
         ),
-      "COOLDOWN_0",
+      "ZeroInitCooldown",
       "did not prevent configuring a cooldown of 0 blocks"
     );
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
@@ -441,7 +441,7 @@ describe("Sale buy", async function () {
     // buy some units
     await assertError(
       async () => await sale.connect(signer1).buy(buyConfig),
-      "COOLDOWN",
+      "ActiveCooldown",
       "Cooldown (with non-zero configured cooldown duration) did not revert reentrant buy call"
     );
   });
@@ -546,7 +546,7 @@ describe("Sale buy", async function () {
           desiredUnits: 10,
           maximumPrice: staticPrice,
         }),
-      "COOLDOWN",
+      "ActiveCooldown",
       "successive buy did not trigger cooldown while Sale was Active"
     );
   });

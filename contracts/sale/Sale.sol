@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import {Cooldown} from "../cooldown/Cooldown.sol";
+import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
 import "../math/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
@@ -15,7 +15,6 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/caller/LibContext.sol";
@@ -25,7 +24,7 @@ import "../factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x27dfcfba244497248e18c3748315ff9c32cf018474c9166bdab2e83ae8c177de
+    0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -66,8 +65,8 @@ struct SaleConstructorConfig {
 struct SaleConfig {
     address recipient;
     address reserve;
-    uint256 saleTimeout;
-    uint256 cooldownDuration;
+    uint32 saleTimeout;
+    uint32 cooldownDuration;
     uint256 minimumRaise;
     uint256 dustSize;
     EvaluableConfig evaluableConfig;
@@ -172,8 +171,6 @@ contract Sale is
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -486,6 +483,7 @@ contract Sale is
             uint256[] memory
         )
     {
+        unchecked {
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](CONTEXT_COLUMNS),
             targetUnits_.arrayFrom(),
@@ -500,9 +498,10 @@ contract Sale is
                 _dispatchCalculateBuy(evaluable_.expression),
                 context_
             );
-        (uint256 amount_, uint256 ratio_) = stack_
-            .asStackPointerAfter()
-            .peek2();
+
+        uint256 amount_ = stack_[stack_.length - 2];
+        uint256 ratio_ = stack_[stack_.length - 1];
+
         uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
             amount_,
             ratio_
@@ -510,6 +509,8 @@ contract Sale is
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
         context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
         return (amount_, ratio_, context_, evaluable_.store, kvs_);
+        }
+
     }
 
     function previewCalculateBuy(
