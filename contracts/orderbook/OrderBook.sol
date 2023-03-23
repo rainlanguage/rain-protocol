@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../math/LibFixedPointMath.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -24,9 +25,9 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 error NotOrderOwner(address sender, address owner);
 
 /// Thrown when the input and output tokens don't match, in either direction.
-/// @param a The input or output of one order.
-/// @param b The input or output of the other order that doesn't match a.
-error TokenMismatch(address a, address b);
+/// @param aliceToken The input or output of one order.
+/// @param bobToken The input or output of the other order that doesn't match a.
+error TokenMismatch(address aliceToken, address bobToken);
 
 /// Thrown when the minimum input is not met.
 /// @param minimumInput The minimum input required.
@@ -37,8 +38,9 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
 
+/// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9773273e61696a8cb91a5c73017490844ca866548743541f8ace84f9d5fa2102
+    0x46fe110bf52ba709a3d80747fa101a615fc46eb9ff0fadd4a46d1def682f974f
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -71,23 +73,26 @@ uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
 /// as accounting limits such as current vault balances, etc.
 /// The token address and decimals for vault inputs and outputs IS available to
 /// the calculate order entrypoint, but not the final vault balances/diff.
-uint256 constant CONTEXT_COLUMNS = 4;
+uint256 constant CALLING_CONTEXT_COLUMNS = 4;
+/// @dev Base context from LibContext.
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+
 /// @dev Contextual data available to both calculate order and handle IO. The
 /// order hash, order owner and order counterparty. IMPORTANT NOTE that the
 /// typical base context of an order with the caller will often be an unrelated
 /// clearer of the order rather than the owner or counterparty.
-uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 0;
+uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 1;
 /// @dev Calculations column contains the DECIMAL RESCALED calculations but
 /// otherwise provided as-is according to calculate order entrypoint
-uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 2;
 /// @dev Vault inputs are the literal token amounts and vault balances before and
 /// after for the input token from the perspective of the order. MAY be
 /// significantly different to the calculated amount due to insufficient vault
 /// balances from either the owner or counterparty, etc.
-uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
+uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 3;
 /// @dev Vault outputs are the same as vault inputs but for the output token from
 /// the perspective of the order.
-uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
+uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 4;
 
 /// @dev Row of the token address for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_TOKEN = 0;
@@ -113,7 +118,8 @@ contract OrderBook is
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -144,8 +150,8 @@ contract OrderBook is
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) initializer InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) initializer DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         __ReentrancyGuard_init();
         __Multicall_init();
     }
@@ -207,10 +213,10 @@ contract OrderBook is
                 .length > 0,
             Evaluable(interpreter_, store_, expression_),
             config_.validInputs,
-            config_.validOutputs,
-            config_.data
+            config_.validOutputs
         );
         uint256 orderHash_ = order_.hash();
+
         orders[orderHash_] = LIVE_ORDER;
         emit AddOrder(
             msg.sender,
@@ -218,6 +224,11 @@ contract OrderBook is
             order_,
             orderHash_
         );
+
+        if (config_.meta.length > 0) {
+            LibMeta.checkMetaUnhashed(config_.meta);
+            emit MetaV1(msg.sender, orderHash_, config_.meta);
+        }
     }
 
     function _calculateOrderDispatch(
@@ -295,7 +306,8 @@ contract OrderBook is
                         order_,
                         takeOrder_.inputIOIndex,
                         takeOrder_.outputIOIndex,
-                        msg.sender
+                        msg.sender,
+                        takeOrder_.signedContext
                     );
 
                 // Skip orders that are too expensive rather than revert as we have
@@ -363,93 +375,100 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function clear(
-        Order memory a_,
-        Order memory b_,
-        ClearConfig calldata clearConfig_
+        Order memory alice_,
+        Order memory bob_,
+        ClearConfig calldata clearConfig_,
+        SignedContext[] memory aliceSignedContext_,
+        SignedContext[] memory bobSignedContext_
     ) external nonReentrant {
         {
-            if (a_.owner == b_.owner) {
-                revert SameOwner(a_.owner);
+            if (alice_.owner == bob_.owner) {
+                revert SameOwner(alice_.owner);
             }
             if (
-                a_.validOutputs[clearConfig_.aOutputIOIndex].token !=
-                b_.validInputs[clearConfig_.bInputIOIndex].token
+                alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token !=
+                bob_.validInputs[clearConfig_.bobInputIOIndex].token
             ) {
                 revert TokenMismatch(
-                    a_.validOutputs[clearConfig_.aOutputIOIndex].token,
-                    b_.validInputs[clearConfig_.bInputIOIndex].token
+                    alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token,
+                    bob_.validInputs[clearConfig_.bobInputIOIndex].token
                 );
             }
 
             if (
-                b_.validOutputs[clearConfig_.bOutputIOIndex].token !=
-                a_.validInputs[clearConfig_.aInputIOIndex].token
+                bob_.validOutputs[clearConfig_.bobOutputIOIndex].token !=
+                alice_.validInputs[clearConfig_.aliceInputIOIndex].token
             ) {
                 revert TokenMismatch(
-                    b_.validOutputs[clearConfig_.bOutputIOIndex].token,
-                    a_.validInputs[clearConfig_.aInputIOIndex].token
+                    alice_.validInputs[clearConfig_.aliceInputIOIndex].token,
+                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token
                 );
             }
 
             // If either order is dead the clear is a no-op other than emitting
             // `OrderNotFound`. Returning rather than erroring makes it easier to
             // bulk clear using `Multicall`.
-            if (orders[a_.hash()] == DEAD_ORDER) {
-                emit OrderNotFound(msg.sender, a_.owner, a_.hash());
+            if (orders[alice_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, alice_.owner, alice_.hash());
                 return;
             }
-            if (orders[b_.hash()] == DEAD_ORDER) {
-                emit OrderNotFound(msg.sender, b_.owner, b_.hash());
+            if (orders[bob_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, bob_.owner, bob_.hash());
                 return;
             }
 
             // Emit the Clear event before `eval`.
-            emit Clear(msg.sender, a_, b_, clearConfig_);
+            emit Clear(msg.sender, alice_, bob_, clearConfig_);
         }
-        OrderIOCalculation memory aOrderIOCalculation_ = _calculateOrderIO(
-            a_,
-            clearConfig_.aInputIOIndex,
-            clearConfig_.aOutputIOIndex,
-            b_.owner
+        OrderIOCalculation memory aliceOrderIOCalculation_ = _calculateOrderIO(
+            alice_,
+            clearConfig_.aliceInputIOIndex,
+            clearConfig_.aliceOutputIOIndex,
+            bob_.owner,
+            bobSignedContext_
         );
-        OrderIOCalculation memory bOrderIOCalculation_ = _calculateOrderIO(
-            b_,
-            clearConfig_.bInputIOIndex,
-            clearConfig_.bOutputIOIndex,
-            a_.owner
+        OrderIOCalculation memory bobOrderIOCalculation_ = _calculateOrderIO(
+            bob_,
+            clearConfig_.bobInputIOIndex,
+            clearConfig_.bobOutputIOIndex,
+            alice_.owner,
+            aliceSignedContext_
         );
         ClearStateChange memory clearStateChange_ = LibOrderBook
-            ._clearStateChange(aOrderIOCalculation_, bOrderIOCalculation_);
+            ._clearStateChange(
+                aliceOrderIOCalculation_,
+                bobOrderIOCalculation_
+            );
 
         _recordVaultIO(
-            a_,
-            clearStateChange_.aInput,
-            clearStateChange_.aOutput,
-            aOrderIOCalculation_
+            alice_,
+            clearStateChange_.aliceInput,
+            clearStateChange_.aliceOutput,
+            aliceOrderIOCalculation_
         );
         _recordVaultIO(
-            b_,
-            clearStateChange_.bInput,
-            clearStateChange_.bOutput,
-            bOrderIOCalculation_
+            bob_,
+            clearStateChange_.bobInput,
+            clearStateChange_.bobOutput,
+            bobOrderIOCalculation_
         );
 
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            uint256 aBounty_ = clearStateChange_.aOutput -
-                clearStateChange_.bInput;
-            uint256 bBounty_ = clearStateChange_.bOutput -
-                clearStateChange_.aInput;
-            if (aBounty_ > 0) {
+            uint256 aliceBounty_ = clearStateChange_.aliceOutput -
+                clearStateChange_.bobInput;
+            uint256 bobBounty_ = clearStateChange_.bobOutput -
+                clearStateChange_.aliceInput;
+            if (aliceBounty_ > 0) {
                 vaultBalance[msg.sender][
-                    a_.validOutputs[clearConfig_.aOutputIOIndex].token
-                ][clearConfig_.aBountyVaultId] += aBounty_;
+                    alice_.validOutputs[clearConfig_.aliceOutputIOIndex].token
+                ][clearConfig_.aliceBountyVaultId] += aliceBounty_;
             }
-            if (bBounty_ > 0) {
+            if (bobBounty_ > 0) {
                 vaultBalance[msg.sender][
-                    b_.validOutputs[clearConfig_.bOutputIOIndex].token
-                ][clearConfig_.bBountyVaultId] += bBounty_;
+                    bob_.validOutputs[clearConfig_.bobOutputIOIndex].token
+                ][clearConfig_.bobBountyVaultId] += bobBounty_;
             }
         }
 
@@ -465,51 +484,61 @@ contract OrderBook is
     /// @param outputIOIndex_ The index of the output token being calculated for.
     /// @param counterparty_ The counterparty of the order as it is currently
     /// being cleared against.
+    /// @param signedContext_ Any signed context provided by the clearer/taker
+    /// that the order may need for its calculations.
     function _calculateOrderIO(
         Order memory order_,
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
-        address counterparty_
+        address counterparty_,
+        SignedContext[] memory signedContext_
     ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();
-            uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
+            uint256[][] memory context_;
             {
-                context_[CONTEXT_CALLING_CONTEXT_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        orderHash_,
-                        uint256(uint160(order_.owner)),
-                        uint256(uint160(counterparty_))
-                    );
+                uint256[][] memory callingContext_ = new uint256[][](
+                    CALLING_CONTEXT_COLUMNS
+                );
+                callingContext_[
+                    CONTEXT_CALLING_CONTEXT_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    orderHash_,
+                    uint256(uint160(order_.owner)),
+                    uint256(uint160(counterparty_))
+                );
 
-                context_[CONTEXT_VAULT_INPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validInputs[inputIOIndex_].token)
-                        ),
-                        order_.validInputs[inputIOIndex_].decimals,
-                        order_.validInputs[inputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validInputs[inputIOIndex_].token
-                        ][order_.validInputs[inputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_INPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validInputs[inputIOIndex_].token)),
+                    order_.validInputs[inputIOIndex_].decimals,
+                    order_.validInputs[inputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validInputs[inputIOIndex_].token
+                    ][order_.validInputs[inputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
 
-                context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = LibUint256Array
-                    .arrayFrom(
-                        uint256(
-                            uint160(order_.validOutputs[outputIOIndex_].token)
-                        ),
-                        order_.validOutputs[outputIOIndex_].decimals,
-                        order_.validOutputs[outputIOIndex_].vaultId,
-                        vaultBalance[order_.owner][
-                            order_.validOutputs[outputIOIndex_].token
-                        ][order_.validOutputs[outputIOIndex_].vaultId],
-                        // Don't know the balance diff yet!
-                        0
-                    );
+                callingContext_[
+                    CONTEXT_VAULT_OUTPUTS_COLUMN - 1
+                ] = LibUint256Array.arrayFrom(
+                    uint256(uint160(order_.validOutputs[outputIOIndex_].token)),
+                    order_.validOutputs[outputIOIndex_].decimals,
+                    order_.validOutputs[outputIOIndex_].vaultId,
+                    vaultBalance[order_.owner][
+                        order_.validOutputs[outputIOIndex_].token
+                    ][order_.validOutputs[outputIOIndex_].vaultId],
+                    // Don't know the balance diff yet!
+                    0
+                );
+                context_ = LibContext.build(
+                    callingContext_,
+                    new uint256[](0),
+                    signedContext_
+                );
             }
 
             // The state changes produced here are handled in _recordVaultIO so

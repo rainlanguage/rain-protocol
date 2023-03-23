@@ -1,13 +1,13 @@
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, FlowERC1155 } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -15,16 +15,10 @@ import {
 
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { rainlang } from "../../../utils/extensions/rainlang";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC1155Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC1155 signed context tests", async function () {
   let implementation: FlowERC1155;
@@ -38,41 +32,66 @@ describe("FlowERC1155 signed context tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc1155 token
+         */
+        burnslist: sentinel1155,
+        
+        /**
+         * mints of this erc1155 token
+         */
+        mintslist: sentinel1155;
+      `
+      );
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC1155 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC1155(), // BURN END
-      SENTINEL_ERC1155(), // MINT END
-    ]);
-
-    const sources = [CAN_TRANSFER()];
-
+    // prettier-ignore
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+      `
+    );
     const flowConfigStruct: FlowERC1155Config = {
       uri: "F1155",
       expressionConfig: {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC1155Clone(
@@ -142,26 +161,52 @@ describe("FlowERC1155 signed context tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+          /* variables */
+          sentinel: ${RAIN_FLOW_SENTINEL},
+          sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
+          
+          /**
+           * erc1155 transfers
+           */
+          transfererc1155slist: sentinel,
+          
+          /**
+           * erc721 transfers
+           */
+          transfererc721slist: sentinel,
+          
+          /**
+           * er20 transfers
+           */
+          transfererc20slist: sentinel,
+          
+          /**
+           * native (gas) token transfers
+           */
+          transfernativeslist: sentinel,
+          
+          /**
+           * burns of this erc1155 token
+           */
+          burnslist: sentinel1155,
+          
+          /**
+           * mints of this erc1155 token
+           */
+          mintslist: sentinel1155;
+        `
+      );
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC1155 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC1155(), // BURN END
-      SENTINEL_ERC1155(), // MINT END
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    // prettier-ignore
+    const { sources, constants } = await standardEvaluableConfig(
+    rainlang`
+      /* sourceHandleTransfer */
+      _: 1;
+    `
+  );
 
     const flowConfigStruct: FlowERC1155Config = {
       uri: "F1155",
@@ -169,7 +214,7 @@ describe("FlowERC1155 signed context tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC1155Clone(

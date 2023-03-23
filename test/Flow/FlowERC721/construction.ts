@@ -4,19 +4,20 @@ import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
 import {
   FlowERC721,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC721Clone,
   flowERC721Implementation,
@@ -30,6 +31,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("FlowERC721 construction tests", async function () {
   let cloneFactory: CloneFactory;
@@ -43,7 +45,7 @@ describe("FlowERC721 construction tests", async function () {
     implementation = await flowERC721Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should initialize on the good path", async () => {
@@ -54,7 +56,7 @@ describe("FlowERC721 construction tests", async function () {
 
     // prettier-ignore
     const { sources} = await standardEvaluableConfig(
-      `
+      rainlang`
         /* sourceHandleTransfer */
         _: read-memory<0 ${MemoryType.Constant}>();
         
@@ -64,7 +66,7 @@ describe("FlowERC721 construction tests", async function () {
     );
 
     const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      `
+      rainlang`
         /* variables */
         me: context<0 1>(),
         to: read-memory<1 ${MemoryType.Constant}>(),
@@ -114,7 +116,6 @@ describe("FlowERC721 construction tests", async function () {
         mintamount: amount;
       `
     );
-    // const sources = [sourceHandleTransfer, sourceTokenURI];
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -156,26 +157,27 @@ describe("FlowERC721 construction tests", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("flow721"),
         deployer: touchDeployer.address,
       };
 
     const flowERC721 = (await flowERC721Factory.deploy(
-      interpreterCallerConfig0
+      deployerDiscoverableMetaConfig0
     )) as FlowERC721;
 
     assert(!(flowERC721.address === zeroAddress), "flowERC721 did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await flowERC721Factory.deploy(interpreterCallerConfig1),
+      async () =>
+        await flowERC721Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC721 Deployed for bad hash"
     );

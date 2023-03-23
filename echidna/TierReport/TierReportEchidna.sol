@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {TierReport} from "../../contracts/tier/libraries/TierReport.sol";
 import {TierConstants} from "../../contracts/tier/libraries/TierConstants.sol";

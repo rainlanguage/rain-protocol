@@ -6,12 +6,12 @@ import type { CloneFactory, Verify } from "../../typechain";
 import { BanEvent } from "../../typechain/contracts/verify/Verify";
 import {
   assertError,
-  basicDeploy,
   getBlockTimestamp,
   getEventArgs,
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 
 describe("Verify ban", async function () {
   let implementVerify: Verify;
@@ -21,7 +21,7 @@ describe("Verify ban", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should allow banner to preemptively ban an account before it is added, which also triggers add callback before ban callback", async function () {

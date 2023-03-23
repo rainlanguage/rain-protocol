@@ -14,23 +14,24 @@ import { FlowERC721Config } from "../../../types/flow";
 
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
 import { assert } from "chai";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowERC721Implementation = async (): Promise<FlowERC721> => {
   const flowFactory = await ethers.getContractFactory("FlowERC721", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow721"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow721"),
+      deployer: touchDeployer.address,
+    };
 
   const flow = (await flowFactory.deploy(
-    interpreterCallerConfig
+    deployerDiscoverableMetaConfig
   )) as FlowERC721;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");

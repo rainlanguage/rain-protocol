@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../sstore2/SSTORE2.sol";
+import "sol.lib.datacontract/LibDataContract.sol";
 
 library Random {
     /// Implements a fisher yates algorithm to report a single result
@@ -261,11 +261,11 @@ library Random {
     /// etc. are typically uint256 values.
     function shuffleIdAtIndex(
         address ptr_,
-        uint256 index_
+        uint16 index_
     ) internal view returns (uint256 id_) {
         unchecked {
-            uint256 offset_ = index_ * 2;
-            bytes memory idBytes_ = SSTORE2.read(ptr_, offset_, offset_ + 2);
+            uint16 offset_ = index_ * 2;
+            bytes memory idBytes_ = LibDataContract.readSlice(ptr_, offset_, 2);
             assembly ("memory-safe") {
                 id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
             }

@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
+
+import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
 import "../../kv/LibMemoryKV.sol";
-import "../../sstore2/SSTORE2.sol";
 import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -53,7 +54,7 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
         ) = LibEncodedDispatch.decode(dispatch_);
 
         // Build the interpreter state from the onchain expression.
-        InterpreterState memory state_ = SSTORE2
+        InterpreterState memory state_ = LibDataContract
             .read(expression_)
             .deserialize();
         state_.stateKV = MemoryKV.wrap(0);

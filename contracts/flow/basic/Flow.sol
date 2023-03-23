@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
@@ -8,7 +8,7 @@ import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x3d0691d0955935a458365916295d9d39aab9e8681375c73f81947cda660b45b1
+    0x9d5630ebe10389bd4e63e702739f19c298bf228a80ccb45f27d83401e9d07ef7
 );
 
 struct FlowConfig {
@@ -24,14 +24,15 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     event Initialize(address sender, FlowConfig config);
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1
     function initialize(bytes calldata data_) external initializer {
         FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
-        __FlowCommon_init(config_.config, MIN_FLOW_SENTINELS);
         emit Initialize(msg.sender, config_);
+
+        flowCommonInit(config_.config, MIN_FLOW_SENTINELS);
     }
 
     function _previewFlow(

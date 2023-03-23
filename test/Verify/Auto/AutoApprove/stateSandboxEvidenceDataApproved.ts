@@ -5,7 +5,7 @@ import {
   ApproveEvent,
   Verify,
 } from "../../../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../../../utils";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
@@ -46,7 +46,7 @@ describe("AutoApprove evidence data approved", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should allow checking if the given evidence e.g. approval time is after a given timestamp (e.g. 1 day in the past), and allowing it to be reused for another approval", async () => {

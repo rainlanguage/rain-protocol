@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
@@ -46,7 +46,7 @@ struct FlowERC721IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x12f0c57294c4b884b967085e9590da5248303bc92203993fd7bddae963b259b9
+    0x65c93ef964415b7cc6e0331eb19807823856d9114fda90eafd10f5375e843a1d
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -76,7 +76,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     string private baseURI;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
     /// @inheritdoc ICloneableV1
@@ -86,7 +86,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         baseURI = config_.baseURI;
-        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+        flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
 
         if (config_.evaluableConfig.sources.length > 0) {
             evalHandleTransfer = config_.evaluableConfig.sources[0].length > 0;

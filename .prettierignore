@@ -21,3 +21,7 @@ docs/api
 versions.json
 
 crytic-export
+
+lib
+out
+cache_forge

@@ -8,8 +8,8 @@ import {
   RedeemableERC20,
   Sale,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   SaleConfigStruct,
   SaleConstructorConfigStruct,
@@ -29,10 +29,11 @@ export const saleImplementation = async (
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("sale"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("sale"),
+      deployer: touchDeployer.address,
+    };
 
   const redeemableERC20Implementation: RedeemableERC20 =
     await redeemableERC20DeployImplementation();
@@ -42,7 +43,7 @@ export const saleImplementation = async (
     maximumSaleTimeout: maximumSaleTimeout,
     cloneFactory: cloneFactory.address,
     redeemableERC20Implementation: redeemableERC20Implementation.address,
-    interpreterCallerConfig: interpreterCallerConfig,
+    deployerDiscoverableMetaConfig,
   };
 
   const sale = (await saleFactory.deploy(saleConstructorConfig)) as Sale;

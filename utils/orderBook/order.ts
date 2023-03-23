@@ -1,5 +1,5 @@
-import { BigNumber } from "ethers";
-import { BytesLike, concat } from "ethers/lib/utils";
+import { BigNumber, ethers } from "ethers";
+import { BytesLike, concat, hexlify } from "ethers/lib/utils";
 import { PromiseOrValue } from "../../typechain/common";
 import { OrderConfigStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
 import {
@@ -9,6 +9,7 @@ import {
   op,
   Opcode,
 } from "../interpreter";
+import { MAGIC_NUMBERS } from "../meta/cbor";
 
 export const getOrderConfig = async (
   ratio: BigNumber,
@@ -49,8 +50,16 @@ export const getOrderConfig = async (
       },
     ],
     evaluableConfig,
-    data: orderData || [],
+    meta: orderData,
   };
 
   return orderConfig;
+};
+
+export const encodeMeta = (data: string) => {
+  return (
+    "0x" +
+    MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase() +
+    hexlify(ethers.utils.toUtf8Bytes(data)).split("x")[1]
+  );
 };

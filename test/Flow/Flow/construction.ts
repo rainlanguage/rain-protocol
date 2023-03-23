@@ -1,24 +1,23 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
 import {
   Flow,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
@@ -27,15 +26,12 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
-  memoryOperand,
   MemoryType,
-  op,
+  standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
+import { rainlang } from "../../../utils/extensions/rainlang";
 
 describe("Flow construction tests", async function () {
   let implementation: Flow;
@@ -49,7 +45,7 @@ describe("Flow construction tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should initialize on the good path", async () => {
@@ -58,36 +54,56 @@ describe("Flow construction tests", async function () {
 
     const constants = [1, 2];
 
-    // prettier-ignore
-    // example source, only checking stack length in this test
-    const sourceFlowIO = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
-
-      op(Opcode.context, 0x0001), // from
-      op(Opcode.context, 0x0000), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
-
-      op(Opcode.context, 0x0000), // from
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
-    ]);
+    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+      rainlang`
+        /* variables */
+        from: context<0 1>(),
+        to: context<0 0>(),
+        amount: read-memory<1 ${MemoryType.Constant}>(),
+        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: seperator,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: seperator,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: seperator,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: seperator,
+        /* 0 */ 
+        nativefrom0: from,
+        nativeto0: to,
+        nativeamount0: amount,
+        /* 1 */ 
+        nativefrom1: to,
+        nativeto1: from,
+        nativeamount1: amount;
+      `
+    );
 
     const flowConfig: FlowConfig = {
       flows: [
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
       ],
@@ -116,24 +132,26 @@ describe("Flow construction tests", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("flow"),
         deployer: touchDeployer.address,
       };
 
-    const flow = (await flowFactory.deploy(interpreterCallerConfig0)) as Flow;
+    const flow = (await flowFactory.deploy(
+      deployerDiscoverableMetaConfig0
+    )) as Flow;
 
     assert(!(flow.address === zeroAddress), "flow did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await flowFactory.deploy(interpreterCallerConfig1),
+      async () => await flowFactory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "Flow Deployed for bad hash"
     );

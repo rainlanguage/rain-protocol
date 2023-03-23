@@ -3,12 +3,12 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import {
-  basicDeploy,
   getBlockTimestamp,
   max_uint32,
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify state", async function () {
@@ -19,7 +19,7 @@ describe("Verify state", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should return correct state for a given account", async function () {

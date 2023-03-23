@@ -1,29 +1,24 @@
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, FlowERC20 } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
+
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
 } from "../../../utils/deploy/flow/flowERC20/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { rainlang } from "../../../utils/extensions/rainlang";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC20Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC20 signed context tests", async function () {
   let implementation: FlowERC20;
@@ -37,33 +32,59 @@ describe("FlowERC20 signed context tests", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        
+        /**
+         * mints of this erc20 token
+         */
+        mintslist: sentinel20;
+      `
+      );
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC20(), // BURN END
-      SENTINEL_ERC20(), // MINT END
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    // prettier-ignore
+    const { sources, constants } = await standardEvaluableConfig(
+    rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+      `
+    );
 
     const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
@@ -72,7 +93,7 @@ describe("FlowERC20 signed context tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(
@@ -129,26 +150,52 @@ describe("FlowERC20 signed context tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, goodSigner, badSigner] = signers;
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: sentinel,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: sentinel20,
+        
+        /**
+         * mints of this erc20 token
+         */
+        mintslist: sentinel20;
+      `
+      );
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC20(), // BURN END
-      SENTINEL_ERC20(), // MINT END
-    ]);
-
-    const sources = [CAN_TRANSFER()];
+    // prettier-ignore
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+      `
+    );
 
     const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
@@ -157,7 +204,7 @@ describe("FlowERC20 signed context tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await flowERC20Clone(

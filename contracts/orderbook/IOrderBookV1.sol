@@ -5,6 +5,7 @@ import "../ierc3156/IERC3156FlashLender.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 
 /// Configuration for a deposit. All deposits are processed by and for
 /// `msg.sender` so the vaults are unambiguous here.
@@ -50,58 +51,42 @@ struct IO {
 
 /// Config the order owner may provide to define their order. The `msg.sender`
 /// that adds an order cannot modify the owner nor bypass the integrity check of
-/// the expression deployer that they specify.
-/// @param expressionDeployer Runs the integrity check for the interpreter as an
-/// `IExpressionDeployerV1`. As the `msg.sender` has direct control over this
-/// they MAY select a malicious/buggy deployer that DOES NOT apply the correct
-/// integrity check for the associated interpreter. The `expressionDeployer`
-/// appears in the `AddOrder` event so that anyone taking or clearing orders
-/// MUST ignore this order if the deployer/interpreter pairing is untrusted.
-/// @param interpreter The interpreter to execute the associated
-/// `ExpressionConfig` once deployed. As the `msg.sender` has direct control over
-/// this they MAY select a malicious/buggy interpreter that produces garbage
-/// results. The interpreter is included in the `Order` so it appears in the
-/// `addOrder` event. Anyone taking or clearing orders MUST ignore this order if
-/// the deployer/interpreter pairing is untrusted.
-/// @param interpreterExpressionConfig The `ExpressionConfig` for the expression deployer
-/// that will be deployed then evaluated by the interpreter as `IInterpreterV1`
-/// under the encoded dispatches on the `Order`. Source 0 is the calculate order
-/// entrypoint and source 1 is the handle IO entrypoint. Handle IO MAY be zero
-/// length in which case it won't be evaluated at all which saves gas when it is
-/// not used.
+/// the expression deployer that they specify. However they MAY specify a
+/// deployer with a corrupt integrity check, so counterparties and clearers MUST
+/// check the DISpair of the order and avoid untrusted pairings.
 /// @param validInputs As per `validInputs` on the `Order`.
 /// @param validOutputs As per `validOutputs` on the `Order`.
-/// @param data As per `data` on the `Order`.
+/// @param evaluableConfig Standard `EvaluableConfig` used to produce the
+/// `Evaluable` on the order.
+/// @param meta Arbitrary bytes that will NOT be used in the order evaluation
+/// but MUST be emitted as a Rain `MetaV1` when the order is placed so can be
+/// used by offchain processes.
 struct OrderConfig {
     IO[] validInputs;
     IO[] validOutputs;
     EvaluableConfig evaluableConfig;
-    bytes data;
+    bytes meta;
 }
 
 /// Defines a fully deployed order ready to evaluate by Orderbook.
 /// @param owner The owner of the order is the `msg.sender` that added the order.
-/// @param interpreter The interpreter is selected by the owner as part of config
-/// and can be any `IInterpreterV1` compatible interpreter.
-/// @param dispatch The encoded dispatch for calculate order.
-/// @param handleIODispatch The encoded dispatch for handle IO OR `0` if the
-/// handle IO entrypoint was an empty source.
+/// @param handleIO true if there is a "handle IO" entrypoint to run. If false
+/// the order book MAY skip calling the interpreter to save gas.
+/// @param evaluable Standard `Evaluable` with entrypoints for both
+/// "calculate order" and "handle IO". The latter MAY be empty bytes, in which
+/// case it will be skipped at runtime to save gas.
 /// @param validInputs A list of input tokens that are economically equivalent
 /// for the purpose of processing this order. Inputs are relative to the order
 /// so these tokens will be sent to the owners vault.
 /// @param validOutputs A list of output tokens that are economically equivalent
 /// for the purpose of processing this order. Outputs are relative to the order
 /// so these tokens will be sent from the owners vault.
-/// @param data Arbitrary bytes that will NOT be used in the order evaluation
-/// but WILL be in the event emitted when the order is placed so can be used by
-/// offchain processes.
 struct Order {
     address owner;
     bool handleIO;
     Evaluable evaluable;
     IO[] validInputs;
     IO[] validOutputs;
-    bytes data;
 }
 
 /// Config for a list of orders to take sequentially as part of a `takeOrders`
@@ -133,61 +118,64 @@ struct TakeOrdersConfig {
 /// take order output.
 /// @param outputIOIndex The index of the output token in `order` to match with
 /// the take order input.
+/// @param signedContext Optional additional signed context relevant to the
+/// taken order.
 struct TakeOrderConfig {
     Order order;
     uint256 inputIOIndex;
     uint256 outputIOIndex;
+    SignedContext[] signedContext;
 }
 
 /// Additional config to a `clear` that allows two orders to be fully matched to
 /// a specific token moment. Also defines the bounty for the clearer.
-/// @param aInputIOIndex The index of the input token in order A.
-/// @param aOutputIOIndex The index of the output token in order A.
-/// @param bInputIOIndex The index of the input token in order B.
-/// @param bOutputIOIndex The index of the output token in order B.
-/// @param aBountyVaultId The vault ID that the bounty from order A should move
-/// to for the clearer.
-/// @param bBountyVaultId The vault ID that the bounty from order B should move
+/// @param aliceInputIOIndex The index of the input token in order A.
+/// @param aliceOutputIOIndex The index of the output token in order A.
+/// @param bobInputIOIndex The index of the input token in order B.
+/// @param bobOutputIOIndex The index of the output token in order B.
+/// @param aliceBountyVaultId The vault ID that the bounty from order A should
+/// move to for the clearer.
+/// @param bobBountyVaultId The vault ID that the bounty from order B should move
 /// to for the clearer.
 struct ClearConfig {
-    uint256 aInputIOIndex;
-    uint256 aOutputIOIndex;
-    uint256 bInputIOIndex;
-    uint256 bOutputIOIndex;
-    uint256 aBountyVaultId;
-    uint256 bBountyVaultId;
+    uint256 aliceInputIOIndex;
+    uint256 aliceOutputIOIndex;
+    uint256 bobInputIOIndex;
+    uint256 bobOutputIOIndex;
+    uint256 aliceBountyVaultId;
+    uint256 bobBountyVaultId;
 }
 
 /// Summary of the vault state changes due to clearing an order. NOT the state
 /// changes sent to the interpreter store, these are the LOCAL CHANGES in vault
 /// balances. Note that the difference in inputs/outputs overall between the
 /// counterparties is the bounty paid to the entity that cleared the order.
-/// @param aOutput Amount of counterparty A's output token that moved out of
+/// @param aliceOutput Amount of counterparty A's output token that moved out of
 /// their vault.
-/// @param bOutput Amount of counterparty B's output token that moved out of
+/// @param bobOutput Amount of counterparty B's output token that moved out of
 /// their vault.
-/// @param aInput Amount of counterparty A's input token that moved into their
-/// vault.
-/// @param bInput Amount of counterparty B's input token that moved into their
+/// @param aliceInput Amount of counterparty A's input token that moved into
+/// their vault.
+/// @param bobInput Amount of counterparty B's input token that moved into their
 /// vault.
 struct ClearStateChange {
-    uint256 aOutput;
-    uint256 bOutput;
-    uint256 aInput;
-    uint256 bInput;
+    uint256 aliceOutput;
+    uint256 bobOutput;
+    uint256 aliceInput;
+    uint256 bobInput;
 }
 
 /// @title IOrderBookV1
 /// @notice An orderbook that deploys _strategies_ represented as interpreter
 /// expressions rather than individual orders. The order book contract itself
-/// behaves similarly to an ERC4626 vault but with much more fine grained control
-/// over how tokens are allocated and moved internally by their owners, and
-/// without any concept of "shares". Token owners MAY deposit and withdraw their
-/// tokens under arbitrary vault IDs on a per-token basis, then define orders
-/// that specify how tokens move between vaults according to an expression. The
-/// expression returns a maximum amount and a token input/output ratio from the
-/// perpective of the order. When two expressions intersect, as in their ratios
-/// are the inverse of each other, then tokens can move between vaults.
+/// behaves similarly to an `ERC4626` vault but with much more fine grained
+/// control over how tokens are allocated and moved internally by their owners,
+/// and without any concept of "shares". Token owners MAY deposit and withdraw
+/// their tokens under arbitrary vault IDs on a per-token basis, then define
+/// orders that specify how tokens move between vaults according to an expression.
+/// The expression returns a maximum amount and a token input/output ratio from
+/// the perpective of the order. When two expressions intersect, as in their
+/// ratios are the inverse of each other, then tokens can move between vaults.
 ///
 /// For example, consider order A with input TKNA and output TKNB with a constant
 /// ratio of 100:1. This order in isolation has no ability to move tokens. If
@@ -256,6 +244,13 @@ struct ClearStateChange {
 /// tokens onchain because A. this would be gas for an external call to a cold
 /// token contract and B. the ERC20 standard specifically states NOT to read
 /// decimals from the interface onchain.
+///
+/// Token amounts and ratios returned by calculate order MUST be 18 decimal fixed
+/// point values. Token amounts input to handle IO MUST be the exact absolute
+/// values that move between the vaults, i.e. NOT rescaled to 18 decimals. The
+/// author of the handle IO expression MUST use the token decimals and amounts to
+/// rescale themselves if they want that logic, notably the expression author
+/// will need to specify the desired rounding behaviour in the rescaling process.
 ///
 /// When two orders clear there are NO TOKEN MOVEMENTS, only internal vault
 /// balances are updated from the input and output vaults. Typically this results
@@ -389,10 +384,15 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// Emitted before two orders clear. Covers both orders and includes all the
     /// state before anything is calculated.
     /// @param sender `msg.sender` clearing both orders.
-    /// @param a One of the orders.
-    /// @param b The other order.
+    /// @param alice One of the orders.
+    /// @param bob The other order.
     /// @param clearConfig Additional config required to process the clearance.
-    event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
+    event Clear(
+        address sender,
+        Order alice,
+        Order bob,
+        ClearConfig clearConfig
+    );
 
     /// Emitted after two orders clear. Includes all final state changes in the
     /// vault balances, including the clearer's vaults.
@@ -436,7 +436,7 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// to 0 rather than the withdraw transaction reverting.
     function withdraw(WithdrawConfig calldata config) external;
 
-    /// Given an order config, deploys the expression and builds the full Order
+    /// Given an order config, deploys the expression and builds the full `Order`
     /// for the config, then records it as an active order. Delegated adding an
     /// order is NOT supported. The `msg.sender` that adds an order is ALWAYS
     /// the owner and all resulting vault movements are their own.
@@ -509,12 +509,12 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// inputs than there are available outputs. In the latter case the excess
     /// outputs are given to the `msg.sender` of clear, to the vaults they
     /// specify in the clear config. This not only incentivises "automatic" clear
-    /// calls for both a_ and b_, but incentivises _prioritising greater ratio
-    /// differences_ with a larger bounty. The second point is important because
-    /// it implicitly prioritises orders that are further from the current
-    /// market price, thus putting constant increasing pressure on the entire
-    /// system the further it drifts from the norm, no matter how esoteric the
-    /// individual order expressions and sizings might be.
+    /// calls for both alice and bob, but incentivises _prioritising greater
+    /// ratio differences_ with a larger bounty. The second point is important
+    /// because it implicitly prioritises orders that are further from the
+    /// current market price, thus putting constant increasing pressure on the
+    /// entire system the further it drifts from the norm, no matter how esoteric
+    /// the individual order expressions and sizings might be.
     ///
     /// All else equal there are several factors that would impact how reliably
     /// some order clears relative to the wider market, such as:
@@ -534,13 +534,17 @@ interface IOrderBookV1 is IERC3156FlashLender {
     /// - Geopolitical issues such as sanctions and regulatory restrictions could
     ///   cause issues for certain owners and clearers
     ///
-    /// @param a Some order to clear.
-    /// @param b Another order to clear.
+    /// @param alice Some order to clear.
+    /// @param bob Another order to clear.
     /// @param clearConfig Additional configuration for the clearance such as
     /// how to handle the bounty payment for the `msg.sender`.
+    /// @param aliceSignedContext Optional signed context that is relevant to A.
+    /// @param bobSignedContext Optional signed context that is relevant to B.
     function clear(
-        Order memory a,
-        Order memory b,
-        ClearConfig calldata clearConfig
+        Order memory alice,
+        Order memory bob,
+        ClearConfig calldata clearConfig,
+        SignedContext[] memory aliceSignedContext,
+        SignedContext[] memory bobSignedContext
     ) external;
 }

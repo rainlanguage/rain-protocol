@@ -34,6 +34,7 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { deployOrderBook } from "../../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
+import { encodeMeta } from "../../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -99,7 +100,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -133,6 +134,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -210,14 +212,19 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                           },
                         ],
                       },
-                      {
-                        name: "data",
-                        type: "bytes",
-                      },
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },
                   { name: "outputIOIndex", type: "uint256" },
+                  {
+                    type: "tuple[]",
+                    name: "signedContext",
+                    components: [
+                      { name: "signer", type: "address" },
+                      { name: "signature", type: "bytes" },
+                      { name: "context", type: "uint256[]" },
+                    ],
+                  },
                 ],
               },
             ],
@@ -295,7 +302,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -342,6 +349,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {

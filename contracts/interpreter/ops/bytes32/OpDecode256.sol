@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "@rainprotocol/binmaskflag/src/Binary.sol";
+import "sol.lib.binmaskflag/Binary.sol";
 import "./OpEncode256.sol";
 
 /// @title OpDecode256

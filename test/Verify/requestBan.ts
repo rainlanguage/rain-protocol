@@ -3,7 +3,7 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import { RequestBanEvent } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
   verifyImplementation,
@@ -19,7 +19,7 @@ describe("Verify request ban", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should allow anyone to submit data to support a request to ban an account", async function () {

@@ -2,12 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface ICloneableFactoryV1 {
-    event NewClone(
-        address sender,
-        address implementation,
-        address clone,
-        bytes data
-    );
+    event NewClone(address sender, address implementation, address clone);
 
     /// Creates a new child contract.
     ///

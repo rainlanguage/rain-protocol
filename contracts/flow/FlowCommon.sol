@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import "./libraries/LibFlow.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -36,7 +37,8 @@ contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    InterpreterCallerV1
+    IInterpreterCallerV1,
+    DeployerDiscoverableMetaV1
 {
     using LibInterpreterState for InterpreterState;
     using LibStackPointer for StackPointer;
@@ -46,19 +48,18 @@ contract FlowCommon is
     using LibEvaluable for Evaluable;
 
     /// Evaluable hash => is registered
-    mapping(bytes32 => uint256) internal _flows;
+    mapping(bytes32 => uint256) internal registeredFlows;
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
     constructor(
         bytes32 metaHash_,
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(metaHash_, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(metaHash_, config_) {
         _disableInitializers();
     }
 
-    // solhint-disable-next-line func-name-mixedcase
-    function __FlowCommon_init(
+    function flowCommonInit(
         EvaluableConfig[] memory evaluableConfigs_,
         uint256 flowMinOutputs_
     ) internal onlyInitializing {
@@ -82,7 +83,7 @@ contract FlowCommon is
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
             evaluable_ = Evaluable(interpreter_, store_, expression_);
-            _flows[evaluable_.hash()] = 1;
+            registeredFlows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }
     }
@@ -100,7 +101,7 @@ contract FlowCommon is
 
     modifier onlyRegisteredEvaluable(Evaluable memory evaluable_) {
         bytes32 hash_ = evaluable_.hash();
-        if (_flows[hash_] == 0) {
+        if (registeredFlows[hash_] == 0) {
             revert UnregisteredFlow(hash_);
         }
         _;

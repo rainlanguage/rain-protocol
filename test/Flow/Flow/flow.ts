@@ -1,6 +1,5 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -18,29 +17,22 @@ import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   deployFlowClone,
   flowImplementation,
 } from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
+import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddress } from "../../../utils/flow";
-import {
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("Flow flow tests", async function () {
   let implementation: Flow;
   let cloneFactory: CloneFactory;
-  const ME = () => op(Opcode.context, 0x0001); // base context this
-  const YOU = () => op(Opcode.context, 0x0000); // base context sender
 
   before(async () => {
     // Deploy ERC1820Registry
@@ -50,7 +42,7 @@ describe("Flow flow tests", async function () {
     implementation = await flowImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should flow for erc1155<->native on the good path", async () => {
@@ -89,49 +81,54 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-    ];
-
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-    ]);
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token: flowtransfer-you-to-me-erc1155-token,
+        erc1155-from: you,
+        erc1155-to: me,
+        erc1155-id: flowtransfer-you-to-me-erc1155-id,
+        erc1155-amount: flowtransfer-you-to-me-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0 native-to-0 native-amount-0: you me flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1 native-to-1 native-amount-1: me you flowtransfer-me-to-you-native-amount;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -259,47 +256,54 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      
+      flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
+      flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
+      flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[0].token},
+      flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[0].id},
+      flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+      /* 0 */
+      erc1155-token: flowtransfer-me-to-you-erc1155-token,
+      erc1155-from: me,
+      erc1155-to: you,
+      erc1155-id: flowtransfer-me-to-you-erc1155-id,
+      erc1155-amount: flowtransfer-me-to-you-erc1155-amount,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
+      erc721-token: flowtransfer-you-to-me-erc721-token,
+      erc721-from: you,
+      erc721-to: me,
+      erc721-id: flowtransfer-you-to-me-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-    ]);
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
+      
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel;
+    `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -414,43 +418,51 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      
+      flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[0].token},
+      flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[0].id},
+      flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+      flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
+      erc721-token: flowtransfer-me-to-you-erc721-token,
+      erc721-from: me,
+      erc721-to: you,
+      erc721-id: flowtransfer-me-to-you-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
+      erc20-token: flowtransfer-you-to-me-erc20-token,
+      erc20-from: you,
+      erc20-to: me,
+      erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel;
+    `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -551,45 +563,53 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      
+      flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[0].token}, 
+      flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[0].amount},
+      flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+      flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
+      erc20-token: flowtransfer-me-to-you-erc20-token,
+      erc20-from: me,
+      erc20-to: you,
+      erc20-amount: flowtransfer-me-to-you-erc20-amount,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-    ]);
-
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel,
+      native-from-0: you,
+      native-to-0: me,
+      native-amount-0: flowtransfer-you-to-me-native-amount,
+      
+      native-from-1: me,
+      native-to-1: you,
+      native-amount-1: flowtransfer-me-to-you-native-amount;
+    `
+      );
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -705,51 +725,57 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-      flowTransfer.erc1155[1].token,
-      flowTransfer.erc1155[1].id,
-      flowTransfer.erc1155[1].amount,
-    ];
-
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-    ]);
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[1].token},
+        flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[1].id},
+        flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token-0: flowtransfer-you-to-me-erc1155-token,
+        erc1155-from-0: you,
+        erc1155-to-0: me,
+        erc1155-id-0: flowtransfer-you-to-me-erc1155-id,
+        erc1155-amount-0: flowtransfer-you-to-me-erc1155-amount,
+        /* 1 */
+        erc1155-token-1: flowtransfer-me-to-you-erc1155-token,
+        erc1155-from-1: me,
+        erc1155-to-1: you,
+        erc1155-id-1: flowtransfer-me-to-you-erc1155-id,
+        erc1155-amount-1: flowtransfer-me-to-you-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -877,43 +903,55 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-      flowTransfer.erc721[1].token,
-      flowTransfer.erc721[1].id,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
+        flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
+        
+        flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[1].token},
+        flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[1].id},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        /* 0 */
+        erc721-token-0: flowtransfer-you-to-me-erc721-token,
+        erc721-from-0: you,
+        erc721-to-0: me,
+        erc721-id-0: flowtransfer-you-to-me-erc721-id,
+        
+        /* 1 */
+        erc721-token-1: flowtransfer-me-to-you-erc721-token,
+        erc721-from-1: me,
+        erc721-to-1: you,
+        erc721-id-1: flowtransfer-me-to-you-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1029,43 +1067,53 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1165,35 +1213,49 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0: you,
+        native-to-0: me,
+        native-amount-0: flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1: me,
+        native-to-1: you,
+        native-amount-1: flowtransfer-me-to-you-native-amount;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1273,20 +1335,35 @@ describe("Flow flow tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [RAIN_FLOW_SENTINEL, 1];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-    ]);
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
+     
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel;
+    `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1324,53 +1401,94 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-      bob.address,
-    ];
+    const { sources: sourceFlowIOIn, constants: constantsFlowIOIn } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const BOB = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const sourceFlowIOIn = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      BOB(), // Invalid transfer
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-    ]);
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const sourceFlowIOOOut = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(), // Invalid transfer
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      BOB(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0: you,
+        native-to-0: bob,
+        native-amount-0: flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1: me,
+        native-to-1: you,
+        native-amount-1: flowtransfer-me-to-you-native-amount;
+      `
+      );
+
+    const { sources: sourceFlowIOOut, constants: constantsFlowIOOut } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
+
+        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
+        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
+        /* 0 */
+        native-from-0: you,
+        native-to-0: me,
+        native-amount-0: flowtransfer-you-to-me-native-amount,
+        /* 1 */
+        native-from-1: bob,
+        native-to-1: you,
+        native-amount-1: flowtransfer-me-to-you-native-amount;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
       flows: [
-        { sources: [sourceFlowIOIn], constants },
-        { sources: [sourceFlowIOOOut], constants },
+        { sources: sourceFlowIOIn, constants: constantsFlowIOIn },
+        { sources: sourceFlowIOOut, constants: constantsFlowIOOut },
       ],
     };
 
@@ -1450,63 +1568,100 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount,
-      bob.address,
-    ];
+    const { sources: sourceFlowIOIn, constants: constantsFlowIOIn } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const BOB = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: bob,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-    const sourceFlowIOIN = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      BOB(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
-    const sourceFlowIOOUT = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      BOB(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+    const { sources: sourceFlowIOOut, constants: constantsFlowIOOut } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: bob,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
+
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
       flows: [
-        { sources: [sourceFlowIOIN], constants },
-        { sources: [sourceFlowIOOUT], constants },
+        { sources: sourceFlowIOIn, constants: constantsFlowIOIn },
+        { sources: sourceFlowIOOut, constants: constantsFlowIOOut },
       ],
     };
 
@@ -1585,46 +1740,56 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc721[0].token,
-      flowTransfer.erc721[0].id,
-      flowTransfer.erc721[1].token,
-      flowTransfer.erc721[1].id,
-      bob.address,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
+        
+        flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
+        flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
+        
+        flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[1].token},
+        flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[1].id},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        /* 0 */
+        erc721-token-0: flowtransfer-you-to-me-erc721-token,
+        erc721-from-0: bob,
+        erc721-to-0: me,
+        erc721-id-0: flowtransfer-you-to-me-erc721-id,
+        
+        /* 1 */
+        erc721-token-1: flowtransfer-me-to-you-erc721-token,
+        erc721-from-1: me,
+        erc721-to-1: you,
+        erc721-id-1: flowtransfer-me-to-you-erc721-id,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const BOB = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-      BOB(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1705,54 +1870,58 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc1155[0].token,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-      flowTransfer.erc1155[1].token,
-      flowTransfer.erc1155[1].id,
-      flowTransfer.erc1155[1].amount,
-      bob.address,
-    ];
-
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6));
-    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7));
-    const BOB = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
-      BOB(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
-      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE SKIP
-    ]);
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        bob: ${bob.address},
+        
+        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
+        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
+        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
+        flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[1].token},
+        flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[1].id},
+        flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+        /* 0 */
+        erc1155-token-0: flowtransfer-you-to-me-erc1155-token,
+        erc1155-from-0: bob,
+        erc1155-to-0: me,
+        erc1155-id-0: flowtransfer-you-to-me-erc1155-id,
+        erc1155-amount-0: flowtransfer-you-to-me-erc1155-amount,
+        /* 1 */
+        erc1155-token-1: flowtransfer-me-to-you-erc1155-token,
+        erc1155-from-1: me,
+        erc1155-to-1: you,
+        erc1155-id-1: flowtransfer-me-to-you-erc1155-id,
+        erc1155-amount-1: flowtransfer-me-to-you-erc1155-amount,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     const { flow } = await deployFlowClone(
@@ -1833,43 +2002,53 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      flowTransfer.erc20[1].token,
-      flowTransfer.erc20[1].amount,
-    ];
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5));
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+        /* 1 */
+        erc20-token-1: flowtransfer-me-to-you-erc20-token,
+        erc20-from-1: me,
+        erc20-to-1: you,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC115 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel;
+      `
+      );
 
     const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
     };
 
     // Deploying flow 0
@@ -1941,62 +2120,91 @@ describe("Flow flow tests", async function () {
       erc1155: [],
     };
 
-    // Sample key
-    const key = 1337;
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      1,
-      flowTransfer.erc20[0].token,
-      flowTransfer.erc20[0].amount,
-      key,
-    ];
+    const { sources: sourceFlowIOA, constants: constantsFlowIOA } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        key: 1337,
 
-    const SENTINEL = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3));
-    const KEY = () =>
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4));
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
 
-    const sourceFlowIOA = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+        /* 0 */
+        erc20-token-0: flowtransfer-you-to-me-erc20-token,
+        erc20-from-0: you,
+        erc20-to-0: me,
+        erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
 
-      // Setting a value
-      KEY(), // k_
-      op(Opcode.block_timestamp), // v_
-      op(Opcode.set),
-    ]);
+        /**
+         * native (gas) token transfers
+        */
+        transfernativeslist: sentinel,
 
-    const sourceFlowIOB = concat([
-      // Getting the value set in flowA
-      KEY(), // k_
-      op(Opcode.get), // Getting a value with the same key set in flowA
-      op(Opcode.is_zero),
-      op(Opcode.ensure, 1), // Ensures that the value is not set
+        : set(key block-timestamp()); 
+      `
+      );
 
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 END
-      SENTINEL(), // ERC20 END
-      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE SKIP
-    ]);
+    const { sources: sourceFlowIOB, constants: constantsFlowIOB } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      key: 1337,
 
+      flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+      flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
+      
+      : ensure(is-zero(get(key))),
+
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
+
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel,
+      /* 0 */
+      erc20-token-0: flowtransfer-you-to-me-erc20-token,
+      erc20-from-0: you,
+      erc20-to-0: me,
+      erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+
+      /**
+       * native (gas) token transfers
+      */
+      transfernativeslist: sentinel;
+    `
+      );
     const flowConfigStruct: FlowConfig = {
       flows: [
-        { sources: [sourceFlowIOA], constants },
-        { sources: [sourceFlowIOB], constants },
+        { sources: sourceFlowIOA, constants: constantsFlowIOA },
+        { sources: sourceFlowIOB, constants: constantsFlowIOB },
       ],
     };
 

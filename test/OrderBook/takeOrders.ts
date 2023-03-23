@@ -39,7 +39,7 @@ import {
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { getOrderConfig } from "../../utils/orderBook/order";
+import { encodeMeta, getOrderConfig } from "../../utils/orderBook/order";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
@@ -82,7 +82,7 @@ describe("OrderBook take orders", async function () {
 
     const outputMax_A = amountB.sub(1); // will only sell 999 tokenBs to each buyer
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -96,7 +96,7 @@ describe("OrderBook take orders", async function () {
       aliceOrder
     );
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -160,11 +160,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_B,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -203,7 +205,7 @@ describe("OrderBook take orders", async function () {
     // ORDERS
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -217,7 +219,7 @@ describe("OrderBook take orders", async function () {
       aliceOrder
     );
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -283,11 +285,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_B,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct0: TakeOrdersConfigStruct = {
@@ -397,7 +401,7 @@ describe("OrderBook take orders", async function () {
         { token: tokenY.address, decimals: YDec, vaultId },
       ],
       evaluableConfig: evaluableConfig,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
@@ -434,7 +438,7 @@ describe("OrderBook take orders", async function () {
       // 1e18 = 1:1
       maximumIORatio: ethers.BigNumber.from("10").pow(18 + YDec - XDec),
       // inputs and outputs are inverse from order's perspective
-      orders: [{ order, inputIOIndex: 1, outputIOIndex: 0 }],
+      orders: [{ order, inputIOIndex: 1, outputIOIndex: 0, signedContext: [] }],
     };
 
     const amountY = ethers.BigNumber.from("10").pow(YDec - XDec);
@@ -475,7 +479,7 @@ describe("OrderBook take orders", async function () {
       minimumInput: amountY,
       maximumInput: amountY,
       maximumIORatio: ethers.BigNumber.from("10").pow(18 + XDec - YDec),
-      orders: [{ order, inputIOIndex: 0, outputIOIndex: 1 }],
+      orders: [{ order, inputIOIndex: 0, outputIOIndex: 1, signedContext: [] }],
     };
 
     await tokenX.connect(bob).approve(orderBook.address, 1);
@@ -538,7 +542,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -550,7 +554,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -604,11 +608,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -786,7 +792,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -798,7 +804,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -852,11 +858,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1034,7 +1042,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1046,7 +1054,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1100,11 +1108,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1282,7 +1292,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1294,7 +1304,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1348,11 +1358,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1530,7 +1542,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1542,7 +1554,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1596,11 +1608,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -1778,7 +1792,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -1790,7 +1804,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -1844,11 +1858,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2024,7 +2040,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2036,7 +2052,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2090,11 +2106,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2224,7 +2242,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2236,7 +2254,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2290,11 +2308,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2424,7 +2444,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2436,7 +2456,7 @@ describe("OrderBook take orders", async function () {
         tokenB06.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2490,11 +2510,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2624,7 +2646,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2636,7 +2658,7 @@ describe("OrderBook take orders", async function () {
         tokenB20.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2690,11 +2712,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -2824,7 +2848,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -2836,7 +2860,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -2890,11 +2914,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -3024,7 +3050,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
-        null
+        encodeMeta("")
       );
 
       const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -3036,7 +3062,7 @@ describe("OrderBook take orders", async function () {
         tokenB18.address,
         tokenBDecimals,
         bobOutputVault,
-        null
+        encodeMeta("")
       );
 
       const txAddOrderAlice = await orderBook
@@ -3090,11 +3116,13 @@ describe("OrderBook take orders", async function () {
         order: Order_A,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
       const takeOrderConfigStructBob: TakeOrderConfigStruct = {
         order: Order_B,
         inputIOIndex: 0,
         outputIOIndex: 0,
+        signedContext: [],
       };
 
       // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -3198,8 +3226,8 @@ describe("OrderBook take orders", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const aliceOrder = encodeMeta("Order_A");
+    const bobOrder = encodeMeta("Order_B");
 
     // ORDERS
 
@@ -3281,11 +3309,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_B,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct0: TakeOrdersConfigStruct = {
@@ -3335,7 +3365,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 0
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
@@ -3419,11 +3449,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A0,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStruct1: TakeOrderConfigStruct = {
       order: Order_A1,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -3465,8 +3497,8 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder0 = ethers.utils.toUtf8Bytes("Order0");
-    const aliceOrder1 = ethers.utils.toUtf8Bytes("Order1");
+    const aliceOrder0 = encodeMeta("Order0");
+    const aliceOrder1 = encodeMeta("Order1");
 
     // ASK ORDER 0
 
@@ -3543,11 +3575,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A0,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStruct1: TakeOrderConfigStruct = {
       order: Order_A1,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -3589,7 +3623,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     // ASK ORDER
 
@@ -3651,11 +3685,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStructBad: TakeOrderConfigStruct = {
       order: { ...Order_A, owner: bob.address }, // order hash won't match any added orders
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -3699,8 +3735,8 @@ describe("OrderBook take orders", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const aliceOrder = encodeMeta("Order_A");
+    const bobOrder = encodeMeta("Order_B");
 
     // ORDERS
 
@@ -3782,11 +3818,13 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
       order: Order_B,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -3872,7 +3910,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     // ASK ORDER
 
@@ -3935,6 +3973,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -4074,7 +4113,7 @@ describe("OrderBook take orders", async function () {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -4113,6 +4152,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -4180,6 +4220,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 2,
       outputIOIndex: 1,
+      signedContext: [],
     };
 
     const maximumIORatioCarol = fixedPointMul(
@@ -4329,7 +4370,7 @@ describe("OrderBook take orders", async function () {
         },
       ],
       evaluableConfig: EvaluableConfigAlice,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txAddOrderAlice = await orderBook
@@ -4368,6 +4409,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -4408,7 +4450,7 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const aliceOrder = encodeMeta("aliceOrder");
 
     // ASK ORDER
 
@@ -4471,6 +4513,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
@@ -4537,6 +4580,10 @@ describe("OrderBook take orders", async function () {
     const opMax = minBN(max_uint256, amountB);
 
     const expectedEvent0 = [
+      [
+        ethers.BigNumber.from(bob.address),
+        ethers.BigNumber.from(orderBook.address),
+      ],
       [
         hashOrder_A,
         ethers.BigNumber.from(alice.address),
@@ -4609,7 +4656,7 @@ describe("OrderBook take orders", async function () {
       tokenB06.address,
       tokenBDecimals,
       aliceOutputVault,
-      null
+      encodeMeta("")
     );
 
     const txAddOrderAlice = await orderBook
@@ -4645,6 +4692,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
@@ -4741,7 +4789,7 @@ describe("OrderBook take orders", async function () {
       tokenB18.address,
       tokenBDecimals,
       aliceOutputVault,
-      null
+      encodeMeta("")
     );
 
     const txAddOrderAlice = await orderBook
@@ -4777,6 +4825,7 @@ describe("OrderBook take orders", async function () {
       order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
+      signedContext: [],
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.

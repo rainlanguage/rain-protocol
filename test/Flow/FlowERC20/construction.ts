@@ -1,25 +1,24 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
 import {
   FlowERC20,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
 import { ONE } from "../../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
   flowERC20Implementation,
@@ -27,16 +26,13 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
+import { rainlang } from "../../../utils/extensions/rainlang";
 import {
-  memoryOperand,
   MemoryType,
-  op,
+  standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
-
-const Opcode = AllStandardOps;
 
 describe("FlowERC20 construction tests", async function () {
   let implementation: FlowERC20;
@@ -50,7 +46,7 @@ describe("FlowERC20 construction tests", async function () {
     implementation = await flowERC20Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should initialize on the good path", async () => {
@@ -60,37 +56,65 @@ describe("FlowERC20 construction tests", async function () {
     const constants = [1, 2, ONE];
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-    ]);
+    const { sources} = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: read-memory<0 ${MemoryType.Constant}>();
+      
+      `
+    );
 
-    // prettier-ignore
-    // example source, only checking stack length in this test
-    const sourceFlowIO = concat([
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
-
-      op(Opcode.context, 0x0001), // from
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // from
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // BURN END
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // burn amount
-
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // MINT END
-      op(Opcode.context, 0x0001), // to
-      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // mint amount
-    ]);
-
-    const sources = [sourceCanTransfer];
+    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+      rainlang`
+        /* variables */
+        me: context<0 1>(),
+        to: read-memory<1 ${MemoryType.Constant}>(),
+        amount: read-memory<1 ${MemoryType.Constant}>(),
+        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: seperator,
+        
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: seperator,
+        
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: seperator,
+        
+        /**
+         * native (gas) token transfers
+         */
+        transfernativeslist: seperator,
+          /* 0 */ 
+          nativefrom0: me,
+          nativeto0: to,
+          nativeamount0: amount,
+          /* 1 */ 
+          nativefrom1: to,
+          nativeto1: me,
+          nativeamount1: amount,
+        
+        /**
+         * burns of this erc20 token
+         */
+        burnslist: seperator,
+        burnto: to,
+        burnamount: amount,
+        
+        /**
+         * mints of this erc20 token
+         */
+        mintslist: seperator,
+        mintto: to,
+        mintamount: amount;
+      `
+    );
 
     const flowERC20Config: FlowERC20Config = {
       name: "Flow ERC20",
@@ -101,7 +125,7 @@ describe("FlowERC20 construction tests", async function () {
       },
       flows: [
         {
-          sources: [sourceFlowIO],
+          sources: sourceFlowIO,
           constants,
         },
       ],
@@ -130,26 +154,27 @@ describe("FlowERC20 construction tests", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("flow20"),
         deployer: touchDeployer.address,
       };
 
     const flowERC20 = (await flowERC20Factory.deploy(
-      interpreterCallerConfig0
+      deployerDiscoverableMetaConfig0
     )) as FlowERC20;
 
     assert(!(flowERC20.address === zeroAddress), "flowERC20 did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await flowERC20Factory.deploy(interpreterCallerConfig1),
+      async () =>
+        await flowERC20Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC20 Deployed for bad hash"
     );

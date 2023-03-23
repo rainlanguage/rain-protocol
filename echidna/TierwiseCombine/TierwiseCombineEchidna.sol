@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {TierwiseCombine} from "../../contracts/tier/libraries/TierwiseCombine.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";

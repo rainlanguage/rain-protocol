@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -18,6 +18,9 @@ error BadLender(address badLender);
 /// Thrown when the initiator is not `ZeroExOrderBookFlashBorrower`.
 /// @param badInitiator The untrusted initiator of the flash loan.
 error BadInitiator(address badInitiator);
+
+/// Thrown when the flash loan fails somehow.
+error FlashLoanFailed();
 
 /// Construction config for `ZeroExOrderBookFlashBorrower`
 /// @param orderBook `OrderBook` contract to lend and arb against.
@@ -94,6 +97,9 @@ contract ZeroExOrderBookFlashBorrower is
 
         // At this point 0x should have sent the tokens required to match the
         // orders so take orders now.
+        // We don't do anything with the total input/output amounts here because
+        // the flash loan itself will take back what it needs, and we simply
+        // keep anything left over according to active balances.
         orderBook.takeOrders(takeOrders_);
 
         return ON_FLASH_LOAN_CALLBACK_SUCCESS;
@@ -140,7 +146,11 @@ contract ZeroExOrderBookFlashBorrower is
             type(uint256).max
         );
 
-        orderBook.flashLoan(this, flashLoanToken_, flashLoanAmount_, data_);
+        if (
+            !orderBook.flashLoan(this, flashLoanToken_, flashLoanAmount_, data_)
+        ) {
+            revert FlashLoanFailed();
+        }
 
         // Send all unspent 0x protocol fees to the sender.
         // Slither false positive here. This is near verbatim from the reference

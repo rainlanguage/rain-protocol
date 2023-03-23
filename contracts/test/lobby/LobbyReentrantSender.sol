@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {ReserveToken18} from "../testToken/ReserveToken18.sol";
 import {Lobby, PHASE_PLAYERS_PENDING, PHASE_RESULT_PENDING, PHASE_COMPLETE, PHASE_INVALID} from "../../lobby/Lobby.sol";
-import {SignedContext} from "../../interpreter/caller/LibContext.sol";
+import {SignedContext} from "../../interpreter/caller/IInterpreterCallerV1.sol";
 import "hardhat/console.sol";
 
 contract LobbyReentrantSender is ReserveToken18 {
