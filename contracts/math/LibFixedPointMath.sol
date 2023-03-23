@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "../math/SaturatingMath.sol";
+import "rain.math.saturating/SaturatingMath.sol";
 
 /// @dev The scale of all fixed point math. This is adopting the conventions of
 /// both ETH (wei) and most ERC20 tokens, so is hopefully uncontroversial.
