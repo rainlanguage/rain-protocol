@@ -12,7 +12,6 @@ import {
   getRainMetaDocumentFromOpmeta,
 } from "../../utils/meta/rainMetaDocument";
 import {
-  MajorTypes,
   RainMetaDocumentMN,
   ContractMetaMN,
   SolidityABIMN,
@@ -22,6 +21,7 @@ import {
   hexToDecimal,
   binToDecimal,
   RainDocumentKeys,
+  MT,
 } from "./cbor.utils";
 
 import type { ContractMeta } from "../../utils/types/contractMeta";
@@ -200,16 +200,13 @@ describe("Contract Rain Meta Document", function () {
     contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
 
     // The high-order 3 are the major type.
-    const mapType = mapTypeBin.slice(0, 3);
+    const mapType = binToDecimal(mapTypeBin.slice(0, 3));
 
     // The low-order 5 bits are additional information.
     // Total keys should be used from `0` to `n - 1`.
     // const mapTotalKeys = binToDecimal(mapTypeBin.slice(-5));
 
-    assert(
-      mapType == MajorTypes.TYPE_5,
-      "The cbor data do not have the correct map type"
-    );
+    assert(mapType == MT.MAP, "The cbor data do not have the correct map type");
 
     // --- PAYLOAD CHECK
 
@@ -233,10 +230,10 @@ describe("Contract Rain Meta Document", function () {
     contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
 
     // The high-order 3 are the major type.
-    const bytesType = bytesTypeBin_0.slice(0, 3);
+    const bytesType = binToDecimal(bytesTypeBin_0.slice(0, 3));
 
     assert(
-      bytesType == MajorTypes.TYPE_2,
+      bytesType == MT.BYTE_STRING,
       "The data payload do not have the correct cbor bytes type"
     );
 

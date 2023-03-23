@@ -1,51 +1,24 @@
 import { ethers } from "hardhat";
 import { MAGIC_NUMBERS } from "../../utils/meta/cbor";
+import { MT as MT_ } from "cbor/lib/constants";
+
+type MajorTypes = {
+  POS_INT: number;
+  NEG_INT: number;
+  BYTE_STRING: number;
+  UTF8_STRING: number;
+  ARRAY: number;
+  MAP: number;
+  TAG: number;
+  SIMPLE_FLOAT: number;
+};
+
 /**
  * CBOR Major Types.
  *
  * https://www.rfc-editor.org/rfc/rfc8949#name-major-types
  */
-export enum MajorTypes {
-  /**
-   * An unsigned integer
-   */
-  TYPE_0 = "000",
-
-  /**
-   * A negative integer
-   */
-  TYPE_1 = "001",
-
-  /**
-   * A byte string
-   */
-  TYPE_2 = "010",
-
-  /**
-   * A text string
-   */
-  TYPE_3 = "011",
-
-  /**
-   * An array of data items
-   */
-  TYPE_4 = "100",
-
-  /**
-   * A map of pairs of data items
-   */
-  TYPE_5 = "101",
-
-  /**
-   * A tagged data item
-   */
-  TYPE_6 = "110",
-
-  /**
-   * Floating-point numbers and simple values, as well as the "break" stop code
-   */
-  TYPE_7 = "111",
-}
+export const MT: MajorTypes = MT_;
 
 /**
  * https://github.com/rainprotocol/specs/blob/main/metadata.md#header-name-aliases-cbor-map-keys

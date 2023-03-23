@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { getAbi } from "../../utils/meta/rainMetaDocument";
 import { arrayify } from "ethers/lib/utils";
-import { MajorTypes, hexToBin } from "./cbor.utils";
+import { MT, binToDecimal, hexToBin } from "./cbor.utils";
 
 import type { ContractMeta } from "../../utils/types/contractMeta";
 
@@ -30,16 +30,13 @@ describe("CBOR JS Check types", function () {
     const byteTypeBin = hexToBin(byteTypeHex);
 
     // The high-order 3 are the major type (as bits).
-    const majorType = byteTypeBin.slice(0, 3);
+    const majorType = binToDecimal(byteTypeBin.slice(0, 3));
 
     // The low-order 5 bits are additional information (as bits).
-    const addInfoType = byteTypeBin.slice(-5);
+    // const addInfoType = byteTypeBin.slice(-5);
 
     // https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
-    assert(
-      majorType === MajorTypes.TYPE_2,
-      "The major type is not a byte string"
-    );
+    assert(majorType === MT.BYTE_STRING, "The major type is not a byte string");
   });
 
   it("should have the correct CBOR type on the payload using Uint8Array", async function () {
@@ -63,15 +60,12 @@ describe("CBOR JS Check types", function () {
     const byteTypeBin = hexToBin(byteTypeHex);
 
     // The high-order 3 are the major type (as bits).
-    const majorType = byteTypeBin.slice(0, 3);
+    const majorType = binToDecimal(byteTypeBin.slice(0, 3));
 
     // The low-order 5 bits are additional information (as bits).
-    const addInfoType = byteTypeBin.slice(-5);
+    // const addInfoType = byteTypeBin.slice(-5);
 
     // https://www.rfc-editor.org/rfc/rfc8949#name-tagging-of-items
-    assert(
-      majorType === MajorTypes.TYPE_6,
-      "The major type is not a tagget item"
-    );
+    assert(majorType === MT.TAG, "The major type is not a tag item");
   });
 });
