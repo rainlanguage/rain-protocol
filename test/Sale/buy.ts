@@ -441,7 +441,7 @@ describe("Sale buy", async function () {
     // buy some units
     await assertError(
       async () => await sale.connect(signer1).buy(buyConfig),
-      "COOLDOWN",
+      "ActiveCooldown",
       "Cooldown (with non-zero configured cooldown duration) did not revert reentrant buy call"
     );
   });
