@@ -3,11 +3,9 @@ pragma solidity =0.8.18;
 
 import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
-import "../interpreter/run/LibStackPointer.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/LibFixedPointScale.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
-import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
@@ -122,16 +120,12 @@ contract OrderBook is
     IInterpreterCallerV1,
     DeployerDiscoverableMetaV1
 {
-    using LibInterpreterState for bytes;
-    using LibStackPointer for StackPointer;
-    using LibStackPointer for uint256[];
     using LibUint256Array for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using LibFixedPointScale for uint256;
     using LibOrder for Order;
-    using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256;
 
     /// All hashes of all active orders. There's nothing interesting in the value
