@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../math/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/LibFixedPointScale.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -9,7 +9,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @title OpFixedPointScale18
 /// @notice Opcode for scaling a number to 18 decimal fixed point.
 library OpFixedPointScale18 {
-    using LibFixedPointMath for uint256;
+    using LibFixedPointScale for uint256;
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -17,7 +17,7 @@ library OpFixedPointScale18 {
         return
             a_.scale18(
                 Operand.unwrap(operand_) >> 1,
-                Math.Rounding(Operand.unwrap(operand_) & MASK_1BIT)
+                Operand.unwrap(operand_) & MASK_1BIT
             );
     }
 

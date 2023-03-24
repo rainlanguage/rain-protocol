@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "rain.math.saturating/SaturatingMath.sol";
+import "rain.math.fixedpoint/FixedPointConstants.sol";
 
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have
@@ -52,8 +51,6 @@ import "rain.math.saturating/SaturatingMath.sol";
 /// conservative and suspicious of their inputs and actions.
 library LibFixedPointMath {
     using Math for uint256;
-    using SafeCast for int256;
-    using SaturatingMath for uint256;
 
     /// Fixed point multiplication in native scale decimals.
     /// Both `a_` and `b_` MUST be `DECIMALS` fixed point decimals.
@@ -66,7 +63,7 @@ library LibFixedPointMath {
         uint256 b_,
         Math.Rounding rounding_
     ) internal pure returns (uint256) {
-        return a_.mulDiv(b_, FP_ONE, rounding_);
+        return a_.mulDiv(b_, FIXED_POINT_ONE, rounding_);
     }
 
     /// Fixed point division in native scale decimals.
@@ -80,6 +77,6 @@ library LibFixedPointMath {
         uint256 b_,
         Math.Rounding rounding_
     ) internal pure returns (uint256) {
-        return a_.mulDiv(FP_ONE, b_, rounding_);
+        return a_.mulDiv(FIXED_POINT_ONE, b_, rounding_);
     }
 }

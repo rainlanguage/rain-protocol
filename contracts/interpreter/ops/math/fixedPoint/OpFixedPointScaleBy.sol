@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../math/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/LibFixedPointScale.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -9,7 +9,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @title OpFixedPointScaleBy
 /// @notice Opcode for scaling a number by some OOMs.
 library OpFixedPointScaleBy {
-    using LibFixedPointMath for uint256;
+    using LibFixedPointScale for uint256;
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -17,7 +17,7 @@ library OpFixedPointScaleBy {
         return
             a_.scaleBy(
                 int8(uint8(Operand.unwrap(operand_))),
-                Math.Rounding.Down
+                ROUND_DOWN
             );
     }
 
