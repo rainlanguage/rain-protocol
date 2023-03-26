@@ -484,33 +484,32 @@ contract Sale is
         )
     {
         unchecked {
-        uint256[][] memory context_ = LibContext.build(
-            new uint256[][](CONTEXT_COLUMNS),
-            targetUnits_.arrayFrom(),
-            new SignedContext[](0)
-        );
-        Evaluable memory evaluable_ = evaluable;
-        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
-            .interpreter
-            .eval(
-                evaluable_.store,
-                DEFAULT_STATE_NAMESPACE,
-                _dispatchCalculateBuy(evaluable_.expression),
-                context_
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](CONTEXT_COLUMNS),
+                targetUnits_.arrayFrom(),
+                new SignedContext[](0)
             );
+            Evaluable memory evaluable_ = evaluable;
+            (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                .interpreter
+                .eval(
+                    evaluable_.store,
+                    DEFAULT_STATE_NAMESPACE,
+                    _dispatchCalculateBuy(evaluable_.expression),
+                    context_
+                );
 
-        uint256 amount_ = stack_[stack_.length - 2];
-        uint256 ratio_ = stack_[stack_.length - 1];
+            uint256 amount_ = stack_[stack_.length - 2];
+            uint256 ratio_ = stack_[stack_.length - 1];
 
-        uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
-            amount_,
-            ratio_
-        );
-        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-        context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
-        return (amount_, ratio_, context_, evaluable_.store, kvs_);
+            uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
+                amount_,
+                ratio_
+            );
+            context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+            context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
+            return (amount_, ratio_, context_, evaluable_.store, kvs_);
         }
-
     }
 
     function previewCalculateBuy(

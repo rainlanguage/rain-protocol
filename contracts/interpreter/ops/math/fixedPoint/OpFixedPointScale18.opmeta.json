@@ -5,12 +5,18 @@
     {
       "name": "decimals",
       "desc": "Decimals of the value being rescaled.",
-      "bits": [1, 15],
-      "validRange": [[0, 77]]
+      "bits": [2, 15],
+      "validRange": [[0, 16383]]
     },
     {
-      "name": "rounding",
-      "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
+      "name": "saturate",
+      "desc": "If 1 scaling up will saturate rather than overflow past uint256 max.",
+      "bits": [1, 1],
+      "validRange": [[0, 1]]
+    },
+    {
+      "name": "round-up",
+      "desc": "If 1 scaling down will round up rather than down on precision loss.",
       "bits": [0, 0],
       "validRange": [[0, 1]]
     }

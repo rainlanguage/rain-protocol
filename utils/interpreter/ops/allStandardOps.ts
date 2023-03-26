@@ -40,7 +40,6 @@ export enum AllStandardOps {
   sub,
   scale_18,
   scale_18_dynamic,
-  scale_by,
   scale_n,
   any,
   eager_if,

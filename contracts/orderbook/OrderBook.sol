@@ -4,7 +4,7 @@ pragma solidity =0.8.18;
 import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
 import "../math/LibFixedPointMath.sol";
-import "rain.math.fixedpoint/LibFixedPointScale.sol";
+import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
@@ -124,7 +124,7 @@ contract OrderBook is
     using SafeERC20 for IERC20;
     using Math for uint256;
     using LibFixedPointMath for uint256;
-    using LibFixedPointScale for uint256;
+    using FixedPointDecimalScale for uint256;
     using LibOrder for Order;
     using LibUint256Array for uint256;
 
@@ -560,7 +560,12 @@ contract OrderBook is
             // Always round order output down.
             orderOutputMax_ = orderOutputMax_.scaleN(
                 order_.validOutputs[outputIOIndex_].decimals,
-                ROUND_DOWN
+                // Saturate the order max output because if we were willing to
+                // give more than this on a scale up, we should be comfortable
+                // giving less.
+                // Round DOWN to be conservative and give away less if there's
+                // any loss of precision during scale down.
+                FLAG_SATURATE
             );
             // Rescale the ratio from 18 FP according to the difference in
             // decimals between input and output.
@@ -568,7 +573,11 @@ contract OrderBook is
             orderIORatio_ = orderIORatio_.scaleRatio(
                 order_.validOutputs[outputIOIndex_].decimals,
                 order_.validInputs[inputIOIndex_].decimals,
-                ROUND_UP
+                // DO NOT saturate ratios because this would reduce the effective
+                // IO ratio, which would mean that saturating would make the deal
+                // worse for the order. Instead we overflow, and round up to get
+                // the best possible deal.
+                FLAG_ROUND_UP
             );
 
             // The order owner can't send more than the smaller of their vault

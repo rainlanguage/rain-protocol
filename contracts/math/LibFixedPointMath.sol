@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import "rain.math.fixedpoint/FixedPointConstants.sol";
+import "rain.math.fixedpoint/FixedPointDecimalConstants.sol";
 
 /// @title FixedPointMath
 /// @notice Sometimes we want to do math with decimal values but all we have
