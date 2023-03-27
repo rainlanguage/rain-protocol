@@ -5,8 +5,8 @@
     {
       "name": "target-decimals",
       "desc": "The target decimals to scale to.",
-      "bits": [2, 7],
-      "validRange": [[0, 31]]
+      "bits": [2, 15],
+      "validRange": [[0, 16383]]
     },
     {
       "name": "saturate",
