@@ -20,3 +20,6 @@
 [submodule "lib/rain.math.fixedpoint"]
 	path = lib/rain.math.fixedpoint
 	url = https://github.com/rainprotocol/rain.math.fixedpoint
+[submodule "lib/rain.interface.factory"]
+	path = lib/rain.interface.factory
+	url = https://github.com/rainprotocol/rain.interface.factory
