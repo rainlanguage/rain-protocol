@@ -10,7 +10,7 @@ import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();

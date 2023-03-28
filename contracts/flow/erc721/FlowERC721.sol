@@ -12,7 +12,7 @@ import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when burner of tokens is not the owner of tokens.
 error BurnerNotOwner();

@@ -13,7 +13,7 @@ import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -315,7 +315,7 @@ contract Lobby is
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    function _deposit(uint256 amount_) internal {
+    function _deposit(uint256 amount_) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);
