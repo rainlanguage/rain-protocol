@@ -1,9 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { assertError, standardEvaluableConfig } from "../../../../utils";
 import {
   eighteenZeros,
+  max_uint256,
   ONE,
   sixteenZeros,
   sixZeros,
@@ -21,6 +22,9 @@ describe("RainInterpreter fixed point math ops", async function () {
   const ROUNDING_UP = 1;
   const ROUNDING_DOWN = 0;
 
+  const SATURATE_ON = 1;
+  const SATURATE_OFF = 0;
+
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
@@ -35,77 +39,12 @@ describe("RainInterpreter fixed point math ops", async function () {
     await logic.deployed();
   });
 
-  it("should scale an arbitrary fixed point number DOWN by scale N", async () => {
-    const value1 = ethers.BigNumber.from(1 + sixZeros);
-    const n = 0xfc; // -4
-
-    const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-by<${n}>(${value1});`
-    );
-
-    const expression0 = await expressionConsumerDeploy(
-      sources,
-      constants,
-      rainInterpreter,
-      1
-    );
-
-    await logic["eval(address,uint256,uint256[][])"](
-      rainInterpreter.address,
-      expression0.dispatch,
-      []
-    );
-
-    const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(100);
-
-    assert(
-      result0.eq(expected0),
-      `wrong result
-      expected  ${expected0}
-      got       ${result0}`
-    );
-  });
-
-  it("should scale an arbitrary fixed point number UP by scale N", async () => {
-    const value1 = ethers.BigNumber.from(1 + sixZeros);
-    const n = 0x04; // 4
-
-    const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-by<${n}>(${value1});`
-    );
-
-    const expression0 = await expressionConsumerDeploy(
-      sources,
-      constants,
-
-      rainInterpreter,
-      1
-    );
-
-    await logic["eval(address,uint256,uint256[][])"](
-      rainInterpreter.address,
-      expression0.dispatch,
-      []
-    );
-
-    const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
-
-    assert(
-      result0.eq(expected0),
-      `wrong result
-        expected  ${expected0}
-        got       ${result0}`
-    );
-  });
-
   it("should scale an 18 OOMs number UP to scale N", async () => {
     const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 20;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-n<${n}>(${value1});`
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value1});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -138,7 +77,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 6;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-n<${n}>(${value1});`
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value1});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -166,12 +105,12 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   });
 
-  it("should scale a number by 18 OOM while dividing", async () => {
-    const value1 = 50;
-    const value2 = ethers.BigNumber.from("3" + eighteenZeros);
+  it("should not scale an 18 OOM number using scale N if N matches fixed point decimals", async () => {
+    const value1 = ethers.BigNumber.from(1 + eighteenZeros);
+    const n = 18;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18-div<0>(${value1} ${value2});`
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value1});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -189,9 +128,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
 
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
-      .mul(ONE)
-      .div(value2);
+    const expected0 = ethers.BigNumber.from(1 + eighteenZeros);
+
     assert(
       result0.eq(expected0),
       `wrong result
@@ -200,12 +138,12 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   });
 
-  it("should scale a number by 18 OOM while multiplying", async () => {
-    const value1 = 1;
-    const value2 = ONE.mul(2);
+  it("should round up the result using scale N while scaling down", async () => {
+    const value1 = ethers.BigNumber.from(1 + sixZeros);
+    const n = 7;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18-mul<0>(${value1} ${value2});`
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_UP}>(${value1});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -223,14 +161,165 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
 
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
-      .mul(value2)
-      .div(ONE);
+    const expected0 = 1;
+
     assert(
       result0.eq(expected0),
       `wrong result
         expected  ${expected0}
         got       ${result0}`
+    );
+  });
+
+  it("should round down the result using scale N while scaling down", async () => {
+    const value1 = ethers.BigNumber.from(1 + sixZeros);
+    const n = 7;
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value1});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+
+    const result0 = await logic.stackTop();
+    const expected0 = 0;
+
+    assert(
+      result0.eq(expected0),
+      `wrong result
+        expected  ${expected0}
+        got       ${result0}`
+    );
+  });
+
+  it("should saturate a value using scale N if the resultant value overflows", async () => {
+    let value = ethers.BigNumber.from(1 + "0".repeat(72));
+    let n = 24; // overflows
+
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale-n<${n} ${SATURATE_ON} ${ROUNDING_UP}>(${value});`
+      );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+
+    const result0 = await logic.stackTop();
+    const expected0 = max_uint256;
+
+    assert(
+      result0.eq(expected0),
+      `wrong result
+        expected  ${expected0}
+        got       ${result0}`
+    );
+
+    n = 16383; // (targetDecimals - FIXED_POINT_DECIMALS) >= OVERFLOW_RESCALE_OOMS
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale-n<${n} ${SATURATE_ON} ${ROUNDING_UP}>(${value});`
+      );
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+
+    const result1 = await logic.stackTop();
+    const expected1 = max_uint256;
+
+    assert(
+      result1.eq(expected1),
+      `wrong result
+        expected  ${expected1}
+        got       ${result1}`
+    );
+
+    value = ethers.BigNumber.from(0);
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale-n<${n} ${SATURATE_ON} ${ROUNDING_UP}>(${value});`
+      );
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+
+    const result2 = await logic.stackTop();
+    const expected2 = 0;
+
+    assert(
+      result2.eq(expected2),
+      `wrong result
+        expected  ${expected2}
+        got       ${result2}`
+    );
+  });
+
+  it("should revert with an overflow using scale N if the resultant value overflows", async () => {
+    const value1 = ethers.BigNumber.from(1 + "0".repeat(72));
+    const n = 24; // overflows
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-n<${n} ${SATURATE_OFF} ${ROUNDING_UP}>(${value1});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await assertError(
+      async () =>
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
+      "Arithmetic operation underflowed or overflowed outside of an unchecked block",
+      "Did not revert with an overflow"
     );
   });
 
@@ -238,7 +327,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from("100245700");
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-18<8 ${ROUNDING_UP}>(${value});`
+      rainlang`_: scale-18<8 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -270,7 +359,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18<24 ${ROUNDING_UP}>(${value});`
+      rainlang`_: scale18<24 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -301,14 +390,14 @@ describe("RainInterpreter fixed point math ops", async function () {
   it("should scale a number DOWN to 18 OOM with ROUNDING UP", async () => {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
-    const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18<20 ${ROUNDING_UP}>(${value});`
-    );
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale18<20 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+      );
 
     const expression0 = await expressionConsumerDeploy(
-      sources,
-      constants,
-
+      sources0,
+      constants0,
       rainInterpreter,
       1
     );
@@ -330,18 +419,75 @@ describe("RainInterpreter fixed point math ops", async function () {
         expected  ${expected0}
         got       ${result0}`
     );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+      );
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+
+    const result1 = await logic.stackTop();
+    const expected1 = 1;
+
+    assert(
+      result1.eq(expected1),
+      `wrong result
+        expected  ${expected1}
+        got       ${result1}`
+    );
+
+    const { sources: sources2, constants: constants2 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(0);`
+      );
+
+    const expression2 = await expressionConsumerDeploy(
+      sources2,
+      constants2,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
+
+    const result2 = await logic.stackTop();
+    const expected2 = 0;
+
+    assert(
+      result2.eq(expected2),
+      `wrong result
+        expected  ${expected2}
+        got       ${result2}`
+    );
   });
 
   it("should scale a number DOWN to 18 OOM with ROUNDING DOWN", async () => {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
 
-    const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18<20 ${ROUNDING_DOWN}>(${value});`
-    );
+    const { sources: sources0, constants: constants0 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale18<20 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
+      );
 
     const expression0 = await expressionConsumerDeploy(
-      sources,
-      constants,
+      sources0,
+      constants0,
 
       rainInterpreter,
       1
@@ -362,6 +508,93 @@ describe("RainInterpreter fixed point math ops", async function () {
         expected  ${expected0}
         got       ${result0}`
     );
+
+    const { sources: sources1, constants: constants1 } =
+      await standardEvaluableConfig(
+        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
+      );
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
+
+    const result1 = await logic.stackTop();
+    const expected1 = 0;
+
+    assert(
+      result1.eq(expected1),
+      `wrong result
+        expected  ${expected1}
+        got       ${result1}`
+    );
+  });
+
+  it("should saturate if the resultant value overflows while scaling a number UP to 18 OOM", async () => {
+    const value = ethers.BigNumber.from(1 + "0".repeat(72));
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-18<8 ${SATURATE_ON} ${ROUNDING_UP}>(${value});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = max_uint256;
+    assert(
+      result0.eq(expected0),
+      `wrong result
+        expected  ${expected0}
+        got       ${result0}`
+    );
+  });
+
+  it("should revert with an overflow if the resultant value overflows while scaling a number UP to 18 OOM", async () => {
+    const value = ethers.BigNumber.from(1 + "0".repeat(72));
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-18<8 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await assertError(
+      async () =>
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
+      "Arithmetic operation underflowed or overflowed outside of an unchecked block",
+      "Did not revert with an overflow"
+    );
   });
 
   it("should scale a number UP to 18 OOM on a dynamic scale", async () => {
@@ -369,7 +602,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from("100245700");
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
+      rainlang`_: scale-18-dynamic<${SATURATE_OFF} ${ROUNDING_UP}>(${decimals} ${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -402,7 +635,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
+      rainlang`_: scale-18-dynamic<${SATURATE_OFF} ${ROUNDING_UP}>(${decimals} ${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -435,7 +668,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-18-dynamic<${ROUNDING_UP}>(${decimals} ${value});`
+      rainlang`_: scale-18-dynamic<${SATURATE_OFF} ${ROUNDING_UP}>(${decimals} ${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -469,7 +702,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale-18-dynamic<${ROUNDING_DOWN}>(${decimals} ${value});`
+      rainlang`_: scale-18-dynamic<${SATURATE_OFF} ${ROUNDING_DOWN}>(${decimals} ${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -493,6 +726,67 @@ describe("RainInterpreter fixed point math ops", async function () {
       `wrong result
         expected  ${expected0}
         got       ${result0}`
+    );
+  });
+
+  it("should saturate if the resultant value overflows scaling a number UP to 18 OOM on a dynamic scale", async () => {
+    const decimals = 8;
+    const value = ethers.BigNumber.from(1 + "0".repeat(72));
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-18-dynamic<${SATURATE_ON} ${ROUNDING_UP}>(${decimals} ${value});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = max_uint256;
+    assert(
+      result0.eq(expected0),
+      `wrong result
+        expected  ${expected0}
+        got       ${result0}`
+    );
+  });
+
+  it("should revert with an overflow if the resultant value overflows scaling a number UP to 18 OOM on a dynamic scale", async () => {
+    const decimals = 8;
+    const value = ethers.BigNumber.from(1 + "0".repeat(72));
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`_: scale-18-dynamic<${SATURATE_OFF} ${ROUNDING_UP}>(${decimals} ${value});`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+
+      rainInterpreter,
+      1
+    );
+
+    await assertError(
+      async () =>
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
+      "Arithmetic operation underflowed or overflowed outside of an unchecked block",
+      "Did not revert with an overflow"
     );
   });
 });

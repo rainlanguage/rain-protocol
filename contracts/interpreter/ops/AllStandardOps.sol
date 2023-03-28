@@ -32,10 +32,7 @@ import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
-import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
-import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
-import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
 import "./math/logic/OpAny.sol";
 import "./math/logic/OpEagerIf.sol";
@@ -93,7 +90,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 81;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 78;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -255,10 +252,7 @@ library AllStandardOps {
                     OpMul.integrity,
                     OpSub.integrity,
                     OpFixedPointScale18.integrity,
-                    OpFixedPointScale18Div.integrity,
                     OpFixedPointScale18Dynamic.integrity,
-                    OpFixedPointScale18Mul.integrity,
-                    OpFixedPointScaleBy.integrity,
                     OpFixedPointScaleN.integrity,
                     OpAny.integrity,
                     OpEagerIf.integrity,
@@ -366,10 +360,7 @@ library AllStandardOps {
                     OpMul.run,
                     OpSub.run,
                     OpFixedPointScale18.run,
-                    OpFixedPointScale18Div.run,
                     OpFixedPointScale18Dynamic.run,
-                    OpFixedPointScale18Mul.run,
-                    OpFixedPointScaleBy.run,
                     OpFixedPointScaleN.run,
                     OpAny.run,
                     OpEagerIf.run,

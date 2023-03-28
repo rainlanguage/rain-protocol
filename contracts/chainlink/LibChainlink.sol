@@ -2,7 +2,8 @@
 pragma solidity ^0.8.15;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "../math/LibFixedPointMath.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 
 /// Thrown if a price is zero or negative as this is probably not anticipated or
 /// useful for most users of a price feed. Of course there are use cases where
@@ -25,8 +26,8 @@ error NotPosIntPrice(int256 price);
 error StalePrice(uint256 updatedAt, uint256 staleAfter);
 
 library LibChainlink {
+    using FixedPointDecimalScale for uint256;
     using SafeCast for int256;
-    using LibFixedPointMath for uint256;
 
     function price(
         address feed_,
@@ -54,7 +55,8 @@ library LibChainlink {
         return
             answer_.toUint256().scale18(
                 AggregatorV3Interface(feed_).decimals(),
-                Math.Rounding.Up
+                // Don't saturate, just round up.
+                FLAG_ROUND_UP
             );
     }
 }

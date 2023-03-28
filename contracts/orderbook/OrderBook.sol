@@ -3,10 +3,9 @@ pragma solidity =0.8.18;
 
 import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
-import "../interpreter/run/LibStackPointer.sol";
 import "../math/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
-import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
@@ -121,15 +120,12 @@ contract OrderBook is
     IInterpreterCallerV1,
     DeployerDiscoverableMetaV1
 {
-    using LibInterpreterState for bytes;
-    using LibStackPointer for StackPointer;
-    using LibStackPointer for uint256[];
     using LibUint256Array for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using LibFixedPointMath for uint256;
+    using FixedPointDecimalScale for uint256;
     using LibOrder for Order;
-    using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256;
 
     /// All hashes of all active orders. There's nothing interesting in the value
@@ -564,7 +560,12 @@ contract OrderBook is
             // Always round order output down.
             orderOutputMax_ = orderOutputMax_.scaleN(
                 order_.validOutputs[outputIOIndex_].decimals,
-                Math.Rounding.Down
+                // Saturate the order max output because if we were willing to
+                // give more than this on a scale up, we should be comfortable
+                // giving less.
+                // Round DOWN to be conservative and give away less if there's
+                // any loss of precision during scale down.
+                FLAG_SATURATE
             );
             // Rescale the ratio from 18 FP according to the difference in
             // decimals between input and output.
@@ -572,7 +573,11 @@ contract OrderBook is
             orderIORatio_ = orderIORatio_.scaleRatio(
                 order_.validOutputs[outputIOIndex_].decimals,
                 order_.validInputs[inputIOIndex_].decimals,
-                Math.Rounding.Up
+                // DO NOT saturate ratios because this would reduce the effective
+                // IO ratio, which would mean that saturating would make the deal
+                // worse for the order. Instead we overflow, and round up to get
+                // the best possible deal.
+                FLAG_ROUND_UP
             );
 
             // The order owner can't send more than the smaller of their vault

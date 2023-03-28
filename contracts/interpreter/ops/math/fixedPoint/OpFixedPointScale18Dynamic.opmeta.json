@@ -3,8 +3,14 @@
   "desc": "Rescale a fixed point number of N decimals to 18 decimals where N is taken from the stack.",
   "operand": [
     {
-      "name": "rounding",
-      "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
+      "name": "saturate",
+      "desc": "If 1 scaling up will saturate rather than overflow past uint256 max.",
+      "bits": [1, 1],
+      "validRange": [[0, 1]]
+    },
+    {
+      "name": "round-up",
+      "desc": "If 1 scaling down will round up rather than down on precision loss.",
       "bits": [0, 0],
       "validRange": [[0, 1]]
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../math/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -11,7 +11,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// `OpFixedPointScale18` but the scale value is taken from the stack instead of
 /// the operand.
 library OpFixedPointScale18Dynamic {
-    using LibFixedPointMath for uint256;
+    using FixedPointDecimalScale for uint256;
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -20,11 +20,7 @@ library OpFixedPointScale18Dynamic {
         uint256 scale_,
         uint256 a_
     ) internal pure returns (uint256) {
-        return
-            a_.scale18(
-                scale_,
-                Math.Rounding(Operand.unwrap(operand_) & MASK_1BIT)
-            );
+        return a_.scale18(scale_, Operand.unwrap(operand_) & MASK_2BIT);
     }
 
     function integrity(
