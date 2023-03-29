@@ -320,12 +320,8 @@ export const metaFromBytes = (
  */
 export const deflateJson = (data_: any): string => {
   const content = format(JSON.stringify(data_, null, 4), { parser: "json" });
-  const bytes = Uint8Array.from(deflateSync(content));
-  let hex = "0x";
-  for (let i = 0; i < bytes.length; i++) {
-    hex = hex + bytes[i].toString(16).padStart(2, "0");
-  }
-  return hex;
+
+  return "0x" + deflateSync(content).toString("hex");
 };
 
 /**
