@@ -16,7 +16,7 @@ import "../../interpreter/run/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x5ca2c16fbf02f00514cdb68a42de1aa7b150b73b548bdbb2f9671db43290a7ca
+    0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
