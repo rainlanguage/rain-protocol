@@ -17,7 +17,7 @@ contract VerifyCallback is IVerifyCallbackV1, Ownable {
         address adder_,
         Evidence[] calldata evidences_
     )
-        external
+        public
         virtual
         override
         onlyOwner
@@ -30,7 +30,7 @@ contract VerifyCallback is IVerifyCallbackV1, Ownable {
         address approver_,
         Evidence[] calldata evidences_
     )
-        external
+        public
         virtual
         override
         onlyOwner
@@ -43,7 +43,7 @@ contract VerifyCallback is IVerifyCallbackV1, Ownable {
         address banner_,
         Evidence[] calldata evidences_
     )
-        external
+        public
         virtual
         override
         onlyOwner
@@ -56,7 +56,7 @@ contract VerifyCallback is IVerifyCallbackV1, Ownable {
         address remover_,
         Evidence[] calldata evidences_
     )
-        external
+        public
         virtual
         override
         onlyOwner

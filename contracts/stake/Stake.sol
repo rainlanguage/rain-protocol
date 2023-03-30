@@ -9,7 +9,7 @@ import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";

@@ -13,10 +13,10 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
 import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../../interpreter/run/LibEvaluable.sol";
-import "../../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x5ca2c16fbf02f00514cdb68a42de1aa7b150b73b548bdbb2f9671db43290a7ca
+    0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
@@ -78,10 +78,13 @@ contract AutoApprove is
     }
 
     function afterAdd(
-        address,
+        address adder_,
         Evidence[] calldata evidences_
-    ) external virtual override {
+    ) public virtual override {
         unchecked {
+            // Inherit owner check etc.
+            super.afterAdd(adder_, evidences_);
+
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);

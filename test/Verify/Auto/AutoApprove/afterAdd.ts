@@ -271,6 +271,8 @@ describe("AutoApprove afterAdd", async function () {
       autoApprove.address
     );
 
+    await autoApprove.connect(deployer).transferOwnership(verify.address)
+
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 
     // make AutoApprove an approver

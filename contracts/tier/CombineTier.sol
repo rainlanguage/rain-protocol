@@ -11,7 +11,7 @@ import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
