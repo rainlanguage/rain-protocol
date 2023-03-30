@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 
 import "sol.lib.datacontract/LibDataContract.sol";
 
-import "../deploy/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";

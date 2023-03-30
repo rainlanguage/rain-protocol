@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "../deploy/IExpressionDeployerV1.sol";
-import "./IInterpreterV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 
 struct EvaluableConfig {
     IExpressionDeployerV1 deployer;

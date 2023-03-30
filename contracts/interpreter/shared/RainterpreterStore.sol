@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "../store/IInterpreterStoreV1.sol";
+import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "../run/LibInterpreterState.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
