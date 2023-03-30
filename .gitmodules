@@ -26,3 +26,6 @@
 [submodule "lib/rain.interface.interpreter"]
 	path = lib/rain.interface.interpreter
 	url = https://github.com/rainprotocol/rain.interface.interpreter
+[submodule "lib/rain.interface.orderbook"]
+	path = lib/rain.interface.orderbook
+	url = https://github.com/rainprotocol/rain.interface.orderbook
