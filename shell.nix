@@ -7,22 +7,6 @@ let
     })
     { };
 
-  local-node = pkgs.writeShellScriptBin "local-node" ''
-    hardhat node
-  '';
-
-  local-fork = pkgs.writeShellScriptBin "local-fork" ''
-    hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/G0Vg_iZFiAuUD6hjXqcVg-Nys-NGiTQy --fork-block-number 11833335
-  '';
-
-  local-test = pkgs.writeShellScriptBin "local-test" ''
-    hardhat test --network localhost
-  '';
-
-  local-deploy = pkgs.writeShellScriptBin "local-deploy" ''
-    hardhat run --network localhost scripts/deploy.ts
-  '';
-
   prettier-check = pkgs.writeShellScriptBin "prettier-check" ''
     prettier --check .
   '';
@@ -76,7 +60,7 @@ let
     flush-all
     npm install
     hardhat compile --force
-    hardhat test
+    hardhat test --parallel --bail
   '';
 
   ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
