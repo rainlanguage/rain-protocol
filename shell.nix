@@ -174,10 +174,6 @@ pkgs.stdenv.mkDerivation {
     pkgs.nixpkgs-fmt
     pkgs.nodejs-16_x
     pkgs.slither-analyzer
-    local-node
-    local-fork
-    local-test
-    local-deploy
     prettier-check
     prettier-write
     security-check
