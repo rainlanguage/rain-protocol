@@ -25,11 +25,6 @@ error FlashLenderCallbackFailed(bytes32 result);
 /// @param amount The amount of the active debt.
 error ActiveDebt(address receiver, address token, uint256 amount);
 
-/// @dev The ERC3156 spec mandates this hash be returned by `onFlashLoan`.
-bytes32 constant ON_FLASH_LOAN_CALLBACK_SUCCESS = keccak256(
-    "ERC3156FlashBorrower.onFlashLoan"
-);
-
 /// @dev Flash fee is always 0 for orderbook as there's no entity to take
 /// revenue for `Orderbook` and its more important anyway that flashloans happen
 /// to connect external liquidity to live orders via arbitrage.

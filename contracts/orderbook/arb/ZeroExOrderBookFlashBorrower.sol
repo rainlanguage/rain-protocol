@@ -9,7 +9,6 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "rain.interface.orderbook/ierc3156/IERC3156FlashLender.sol";
 import "rain.interface.orderbook/ierc3156/IERC3156FlashBorrower.sol";
 import "rain.interface.orderbook/IOrderBookV1.sol";
-import "../OrderBookFlashLender.sol";
 
 /// Thrown when the lender is not the trusted `OrderBook`.
 /// @param badLender The untrusted lender calling `onFlashLoan`.
