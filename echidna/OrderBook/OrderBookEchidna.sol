@@ -6,7 +6,7 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import {LibOrderBook, OrderIOCalculation} from "../../contracts/orderbook/LibOrderBook.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 import {LibFixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/LibFixedPointMath.sol";
-import {ClearStateChange} from "../../contracts/orderbook/IOrderBookV1.sol";
+import {ClearStateChange} from "rain.interface.orderbook/IOrderBookV1.sol";
 
 /// Since we are fuzzing inputs rather than functionality the contract is
 /// standalone.
