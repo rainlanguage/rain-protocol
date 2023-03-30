@@ -13,13 +13,13 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 

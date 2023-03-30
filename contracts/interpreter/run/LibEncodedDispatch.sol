@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "./IInterpreterV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 
 /// @title LibEncodedDispatch
 /// @notice Establishes and implements a convention for encoding an interpreter

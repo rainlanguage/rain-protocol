@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "./IInterpreterExternV1.sol";
+import "rain.interface.interpreter/IInterpreterExternV1.sol";
 
 library LibExtern {
     function decode(

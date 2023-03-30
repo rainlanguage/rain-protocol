@@ -2,14 +2,14 @@
 pragma solidity =0.8.18;
 
 import "./libraries/LibFlow.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";

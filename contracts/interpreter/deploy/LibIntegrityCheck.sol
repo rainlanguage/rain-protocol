@@ -4,8 +4,8 @@ pragma solidity ^0.8.15;
 import "../run/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "./IExpressionDeployerV1.sol";
-import "../run/IInterpreterV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 
 /// @dev The virtual stack pointers are never read or written so don't need to
 /// point to a real location in memory. We only care that the stack never moves

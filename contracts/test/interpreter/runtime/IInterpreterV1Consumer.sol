@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../interpreter/run/IInterpreterV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
 import "../../../interpreter/shared/Rainterpreter.sol";
-import "../../../interpreter/store/IInterpreterStoreV1.sol";
+import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "hardhat/console.sol";
 
 contract IInterpreterV1Consumer {

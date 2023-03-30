@@ -5,7 +5,7 @@ import "./IOrderBookV1.sol";
 import "./LibOrder.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";

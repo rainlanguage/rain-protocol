@@ -2,10 +2,10 @@
 pragma solidity ^0.8.15;
 
 import "../ierc3156/IERC3156FlashLender.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
-import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 
 /// Configuration for a deposit. All deposits are processed by and for
 /// `msg.sender` so the vaults are unambiguous here.
