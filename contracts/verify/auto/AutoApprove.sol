@@ -9,7 +9,7 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
-import "../../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../../interpreter/caller/LibContext.sol";
 import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
@@ -20,7 +20,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
-uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
+uint16 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
 struct AutoApproveConfig {

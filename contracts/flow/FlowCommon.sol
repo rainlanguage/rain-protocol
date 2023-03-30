@@ -5,7 +5,7 @@ import "./libraries/LibFlow.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -31,7 +31,7 @@ uint256 constant FLAG_ROW_FLOW_TIME = 2;
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
+uint16 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 contract FlowCommon is
     ERC721Holder,

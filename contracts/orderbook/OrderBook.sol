@@ -7,7 +7,7 @@ import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "./LibOrderBook.sol";
@@ -58,12 +58,12 @@ SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
 /// @dev Minimum outputs for calculate order are the amount and ratio.
 uint256 constant CALCULATE_ORDER_MIN_OUTPUTS = 2;
 /// @dev Maximum outputs for calculate order are the amount and ratio.
-uint256 constant CALCULATE_ORDER_MAX_OUTPUTS = 2;
+uint16 constant CALCULATE_ORDER_MAX_OUTPUTS = 2;
 
 /// @dev Handle IO has no outputs as it only responds to vault movements.
 uint256 constant HANDLE_IO_MIN_OUTPUTS = 0;
 /// @dev Handle IO has no outputs as it only response to vault movements.
-uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
+uint16 constant HANDLE_IO_MAX_OUTPUTS = 0;
 
 /// @dev Orderbook context is actually fairly complex. The calling context column
 /// is populated before calculate order, but the remaining columns are only

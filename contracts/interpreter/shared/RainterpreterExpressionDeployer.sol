@@ -224,7 +224,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
         StackPointer initialStackHighwater_ = integrityCheckState_
             .stackHighwater;
-        for (uint256 i_ = 0; i_ < minOutputs_.length; i_++) {
+        for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory

@@ -49,7 +49,7 @@ library OpCall {
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
-            Operand.unwrap(operand_) >> 8
+            uint16(Operand.unwrap(operand_) >> 8)
         );
 
         // Remember the outer stack bottom and highwater.
@@ -105,7 +105,7 @@ library OpCall {
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
-            Operand.unwrap(operand_) >> 8
+            uint16(Operand.unwrap(operand_) >> 8)
         );
 
         // Remember the outer stack bottom.
