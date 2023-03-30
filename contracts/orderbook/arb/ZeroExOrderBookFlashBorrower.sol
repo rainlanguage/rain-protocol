@@ -6,10 +6,9 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "../../ierc3156/IERC3156FlashLender.sol";
-import "../../ierc3156/IERC3156FlashBorrower.sol";
-import "../IOrderBookV1.sol";
-import "../OrderBookFlashLender.sol";
+import "rain.interface.orderbook/ierc3156/IERC3156FlashLender.sol";
+import "rain.interface.orderbook/ierc3156/IERC3156FlashBorrower.sol";
+import "rain.interface.orderbook/IOrderBookV1.sol";
 
 /// Thrown when the lender is not the trusted `OrderBook`.
 /// @param badLender The untrusted lender calling `onFlashLoan`.

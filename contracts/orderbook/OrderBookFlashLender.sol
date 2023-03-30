@@ -5,8 +5,8 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "../ierc3156/IERC3156FlashBorrower.sol";
-import "../ierc3156/IERC3156FlashLender.sol";
+import "rain.interface.orderbook/ierc3156/IERC3156FlashBorrower.sol";
+import "rain.interface.orderbook/ierc3156/IERC3156FlashLender.sol";
 
 /// Thrown when `flashLoan` token is zero address.
 error ZeroToken();
@@ -24,11 +24,6 @@ error FlashLenderCallbackFailed(bytes32 result);
 /// @param token The token of the active debt.
 /// @param amount The amount of the active debt.
 error ActiveDebt(address receiver, address token, uint256 amount);
-
-/// @dev The ERC3156 spec mandates this hash be returned by `onFlashLoan`.
-bytes32 constant ON_FLASH_LOAN_CALLBACK_SUCCESS = keccak256(
-    "ERC3156FlashBorrower.onFlashLoan"
-);
 
 /// @dev Flash fee is always 0 for orderbook as there's no entity to take
 /// revenue for `Orderbook` and its more important anyway that flashloans happen
