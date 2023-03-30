@@ -375,7 +375,12 @@ library LibInterpreterState {
                         // MUST point to compiled sources. Needs updating if the
                         // `IntepreterState` struct changes fields.
                         mload(add(state_, 0xC0)),
-                        add(0x20, mul(0x20, sourceIndex_))
+                        add(
+                            0x20,
+                            mul(
+                                0x20,
+                                // SourceIndex is a uint16 so needs cleaning.
+                                and(sourceIndex_, 0xFFFF)))
                     )
                 )
                 end_ := add(cursor_, mload(cursor_))

@@ -48,7 +48,7 @@ describe("Flow deployExpression tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -58,7 +58,7 @@ describe("Flow deployExpression tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-       
+
         /**
          * native (gas) token transfers
         */
@@ -91,7 +91,7 @@ describe("Flow deployExpression tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -101,7 +101,7 @@ describe("Flow deployExpression tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-       
+
         /**
          * native (gas) token transfers
         */
