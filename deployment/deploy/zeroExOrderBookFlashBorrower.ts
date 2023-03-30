@@ -2,33 +2,7 @@ import { ethers } from "hardhat";
 import { registerContract } from "../utils";
 import { getContractAddressesForChainOrThrow } from "@0x/contract-addresses";
 
-import type { OrderBook, ZeroExOrderBookFlashBorrower } from "../../typechain";
-import type { ZeroExOrderBookFlashBorrowerConfigStruct } from "../../typechain/contracts/orderbook/arb/ZeroExOrderBookFlashBorrower";
-
-export const deployZeroExOrderBookFlashBorrower = async (
-  orderBook_: OrderBook
-) => {
-  const zeroExOrderBookFactory = await ethers.getContractFactory(
-    "ZeroExOrderBookFlashBorrower"
-  );
-
-  const exchangeProxy = await getExchangeProxy();
-
-  const args: ZeroExOrderBookFlashBorrowerConfigStruct = {
-    orderBook: orderBook_.address,
-    zeroExExchangeProxy: exchangeProxy,
-  };
-
-  const zeroExOrderBook = (await zeroExOrderBookFactory.deploy(
-    args
-  )) as ZeroExOrderBookFlashBorrower;
-
-  registerContract(
-    "ZeroExOrderBookFlashBorrower",
-    zeroExOrderBook.address,
-    args
-  );
-};
+import type { OrderBook } from "../../typechain";
 
 /**
  * Use the tiny library with all the addresses for the `0x Protocol`.

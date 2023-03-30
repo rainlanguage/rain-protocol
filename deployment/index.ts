@@ -16,7 +16,6 @@ import {
   deployReadWriteTier,
   deployVerify,
   deployAutoApprove,
-  deployZeroExOrderBookFlashBorrower,
 } from "./deploy";
 
 async function main() {
@@ -54,10 +53,7 @@ async function main() {
   await deployLobby(RainterpreterExpressionDeployer, timeoutDuration);
 
   // Deploy OrderBook
-  const orderBook = await deployOrderbook(RainterpreterExpressionDeployer);
-
-  // Deploy ZeroExOrderBookFlashBorrower
-  await deployZeroExOrderBookFlashBorrower(orderBook);
+  await deployOrderbook(RainterpreterExpressionDeployer);
 
   // Deploy Sale (and RedeemableERC20)
   const maximumSaleTimeout = 2592000; // Aprox 1 month
