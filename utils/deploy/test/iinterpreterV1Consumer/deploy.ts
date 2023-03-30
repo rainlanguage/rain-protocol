@@ -2,12 +2,15 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
-import { libEncodedDispatchDeploy } from "../../interpreter/run/libEncodedDispatch/deploy";
 import { rainterpreterExpression } from "../../interpreter/shared/rainterpreterExpressionDeployer/deployExpression";
 import { PromiseOrValue } from "../../../../typechain/common";
 import { BigNumberish, BytesLike } from "ethers";
 
 const ENTRYPOINT = 0;
+
+const encodeDispatch = async (expressionDeployer: BigNumberish, entrypoint: BigNumberish, maxOutputs: BigNumberish) => {
+  return ethers.BigNumber.from(expressionDeployer).shl(32).or(ethers.BigNumber.from(entrypoint).shl(16)).or(maxOutputs);
+}
 
 export const iinterpreterV1ConsumerDeploy = async (
   sources: PromiseOrValue<BytesLike>[],
@@ -20,13 +23,8 @@ export const iinterpreterV1ConsumerDeploy = async (
     sources,
     constants
   );
-  const libEncodedDispatch = await libEncodedDispatchDeploy();
 
-  const dispatch = await libEncodedDispatch.encode(
-    expressionDeployer,
-    ENTRYPOINT,
-    maxOutputs
-  );
+  const dispatch = encodeDispatch(expressionDeployer, ENTRYPOINT, maxOutputs);
 
   const consumerFactory = await ethers.getContractFactory(
     "IInterpreterV1Consumer"
@@ -53,13 +51,12 @@ export const expressionConsumerDeploy = async (
     sources,
     constants
   );
-  const libEncodedDispatch = await libEncodedDispatchDeploy();
 
-  const dispatch = await libEncodedDispatch.encode(
+  const dispatch = await encodeDispatch(
     expressionDeployer,
     ENTRYPOINT,
     maxOutputs
   );
 
-  return { dispatch, expressionDeployer, libEncodedDispatch };
+  return { dispatch, expressionDeployer };
 };
