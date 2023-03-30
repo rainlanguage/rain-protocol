@@ -315,7 +315,9 @@ contract Lobby is
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    function _deposit(uint256 amount_) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
+    function _deposit(
+        uint256 amount_
+    ) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);

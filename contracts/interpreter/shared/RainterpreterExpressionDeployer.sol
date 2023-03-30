@@ -240,9 +240,10 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             );
         }
 
-        return integrityCheckState_.stackBottom.toIndex(
-            integrityCheckState_.stackMaxTop
-        );
+        return
+            integrityCheckState_.stackBottom.toIndex(
+                integrityCheckState_.stackMaxTop
+            );
     }
 
     /// @inheritdoc IExpressionDeployerV1
@@ -251,7 +252,11 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         uint256[] memory constants_,
         uint256[] memory minOutputs_
     ) external returns (IInterpreterV1, IInterpreterStoreV1, address) {
-        uint256 stackLength_ = integrityCheck(sources_, constants_, minOutputs_);
+        uint256 stackLength_ = integrityCheck(
+            sources_,
+            constants_,
+            minOutputs_
+        );
 
         // Emit the config of the expression _before_ we serialize it, as the
         // serialization process itself is destructive of the sources in memory.

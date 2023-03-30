@@ -8,9 +8,16 @@ import { BigNumberish, BytesLike } from "ethers";
 
 const ENTRYPOINT = 0;
 
-const encodeDispatch = async (expressionDeployer: BigNumberish, entrypoint: BigNumberish, maxOutputs: BigNumberish) => {
-  return ethers.BigNumber.from(expressionDeployer).shl(32).or(ethers.BigNumber.from(entrypoint).shl(16)).or(maxOutputs);
-}
+const encodeDispatch = async (
+  expressionDeployer: BigNumberish,
+  entrypoint: BigNumberish,
+  maxOutputs: BigNumberish
+) => {
+  return ethers.BigNumber.from(expressionDeployer)
+    .shl(32)
+    .or(ethers.BigNumber.from(entrypoint).shl(16))
+    .or(maxOutputs);
+};
 
 export const iinterpreterV1ConsumerDeploy = async (
   sources: PromiseOrValue<BytesLike>[],

@@ -380,7 +380,9 @@ library LibInterpreterState {
                             mul(
                                 0x20,
                                 // SourceIndex is a uint16 so needs cleaning.
-                                and(sourceIndex_, 0xFFFF)))
+                                and(sourceIndex_, 0xFFFF)
+                            )
+                        )
                     )
                 )
                 end_ := add(cursor_, mload(cursor_))
