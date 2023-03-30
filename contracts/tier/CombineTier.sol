@@ -5,7 +5,7 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
@@ -23,10 +23,10 @@ SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant REPORT_MIN_OUTPUTS = 1;
-uint256 constant REPORT_MAX_OUTPUTS = 1;
+uint16 constant REPORT_MAX_OUTPUTS = 1;
 
 uint256 constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
-uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
+uint16 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the

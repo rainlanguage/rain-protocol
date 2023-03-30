@@ -7,7 +7,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "../FlowCommon.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
-import "../../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
@@ -41,7 +41,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 

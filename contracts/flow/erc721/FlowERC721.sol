@@ -11,7 +11,7 @@ import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
-import "../../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when burner of tokens is not the owner of tokens.
@@ -53,8 +53,8 @@ SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant TOKEN_URI_ENTRYPOINT = SourceIndex.wrap(1);
 uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
 uint256 constant TOKEN_URI_MIN_OUTPUTS = 1;
-uint256 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
-uint256 constant TOKEN_URI_MAX_OUTPUTS = 1;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
+uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {

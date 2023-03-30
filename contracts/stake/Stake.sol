@@ -2,7 +2,7 @@
 pragma solidity =0.8.18;
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
@@ -63,9 +63,9 @@ uint256 constant MAX_DEPOSIT_MIN_OUTPUTS = 1;
 uint256 constant MAX_WITHDRAW_MIN_OUTPUTS = 1;
 
 /// @dev Maximum usable outputs for the max deposit entrypoint.
-uint256 constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
+uint16 constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
 /// @dev Maximum usable outputs for the max withdraw entrypoint.
-uint256 constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
+uint16 constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
 
 /// Configuration required to initialized the Stake contract.
 /// @param asset The underlying ERC20 asset for the 4626 vault.

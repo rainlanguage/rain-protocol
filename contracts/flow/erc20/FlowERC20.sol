@@ -9,7 +9,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
-import "../../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
@@ -48,7 +48,7 @@ struct FlowERC20IO {
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is

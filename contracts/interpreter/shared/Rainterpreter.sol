@@ -4,7 +4,7 @@ pragma solidity =0.8.18;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
-import "../run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../../kv/LibMemoryKV.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";

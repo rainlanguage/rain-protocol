@@ -15,7 +15,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -140,11 +140,11 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant HANDLE_BUY_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
-uint256 constant CAN_LIVE_MAX_OUTPUTS = 1;
+uint16 constant CAN_LIVE_MAX_OUTPUTS = 1;
 uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
-uint256 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
+uint16 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
-uint256 constant HANDLE_BUY_MAX_OUTPUTS = 0;
+uint16 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
 uint256 constant CONTEXT_COLUMNS = 2;
 uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;

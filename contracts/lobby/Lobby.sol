@@ -5,7 +5,7 @@ import "../array/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
@@ -102,18 +102,18 @@ SourceIndex constant ENTRYPOINT_INVALID = SourceIndex.wrap(3);
 /// @dev Need a truthy value to start the event and an amount (can be 0) for join
 /// deposits.
 uint256 constant JOIN_MIN_OUTPUTS = 2;
-uint256 constant JOIN_MAX_OUTPUTS = 2;
+uint16 constant JOIN_MAX_OUTPUTS = 2;
 
 // Only need an amount (can be 0) for leave refunds.
 uint256 constant LEAVE_MIN_OUTPUTS = 1;
-uint256 constant LEAVE_MAX_OUTPUTS = 2;
+uint16 constant LEAVE_MAX_OUTPUTS = 2;
 
 // Need the share for a claim.
 uint256 constant CLAIM_MIN_OUTPUTS = 1;
-uint256 constant CLAIM_MAX_OUTPUTS = 1;
+uint16 constant CLAIM_MAX_OUTPUTS = 1;
 
 uint256 constant INVALID_MIN_OUTPUTS = 1;
-uint256 constant INVALID_MAX_OUTPUTS = 1;
+uint16 constant INVALID_MAX_OUTPUTS = 1;
 
 // Event is waiting for the ref to agree to ref.
 uint256 constant PHASE_REF_PENDING = 0;
@@ -315,7 +315,9 @@ contract Lobby is
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    function _deposit(uint256 amount_) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
+    function _deposit(
+        uint256 amount_
+    ) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);

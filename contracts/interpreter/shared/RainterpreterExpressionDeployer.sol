@@ -39,16 +39,16 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0aac0abb0aca0b4d0b5b0bad0c1d0c9b0d650dbb0de70e8010141049106710761084109310a110af10bd10cb109310d910e710f61104111211211130113f114e115d116c117b118a119911a811b712001212122012521260126e127c128a129812a612b412c212d012de12ec12fa13081316132413321340134e135c136b137a1389139713a513b313c113cf13dd13eb151915a115b015bf15cd163f";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0aaf0abe0acd0b500b5e0bb00c200c9e0d680dbe0dea0e831017104c106a10791087109610a410b210c010ce109610dc10ea10f91107111511241133114211511160116f117e118d119c11ab11ba120312151223125512631271127f128d129b12a912b712c512d312e112ef12fd130b13191327133513431351135f136e137d138c139a13a813b613c413d213e013ee151c15a415b315c215d01642";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x9f71f19d04ead372942dfd2fccc2c165c7a5655d8e04ef8f0507faaf3c20f50f
+    0x96931eb03f4fb4b0def4e164e339f60d455f5b9ee36a2671070aaa8f7a7a4de8
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xe71719f1bede169ef37d6e717f57ef0156be2a7d54de71cb59e73a423b3389dd
+    0x530001d279c57b79aa8ff84774be1dfb88436d8048b58c9ce2ce02c048b0cad6
 );
 
 /// @dev Hash of the known op meta.
@@ -224,7 +224,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
         StackPointer initialStackHighwater_ = integrityCheckState_
             .stackHighwater;
-        for (uint256 i_ = 0; i_ < minOutputs_.length; i_++) {
+        for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory
@@ -240,9 +240,10 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             );
         }
 
-        return integrityCheckState_.stackBottom.toIndex(
-            integrityCheckState_.stackMaxTop
-        );
+        return
+            integrityCheckState_.stackBottom.toIndex(
+                integrityCheckState_.stackMaxTop
+            );
     }
 
     /// @inheritdoc IExpressionDeployerV1
@@ -251,7 +252,11 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         uint256[] memory constants_,
         uint256[] memory minOutputs_
     ) external returns (IInterpreterV1, IInterpreterStoreV1, address) {
-        uint256 stackLength_ = integrityCheck(sources_, constants_, minOutputs_);
+        uint256 stackLength_ = integrityCheck(
+            sources_,
+            constants_,
+            minOutputs_
+        );
 
         // Emit the config of the expression _before_ we serialize it, as the
         // serialization process itself is destructive of the sources in memory.
