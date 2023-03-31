@@ -6,7 +6,7 @@ import "./IVerifyCallbackV1.sol";
 import {AccessControlUpgradeable as AccessControl} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./libraries/VerifyConstants.sol";
 import "./LibEvidence.sol";
-import "../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "./IVerifyV1.sol";
 import "./libraries/LibVerifyStatus.sol";
 import "rain.interface.factory/ICloneableV1.sol";

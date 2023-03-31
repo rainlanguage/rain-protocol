@@ -8,7 +8,7 @@ import "../interpreter/caller/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
-import "../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";

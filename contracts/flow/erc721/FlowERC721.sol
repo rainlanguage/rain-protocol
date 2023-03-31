@@ -4,7 +4,7 @@ pragma solidity =0.8.18;
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";

@@ -6,7 +6,7 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "./LibStackPointer.sol";
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "../../kv/LibMemoryKV.sol";

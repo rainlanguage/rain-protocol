@@ -4,9 +4,11 @@ pragma solidity =0.8.18;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../../../math/Random.sol";
+import "sol.lib.memory/LibBytes.sol";
+import "sol.lib.memory/LibMemCpy.sol";
 
 contract RandomTest {
-    using LibMemory for bytes;
+    using LibBytes for bytes;
 
     address public shuffled;
 
@@ -33,7 +35,7 @@ contract RandomTest {
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(shuffled_.length);
-        LibMemory.unsafeCopyBytesTo(
+        LibMemCpy.unsafeCopyBytesTo(
             shuffled_.dataPointer(),
             pointer_,
             shuffled_.length

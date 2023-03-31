@@ -5,7 +5,7 @@ import "../../../../interpreter/run/LibInterpreterState.sol";
 import "../../../../interpreter/run/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "hardhat/console.sol";
 
 /// @title LibInterpreterStateTest

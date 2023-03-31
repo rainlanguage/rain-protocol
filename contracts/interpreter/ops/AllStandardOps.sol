@@ -3,7 +3,7 @@ pragma solidity =0.8.18;
 
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "./bytes32/OpDecode256.sol";
 import "./bytes32/OpEncode256.sol";
 import "./bytes32/OpExplode32.sol";

@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 
