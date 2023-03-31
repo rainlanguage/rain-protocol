@@ -142,11 +142,13 @@ library LibInterpreterState {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         uint256 length_ = stackBottom_.toIndex(stackTop_);
-        debugArray(
-            StackPointer.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
-                length_
-            )
+        uint256[] memory array_ = new uint256[](length_);
+        LibMemCpy.unsafeCopyWordsTo(
+            Pointer.wrap(StackPointer.unwrap(stackTop_.down(length_))),
+            array_.dataPointer(),
+            length_
         );
+        debugArray(array_);
         return stackTop_;
     }
 

@@ -296,9 +296,13 @@ library AllStandardOps {
                     OpSelectLte.integrity,
                     OpUpdateTimesForTierRange.integrity
                 ];
-            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
-            pointers_.extend(locals_.asUint256Array());
-            return pointers_.asIntegrityPointers();
+            return
+                LibUint256Array
+                    .unsafeExtend(
+                        pointersFixed_.asUint256Array(),
+                        locals_.asUint256Array()
+                    )
+                    .asIntegrityPointers();
         }
     }
 
@@ -314,7 +318,7 @@ library AllStandardOps {
             function(InterpreterState memory, Operand, StackPointer)
                 view
                 returns (StackPointer)[]
-                memory opcodeFunctionPointers_
+                memory
         )
     {
         unchecked {
@@ -405,9 +409,13 @@ library AllStandardOps {
                     OpSelectLte.run,
                     OpUpdateTimesForTierRange.run
                 ];
-            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
-            pointers_.extend(locals_.asUint256Array());
-            opcodeFunctionPointers_ = pointers_.asOpcodeFunctionPointers();
+            return
+                LibUint256Array
+                    .unsafeExtend(
+                        pointersFixed_.asUint256Array(),
+                        locals_.asUint256Array()
+                    )
+                    .asOpcodeFunctionPointers();
         }
     }
 }

@@ -309,7 +309,11 @@ library LibStackPointer {
         StackPointer stackPointer_,
         uint256[] memory array_
     ) internal pure returns (StackPointer) {
-        LibMemCpy.unsafeCopyWordsTo(array_.dataPointer(), Pointer.wrap(StackPointer.unwrap(stackPointer_)), array_.length);
+        LibMemCpy.unsafeCopyWordsTo(
+            array_.dataPointer(),
+            Pointer.wrap(StackPointer.unwrap(stackPointer_)),
+            array_.length
+        );
         return stackPointer_.up(array_.length);
     }
 
@@ -714,7 +718,11 @@ library LibStackPointer {
     ) internal view returns (StackPointer) {
         StackPointer csStart_ = stackTop_.down(length_);
         uint256[] memory cs_ = new uint256[](length_);
-        LibMemCpy.unsafeCopyWordsTo(Pointer.wrap(StackPointer.unwrap(csStart_)), cs_.dataPointer(), length_);
+        LibMemCpy.unsafeCopyWordsTo(
+            Pointer.wrap(StackPointer.unwrap(csStart_)),
+            cs_.dataPointer(),
+            length_
+        );
         (uint256 a_, uint256[] memory bs_) = csStart_.list(length_);
 
         uint256[] memory results_ = fn_(a_, bs_, cs_);
