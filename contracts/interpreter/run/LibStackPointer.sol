@@ -2,8 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "rain.interface.interpreter/IInterpreterV1.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibMemory.sol";
+import "sol.lib.memory/LibMemCpy.sol";
 
 /// Thrown when the length of an array as the result of an applied function does
 /// not match expectations.
@@ -308,7 +309,11 @@ library LibStackPointer {
         StackPointer stackPointer_,
         uint256[] memory array_
     ) internal pure returns (StackPointer) {
-        array_.unsafeCopyValuesTo(StackPointer.unwrap(stackPointer_));
+        LibMemCpy.unsafeCopyWordsTo(
+            array_.dataPointer(),
+            Pointer.wrap(StackPointer.unwrap(stackPointer_)),
+            array_.length
+        );
         return stackPointer_.up(array_.length);
     }
 
@@ -337,7 +342,7 @@ library LibStackPointer {
         StackPointer stackPointer_,
         bytes memory bytes_
     ) internal pure returns (StackPointer) {
-        LibMemory.unsafeCopyBytesTo(
+        LibMemCpy.unsafeCopyBytesTo(
             Pointer.wrap(StackPointer.unwrap(bytes_.asStackPointer().up())),
             Pointer.wrap(StackPointer.unwrap(stackPointer_)),
             bytes_.length
@@ -712,8 +717,10 @@ library LibStackPointer {
         uint256 length_
     ) internal view returns (StackPointer) {
         StackPointer csStart_ = stackTop_.down(length_);
-        uint256[] memory cs_ = LibUint256Array.copyToNewUint256Array(
-            StackPointer.unwrap(csStart_),
+        uint256[] memory cs_ = new uint256[](length_);
+        LibMemCpy.unsafeCopyWordsTo(
+            Pointer.wrap(StackPointer.unwrap(csStart_)),
+            cs_.dataPointer(),
             length_
         );
         (uint256 a_, uint256[] memory bs_) = csStart_.list(length_);
@@ -724,9 +731,10 @@ library LibStackPointer {
         }
 
         StackPointer bottom_ = bs_.asStackPointer();
-        LibUint256Array.unsafeCopyValuesTo(
-            results_,
-            StackPointer.unwrap(bottom_)
+        LibMemCpy.unsafeCopyWordsTo(
+            results_.dataPointer(),
+            Pointer.wrap(StackPointer.unwrap(bottom_)),
+            length_
         );
         return bottom_.up(length_);
     }

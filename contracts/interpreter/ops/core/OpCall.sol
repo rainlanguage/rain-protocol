@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibMemCpy.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 
@@ -120,9 +120,9 @@ library OpCall {
         StackPointer stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
-        LibUint256Array.unsafeCopyValuesTo(
-            StackPointer.unwrap(stackTopEval_.down(outputs_)),
-            StackPointer.unwrap(state_.stackBottom),
+        LibMemCpy.unsafeCopyWordsTo(
+            Pointer.wrap(StackPointer.unwrap(stackTopEval_.down(outputs_))),
+            Pointer.wrap(StackPointer.unwrap(state_.stackBottom)),
             outputs_
         );
 

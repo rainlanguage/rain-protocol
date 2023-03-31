@@ -5,7 +5,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IInterpreterExternV1.sol";
 import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "../run/LibStackPointer.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the inputs don't match the expected inputs.

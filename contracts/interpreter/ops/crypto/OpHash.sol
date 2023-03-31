@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../run/LibStackPointer.sol";
-import "../../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";

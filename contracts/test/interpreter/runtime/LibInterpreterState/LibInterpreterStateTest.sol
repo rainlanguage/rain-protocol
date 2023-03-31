@@ -5,7 +5,8 @@ import "../../../../interpreter/run/LibInterpreterState.sol";
 import "../../../../interpreter/run/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibBytes.sol";
 import "hardhat/console.sol";
 
 /// @title LibInterpreterStateTest
@@ -17,6 +18,8 @@ contract LibInterpreterStateTest {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
+    using LibBytes for bytes;
     using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
         returns (StackPointer)[];
