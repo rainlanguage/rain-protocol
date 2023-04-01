@@ -26,10 +26,7 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
@@ -52,20 +49,19 @@ describe("FlowERC1155 construction tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2];
-
     // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         /* sourceHandleTransfer */
-        _: read-memory<0 ${MemoryType.Constant}>();
+        _: 1;
       `
     );
 
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
       /* variables */
-      seperator: read-memory<1 ${MemoryType.Constant}>(),
+      seperator: 2,
       /**
        * erc1155 transfers
        */
@@ -96,7 +92,7 @@ describe("FlowERC1155 construction tests", async function () {
        */
       mintslist: seperator,
     `
-    );
+      );
 
     const flowERC1155Config: FlowERC1155Config = {
       uri: "F1155",
@@ -107,7 +103,7 @@ describe("FlowERC1155 construction tests", async function () {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
     };

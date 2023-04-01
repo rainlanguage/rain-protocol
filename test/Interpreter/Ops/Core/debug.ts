@@ -53,18 +53,16 @@ describe("RainInterpreter debug op", async function () {
   });
 
   it("should be able to log when used within a source from CALL op", async () => {
-    const constants = [0, 1, 20];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      a: read-memory<0 ${MemoryType.Constant}>(),
-      b: read-memory<1 ${MemoryType.Constant}>(),
+      a: 0,
+      b: 1,
       _: call<1 1>(b),
       : debug<${Debug.StatePacked}>();
       
       : debug<${Debug.StatePacked}>(),
       c: read-memory<0 ${MemoryType.Stack}>(),
-      d: read-memory<2 ${MemoryType.Constant}>(),
+      d: 20,
       : debug<${Debug.StatePacked}>(),
       _: less-than(c d);`
     );
@@ -80,15 +78,13 @@ describe("RainInterpreter debug op", async function () {
   });
 
   it("should be able to log when used within a source from DO_WHILE op", async () => {
-    const constants = [3, 2, 7];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
       /* Main Source */
-      input: read-memory<0 ${MemoryType.Constant}>(),
+      input: 3,
       condition: less-than(
         read-memory<0 ${MemoryType.Stack}>()
-        read-memory<2 ${MemoryType.Constant}>()
+        7
       ),
 
       _: do-while<1>(
@@ -100,12 +96,12 @@ describe("RainInterpreter debug op", async function () {
       : debug<${Debug.StatePacked}>(),
       _: add(
           read-memory<0 ${MemoryType.Stack}>() 
-          read-memory<1 ${MemoryType.Constant}>()
+          2
         ),
 
       _: less-than( 
         read-memory<1 ${MemoryType.Stack}>() 
-        read-memory<2 ${MemoryType.Constant}>()
+        7
       ),
       : debug<${Debug.StatePacked}>();`
     );
@@ -125,17 +121,16 @@ describe("RainInterpreter debug op", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
       /* MAIN SOURCE */
-      input: read-memory<0 ${MemoryType.Constant}>(),
+      input: ${initialValue},
       _: loop-n<${loopSize} 1 1>(input);
       
       /* loop-n source */
       _: add(
           read-memory<0 ${MemoryType.Stack}>() 
-          read-memory<1 ${MemoryType.Constant}>()
+          ${incrementValue}
         ),
       : debug<${Debug.StatePacked}>();`
     );

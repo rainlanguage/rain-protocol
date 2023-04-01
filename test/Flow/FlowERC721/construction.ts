@@ -25,10 +25,7 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
@@ -52,26 +49,25 @@ describe("FlowERC721 construction tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2];
-
     // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         /* sourceHandleTransfer */
-        _: read-memory<0 ${MemoryType.Constant}>();
+        _: 1;
         
         /* sourceTokenURI */
-        _: read-memory<0 ${MemoryType.Constant}>();
+        _: 1;
       `
     );
 
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
         /* variables */
         me: context<0 1>(),
-        to: read-memory<1 ${MemoryType.Constant}>(),
-        amount: read-memory<1 ${MemoryType.Constant}>(),
-        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        to: 2,
+        amount: 2,
+        seperator: 2,
         
         /**
          * erc1155 transfers
@@ -115,7 +111,7 @@ describe("FlowERC721 construction tests", async function () {
         mintto: to,
         mintamount: amount;
       `
-    );
+      );
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -127,7 +123,7 @@ describe("FlowERC721 construction tests", async function () {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
       baseURI: "https://www.rainprotocol.xyz/nft/",

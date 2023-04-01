@@ -27,10 +27,7 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -77,22 +74,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const mintId = flowERC721IO.mints[0].id;
 
-    const constantsCanTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      mintId, // tokenId
-      1,
-    ];
-
-    const constantsCannotTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      mintId, // tokenId
-      0,
-    ];
-
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
@@ -135,15 +116,26 @@ describe("FlowERC721 flow tests", async function () {
       `
       );
 
+    const { sources: sourceCanTransfer, constants: constantsCanTransfer } =
+      await standardEvaluableConfig(
+        rainlang`
+          /* sourceHandleTransfer */
+          _: ensure(1) 1;
+
+          /* sourceTokenURI */
+          _: 123;
+        `
+      );
+
     // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources: sourceCannotTransfer, constants: constantsCannotTransfer } = await standardEvaluableConfig(
       rainlang`
-        /* sourceHandleTransfer */
-        _: ensure(read-memory<4 ${MemoryType.Constant}>()) 1;
-        
-        /* sourceTokenURI */
-        _: read-memory<0 ${MemoryType.Constant}>();
-      `
+          /* sourceHandleTransfer */
+          _: ensure(0) 1;
+
+          /* sourceTokenURI */
+          _: 123;
+        `
     );
 
     const expressionConfigStructCanTransfer: FlowERC721Config = {
@@ -151,7 +143,7 @@ describe("FlowERC721 flow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: {
-        sources,
+        sources: sourceCanTransfer,
         constants: constantsCanTransfer,
       },
       flows: [
@@ -166,7 +158,7 @@ describe("FlowERC721 flow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: {
-        sources,
+        sources: sourceCannotTransfer,
         constants: constantsCannotTransfer,
       },
       flows: [

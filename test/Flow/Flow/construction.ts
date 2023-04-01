@@ -25,10 +25,7 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
@@ -52,15 +49,14 @@ describe("Flow construction tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2];
-
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
         /* variables */
         from: context<0 1>(),
         to: context<0 0>(),
-        amount: read-memory<1 ${MemoryType.Constant}>(),
-        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        amount: 2,
+        seperator: 2,
         
         /**
          * erc1155 transfers
@@ -90,21 +86,21 @@ describe("Flow construction tests", async function () {
         nativeto1: from,
         nativeamount1: amount;
       `
-    );
+      );
 
     const flowConfig: FlowConfig = {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
     };

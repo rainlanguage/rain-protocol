@@ -5,10 +5,7 @@ import { assertError } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter FOLD_CONTEXT", async function () {
@@ -77,26 +74,25 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
   it("should count the occurences of X in the context", async () => {
     const X = 10;
-    const constants = [0, X];
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
 
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
       /* 
         sources[1] 
       */
       acc a1 a2 a3 a4: ,
-      a: equal-to(a1 read-memory<1 ${MemoryType.Constant}>()),
-      b: equal-to(a2 read-memory<1 ${MemoryType.Constant}>()),
-      c: equal-to(a3 read-memory<1 ${MemoryType.Constant}>()),
-      d: equal-to(a4 read-memory<1 ${MemoryType.Constant}>()),
+      a: equal-to(a1 ${X}),
+      b: equal-to(a2 ${X}),
+      c: equal-to(a3 ${X}),
+      d: equal-to(a4 ${X}),
       _: add(acc a b c d),
       `
     );
@@ -146,7 +142,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
       /* 
         sources[1] 
@@ -193,7 +189,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
       /* 
         sources[1] 
@@ -236,7 +232,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       /* 
         sources[0] 
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+      _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
       /* 
         sources[1] 
@@ -321,14 +317,12 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const column = 0;
     const width = 4;
 
-    const constants = [0, 2, width];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
       /* 
         sourceMain
       */
-      _ _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
+      _ _: fold-context<${width} ${column} ${sourceIndex}>(0 0);
 
       /* 
         sourceCalculate
@@ -338,7 +332,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       retevencount: call<2 1>(s2 s3 s4 s5),
 
       /* counting ODD numbers [Total elements - EVEN number count = ODD number count] */
-      totalminuseven: sub(read-memory<2 ${MemoryType.Constant}>() retevencount),
+      totalminuseven: sub(${width} retevencount),
       retoddcount: add(totalminuseven oddcount),
       _: add(retevencount evencount),
       _: retoddcount;
@@ -348,10 +342,10 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       sourceCountEvent
       */
       s0 s1 s2 s3: ,
-      a: is-zero(mod(s0 read-memory<1 ${MemoryType.Constant}>())),
-      b: is-zero(mod(s1 read-memory<1 ${MemoryType.Constant}>())),
-      c: is-zero(mod(s2 read-memory<1 ${MemoryType.Constant}>())),
-      d: is-zero(mod(s3 read-memory<1 ${MemoryType.Constant}>())),
+      a: is-zero(mod(s0 2)),
+      b: is-zero(mod(s1 2)),
+      c: is-zero(mod(s2 2)),
+      d: is-zero(mod(s3 2)),
       _: add(a b c d);
       `
     );
