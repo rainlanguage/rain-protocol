@@ -17,7 +17,6 @@ import {
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
-import { ONE } from "../../../utils/constants/bigNumber";
 import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC20Clone,
@@ -28,7 +27,6 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import {
-  MemoryType,
   standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
@@ -53,24 +51,21 @@ describe("FlowERC20 construction tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2, ONE];
-
     // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         /* sourceHandleTransfer */
-        _: read-memory<0 ${MemoryType.Constant}>();
-      
+        _: 1;
       `
     );
 
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+    const { sources: sourceFlowIO, constants: constantsFlowIO } = await standardEvaluableConfig(
       rainlang`
         /* variables */
         me: context<0 1>(),
-        to: read-memory<1 ${MemoryType.Constant}>(),
-        amount: read-memory<1 ${MemoryType.Constant}>(),
-        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        to: 2,
+        amount: 2,
+        seperator: 2,
         
         /**
          * erc1155 transfers
@@ -126,7 +121,7 @@ describe("FlowERC20 construction tests", async function () {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
     };
@@ -155,10 +150,10 @@ describe("FlowERC20 construction tests", async function () {
       await getTouchDeployer();
 
     const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("flow20"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("flow20"),
+      deployer: touchDeployer.address,
+    };
 
     const flowERC20 = (await flowERC20Factory.deploy(
       deployerDiscoverableMetaConfig0
@@ -167,10 +162,10 @@ describe("FlowERC20 construction tests", async function () {
     assert(!(flowERC20.address === zeroAddress), "flowERC20 did not deploy");
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("orderbook"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("orderbook"),
+      deployer: touchDeployer.address,
+    };
 
     await assertError(
       async () =>

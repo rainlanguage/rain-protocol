@@ -77,22 +77,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const mintId = flowERC721IO.mints[0].id;
 
-    const constantsCanTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      mintId, // tokenId
-      1,
-    ];
-
-    const constantsCannotTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      mintId, // tokenId
-      0,
-    ];
-
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
@@ -135,15 +119,25 @@ describe("FlowERC721 flow tests", async function () {
       `
       );
 
-    // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources: sourceCanTransfer, constants: constantsCanTransfer } = await standardEvaluableConfig(
       rainlang`
-        /* sourceHandleTransfer */
-        _: ensure(read-memory<4 ${MemoryType.Constant}>()) 1;
-        
-        /* sourceTokenURI */
-        _: read-memory<0 ${MemoryType.Constant}>();
-      `
+          /* sourceHandleTransfer */
+          _: ensure(1) 1;
+
+          /* sourceTokenURI */
+          _: 123;
+        `
+    );
+
+    // prettier-ignore
+    const { sources: sourceCannotTransfer, constants: constantsCannotTransfer } = await standardEvaluableConfig(
+      rainlang`
+          /* sourceHandleTransfer */
+          _: ensure(0) 1;
+
+          /* sourceTokenURI */
+          _: 123;
+        `
     );
 
     const expressionConfigStructCanTransfer: FlowERC721Config = {
@@ -151,7 +145,7 @@ describe("FlowERC721 flow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: {
-        sources,
+        sources: sourceCanTransfer,
         constants: constantsCanTransfer,
       },
       flows: [
@@ -166,7 +160,7 @@ describe("FlowERC721 flow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       expressionConfig: {
-        sources,
+        sources: sourceCannotTransfer,
         constants: constantsCannotTransfer,
       },
       flows: [
@@ -2710,12 +2704,11 @@ describe("FlowERC721 flow tests", async function () {
         flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
         flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
-        flowtransfer-me-to-you-erc20-base-amount: ${
-          flowTransfer.erc20[1].amount
-        },
+        flowtransfer-me-to-you-erc20-base-amount: ${flowTransfer.erc20[1].amount
+          },
         flowtransfer-me-to-you-erc20-bonus-amount: ${ethers.BigNumber.from(
-          4 + eighteenZeros
-        )},
+            4 + eighteenZeros
+          )},
         
         /**
          * erc1155 transfers

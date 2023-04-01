@@ -26,7 +26,6 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
-  MemoryType,
   standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
@@ -52,15 +51,13 @@ describe("Flow construction tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2];
-
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
+    const { sources: sourceFlowIO, constants: constantsFlowIO } = await standardEvaluableConfig(
       rainlang`
         /* variables */
         from: context<0 1>(),
         to: context<0 0>(),
-        amount: read-memory<1 ${MemoryType.Constant}>(),
-        seperator: read-memory<1 ${MemoryType.Constant}>(),
+        amount: 2,
+        seperator: 2,
         
         /**
          * erc1155 transfers
@@ -96,15 +93,15 @@ describe("Flow construction tests", async function () {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
     };
@@ -133,10 +130,10 @@ describe("Flow construction tests", async function () {
       await getTouchDeployer();
 
     const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("flow"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("flow"),
+      deployer: touchDeployer.address,
+    };
 
     const flow = (await flowFactory.deploy(
       deployerDiscoverableMetaConfig0
@@ -145,10 +142,10 @@ describe("Flow construction tests", async function () {
     assert(!(flow.address === zeroAddress), "flow did not deploy");
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("orderbook"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("orderbook"),
+      deployer: touchDeployer.address,
+    };
 
     await assertError(
       async () => await flowFactory.deploy(deployerDiscoverableMetaConfig1),

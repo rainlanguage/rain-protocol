@@ -29,7 +29,6 @@ import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import {
-  MemoryType,
   standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
@@ -57,23 +56,6 @@ describe("FlowERC1155 flow tests", async function () {
 
     const tokenId = 0;
     const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
-
-    const constantsCanTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC1155_SENTINEL,
-      1,
-      tokenId,
-      tokenAmount,
-      1,
-    ];
-    const constantsCannotTransfer = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC1155_SENTINEL,
-      1,
-      tokenId,
-      tokenAmount,
-      0,
-    ];
 
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
@@ -119,17 +101,25 @@ describe("FlowERC1155 flow tests", async function () {
       );
 
     // prettier-ignore
-    const { sources } = await standardEvaluableConfig(
+    const { sources: sourceCanTransfer, constants: constantsCanTransfer } = await standardEvaluableConfig(
       rainlang`
         /* sourceHandleTransfer */
-        _: ensure(read-memory<5 ${MemoryType.Constant}>()) 1;
+        _: ensure(1) 1;
+      `
+    );
+
+    // prettier-ignore
+    const { sources: sourceCannotTransfer, constants: constantsCannotTransfer } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: ensure(0) 1;
       `
     );
 
     const expressionConfigStructCanTransfer: FlowERC1155Config = {
       uri: "F1155",
       expressionConfig: {
-        sources,
+        sources: sourceCanTransfer,
         constants: constantsCanTransfer,
       },
       flows: [
@@ -142,7 +132,7 @@ describe("FlowERC1155 flow tests", async function () {
     const expressionConfigStructCannotTransfer: FlowERC1155Config = {
       uri: "F1155",
       expressionConfig: {
-        sources,
+        sources: sourceCannotTransfer,
         constants: constantsCannotTransfer,
       },
       flows: [
@@ -2450,8 +2440,8 @@ describe("FlowERC1155 flow tests", async function () {
       flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
       flowtransfer-me-to-you-erc20-base-amount: ${flowTransfer.erc20[1].amount},
       flowtransfer-me-to-you-erc20-bonus-amount: ${ethers.BigNumber.from(
-        4 + eighteenZeros
-      )},
+          4 + eighteenZeros
+        )},
       
       /**
        * erc1155 transfers
