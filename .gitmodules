@@ -33,3 +33,6 @@
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.8.2
+[submodule "lib/rain.interface.orderbook"]
+	path = lib/rain.interface.orderbook
+	url = https://github.com/rainprotocol/rain.interface.orderbook
