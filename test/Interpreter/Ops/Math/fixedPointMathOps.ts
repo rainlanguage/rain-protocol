@@ -5,7 +5,6 @@ import { assertError, standardEvaluableConfig } from "../../../../utils";
 import {
   eighteenZeros,
   max_uint256,
-  ONE,
   sixteenZeros,
   sixZeros,
   tenZeros,

@@ -26,9 +26,7 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import {
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
@@ -59,8 +57,9 @@ describe("FlowERC1155 construction tests", async function () {
       `
     );
 
-    const { sources: sourceFlowIO, constants: constantsFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
       /* variables */
       seperator: 2,
       /**
@@ -93,7 +92,7 @@ describe("FlowERC1155 construction tests", async function () {
        */
       mintslist: seperator,
     `
-    );
+      );
 
     const flowERC1155Config: FlowERC1155Config = {
       uri: "F1155",
@@ -137,10 +136,10 @@ describe("FlowERC1155 construction tests", async function () {
       await getTouchDeployer();
 
     const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-    {
-      meta: getRainMetaDocumentFromContract("flow1155"),
-      deployer: touchDeployer.address,
-    };
+      {
+        meta: getRainMetaDocumentFromContract("flow1155"),
+        deployer: touchDeployer.address,
+      };
 
     const flowERC1155 = (await flowERC1155Factory.deploy(
       deployerDiscoverableMetaConfig0
@@ -152,10 +151,10 @@ describe("FlowERC1155 construction tests", async function () {
     );
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-    {
-      meta: getRainMetaDocumentFromContract("orderbook"),
-      deployer: touchDeployer.address,
-    };
+      {
+        meta: getRainMetaDocumentFromContract("orderbook"),
+        deployer: touchDeployer.address,
+      };
 
     await assertError(
       async () =>

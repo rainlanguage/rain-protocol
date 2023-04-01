@@ -25,9 +25,7 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import {
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
@@ -62,8 +60,9 @@ describe("FlowERC721 construction tests", async function () {
       `
     );
 
-    const { sources: sourceFlowIO, constants: constantsFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
         /* variables */
         me: context<0 1>(),
         to: 2,
@@ -112,7 +111,7 @@ describe("FlowERC721 construction tests", async function () {
         mintto: to,
         mintamount: amount;
       `
-    );
+      );
 
     const flowERC721Config: FlowERC721Config = {
       name: "Flow ERC721",
@@ -155,10 +154,10 @@ describe("FlowERC721 construction tests", async function () {
       await getTouchDeployer();
 
     const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-    {
-      meta: getRainMetaDocumentFromContract("flow721"),
-      deployer: touchDeployer.address,
-    };
+      {
+        meta: getRainMetaDocumentFromContract("flow721"),
+        deployer: touchDeployer.address,
+      };
 
     const flowERC721 = (await flowERC721Factory.deploy(
       deployerDiscoverableMetaConfig0
@@ -167,10 +166,10 @@ describe("FlowERC721 construction tests", async function () {
     assert(!(flowERC721.address === zeroAddress), "flowERC721 did not deploy");
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-    {
-      meta: getRainMetaDocumentFromContract("orderbook"),
-      deployer: touchDeployer.address,
-    };
+      {
+        meta: getRainMetaDocumentFromContract("orderbook"),
+        deployer: touchDeployer.address,
+      };
 
     await assertError(
       async () =>

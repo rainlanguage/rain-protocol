@@ -27,10 +27,7 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import {
-  MemoryType,
-  standardEvaluableConfig,
-} from "../../../utils/interpreter/interpreter";
+import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -119,15 +116,16 @@ describe("FlowERC721 flow tests", async function () {
       `
       );
 
-    const { sources: sourceCanTransfer, constants: constantsCanTransfer } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceCanTransfer, constants: constantsCanTransfer } =
+      await standardEvaluableConfig(
+        rainlang`
           /* sourceHandleTransfer */
           _: ensure(1) 1;
 
           /* sourceTokenURI */
           _: 123;
         `
-    );
+      );
 
     // prettier-ignore
     const { sources: sourceCannotTransfer, constants: constantsCannotTransfer } = await standardEvaluableConfig(
@@ -2704,11 +2702,12 @@ describe("FlowERC721 flow tests", async function () {
         flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
         flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
-        flowtransfer-me-to-you-erc20-base-amount: ${flowTransfer.erc20[1].amount
-          },
+        flowtransfer-me-to-you-erc20-base-amount: ${
+          flowTransfer.erc20[1].amount
+        },
         flowtransfer-me-to-you-erc20-bonus-amount: ${ethers.BigNumber.from(
-            4 + eighteenZeros
-          )},
+          4 + eighteenZeros
+        )},
         
         /**
          * erc1155 transfers
