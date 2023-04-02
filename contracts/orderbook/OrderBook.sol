@@ -8,7 +8,7 @@ import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../interpreter/caller/LibContext.sol";
+import "rain.interface.interpreter/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "./LibOrderBook.sol";
 

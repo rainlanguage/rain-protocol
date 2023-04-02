@@ -17,7 +17,7 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/IInterpreterCallerV1.sol";
-import "../interpreter/caller/LibContext.sol";
+import "rain.interface.interpreter/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
