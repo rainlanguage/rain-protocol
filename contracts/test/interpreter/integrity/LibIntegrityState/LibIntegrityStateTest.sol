@@ -23,15 +23,7 @@ contract LibIntegrityCheckTest {
                 memory
         )
     {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localFnPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
+        return AllStandardOps.integrityFunctionPointers();
     }
 
     function syncStackMaxTop(

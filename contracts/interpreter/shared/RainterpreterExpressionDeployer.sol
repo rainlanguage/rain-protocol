@@ -43,7 +43,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"09d409eb09fa0a7d0a8b0add0b4d0bcb0c
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xce86b088e023c7aac7a346a1852f97e6b03bb27b99918f99ebccd3f55fa728b5
+    0x8902cafcdc5e31c65d31efb05e0dc48a0504db0fe5a18f0086c05ff6c42d26d6
 );
 
 /// @dev Hash of the known store bytecode.
@@ -191,15 +191,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
                 memory
         )
     {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localFnPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
+        return AllStandardOps.integrityFunctionPointers();
     }
 
     function integrityCheck(

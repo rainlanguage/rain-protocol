@@ -249,19 +249,14 @@ library AllStandardOps {
         }
     }
 
-    function integrityFunctionPointers(
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory locals_
-    )
+    function integrityFunctionPointers()
         internal
         pure
         returns (
             function(IntegrityCheckState memory, Operand, StackPointer)
                 view
                 returns (StackPointer)[]
-                memory
+                memory pointers_
         )
     {
         unchecked {
@@ -350,13 +345,9 @@ library AllStandardOps {
                     OpSelectLte.integrity,
                     OpUpdateTimesForTierRange.integrity
                 ];
-            return
-                asIntegrityPointers(
-                    LibUint256Array.unsafeExtend(
-                        asUint256Array(pointersFixed_),
-                        asUint256Array(locals_)
-                    )
-                );
+            assembly ("memory-safe") {
+                pointers_ := pointersFixed_
+            }
         }
     }
 
