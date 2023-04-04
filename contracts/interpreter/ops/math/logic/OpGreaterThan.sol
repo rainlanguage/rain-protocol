@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "../../../run/LibStackPointer.sol";
-import "../../../../type/LibCast.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpGreaterThan
 /// @notice Opcode to compare the top two stack values.
 library OpGreaterThan {
-    using LibCast for bool;
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

@@ -73,19 +73,6 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
 
     /// @inheritdoc IInterpreterV1
     function functionPointers() external view virtual returns (bytes memory) {
-        function(InterpreterState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localPtrs_ = new function(
-                InterpreterState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return
-            LibConvert.unsafeTo16BitBytes(
-                AllStandardOps
-                    .opcodeFunctionPointers(localPtrs_)
-                    .asUint256Array()
-            );
+        return AllStandardOps.opcodeFunctionPointers();
     }
 }

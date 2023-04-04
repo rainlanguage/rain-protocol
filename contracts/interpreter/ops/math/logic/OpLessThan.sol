@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "../../../run/LibStackPointer.sol";
-import "../../../../type/LibCast.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
@@ -9,7 +8,6 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @notice Opcode to compare the top two stack values.
 library OpLessThan {
     using LibStackPointer for StackPointer;
-    using LibCast for bool;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {

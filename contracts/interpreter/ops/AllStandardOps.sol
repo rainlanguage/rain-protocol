@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "../../type/LibCast.sol";
-import "../../type/LibConvert.sol";
+import "rain.lib.typecast/LibConvert.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "./bytes32/OpDecode256.sol";
 import "./bytes32/OpEncode256.sol";
@@ -195,6 +194,61 @@ library AllStandardOps {
         }
     }
 
+    /// Retype an integer to an integrity function pointer.
+    /// @param u_ The integer to cast to an integrity function pointer.
+    /// @return fn_ The integrity function pointer.
+    function asIntegrityFunctionPointer(
+        uint256 u_
+    )
+        internal
+        pure
+        returns (
+            function(IntegrityCheckState memory, Operand, StackPointer)
+                internal
+                view
+                returns (StackPointer) fn_
+        )
+    {
+        assembly ("memory-safe") {
+            fn_ := u_
+        }
+    }
+
+    /// Retype a list of integrity check function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
+    function asUint256Array(
+        function(IntegrityCheckState memory, Operand, StackPointer)
+            internal
+            view
+            returns (StackPointer)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory us_) {
+        assembly ("memory-safe") {
+            us_ := fns_
+        }
+    }
+
+    /// Retype a list of integers to integrity check function pointers.
+    /// @param us_ The list of integers to use as function pointers.
+    /// @return fns_ The list of integrity check function pointers.
+    function asIntegrityPointers(
+        uint256[] memory us_
+    )
+        internal
+        pure
+        returns (
+            function(IntegrityCheckState memory, Operand, StackPointer)
+                view
+                returns (StackPointer)[]
+                memory fns_
+        )
+    {
+        assembly ("memory-safe") {
+            fns_ := us_
+        }
+    }
+
     function integrityFunctionPointers(
         function(IntegrityCheckState memory, Operand, StackPointer)
             view
@@ -215,7 +269,7 @@ library AllStandardOps {
                 view
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
-                    ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    asIntegrityFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.integrity,
                     OpEncode256.integrity,
                     OpExplode32.integrity,
@@ -297,36 +351,55 @@ library AllStandardOps {
                     OpUpdateTimesForTierRange.integrity
                 ];
             return
-                LibUint256Array
-                    .unsafeExtend(
-                        pointersFixed_.asUint256Array(),
-                        locals_.asUint256Array()
+                asIntegrityPointers(
+                    LibUint256Array.unsafeExtend(
+                        asUint256Array(pointersFixed_),
+                        asUint256Array(locals_)
                     )
-                    .asIntegrityPointers();
+                );
         }
     }
 
-    function opcodeFunctionPointers(
-        function(InterpreterState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory locals_
+    /// Retype an integer to an opcode function pointer.
+    /// @param u_ The integer to cast to an opcode function pointer.
+    /// @return fn_ The opcode function pointer.
+    function asOpFunctionPointer(
+        uint256 u_
     )
         internal
         pure
         returns (
             function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackPointer)[]
-                memory
+                returns (StackPointer) fn_
         )
     {
+        assembly ("memory-safe") {
+            fn_ := u_
+        }
+    }
+
+    /// Retype a list of interpreter opcode function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
+    function asUint256Array(
+        function(InterpreterState memory, Operand, StackPointer)
+            view
+            returns (StackPointer)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory us_) {
+        assembly ("memory-safe") {
+            us_ := fns_
+        }
+    }
+
+    function opcodeFunctionPointers() internal pure returns (bytes memory) {
         unchecked {
             function(InterpreterState memory, Operand, StackPointer)
                 view
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
-                    ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    asOpFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.run,
                     OpEncode256.run,
                     OpExplode32.run,
@@ -410,12 +483,7 @@ library AllStandardOps {
                     OpUpdateTimesForTierRange.run
                 ];
             return
-                LibUint256Array
-                    .unsafeExtend(
-                        pointersFixed_.asUint256Array(),
-                        locals_.asUint256Array()
-                    )
-                    .asOpcodeFunctionPointers();
+                LibConvert.unsafeTo16BitBytes(asUint256Array(pointersFixed_));
         }
     }
 }
