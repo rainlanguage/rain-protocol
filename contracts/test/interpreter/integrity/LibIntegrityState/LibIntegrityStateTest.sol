@@ -3,7 +3,6 @@ pragma solidity ^0.8.15;
 
 import "../../../../interpreter/deploy/LibIntegrityCheck.sol";
 import "../../../../debug/LibDebug.sol";
-import "../../../../type/LibCast.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 
 import "hardhat/console.sol";
@@ -12,7 +11,6 @@ import "hardhat/console.sol";
 /// Test wrapper around `LibIntegrityCheck` library.
 contract LibIntegrityCheckTest {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibCast for uint256[];
 
     function integrityFunctionPointers()
         internal
@@ -25,15 +23,7 @@ contract LibIntegrityCheckTest {
                 memory
         )
     {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localFnPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
+        return AllStandardOps.integrityFunctionPointers();
     }
 
     function syncStackMaxTop(

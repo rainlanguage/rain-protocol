@@ -39,16 +39,16 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0aa30aba0ac90b4c0b5a0bac0c1c0c9a0d640dba0de60e7f10131048106610751083109210a010ae10bc10ca109210d810e610f5110311111120112f113e114d115c116b117a1189119811a711b611ff1211121f1251125f126d127b1289129712a512b312c112cf12dd12eb12f91307131513231331133f134d135b136a13791388139613a413b213c013ce13dc13ea151815a015af15be15cc163e";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"09d409eb09fa0a7d0a8b0add0b4d0bcb0c950ceb0d170db00f440f840fa20fb10fbf0fce0fdc0fea0ff810060fce101410221031103f104d105c106b107a1089109810a710b610c510d410e310f2113b114d115b118d119b11a911b711c511d311e111ef11fd120b12191227123512431251125f126d127b1289129712a612b512c412d212e012ee12fc130a13181326145414dc14eb14fa1508157a";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x2ffe4e66628424dd75c26dc243efb5b5c46c545ac4c54fcd589544d76791513a
+    0xf05695410aac048651201ee7fcdcf4d902bcab3d0ff56a1ff25f7aba1e84d4e4
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xc02df6cef2b6a2bfcd39136d0856c1a47781e0352b8592462724a917e67508d5
+    0x00c560b0731bba7e73bf4418f43d5bf0503ecbcb7b75ddd5d3b6cbe421d6be62
 );
 
 /// @dev Hash of the known op meta.
@@ -191,15 +191,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
                 memory
         )
     {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localFnPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
+        return AllStandardOps.integrityFunctionPointers();
     }
 
     function integrityCheck(

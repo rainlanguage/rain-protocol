@@ -4,8 +4,7 @@ pragma solidity ^0.8.15;
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "./LibStackPointer.sol";
-import "../../type/LibCast.sol";
-import "../../type/LibConvert.sol";
+import "rain.lib.typecast/LibConvert.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -109,16 +108,6 @@ library LibInterpreterState {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibStackPointer for bytes;
-    using LibCast for uint256;
-    using LibCast for function(
-        InterpreterState memory,
-        SourceIndex,
-        StackPointer
-    ) view returns (StackPointer);
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
-        view
-        returns (StackPointer)[];
-    using LibConvert for uint256[];
 
     /// Thin wrapper around hardhat's `console.log` that loops over any array
     /// and logs each value delimited by `DEBUG_DELIMITER`.

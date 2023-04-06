@@ -4,7 +4,6 @@ pragma solidity ^0.8.15;
 import "../../../../interpreter/run/LibInterpreterState.sol";
 import "../../../../interpreter/run/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
-import "../../../../type/LibCast.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibBytes.sol";
 import "hardhat/console.sol";
@@ -20,10 +19,6 @@ contract LibInterpreterStateTest {
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibBytes for bytes;
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
-        view
-        returns (StackPointer)[];
-    using LibConvert for uint256[];
 
     constructor() {}
 
