@@ -22,7 +22,7 @@ library OpERC1155BalanceOfBatch {
     ) internal view returns (uint256[] memory) {
         return
             IERC1155(address(uint160(token_))).balanceOfBatch(
-                accounts_.asAddresses(),
+                accounts_.asAddressesArray(),
                 ids_
             );
     }
