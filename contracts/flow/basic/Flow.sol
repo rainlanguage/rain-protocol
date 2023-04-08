@@ -5,10 +5,11 @@ import "rain.interface.factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9d5630ebe10389bd4e63e702739f19c298bf228a80ccb45f27d83401e9d07ef7
+    0x8c6deed2783f554b1b2c80bb68d3df076b07f9c7664c27fd22318fee137c216f
 );
 
 struct FlowConfig {
@@ -20,6 +21,7 @@ struct FlowConfig {
 contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
 
     event Initialize(address sender, FlowConfig config);
 
@@ -53,8 +55,7 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         (FlowTransfer memory flowTransfer_, ) = _previewFlow(
@@ -70,8 +71,7 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
         SignedContext[] memory signedContexts_
     ) external payable virtual nonReentrant {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
