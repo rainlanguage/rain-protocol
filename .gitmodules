@@ -20,9 +20,6 @@
 [submodule "lib/rain.interface.factory"]
 	path = lib/rain.interface.factory
 	url = https://github.com/rainprotocol/rain.interface.factory
-[submodule "lib/rain.interface.interpreter"]
-	path = lib/rain.interface.interpreter
-	url = https://github.com/rainprotocol/rain.interface.interpreter
 [submodule "lib/sol.lib.datacontract"]
 	path = lib/sol.lib.datacontract
 	url = https://github.com/rainprotocol/sol.lib.datacontract
