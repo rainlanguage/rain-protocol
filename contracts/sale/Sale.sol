@@ -491,11 +491,12 @@ contract Sale is
     {
         unchecked {
             uint256[][] memory callerContext_ = new uint256[][](CONTEXT_COLUMNS);
-            callerContext_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
             uint256[][] memory context_ = LibContext.build(
                 callerContext_,
                 new SignedContext[](0)
             );
+            context_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
+
             Evaluable memory evaluable_ = evaluable;
             (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                 .interpreter
