@@ -9,6 +9,7 @@ import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "rain.interface.interpreter/LibContext.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
@@ -16,7 +17,7 @@ import "rain.interface.factory/ICloneableV1.sol";
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x7d8aa21afd2770c33544d507993b60f6abc6a060fe126de39d5533c41c358801
+    0xff34b4b701c88a038a14509b8807eec1772dc07c97149e9d0ae0f2f589a2e743
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -102,7 +103,7 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
     /// @inheritdoc ITierV2
     function report(
         address account_,
-        uint256[] memory callerContext_
+        uint256[] memory reportContext_
     ) external view virtual override returns (uint256) {
         unchecked {
             Evaluable memory evaluable_ = evaluable;
@@ -115,8 +116,10 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                     REPORT_MAX_OUTPUTS
                 ),
                 LibContext.build(
-                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                    callerContext_,
+                    LibUint256Matrix.matrixFrom(
+                        uint256(uint160(account_)).arrayFrom(),
+                        reportContext_
+                    ),
                     new SignedContext[](0)
                 )
             );
@@ -128,7 +131,7 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] memory callerContext_
+        uint256[] memory reportContext_
     ) external view returns (uint256) {
         unchecked {
             Evaluable memory evaluable_ = evaluable;
@@ -141,10 +144,13 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                     REPORT_FOR_TIER_MAX_OUTPUTS
                 ),
                 LibContext.build(
-                    LibUint256Array
-                        .arrayFrom(uint256(uint160(account_)), tier_)
-                        .matrixFrom(),
-                    callerContext_,
+                    LibUint256Matrix.matrixFrom(
+                        LibUint256Array.arrayFrom(
+                            uint256(uint160(account_)),
+                            tier_
+                        ),
+                        reportContext_
+                    ),
                     new SignedContext[](0)
                 )
             );

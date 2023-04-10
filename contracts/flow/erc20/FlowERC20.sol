@@ -1,22 +1,25 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "sol.lib.memory/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.factory/ICloneableV1.sol";
+
+import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xd3d6fac8ef3c2af1a6aef6a758d8577421b6ef6bd7609c9fa7ca3a8ecc1c14e8
+    0x8d2e217a8eba75d982ea71b89fac0d594d00be4582e4b84ad64a5caef399d6b9
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
@@ -68,6 +71,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
@@ -126,14 +130,13 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
                 uint256[][] memory context_ = LibContext.build(
-                    new uint256[][](0),
                     // The transfer params are caller context because the caller
                     // is triggering the transfer.
                     LibUint256Array.arrayFrom(
                         uint256(uint160(from_)),
                         uint256(uint160(to_)),
                         amount_
-                    ),
+                    ).matrixFrom(),
                     new SignedContext[](0)
                 );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
@@ -193,8 +196,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -219,8 +221,7 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         (FlowERC20IO memory flowERC20IO_, ) = _previewFlow(

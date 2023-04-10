@@ -146,9 +146,16 @@ uint16 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
 uint16 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint256 constant CONTEXT_COLUMNS = 2;
+/// @dev Number of columns excluding the base column added by lib context.
+uint256 constant CONTEXT_COLUMNS = 3;
+/// @dev Index of the base column.
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+/// @dev Index of the calculations column.
 uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+/// @dev Index of the buy column.
 uint256 constant CONTEXT_BUY_COLUMN = 2;
+/// @dev Index of the sender column.
+uint256 constant CONTEXT_SENDER_COLUMN = 3;
 
 uint256 constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
 uint256 constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
@@ -431,7 +438,6 @@ contract Sale is
                         _dispatchCanLive(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            new uint256[](0),
                             new SignedContext[](0)
                         )
                     );
@@ -484,11 +490,13 @@ contract Sale is
         )
     {
         unchecked {
+            uint256[][] memory callerContext_ = new uint256[][](CONTEXT_COLUMNS);
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](CONTEXT_COLUMNS),
-                targetUnits_.arrayFrom(),
+                callerContext_,
                 new SignedContext[](0)
             );
+            context_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
+
             Evaluable memory evaluable_ = evaluable;
             (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                 .interpreter

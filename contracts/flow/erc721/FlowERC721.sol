@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "sol.lib.memory/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.factory/ICloneableV1.sol";
+
+import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
-import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when burner of tokens is not the owner of tokens.
 error BurnerNotOwner();
@@ -46,7 +49,7 @@ struct FlowERC721IO {
 }
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x65c93ef964415b7cc6e0331eb19807823856d9114fda90eafd10f5375e843a1d
+    0x984f487c3f857b4c87c76631ead39be1fa3480f3458d944b339ad08849bed933
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -62,6 +65,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
@@ -124,8 +128,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
                 DEFAULT_STATE_NAMESPACE,
                 _dispatchTokenURI(evaluable_.expression),
                 LibContext.build(
-                    new uint256[][](0),
-                    LibUint256Array.arrayFrom(tokenId_),
+                    LibUint256Array.arrayFrom(tokenId_).matrixFrom(),
                     new SignedContext[](0)
                 )
             );
@@ -185,13 +188,12 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
                         DEFAULT_STATE_NAMESPACE,
                         _dispatchHandleTransfer(evaluable_.expression),
                         LibContext.build(
-                            new uint256[][](0),
                             // Transfer params are caller context.
                             LibUint256Array.arrayFrom(
                                 uint256(uint160(from_)),
                                 uint256(uint160(to_)),
                                 tokenId_
-                            ),
+                            ).matrixFrom(),
                             new SignedContext[](0)
                         )
                     );
@@ -243,8 +245,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -273,8 +274,7 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         (FlowERC721IO memory flowERC721IO_, ) = _previewFlow(

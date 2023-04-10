@@ -9,6 +9,7 @@ import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";
@@ -49,7 +50,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xfda3e312131b18108342db42392704625a23073885003c38b013a7a695f0a9d6
+    0xfcafafcf5c0c62fb4ef7603c1b446d85b1c51a850ff4e09af12e29d1fdb2742d
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
@@ -149,6 +150,7 @@ contract Stake is
     using Math for uint256;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
 
@@ -222,10 +224,9 @@ contract Stake is
                 // Sadly there's no affordance in ERC4626 to allow either signed
                 // context or much in the way of caller context.
                 LibContext.build(
-                    new uint256[][](0),
                     // We put the account being eval'd against as a single item
                     // in caller context and that's the best we can do.
-                    uint256(uint160(account_)).arrayFrom(),
+                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
                     new SignedContext[](0)
                 )
             )

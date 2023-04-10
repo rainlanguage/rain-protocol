@@ -39,7 +39,7 @@ error SameOwner(address owner);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x46fe110bf52ba709a3d80747fa101a615fc46eb9ff0fadd4a46d1def682f974f
+    0x1bec4782f5c1efa2dfae6fe11b7d6d977caf873c154ddf3aa7b1bb3f03ae9558
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -532,7 +532,6 @@ contract OrderBook is
                 );
                 context_ = LibContext.build(
                     callingContext_,
-                    new uint256[](0),
                     signedContext_
                 );
             }

@@ -14,6 +14,7 @@ import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.interface.factory/ICloneableV1.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -33,7 +34,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9b2d564af04618063cfea638988b2d5c0d21122dafc9759a41444ac9fc70c5eb
+    0xb0101cc0b56908028d23ac4ad67973249659f24c3f7c31ecee0f8ba4d6768e4f
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -137,6 +138,7 @@ contract Lobby is
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using Math for uint256;
@@ -343,8 +345,7 @@ contract Lobby is
         unchecked {
             Evaluable memory evaluable_ = evaluable;
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -383,8 +384,7 @@ contract Lobby is
         deposits[msg.sender] = 0;
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContext_
         );
         emit Context(msg.sender, context_);
@@ -448,8 +448,7 @@ contract Lobby is
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -506,8 +505,7 @@ contract Lobby is
         }
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
