@@ -36,7 +36,3 @@
 [submodule "lib/rain.lib.typecast"]
 	path = lib/rain.lib.typecast
 	url = https://github.com/rainprotocol/rain.lib.typecast
-[submodule "lib/rain.interface.interpreter"]
-	path = lib/rain.interface.interpreter
-	url = https://github.com/rainprotocol/rain.interface.interpreter
-	branch = 2023-04-07-rem-calling-context
