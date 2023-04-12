@@ -26,29 +26,6 @@ uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
 );
 
-/// Constructor config.
-/// @param Constructor config for the ERC20 token minted according to flow
-/// schedule in `flow`.
-/// @param Constructor config for the `ImmutableSource` that defines the
-/// emissions schedule for claiming.
-struct FlowERC20Config {
-    string name;
-    string symbol;
-    EvaluableConfig evaluableConfig;
-    EvaluableConfig[] flowConfig;
-}
-
-struct ERC20SupplyChange {
-    address account;
-    uint256 amount;
-}
-
-struct FlowERC20IO {
-    ERC20SupplyChange[] mints;
-    ERC20SupplyChange[] burns;
-    FlowTransfer flow;
-}
-
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
@@ -66,7 +43,7 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
+contract FlowERC20 is ICloneableV1, IFlowERC20V1, ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -74,11 +51,6 @@ contract FlowERC20 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC20 {
     using LibUint256Matrix for uint256[];
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
-
-    /// Contract has initialized.
-    /// @param sender `msg.sender` initializing the contract (factory).
-    /// @param config All initialized config.
-    event Initialize(address sender, FlowERC20Config config);
 
     Evaluable internal evaluable;
 

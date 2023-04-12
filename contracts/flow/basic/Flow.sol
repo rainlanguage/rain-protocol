@@ -12,18 +12,10 @@ bytes32 constant CALLER_META_HASH = bytes32(
     0x8c6deed2783f554b1b2c80bb68d3df076b07f9c7664c27fd22318fee137c216f
 );
 
-struct FlowConfig {
-    // https://github.com/ethereum/solidity/issues/13597
-    EvaluableConfig dummyConfig;
-    EvaluableConfig[] config;
-}
-
-contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-
-    event Initialize(address sender, FlowConfig config);
 
     constructor(
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
