@@ -8,6 +8,7 @@ import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contr
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interface.flow/IFlowERC1155V1.sol";
 
 import "../../sentinel/LibSentinel.sol";
 import "../libraries/LibFlow.sol";
@@ -20,24 +21,6 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
 );
 
-struct FlowERC1155Config {
-    string uri;
-    EvaluableConfig evaluableConfig;
-    EvaluableConfig[] flowConfig;
-}
-
-struct ERC1155SupplyChange {
-    address account;
-    uint256 id;
-    uint256 amount;
-}
-
-struct FlowERC1155IO {
-    ERC1155SupplyChange[] mints;
-    ERC1155SupplyChange[] burns;
-    FlowTransfer flow;
-}
-
 bytes32 constant CALLER_META_HASH = bytes32(
     0x05383d9a90b702ee4773fd3e90a9b51ce8b57e354e9c672bc7c9567657a2f0ba
 );
@@ -48,14 +31,12 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
-contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
+contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-
-    event Initialize(address sender, FlowERC1155Config config);
 
     Evaluable internal evaluable;
 
