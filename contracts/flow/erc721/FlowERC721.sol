@@ -10,6 +10,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
+import "rain.interface.flow/IFlowERC721V1.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -24,30 +25,6 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS
 );
 
-/// Constructor config.
-/// @param Constructor config for the ERC721 token minted according to flow
-/// schedule in `flow`.
-/// @param Constructor config for the `ImmutableSource` that defines the
-/// emissions schedule for claiming.
-struct FlowERC721Config {
-    string name;
-    string symbol;
-    string baseURI;
-    EvaluableConfig evaluableConfig;
-    EvaluableConfig[] flowConfig;
-}
-
-struct ERC721SupplyChange {
-    address account;
-    uint256 id;
-}
-
-struct FlowERC721IO {
-    ERC721SupplyChange[] mints;
-    ERC721SupplyChange[] burns;
-    FlowTransfer flow;
-}
-
 bytes32 constant CALLER_META_HASH = bytes32(
     0x984f487c3f857b4c87c76631ead39be1fa3480f3458d944b339ad08849bed933
 );
@@ -60,7 +37,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
-contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
+contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon, ERC721 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -68,11 +45,6 @@ contract FlowERC721 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC721 {
     using LibUint256Matrix for uint256[];
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
-
-    /// Contract has initialized.
-    /// @param sender `msg.sender` initializing the contract (factory).
-    /// @param config All initialized config.
-    event Initialize(address sender, FlowERC721Config config);
 
     bool private evalHandleTransfer;
     bool private evalTokenURI;

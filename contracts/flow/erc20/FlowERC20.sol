@@ -32,18 +32,6 @@ uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
-/// @notice Mints itself according to some predefined schedule. The schedule is
-/// expressed as an expression and the `claim` function is world-callable.
-/// Intended behaviour is to avoid sybils infinitely minting by putting the
-/// claim functionality behind a `TierV2` contract. The flow contract
-/// itself implements `ReadOnlyTier` and every time a claim is processed it
-/// logs the block number of the claim against every tier claimed. So the block
-/// numbers in the tier report for `FlowERC20` are the last time that tier
-/// was claimed against this contract. The simplest way to make use of this
-/// information is to take the max block for the underlying tier and the last
-/// claim and then diff it against the current block number.
-/// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
-/// staggered rewards where more tokens are minted for higher tier accounts.
 contract FlowERC20 is ICloneableV1, IFlowERC20V1, ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
