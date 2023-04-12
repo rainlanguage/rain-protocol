@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "rain.interface.flow/IFlowV1.sol";
+
 import "../../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "../../sentinel/LibSentinel.sol";
@@ -33,41 +35,6 @@ error UnsupportedERC1155Flow();
 uint256 constant RAIN_FLOW_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
 );
-
-struct NativeTransfer {
-    address from;
-    address to;
-    uint256 amount;
-}
-
-struct ERC20Transfer {
-    address token;
-    address from;
-    address to;
-    uint256 amount;
-}
-
-struct ERC721Transfer {
-    address token;
-    address from;
-    address to;
-    uint256 id;
-}
-
-struct ERC1155Transfer {
-    address token;
-    address from;
-    address to;
-    uint256 id;
-    uint256 amount;
-}
-
-struct FlowTransfer {
-    NativeTransfer[] native;
-    ERC20Transfer[] erc20;
-    ERC721Transfer[] erc721;
-    ERC1155Transfer[] erc1155;
-}
 
 library LibFlow {
     using Address for address payable;

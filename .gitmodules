@@ -39,3 +39,6 @@
 [submodule "lib/rain.interface.interpreter"]
 	path = lib/rain.interface.interpreter
 	url = https://github.com/rainprotocol/rain.interface.interpreter
+[submodule "lib/rain.interface.flow"]
+	path = lib/rain.interface.flow
+	url = https://github.com/rainprotocol/rain.interface.flow

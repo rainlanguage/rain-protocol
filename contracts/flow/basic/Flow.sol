@@ -9,21 +9,13 @@ import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x8c6deed2783f554b1b2c80bb68d3df076b07f9c7664c27fd22318fee137c216f
+    0x9f96d87b38d8bddd32428f65cd45d2cc3475ccaa0154f2c6a13b7d32c82f02b7
 );
 
-struct FlowConfig {
-    // https://github.com/ethereum/solidity/issues/13597
-    EvaluableConfig dummyConfig;
-    EvaluableConfig[] config;
-}
-
-contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-
-    event Initialize(address sender, FlowConfig config);
 
     constructor(
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
@@ -69,7 +61,7 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) external payable virtual nonReentrant {
+    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
@@ -80,5 +72,6 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
             uint256[] memory kvs_
         ) = _previewFlow(evaluable_, context_);
         LibFlow.flow(flowTransfer_, evaluable_.store, kvs_);
+        return flowTransfer_;
     }
 }
