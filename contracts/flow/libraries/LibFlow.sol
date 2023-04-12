@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "rainprotocol.interface.flow/IFlowV1.sol";
+
 import "../../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "../../sentinel/LibSentinel.sol";
