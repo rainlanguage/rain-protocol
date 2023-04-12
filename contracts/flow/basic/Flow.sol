@@ -61,7 +61,7 @@ contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) external payable virtual nonReentrant {
+    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
@@ -72,5 +72,6 @@ contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
             uint256[] memory kvs_
         ) = _previewFlow(evaluable_, context_);
         LibFlow.flow(flowTransfer_, evaluable_.store, kvs_);
+        return flowTransfer_;
     }
 }
