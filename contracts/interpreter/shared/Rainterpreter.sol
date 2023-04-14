@@ -7,6 +7,7 @@ import "../ops/AllStandardOps.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../../kv/LibMemoryKV.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
+import "rain.interface.interpreter/IDebugInterpreterV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
@@ -18,8 +19,9 @@ import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1, IERC165 {
+contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
     using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
     using LibCast for function(InterpreterState memory, Operand, StackPointer)
@@ -37,6 +39,32 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
         return
             interfaceId_ == type(IInterpreterV1).interfaceId ||
             interfaceId_ == type(IERC165).interfaceId;
+    }
+
+    /// @inheritdoc IDebugInterpreterV1
+    function offchainDebugEval(
+        IInterpreterStoreV1 store_,
+        FullyQualifiedNamespace namespace_,
+        bytes[] memory compiledSources_,
+        uint256[] memory constants_,
+        uint256[][] memory context_,
+        uint256 stackLength_,
+        SourceIndex sourceIndex_
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        uint256[] memory stack_ = new uint256[](stackLength_);
+        InterpreterState memory state_ = InterpreterState(
+            stack_.asStackPointerUp(),
+            constants_.asStackPointerUp(),
+            MemoryKV.wrap(0),
+            namespace_,
+            store_,
+            context_,
+            compiledSources_
+        );
+        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        uint256 stackLengthFinal_ = state_.stackBottom.toIndex(stackTop_);
+        (, uint256[] memory tail_) = stackTop_.list(stackLengthFinal_);
+        return (tail_, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1

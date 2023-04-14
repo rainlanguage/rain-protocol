@@ -530,10 +530,7 @@ contract OrderBook is
                     // Don't know the balance diff yet!
                     0
                 );
-                context_ = LibContext.build(
-                    callingContext_,
-                    signedContext_
-                );
+                context_ = LibContext.build(callingContext_, signedContext_);
             }
 
             // The state changes produced here are handled in _recordVaultIO so

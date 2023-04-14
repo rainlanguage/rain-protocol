@@ -12,7 +12,6 @@ export enum AllStandardOps {
   fold_context,
 
   call,
-  debug,
   do_while,
   extern,
   loop_n,

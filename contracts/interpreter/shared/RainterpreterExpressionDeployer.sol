@@ -4,6 +4,8 @@ pragma solidity =0.8.18;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IDebugInterpreterV1.sol";
+import "rain.interface.interpreter/IDebugExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -39,11 +41,11 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"09d409eb09fa0a7d0a8b0add0b4d0bcb0c950ceb0d170db00f440f840fa20fb10fbf0fce0fdc0fea0ff810060fce101410221031103f104d105c106b107a1089109810a710b610c510d410e310f2113b114d115b118d119b11a911b711c511d311e111ef11fd120b12191227123512431251125f126d127b1289129712a612b512c412d212e012ee12fc130a13181326145414dc14eb14fa1508157a";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0b100b270b360bb90bc70c190c890d070dd10e270ec01054109410b210c110cf10de10ec10fa1108111610de112411321141114f115d116c117b118a119911a811b711c611d511e411f31202124b125d126b129d12ab12b912c712d512e312f112ff130d131b13291337134513531361136f137d138b139913a713b613c513d413e213f013fe140c141a14281436156415ec15fb160a1618168a";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x045d87ceac7e4063eb8d5b7b0a4a5fa6695bc185e56e9aac3aa5ddd7e0fbfe59
+    0x5814d2d7275c2eaf5a11e4b4ba6eb39f8c2d1003074daf50950fa33ec7e03991
 );
 
 /// @dev Hash of the known store bytecode.
@@ -53,7 +55,7 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0xd919062443e39ea44967f9012d0c3060489e0e1eeda18deb74a5bd2557e65e69
+    0x5bfc70a69f3d84295192eacd6222d6426ce9697e801c81ad8469ab2ae21bd69a
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -69,7 +71,7 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IDebugExpressionDeployerV1, IERC165 {
     using LibStackPointer for StackPointer;
 
     /// The config of the deployed expression including uncompiled sources. Will
@@ -192,6 +194,35 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         )
     {
         return AllStandardOps.integrityFunctionPointers();
+    }
+
+    /// @inheritdoc IDebugExpressionDeployerV1
+    function offchainDebugEval(
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        uint256[] memory minOutputs_,
+        FullyQualifiedNamespace namespace_,
+        uint256[][] memory context_,
+        SourceIndex sourceIndex_
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        uint256 stackLength_ = integrityCheck(
+            sources_,
+            constants_,
+            minOutputs_
+        );
+        for (uint256 i_; i_ < sources_.length; i_++) {
+            LibInterpreterState.compile(sources_[i_], OPCODE_FUNCTION_POINTERS);
+        }
+        return
+            IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
+                store,
+                namespace_,
+                sources_,
+                constants_,
+                context_,
+                stackLength_,
+                sourceIndex_
+            );
     }
 
     function integrityCheck(

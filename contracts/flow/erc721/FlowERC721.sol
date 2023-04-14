@@ -37,7 +37,13 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
-contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon, ERC721 {
+contract FlowERC721 is
+    ICloneableV1,
+    IFlowERC721V1,
+    ReentrancyGuard,
+    FlowCommon,
+    ERC721
+{
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -161,11 +167,13 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
                         _dispatchHandleTransfer(evaluable_.expression),
                         LibContext.build(
                             // Transfer params are caller context.
-                            LibUint256Array.arrayFrom(
-                                uint256(uint160(from_)),
-                                uint256(uint160(to_)),
-                                tokenId_
-                            ).matrixFrom(),
+                            LibUint256Array
+                                .arrayFrom(
+                                    uint256(uint160(from_)),
+                                    uint256(uint160(to_)),
+                                    tokenId_
+                                )
+                                .matrixFrom(),
                             new SignedContext[](0)
                         )
                     );
