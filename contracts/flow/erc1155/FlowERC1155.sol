@@ -123,7 +123,7 @@ contract FlowERC1155 is
                             // Transfer params are caller context.
                             LibUint256Array
                                 .arrayFrom(
-                                    uint(uint160(operator_)),
+                                    uint256(uint160(operator_)),
                                     uint256(uint160(from_)),
                                     uint256(uint160(to_)),
                                     ids_[i_],
