@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-sqrt",
-  "desc": "PRBMath UD60x18: Calculates the square root of x, rounding down.",
+  "name": "prb-sqrt",
+  "desc": "Calculates the square root of x, as 18 decimal fixed point, rounding down.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-sqrt", "fp-sqrt"]
+  "aliases": ["decimal-sqrt"]
 }

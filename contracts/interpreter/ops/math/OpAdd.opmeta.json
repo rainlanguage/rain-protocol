@@ -1,6 +1,6 @@
 {
   "name": "add",
-  "desc": "Inserts the result of sum of N values taken from the stack into the stack",
+  "desc": "Adds multiple values together. Values can be either decimal or integer, but not a mix of both.",
   "operand": [
     {
       "name": "inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["sum"]
+  "aliases": ["sum", "int-add", "decimal-add", "int-sum", "decimal-sum"]
 }

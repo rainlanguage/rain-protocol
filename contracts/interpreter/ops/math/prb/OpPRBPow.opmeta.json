@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-pow",
-  "desc": "PRBMath UD60x18: Raises x to the power of y.",
+  "name": "prb-pow",
+  "desc": "Raises x to the power of y as 18 decimal fixed point.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-pow"]
+  "aliases": ["decimal-pow"]
 }

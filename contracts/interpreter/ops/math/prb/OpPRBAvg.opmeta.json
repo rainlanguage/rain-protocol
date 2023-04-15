@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-avg",
-  "desc": "PRBMath UD60x18: Calculates the arithmetic average of x and y, rounding down.",
+  "name": "prb-avg",
+  "desc": "Calculates the arithmetic average of x and y, as 18 decimal fixed point, rounding down.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-avg", "fp-avg"]
+  "aliases": ["decimal-avg"]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-floor",
-  "desc": "PRBMath UD60x18: Yields the greatest whole UD60x18 number less than or equal to x.",
+  "name": "prb-floor",
+  "desc": "Yields the greatest whole 18 decimal fixed point number less than or equal to x.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-floor", "fp-floor"]
+  "aliases": ["decimal-floor"]
 }
