@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["sum", "int-add", "decimal-add", "int-sum", "decimal-sum"]
+  "aliases": ["sum", "int-add", "decimal18-add", "int-sum", "decimal18-sum"]
 }

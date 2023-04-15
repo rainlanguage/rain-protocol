@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["int-sub", "decimal-sub"]
+  "aliases": ["int-sub", "decimal18-sub"]
 }

@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["decimal-floor"]
+  "aliases": ["decimal18-floor"]
 }
