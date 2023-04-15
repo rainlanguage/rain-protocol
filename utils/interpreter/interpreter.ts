@@ -7,7 +7,6 @@ import {
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { AllStandardOps } from "./ops/allStandardOps";
 import { ExpressionConfig, rlc } from "rainlang";
 import { getRainMetaDocumentFromOpmeta } from "../meta";
 import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
@@ -15,11 +14,6 @@ import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
 export enum MemoryType {
   Stack,
   Constant,
-}
-
-export enum Debug {
-  StatePacked,
-  Stack,
 }
 
 export enum SelectLteLogic {
@@ -31,14 +25,6 @@ export enum SelectLteMode {
   min,
   max,
   first,
-}
-
-export function DEBUG_STATE_PACKED(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.StatePacked)]);
-}
-
-export function DEBUG_STACK(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.Stack)]);
 }
 
 /**

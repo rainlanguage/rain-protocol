@@ -50,9 +50,6 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
                 .applyFn(OpChainlinkOraclePrice.f)
                 .peek()
                 .arrayFrom();
-        } else {
-            LibInterpreterState.debugStack(inputs_.asStackPointer(), stackTop_);
-            outputs_ = inputs_;
         }
         return outputs_;
     }

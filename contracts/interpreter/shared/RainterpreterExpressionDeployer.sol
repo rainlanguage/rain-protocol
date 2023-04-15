@@ -45,12 +45,12 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0b100b270b360bb90bc70c190c890d070d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x5814d2d7275c2eaf5a11e4b4ba6eb39f8c2d1003074daf50950fa33ec7e03991
+    0x9a1c6b80d1f319b023c1ad9e449bd594cb64a354dc65c340a203be471ffa3201
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x75bd35b052671ca6d95dfe5a2fcebbd35a536c9387eadddee639e34b276fd678
+    0x8a4c50cdc4c3174ecf9d365cd06a762cf781c3ee780184837e18d9a69a0b9e2c
 );
 
 /// @dev Hash of the known op meta.
@@ -71,7 +71,11 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IDebugExpressionDeployerV1, IERC165 {
+contract RainterpreterExpressionDeployer is
+    IExpressionDeployerV1,
+    IDebugExpressionDeployerV1,
+    IERC165
+{
     using LibStackPointer for StackPointer;
 
     /// The config of the deployed expression including uncompiled sources. Will
