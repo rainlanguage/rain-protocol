@@ -16,7 +16,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";

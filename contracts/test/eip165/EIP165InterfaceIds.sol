@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.interpreter/deprecated/IInterpreterCallerV1.sol";
+import {IInterpreterCallerV1} from "rain.interface.interpreter/deprecated/IInterpreterCallerV1.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterExternV1.sol";
