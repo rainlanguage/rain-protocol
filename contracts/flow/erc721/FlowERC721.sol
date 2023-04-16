@@ -10,7 +10,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC721V1.sol";
+import "rain.interface.flow/IFlowERC721V2.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -26,7 +26,7 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x984f487c3f857b4c87c76631ead39be1fa3480f3458d944b339ad08849bed933
+    0xe793279419a4f45301425753503a5dd8d6aaf63221cf1f2971d391bd6c7389c3
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -37,7 +37,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
-contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon, ERC721 {
+contract FlowERC721 is ICloneableV1, IFlowERC721V2, ReentrancyGuard, FlowCommon, ERC721 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -101,7 +101,7 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
                 _dispatchTokenURI(evaluable_.expression),
                 LibContext.build(
                     LibUint256Array.arrayFrom(tokenId_).matrixFrom(),
-                    new SignedContext[](0)
+                    new SignedContextV1[](0)
                 )
             );
             tokenId_ = stack_[0];
@@ -166,7 +166,7 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
                                 uint256(uint160(to_)),
                                 tokenId_
                             ).matrixFrom(),
-                            new SignedContext[](0)
+                            new SignedContextV1[](0)
                         )
                     );
                     if (kvs_.length > 0) {
@@ -213,7 +213,7 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
     function _flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
@@ -243,7 +243,7 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
@@ -259,7 +259,7 @@ contract FlowERC721 is ICloneableV1, IFlowERC721V1, ReentrancyGuard, FlowCommon,
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external payable virtual returns (FlowERC721IO memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }

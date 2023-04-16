@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.orderbook/IOrderBookV1.sol";
+import "rain.interface.orderbook/IOrderBookV2.sol";
 import "./LibOrder.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
@@ -39,7 +38,7 @@ error SameOwner(address owner);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x277543ad5bd6247822dfc137fe9343e9b7df0ed7bf22d8afdbe0ff9b7eb8645c
+    0x10f97a047a9d287eb96c885188fbdcd3bf1a525a1b31270fc4f9f6a0bc9554a6
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
@@ -113,11 +112,10 @@ uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 /// @title OrderBook
 /// See `IOrderBookV1` for more documentation.
 contract OrderBook is
-    IOrderBookV1,
+    IOrderBookV2,
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    IInterpreterCallerV1,
     DeployerDiscoverableMetaV1
 {
     using LibUint256Array for uint256[];
@@ -137,7 +135,7 @@ contract OrderBook is
     /// order hash => order is live
     mapping(uint256 => uint256) internal orders;
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
 
@@ -152,7 +150,7 @@ contract OrderBook is
         __Multicall_init();
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function deposit(DepositConfig calldata config_) external nonReentrant {
         // It is safest with vault deposits to move tokens in to the Orderbook
         // before updating internal vault balances although we have a reentrancy
@@ -167,7 +165,7 @@ contract OrderBook is
             .amount;
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function withdraw(WithdrawConfig calldata config_) external nonReentrant {
         uint256 vaultBalance_ = vaultBalance[msg.sender][config_.token][
             config_.vaultId
@@ -187,7 +185,7 @@ contract OrderBook is
         );
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function addOrder(OrderConfig calldata config_) external nonReentrant {
         (
             IInterpreterV1 interpreter_,
@@ -249,7 +247,7 @@ contract OrderBook is
             );
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function removeOrder(Order calldata order_) external nonReentrant {
         if (msg.sender != order_.owner) {
             revert NotOrderOwner(msg.sender, order_.owner);
@@ -259,7 +257,7 @@ contract OrderBook is
         emit RemoveOrder(msg.sender, order_, orderHash_);
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function takeOrders(
         TakeOrdersConfig calldata takeOrders_
     )
@@ -369,13 +367,13 @@ contract OrderBook is
         );
     }
 
-    /// @inheritdoc IOrderBookV1
+    /// @inheritdoc IOrderBookV2
     function clear(
         Order memory alice_,
         Order memory bob_,
         ClearConfig calldata clearConfig_,
-        SignedContext[] memory aliceSignedContext_,
-        SignedContext[] memory bobSignedContext_
+        SignedContextV1[] memory aliceSignedContext_,
+        SignedContextV1[] memory bobSignedContext_
     ) external nonReentrant {
         {
             if (alice_.owner == bob_.owner) {
@@ -487,7 +485,7 @@ contract OrderBook is
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
         address counterparty_,
-        SignedContext[] memory signedContext_
+        SignedContextV1[] memory signedContext_
     ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();

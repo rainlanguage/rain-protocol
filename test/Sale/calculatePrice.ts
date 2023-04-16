@@ -98,12 +98,12 @@ describe("Sale calculate price", async function () {
           vBasePrice,
               vFractionMultiplier,
                   op(Opcode.context, 0x0001), // sale address
-                op(Opcode.isale_v2_token),
+                op(Opcode.sale_v2_token),
                 op(Opcode.context, 0x0000), // sender
               op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
-              op(Opcode.isale_v2_token),
+              op(Opcode.sale_v2_token),
             op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
@@ -246,12 +246,12 @@ describe("Sale calculate price", async function () {
           vBasePrice,
               vFractionMultiplier,
                   op(Opcode.context, 0x0001), // sale address
-                op(Opcode.isale_v2_reserve),
+                op(Opcode.sale_v2_reserve),
                 op(Opcode.context, 0x0000), // sender
               op(Opcode.erc_20_balance_of),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
-              op(Opcode.isale_v2_reserve),
+              op(Opcode.sale_v2_reserve),
             op(Opcode.erc_20_total_supply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
@@ -580,7 +580,7 @@ describe("Sale calculate price", async function () {
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         // sale contract
         op(Opcode.context, 0x0001),
-        op(Opcode.isale_v2_total_reserve_received),
+        op(Opcode.sale_v2_total_reserve_received),
         vReserveDivisor,
         op(Opcode.div, 2),
         vBasePrice,
@@ -719,7 +719,7 @@ describe("Sale calculate price", async function () {
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.context, 0x0001), // sale address
-        op(Opcode.isale_v2_remaining_token_inventory),
+        op(Opcode.sale_v2_remaining_token_inventory),
         vSupplyDivisor,
         op(Opcode.div, 2),
         vBasePrice,

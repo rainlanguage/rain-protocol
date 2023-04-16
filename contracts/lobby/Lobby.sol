@@ -8,7 +8,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
@@ -34,7 +34,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xb0101cc0b56908028d23ac4ad67973249659f24c3f7c31ecee0f8ba4d6768e4f
+    0x2fa94bd67d8a5c326e609881e8d66f161fea332869dc4516296266140d5c8130
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -130,7 +130,7 @@ uint256 constant PHASE_INVALID = 4;
 
 contract Lobby is
     ICloneableV1,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     Phased,
     ReentrancyGuard,
     DeployerDiscoverableMetaV1
@@ -168,7 +168,7 @@ contract Lobby is
     event Invalid(
         address sender,
         uint256[] callerContext,
-        SignedContext[] signedContext
+        SignedContextV1[] signedContext
     );
 
     uint256 internal immutable maxTimeoutDuration;
@@ -334,7 +334,7 @@ contract Lobby is
 
     function join(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyPhase(PHASE_PLAYERS_PENDING)
@@ -376,7 +376,7 @@ contract Lobby is
 
     function leave(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContext_
+        SignedContextV1[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
@@ -410,7 +410,7 @@ contract Lobby is
 
     function claim(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyAtLeastPhase(PHASE_RESULT_PENDING)
@@ -494,7 +494,7 @@ contract Lobby is
     function _isInvalid(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal returns (bool, uint256[] memory) {
         // Timeouts ALWAYS allow an invalid result, unless the lobby is complete.
         // This guards against the expressions themselves being buggy and/or the
@@ -525,7 +525,7 @@ contract Lobby is
 
     function invalid(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external onlyNotPhase(PHASE_COMPLETE) nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         // It is NOT possible to rollback a prior completion. Complete/invalid

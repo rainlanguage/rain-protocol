@@ -1,6 +1,6 @@
 {
-  "name": "select-lte",
-  "desc": "Inserts the result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack",
+  "name": "tier-v2-select-lte",
+  "desc": "The result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack",
   "operand": [
     {
       "name": "logic",
@@ -23,7 +23,7 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "referrence-timestamp",
+        "name": "reference-timestamp",
         "desc": "The timestamp to check the tier reports against"
       },
       {

@@ -1,0 +1,16 @@
+{
+  "name": "tier-v2-saturating-diff",
+  "desc": "The saturating difference of 2 reports.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "report-1"
+      },
+      {
+        "name": "report-2"
+      }
+    ]
+  },
+  "outputs": 1
+}

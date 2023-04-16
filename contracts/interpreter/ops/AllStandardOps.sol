@@ -67,7 +67,7 @@ import "./math/OpMin.sol";
 import "./math/OpMod.sol";
 import "./math/OpMul.sol";
 import "./math/OpSub.sol";
-import "./rain/IOrderBookV1/OpIOrderBookV1VaultBalance.sol";
+import "./rain/IOrderBookV2/OpIOrderBookV2VaultBalance.sol";
 import "./rain/ISaleV2/OpISaleV2RemainingTokenInventory.sol";
 import "./rain/ISaleV2/OpISaleV2Reserve.sol";
 import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
@@ -80,9 +80,9 @@ import "./store/OpSet.sol";
 
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
-import "./tier/OpSaturatingDiff.sol";
-import "./tier/OpSelectLte.sol";
-import "./tier/OpUpdateTimesForTierRange.sol";
+import "./tier/OpITierV2SaturatingDiff.sol";
+import "./tier/OpITierV2SelectLte.sol";
+import "./tier/OpITierV2UpdateTimesForTierRange.sol";
 
 /// Thrown when a dynamic length array is NOT 1 more than a fixed length array.
 /// Should never happen outside a major breaking change to memory layouts.
@@ -329,7 +329,7 @@ library AllStandardOps {
                     OpSaturatingAdd.integrity,
                     OpSaturatingMul.integrity,
                     OpSaturatingSub.integrity,
-                    OpIOrderBookV1VaultBalance.integrity,
+                    OpIOrderBookV2VaultBalance.integrity,
                     OpISaleV2RemainingTokenInventory.integrity,
                     OpISaleV2Reserve.integrity,
                     OpISaleV2SaleStatus.integrity,
@@ -457,7 +457,7 @@ library AllStandardOps {
                     OpSaturatingAdd.run,
                     OpSaturatingMul.run,
                     OpSaturatingSub.run,
-                    OpIOrderBookV1VaultBalance.run,
+                    OpIOrderBookV2VaultBalance.run,
                     OpISaleV2RemainingTokenInventory.run,
                     OpISaleV2Reserve.run,
                     OpISaleV2SaleStatus.run,
