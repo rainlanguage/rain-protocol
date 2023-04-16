@@ -2,7 +2,7 @@
 pragma solidity =0.8.18;
 
 import "./libraries/LibFlow.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
@@ -37,7 +37,7 @@ contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
     using LibInterpreterState for InterpreterState;

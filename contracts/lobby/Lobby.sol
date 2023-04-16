@@ -8,7 +8,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
@@ -130,7 +130,7 @@ uint256 constant PHASE_INVALID = 4;
 
 contract Lobby is
     ICloneableV1,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     Phased,
     ReentrancyGuard,
     DeployerDiscoverableMetaV1

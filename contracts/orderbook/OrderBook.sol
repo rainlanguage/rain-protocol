@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.18;
 
-import "rain.interface.orderbook/IOrderBookV1.sol";
+import "rain.interface.orderbook/IOrderBookV2.sol";
 import "./LibOrder.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
 import "./OrderBookFlashLender.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
@@ -113,11 +112,10 @@ uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 /// @title OrderBook
 /// See `IOrderBookV1` for more documentation.
 contract OrderBook is
-    IOrderBookV1,
+    IOrderBookV2,
     ReentrancyGuard,
     Multicall,
     OrderBookFlashLender,
-    IInterpreterCallerV1,
     DeployerDiscoverableMetaV1
 {
     using LibUint256Array for uint256[];
