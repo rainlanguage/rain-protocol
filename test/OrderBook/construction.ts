@@ -47,7 +47,7 @@ describe("OrderBook Constructor", async function () {
 
   it("should validate contract meta with abi ", async function () {
     assert(
-      validateContractMetaAgainstABI("lobby"),
+      validateContractMetaAgainstABI("orderbook"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });
