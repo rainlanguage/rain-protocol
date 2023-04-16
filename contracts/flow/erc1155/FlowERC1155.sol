@@ -8,7 +8,7 @@ import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contr
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.interface.flow/IFlowERC1155V1.sol";
+import "rain.interface.flow/IFlowERC1155V2.sol";
 
 import "../../sentinel/LibSentinel.sol";
 import "../libraries/LibFlow.sol";
@@ -31,7 +31,7 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
-contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommon, ERC1155 {
+contract FlowERC1155 is ICloneableV1, IFlowERC1155V2, ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -122,7 +122,7 @@ contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommo
                                 ids_[i_],
                                 amounts_[i_]
                             ).matrixFrom(),
-                            new SignedContext[](0)
+                            new SignedContextV1[](0)
                         );
                     }
                     (
@@ -179,7 +179,7 @@ contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommo
     function _flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
@@ -215,7 +215,7 @@ contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommo
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external view virtual returns (FlowERC1155IO memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
@@ -231,7 +231,7 @@ contract FlowERC1155 is ICloneableV1, IFlowERC1155V1, ReentrancyGuard, FlowCommo
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external payable virtual returns (FlowERC1155IO memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }

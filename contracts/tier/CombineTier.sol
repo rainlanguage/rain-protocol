@@ -120,7 +120,7 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                         uint256(uint160(account_)).arrayFrom(),
                         reportContext_
                     ),
-                    new SignedContext[](0)
+                    new SignedContextV1[](0)
                 )
             );
             return stack_[stack_.length - 1];
@@ -151,7 +151,7 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                         ),
                         reportContext_
                     ),
-                    new SignedContext[](0)
+                    new SignedContextV1[](0)
                 )
             );
             return stack_[stack_.length - 1];

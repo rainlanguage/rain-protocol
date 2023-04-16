@@ -168,7 +168,7 @@ contract Lobby is
     event Invalid(
         address sender,
         uint256[] callerContext,
-        SignedContext[] signedContext
+        SignedContextV1[] signedContext
     );
 
     uint256 internal immutable maxTimeoutDuration;
@@ -334,7 +334,7 @@ contract Lobby is
 
     function join(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyPhase(PHASE_PLAYERS_PENDING)
@@ -376,7 +376,7 @@ contract Lobby is
 
     function leave(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContext_
+        SignedContextV1[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
@@ -410,7 +410,7 @@ contract Lobby is
 
     function claim(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyAtLeastPhase(PHASE_RESULT_PENDING)
@@ -494,7 +494,7 @@ contract Lobby is
     function _isInvalid(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal returns (bool, uint256[] memory) {
         // Timeouts ALWAYS allow an invalid result, unless the lobby is complete.
         // This guards against the expressions themselves being buggy and/or the
@@ -525,7 +525,7 @@ contract Lobby is
 
     function invalid(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external onlyNotPhase(PHASE_COMPLETE) nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         // It is NOT possible to rollback a prior completion. Complete/invalid

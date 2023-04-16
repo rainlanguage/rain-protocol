@@ -67,7 +67,7 @@ describe("IOrderBookV1 vault balance tests", async function () {
         OWNER(),
         TOKEN(),
         ID(),
-      op(Opcode.iorderbook_v1_vault_balance),
+      op(Opcode.orderbook_v2_vault_balance),
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 

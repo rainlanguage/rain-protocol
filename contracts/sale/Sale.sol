@@ -172,7 +172,7 @@ contract Sale is
     Cooldown,
     ISaleV2,
     ReentrancyGuard,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
     using Math for uint256;
@@ -438,7 +438,7 @@ contract Sale is
                         _dispatchCanLive(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            new SignedContext[](0)
+                            new SignedContextV1[](0)
                         )
                     );
                 return (stack_[stack_.length - 1] > 0, evaluable_.store, kvs_);
@@ -493,7 +493,7 @@ contract Sale is
             uint256[][] memory callerContext_ = new uint256[][](CONTEXT_COLUMNS);
             uint256[][] memory context_ = LibContext.build(
                 callerContext_,
-                new SignedContext[](0)
+                new SignedContextV1[](0)
             );
             context_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
 

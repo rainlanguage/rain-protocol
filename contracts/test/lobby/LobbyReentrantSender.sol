@@ -11,7 +11,7 @@ contract LobbyReentrantSender is ReserveToken18 {
     Lobby private lobby;
 
     uint256[] private callerContext;
-    SignedContext[] private signedContexts;
+    SignedContextV1[] private signedContexts;
 
     constructor() ReserveToken18() {}
 

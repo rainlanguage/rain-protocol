@@ -8,7 +8,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIOrderBookV2VaultBalance
 /// @notice Opcode for IOrderBookV2 `vaultBalance`.
-library OpIOrderBookV1VaultBalance {
+library OpIOrderBookV2VaultBalance {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

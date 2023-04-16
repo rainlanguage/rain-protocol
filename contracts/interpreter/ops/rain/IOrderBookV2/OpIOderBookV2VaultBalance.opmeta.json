@@ -1,6 +1,6 @@
 {
-  "name": "iorderbook-v2-vault-balance",
-  "desc": "The balance of an OrderBookV2 vault.",
+  "name": "orderbook-v2-vault-balance",
+  "desc": "The balance of an OrderBookV2 or OrderBookV1 vault.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -22,5 +22,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["vault-balance", "orderbook-vault-balance"]
+  "aliases": ["orderbook-v1-vault-balance"]
 }
