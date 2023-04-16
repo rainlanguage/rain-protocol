@@ -44,7 +44,7 @@ describe("TierV2 report op", async function () {
     const source = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.context, 0x0000), // signer1 address
-      op(Opcode.itier_v2_report)
+      op(Opcode.tier_v2_report)
     ]);
 
     const expression0 = await expressionConsumerDeploy(

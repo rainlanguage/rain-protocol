@@ -81,9 +81,9 @@ export enum AllStandardOps {
 
   tier_v2_report,
   tier_v2_report_time_for_tier,
-  saturating_diff,
-  select_lte,
-  update_times_for_tier_range,
+  tier_v2_saturating_diff,
+  tier_v2_select_lte,
+  tier_v2_update_times_for_tier_range,
   length,
 }
 

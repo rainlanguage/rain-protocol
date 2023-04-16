@@ -36,7 +36,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -74,7 +74,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -109,7 +109,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(

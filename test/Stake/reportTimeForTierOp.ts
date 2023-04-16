@@ -111,7 +111,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itier_v2_report_time_for_tier)
+      op(Opcode.tier_v2_report_time_for_tier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -376,7 +376,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // Address
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.itier_v2_report_time_for_tier),
+      op(Opcode.tier_v2_report_time_for_tier),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -455,7 +455,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
+      op(Opcode.tier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -537,7 +537,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
+      op(Opcode.tier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -673,7 +673,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
+      op(Opcode.tier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -796,7 +796,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 7)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 8)),
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 9)),
-      op(Opcode.itier_v2_report_time_for_tier, THRESHOLDS.length),
+      op(Opcode.tier_v2_report_time_for_tier, THRESHOLDS.length),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

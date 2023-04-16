@@ -80,9 +80,9 @@ import "./store/OpSet.sol";
 
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
-import "./tier/OpSaturatingDiff.sol";
-import "./tier/OpSelectLte.sol";
-import "./tier/OpUpdateTimesForTierRange.sol";
+import "./tier/OpITierV2SaturatingDiff.sol";
+import "./tier/OpITierV2SelectLte.sol";
+import "./tier/OpITierV2UpdateTimesForTierRange.sol";
 
 /// Thrown when a dynamic length array is NOT 1 more than a fixed length array.
 /// Should never happen outside a major breaking change to memory layouts.
