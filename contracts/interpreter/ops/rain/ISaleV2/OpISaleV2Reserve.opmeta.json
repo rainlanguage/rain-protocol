@@ -1,6 +1,6 @@
 {
   "name": "sale-v2-reserve",
-  "desc": "The Sale reserve token address.",
+  "desc": "The reserve token of a SaleV2.",
   "operand": 0,
   "inputs": {
     "parameters": [
