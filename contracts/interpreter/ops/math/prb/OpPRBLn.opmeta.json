@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-ln",
-  "desc": "PRBMath UD60x18: Calculates the natural logarithm of x.",
+  "name": "prb-ln",
+  "desc": "Calculates the natural logarithm of x as 18 decimal fixed point.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-ln", "fp-ln"]
+  "aliases": ["decimal18-ln"]
 }

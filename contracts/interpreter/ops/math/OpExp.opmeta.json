@@ -1,6 +1,6 @@
 {
   "name": "exp",
-  "desc": "Inserts the result of exponention of N values taken from the stack into the stack",
+  "desc": "Raises multiple integer values as powers of each other, e.g. x ^ y ^ z.",
   "operand": [
     {
       "name": "inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["pow", "power"]
+  "aliases": ["int-pow"]
 }

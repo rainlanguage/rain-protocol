@@ -1,6 +1,6 @@
 {
   "name": "mul",
-  "desc": "Inserts the multiplication of N values taken from the stack into the stack",
+  "desc": "Multiplies N integer values.",
   "operand": [
     {
       "name": "inputs",
@@ -17,5 +17,6 @@
       }
     ]
   },
-  "outputs": 1
+  "outputs": 1,
+  "aliases": ["int-mul"]
 }
