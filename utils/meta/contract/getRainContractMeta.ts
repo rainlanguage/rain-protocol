@@ -67,7 +67,7 @@ export const validateContractMetaAgainstABI = (
     (meta = Stake), (name = "Stake");
   }
   if (contractName_ === "orderbook") {
-    (meta = Orderbook), (name = "Orderbook");
+    (meta = Orderbook), (name = "OrderBook");
   }
   if (contractName_ === "flow") {
     (meta = Flow), (name = "Flow");
@@ -109,11 +109,21 @@ export const validateContractMetaAgainstABI = (
       const inputs = method.inputs;
       // Check for inputs
       for (let j = 0; j < inputs.length; j++) {
-        if (inputs[j].abiName != _.get(abiJSON, inputs[j].path).name) {
+        // Checks if a valid object is present at path
+        if (_.has(abiJSON, inputs[j].path)) {
+          // validates the abiName
+          if (inputs[j].abiName != _.get(abiJSON, inputs[j].path).name) {
+            throw new Error(
+              `mismatch input name for method ${method.name},
+              expected  ${_.get(abiJSON, inputs[j].path).name}
+              got       ${inputs[j].abiName}
+              at path ${inputs[j].path}`
+            );
+          }
+        } else {
           throw new Error(
-            `mismatch input name for method ${method.name},
-                        expected  ${_.get(abiJSON, inputs[j].path).name}
-                        got       ${inputs[j].abiName}`
+            `object not found at path for method ${method.name},
+            current path  ${inputs[j].path}`
           );
         }
       }

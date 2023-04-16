@@ -39,7 +39,7 @@ error SameOwner(address owner);
 
 /// @dev Hash of the caller contract metadata for construction.
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1bec4782f5c1efa2dfae6fe11b7d6d977caf873c154ddf3aa7b1bb3f03ae9558
+    0x277543ad5bd6247822dfc137fe9343e9b7df0ed7bf22d8afdbe0ff9b7eb8645c
 );
 
 /// @dev Value that signifies that an order is live in the internal mapping.
