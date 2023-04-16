@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-exp",
-  "desc": "PRBMath UD60x18: Calculates the natural exponent of x.",
+  "name": "prb-exp",
+  "desc": "Calculates the natural exponent of x as 18 decimal fixed point.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-exp", "fp-exp"]
+  "aliases": ["decimal18-exp"]
 }

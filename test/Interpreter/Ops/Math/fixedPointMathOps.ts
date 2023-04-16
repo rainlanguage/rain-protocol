@@ -358,7 +358,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: scale18<24 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+      rainlang`_: scale-18<24 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -391,7 +391,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`_: scale18<20 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+        rainlang`_: scale-18<20 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -421,7 +421,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
-        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
+        rainlang`_: scale-18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(${value});`
       );
 
     const expression1 = await expressionConsumerDeploy(
@@ -449,7 +449,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(
-        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(0);`
+        rainlang`_: scale-18<16383 ${SATURATE_OFF} ${ROUNDING_UP}>(0);`
       );
 
     const expression2 = await expressionConsumerDeploy(
@@ -481,7 +481,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`_: scale18<20 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
+        rainlang`_: scale-18<20 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -510,7 +510,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
-        rainlang`_: scale18<16383 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
+        rainlang`_: scale-18<16383 ${SATURATE_OFF} ${ROUNDING_DOWN}>(${value});`
       );
 
     const expression1 = await expressionConsumerDeploy(
