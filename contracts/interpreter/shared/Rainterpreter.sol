@@ -48,10 +48,9 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
         bytes[] memory compiledSources_,
         uint256[] memory constants_,
         uint256[][] memory context_,
-        uint256 stackLength_,
+        uint256[] memory stack_,
         SourceIndex sourceIndex_
     ) external view returns (uint256[] memory, uint256[] memory) {
-        uint256[] memory stack_ = new uint256[](stackLength_);
         InterpreterState memory state_ = InterpreterState(
             stack_.asStackPointerUp(),
             constants_.asStackPointerUp(),

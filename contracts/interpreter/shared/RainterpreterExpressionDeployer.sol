@@ -77,6 +77,7 @@ contract RainterpreterExpressionDeployer is
     IERC165
 {
     using LibStackPointer for StackPointer;
+    using LibUint256Array for uint256[];
 
     /// The config of the deployed expression including uncompiled sources. Will
     /// only be emitted after the config passes the integrity check.
@@ -204,19 +205,27 @@ contract RainterpreterExpressionDeployer is
     function offchainDebugEval(
         bytes[] memory sources_,
         uint256[] memory constants_,
-        uint256[] memory minOutputs_,
         FullyQualifiedNamespace namespace_,
         uint256[][] memory context_,
-        SourceIndex sourceIndex_
+        SourceIndex sourceIndex_,
+        uint256[] memory initialStack_,
+        uint256 minOutputs_
     ) external view returns (uint256[] memory, uint256[] memory) {
-        uint256 stackLength_ = integrityCheck(
-            sources_,
-            constants_,
+        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck.newState(sources_, constants_, integrityFunctionPointers());
+        StackPointer stackTop_ = integrityCheckState_.stackBottom;
+        stackTop_ = LibIntegrityCheck.push(integrityCheckState_, stackTop_, initialStack_.length);
+        LibIntegrityCheck.ensureIntegrity(
+            integrityCheckState_,
+            sourceIndex_,
+            stackTop_,
             minOutputs_
         );
+        uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(integrityCheckState_.stackMaxTop);
         for (uint256 i_; i_ < sources_.length; i_++) {
             LibInterpreterState.compile(sources_[i_], OPCODE_FUNCTION_POINTERS);
         }
+        uint256[] memory stack_ = new uint256[](stackLength_);
+        LibMemCpy.unsafeCopyWordsTo(initialStack_.dataPointer(), stack_.dataPointer(), initialStack_.length);
         return
             IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
                 store,
@@ -224,7 +233,7 @@ contract RainterpreterExpressionDeployer is
                 sources_,
                 constants_,
                 context_,
-                stackLength_,
+                stack_,
                 sourceIndex_
             );
     }
