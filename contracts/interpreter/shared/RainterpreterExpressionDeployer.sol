@@ -233,7 +233,7 @@ contract RainterpreterExpressionDeployer is
         bytes[] memory sources_,
         uint256[] memory constants_,
         uint256[] memory minOutputs_
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
         if (minOutputs_.length > sources_.length) {
