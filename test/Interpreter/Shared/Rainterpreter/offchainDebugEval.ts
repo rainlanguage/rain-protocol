@@ -2,34 +2,30 @@ import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import {
   Rainterpreter,
-  RainterpreterExpressionDeployer,
+  RainterpreterStore,
 } from "../../../../typechain";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-import { standardEvaluableConfig } from "../../../../utils";
+import { standardEvaluableConfig, compileSource } from "../../../../utils";
 import { rainlang } from "../../../../utils/extensions/rainlang";
-import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import assert from "assert";
 
-describe("Rainterpreter Expression Deployer offchainDebugEval tests", async function () {
-  let rainInterpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
+
+describe("Rainterpreter offchainDebugEval tests", async function () {
+  let rainterpreter: Rainterpreter;
+  let store: RainterpreterStore;
+  let pointers: string;
 
   before(async () => {
     // Deploy ERC1820Registry
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
-
-    rainInterpreter = await rainterpreterDeploy();
-
-    const store = await rainterpreterStoreDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      rainInterpreter,
-      store
-    );
+    rainterpreter = await rainterpreterDeploy();
+    store = await rainterpreterStoreDeploy();
+    pointers = await rainterpreter.functionPointers();
   });
 
   it("should debug for simple expressions using offchainDebugEval", async () => {
@@ -40,15 +36,20 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
         _: any(0 2 0);
     `);
 
+    const compiledSource0 = [];
+    sources0.forEach(source => {
+      compiledSource0.push(compileSource(source, pointers));
+    });
+
     const result0: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources0,
+      await rainterpreter.offchainDebugEval(
+        store.address,
+        0,
+        compiledSource0,
         constants0,
-        0,
         [[]],
-        0,
-        [],
-        2
+        [0, 0, 0, 0],
+        0
       );
 
     const expectedResult0: [BigNumber[], BigNumber[]] = [
@@ -63,15 +64,20 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
        _: hash(${ethers.constants.MaxUint256});
     `);
 
+    const compiledSource1 = [];
+    sources1.forEach(source => {
+      compiledSource1.push(compileSource(source, pointers));
+    });
+
     const result1: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources1,
+      await rainterpreter.offchainDebugEval(
+        store.address,
+        0,
+        compiledSource1,
         constants1,
-        0,
         [[]],
-        0,
-        [],
-        1
+        [0],
+        0
       );
 
     const expectedResult1: [BigNumber[], BigNumber[]] = [
@@ -93,15 +99,20 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
     `);
     const context2 = [[0xfffffffffff, 0x12031]];
 
+    const compiledSource2 = [];
+    sources2.forEach(source => {
+      compiledSource2.push(compileSource(source, pointers));
+    });
+
     const result2: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources2,
+      await rainterpreter.offchainDebugEval(
+        store.address,
+        0,
+        compiledSource2,
         constants2,
-        0,
         context2,
-        0,
-        [],
-        1
+        [0, 0, 0, 0],
+        0
       );
 
     const expectedResult2: [BigNumber[], BigNumber[]] = [
@@ -121,15 +132,20 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
       _ _: set(1337 1) get(1337) set(1337 2) get(1337);
     `);
 
+    const compiledSource3 = [];
+    sources3.forEach(source => {
+      compiledSource3.push(compileSource(source, pointers));
+    });
+
     const result3: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources3,
+      await rainterpreter.offchainDebugEval(
+        store.address,
+        0,
+        compiledSource3,
         constants3,
-        0,
         [[]],
-        0,
-        [],
-        2
+        [0, 0, 0],
+        0
       );
 
     const expectedResult3: [BigNumber[], BigNumber[]] = [
@@ -154,16 +170,22 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
         `
       );
 
+    const compiledSource0 = [];
+    sources0.forEach(source => {
+      compiledSource0.push(compileSource(source, pointers));
+    });
+
     const result0: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources0,
+      await rainterpreter.offchainDebugEval(
+        store.address,
+        0,
+        compiledSource0,
         constants0,
-        0,
         [[]],
-        0,
-        [],
-        2
+        [0, 0, 0, 0],
+        0
       );
+
 
     const expectedResult0: [BigNumber[], BigNumber[]] = [
       [BigNumber.from(10), BigNumber.from(20)],
@@ -199,15 +221,20 @@ describe("Rainterpreter Expression Deployer offchainDebugEval tests", async func
       `
       );
 
+    const compiledSource1 = [];
+    sources1.forEach(source => {
+      compiledSource1.push(compileSource(source, pointers));
+    });
+
     const result1: [BigNumber[], BigNumber[]] =
-      await expressionDeployer.offchainDebugEval(
-        sources1,
-        constants1,
+      await rainterpreter.offchainDebugEval(
+        store.address,
         0,
+        compiledSource1,
+        constants1,
         [[]],
-        3,
-        [0, 1],
-        2
+        [0, 0, 0, 0, 0],
+        3
       );
 
     const expectedResult1: [BigNumber[], BigNumber[]] = [
