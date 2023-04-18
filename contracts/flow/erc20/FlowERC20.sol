@@ -32,7 +32,13 @@ uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
-contract FlowERC20 is ICloneableV1, IFlowERC20V2, ReentrancyGuard, FlowCommon, ERC20 {
+contract FlowERC20 is
+    ICloneableV1,
+    IFlowERC20V2,
+    ReentrancyGuard,
+    FlowCommon,
+    ERC20
+{
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -93,11 +99,13 @@ contract FlowERC20 is ICloneableV1, IFlowERC20V2, ReentrancyGuard, FlowCommon, E
                 uint256[][] memory context_ = LibContext.build(
                     // The transfer params are caller context because the caller
                     // is triggering the transfer.
-                    LibUint256Array.arrayFrom(
-                        uint256(uint160(from_)),
-                        uint256(uint160(to_)),
-                        amount_
-                    ).matrixFrom(),
+                    LibUint256Array
+                        .arrayFrom(
+                            uint256(uint160(from_)),
+                            uint256(uint160(to_)),
+                            amount_
+                        )
+                        .matrixFrom(),
                     new SignedContextV1[](0)
                 );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_

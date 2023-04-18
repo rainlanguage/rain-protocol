@@ -44,10 +44,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources0,
         constants0,
-        [2],
         0,
         [[]],
-        0
+        0,
+        [],
+        2
       );
 
     const expectedResult0: [BigNumber[], BigNumber[]] = [
@@ -66,10 +67,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources1,
         constants1,
-        [1],
         0,
         [[]],
-        0
+        0,
+        [],
+        1
       );
 
     const expectedResult1: [BigNumber[], BigNumber[]] = [
@@ -95,10 +97,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources2,
         constants2,
-        [1],
         0,
         context2,
-        0
+        0,
+        [],
+        1
       );
 
     const expectedResult2: [BigNumber[], BigNumber[]] = [
@@ -122,10 +125,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources3,
         constants3,
-        [2],
         0,
         [[]],
-        0
+        0,
+        [],
+        2
       );
 
     const expectedResult3: [BigNumber[], BigNumber[]] = [
@@ -142,7 +146,7 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
         rainlang`
         /* main source 0 */
         _ _:  call<1 2>(10);
-  
+
         /* source 1 */
         ten: ,
         twenty: 20,
@@ -154,10 +158,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources0,
         constants0,
-        [2],
         0,
         [[]],
-        0
+        0,
+        [],
+        2
       );
 
     const expectedResult0: [BigNumber[], BigNumber[]] = [
@@ -170,14 +175,14 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
         rainlang`
-        /* 
+        /*
           sourceMain
         */
         c0: 0,
         c1: 0,
         condition: call<2 1>(c1), /* callCheckAcc */
         _ _: do-while<1>(c0 c1 condition);
-        
+
         /* sourceWHILE */
         s0 s1: ,
         o0 o1: call<3 2>(s0 s1),
@@ -198,10 +203,11 @@ describe("RainInterpreter Expression Deployer offchainDebugEval tests", async fu
       await expressionDeployer.offchainDebugEval(
         sources1,
         constants1,
-        [2],
         0,
         [[]],
-        3
+        3,
+        [0, 1],
+        2
       );
 
     const expectedResult1: [BigNumber[], BigNumber[]] = [

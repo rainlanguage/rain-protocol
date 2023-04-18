@@ -31,7 +31,13 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
-contract FlowERC1155 is ICloneableV1, IFlowERC1155V2, ReentrancyGuard, FlowCommon, ERC1155 {
+contract FlowERC1155 is
+    ICloneableV1,
+    IFlowERC1155V2,
+    ReentrancyGuard,
+    FlowCommon,
+    ERC1155
+{
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -115,13 +121,15 @@ contract FlowERC1155 is ICloneableV1, IFlowERC1155V2, ReentrancyGuard, FlowCommo
                     {
                         context_ = LibContext.build(
                             // Transfer params are caller context.
-                            LibUint256Array.arrayFrom(
-                                uint256(uint160(operator_)),
-                                uint256(uint160(from_)),
-                                uint256(uint160(to_)),
-                                ids_[i_],
-                                amounts_[i_]
-                            ).matrixFrom(),
+                            LibUint256Array
+                                .arrayFrom(
+                                    uint256(uint160(operator_)),
+                                    uint256(uint160(from_)),
+                                    uint256(uint160(to_)),
+                                    ids_[i_],
+                                    amounts_[i_]
+                                )
+                                .matrixFrom(),
                             new SignedContextV1[](0)
                         );
                     }

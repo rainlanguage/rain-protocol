@@ -18,7 +18,8 @@ contract EIP165InterfaceIds {
         type(IInterpreterCallerV1).interfaceId;
 
     // solhint-disable-next-line const-name-snakecase
-    bytes4 public constant IInterpreterCallerV2InterfaceId = type(IInterpreterCallerV2).interfaceId;
+    bytes4 public constant IInterpreterCallerV2InterfaceId =
+        type(IInterpreterCallerV2).interfaceId;
 
     // solhint-disable-next-line const-name-snakecase
     bytes4 public constant IExpressionDeployerV1InterfaceId =

@@ -7,7 +7,7 @@ import "../ops/AllStandardOps.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../../kv/LibMemoryKV.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "rain.interface.interpreter/IDebugInterpreterV1.sol";
+import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
