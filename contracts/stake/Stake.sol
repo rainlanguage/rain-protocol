@@ -5,7 +5,7 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "sol.lib.memory/LibUint256Array.sol";
@@ -142,7 +142,7 @@ contract Stake is
     TierV2,
     ICloneableV1,
     ReentrancyGuard,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
     using SafeERC20 for IERC20;
@@ -227,7 +227,7 @@ contract Stake is
                     // We put the account being eval'd against as a single item
                     // in caller context and that's the best we can do.
                     uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                    new SignedContext[](0)
+                    new SignedContextV1[](0)
                 )
             )
         returns (uint256[] memory stack_, uint256[] memory kvs_) {

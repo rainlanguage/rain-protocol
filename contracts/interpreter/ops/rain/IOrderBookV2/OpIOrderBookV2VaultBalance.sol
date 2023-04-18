@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "rain.interface.orderbook/IOrderBookV1.sol";
+import "rain.interface.orderbook/IOrderBookV2.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
-/// @title OpIOrderBookV1VaultBalance
-/// @notice Opcode for IOrderBookV1 `vaultBalance`.
-library OpIOrderBookV1VaultBalance {
+/// @title OpIOrderBookV2VaultBalance
+/// @notice Opcode for IOrderBookV2 `vaultBalance`.
+library OpIOrderBookV2VaultBalance {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -21,7 +21,7 @@ library OpIOrderBookV1VaultBalance {
         return
             uint256(
                 uint160(
-                    IOrderBookV1(address(uint160(orderbook_))).vaultBalance(
+                    IOrderBookV2(address(uint160(orderbook_))).vaultBalance(
                         address(uint160(owner_)),
                         address(uint160(token_)),
                         id_

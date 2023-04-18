@@ -7,7 +7,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
@@ -31,7 +31,7 @@ struct AutoApproveConfig {
 contract AutoApprove is
     ICloneableV1,
     VerifyCallback,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
     using LibStackPointer for StackPointer;

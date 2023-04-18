@@ -1,14 +1,13 @@
 {
-  "name": "isale-v2-remaining-token-inventory",
-  "desc": "The remaining rTKNs left to to be sold",
+  "name": "sale-v2-remaining-token-inventory",
+  "desc": "The remaining rTKNs left to to be sold for a SaleV2.",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "isale-address"
+        "name": "sale-address"
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["sale-remaining-token-inventory"]
+  "outputs": 1
 }

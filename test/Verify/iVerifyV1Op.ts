@@ -67,7 +67,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
         op(Opcode.context, 0x0000), // CONTRACT
         op(Opcode.context, 0x0001), // ADDRESS
         op(Opcode.context, 0x0002), // TIMESTAMP
-      op(Opcode.iverify_v1_account_status_at_time), // STATUS
+      op(Opcode.verify_v1_account_status_at_time), // STATUS
     ]);
 
     const expression0 = await expressionConsumerDeploy(

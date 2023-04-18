@@ -42,3 +42,6 @@
 [submodule "lib/rain.interface.flow"]
 	path = lib/rain.interface.flow
 	url = https://github.com/rainprotocol/rain.interface.flow
+[submodule "lib/rain.interface.sale"]
+	path = lib/rain.interface.sale
+	url = https://github.com/rainprotocol/rain.interface.sale

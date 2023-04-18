@@ -9,7 +9,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC20V1.sol";
+import "rain.interface.flow/IFlowERC20V2.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -20,7 +20,7 @@ import "../FlowCommon.sol";
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x8d2e217a8eba75d982ea71b89fac0d594d00be4582e4b84ad64a5caef399d6b9
+    0xe322e12a5fb3c5532fde121cb99a8d3252f395479ae707631611ac6949f1ce89
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
@@ -32,13 +32,7 @@ uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
 uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
-contract FlowERC20 is
-    ICloneableV1,
-    IFlowERC20V1,
-    ReentrancyGuard,
-    FlowCommon,
-    ERC20
-{
+contract FlowERC20 is ICloneableV1, IFlowERC20V2, ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -99,14 +93,12 @@ contract FlowERC20 is
                 uint256[][] memory context_ = LibContext.build(
                     // The transfer params are caller context because the caller
                     // is triggering the transfer.
-                    LibUint256Array
-                        .arrayFrom(
-                            uint256(uint160(from_)),
-                            uint256(uint160(to_)),
-                            amount_
-                        )
-                        .matrixFrom(),
-                    new SignedContext[](0)
+                    LibUint256Array.arrayFrom(
+                        uint256(uint160(from_)),
+                        uint256(uint160(to_)),
+                        amount_
+                    ).matrixFrom(),
+                    new SignedContextV1[](0)
                 );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                     .interpreter
@@ -161,7 +153,7 @@ contract FlowERC20 is
     function _flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
@@ -187,7 +179,7 @@ contract FlowERC20 is
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
@@ -203,7 +195,7 @@ contract FlowERC20 is
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external payable virtual returns (FlowERC20IO memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }

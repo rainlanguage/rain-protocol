@@ -45,17 +45,17 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0b100b270b360bb90bc70c190c890d070d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x989943234a292d6240a056121c97053336f4d63f883f24f909dcce9e7fd4199d
+    0xf69508063d426c73943342c5337e3c20812f13b966bb573c68a2ad9bbc6bcefc
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x109d5294d4d8c82df17ad418cf8a0a8e7eb6734a66cc11c093791ef43cc44fa4
+    0x0898325e539e0f460f729b88fbe2e6d9ddf6c75caf8dbb178bdd2844a811876d
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x5c757b0bddcd375a5d7985b15a9b4ccba2a13eecf7931e4bf04ef67d39864637
+    0x273a2d7f5b24df6d3c09a363f75b2c795d987d87d86da855b7483892c7906e81
 );
 
 /// All config required to construct a `Rainterpreter`.

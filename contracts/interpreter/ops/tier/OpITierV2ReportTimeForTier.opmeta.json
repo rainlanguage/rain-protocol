@@ -1,6 +1,6 @@
 {
-  "name": "itier-v2-report-time-for-tier",
-  "desc": "Inserts the specified tier level report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
+  "name": "tier-v2-report-time-for-tier",
+  "desc": "The TierV2 level of an account, optionally providing additional context values.",
   "operand": [
     {
       "name": "inputs",
@@ -14,7 +14,7 @@
     "computation": "bits + 3",
     "parameters": [
       {
-        "name": "itierv2-address"
+        "name": "tier-v2-address"
       },
       {
         "name": "account"

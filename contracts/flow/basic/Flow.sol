@@ -9,10 +9,10 @@ import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9f96d87b38d8bddd32428f65cd45d2cc3475ccaa0154f2c6a13b7d32c82f02b7
+    0x9a42c3d95d5dc305c2a29eb66e0aa97decfaddd27e2f7e47cc4eeaa80cb4f06c
 );
 
-contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
@@ -44,7 +44,7 @@ contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
@@ -60,7 +60,7 @@ contract Flow is ICloneableV1, IFlowV1, ReentrancyGuard, FlowCommon {
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external payable virtual nonReentrant returns (FlowTransfer memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
