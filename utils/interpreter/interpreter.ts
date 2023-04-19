@@ -7,7 +7,6 @@ import {
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { AllStandardOps } from "./ops/allStandardOps";
 import { ExpressionConfig, rlc } from "rainlang";
 import { getRainMetaDocumentFromOpmeta } from "../meta";
 import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
@@ -15,11 +14,6 @@ import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
 export enum MemoryType {
   Stack,
   Constant,
-}
-
-export enum Debug {
-  StatePacked,
-  Stack,
 }
 
 export enum SelectLteLogic {
@@ -31,14 +25,6 @@ export enum SelectLteMode {
   min,
   max,
   first,
-}
-
-export function DEBUG_STATE_PACKED(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.StatePacked)]);
-}
-
-export function DEBUG_STACK(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.Stack)]);
 }
 
 /**
@@ -290,3 +276,25 @@ export const standardEvaluableConfig = async (
       throw new Error(JSON.stringify(error, null, 2));
     });
 };
+
+/**
+ * Given a source in opcodes compile to an equivalent source with real function pointers for a given Interpreter contract.
+ * @param source Uncompiled Source
+ * @param pointers Opcode function pointers
+ * @returns Compiled Source
+ */
+export const compileSource = (source, pointers): string => {
+  const pointersBottom = pointers.slice(2); // skip first 2 bytes
+  const cursor = source.slice(2); // skip first 2 bytes
+  const pointersArray = [];
+  for (let i = 0; i < pointersBottom.length; i += 4) {
+    const substr = pointersBottom.slice(i, i + 4);
+    pointersArray.push(substr);
+  }
+  let result = "";
+  for (let i = 0; i < cursor.length; i += 8) {
+    const chunk = cursor.substring(i, i + 8);
+    result += pointersArray[parseInt(chunk.slice(0, 4), 16)] + chunk.slice(4);
+  }
+  return "0x" + result;
+}

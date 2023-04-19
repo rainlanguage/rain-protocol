@@ -22,31 +22,6 @@ contract LibInterpreterStateTest {
 
     constructor() {}
 
-    function debug(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        uint256 stackLength_,
-        uint256[][] memory context_,
-        DebugStyle debugStyle_,
-        IInterpreterV1 interpreter_
-    )
-        external
-        view
-        returns (StackPointer stackTop_, StackPointer stackTopAfter_)
-    {
-        InterpreterState memory state_;
-        bytes memory serialized_ = serialize(
-            interpreter_,
-            sources_,
-            constants_,
-            stackLength_
-        );
-        state_ = serialized_.deserialize();
-        state_.context = context_;
-        stackTop_ = state_.stackBottom;
-        stackTopAfter_ = state_.debug(stackTop_.up(stackLength_), debugStyle_);
-    }
-
     function serDeserialize(
         bytes[] memory sources_,
         uint256[] memory constants_,

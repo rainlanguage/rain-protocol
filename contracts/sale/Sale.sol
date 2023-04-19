@@ -490,7 +490,9 @@ contract Sale is
         )
     {
         unchecked {
-            uint256[][] memory callerContext_ = new uint256[][](CONTEXT_COLUMNS);
+            uint256[][] memory callerContext_ = new uint256[][](
+                CONTEXT_COLUMNS
+            );
             uint256[][] memory context_ = LibContext.build(
                 callerContext_,
                 new SignedContextV1[](0)

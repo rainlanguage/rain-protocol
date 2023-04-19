@@ -4,6 +4,8 @@ pragma solidity =0.8.18;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
+import "rain.interface.interpreter/unstable/IDebugExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -39,21 +41,21 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"09d409eb09fa0a7d0a8b0add0b4d0bcb0c950ceb0d170db00f440f840fa20fb10fbf0fce0fdc0fea0ff810060fce101410221031103f104d105c106b107a1089109810a710b610c510d410e310f2113b114d115b118d119b11a911b711c511d311e111ef11fd120b12191227123512431251125f126d127b1289129712a612b512c412d212e012ee12fc130a13181326145414dc14eb14fa1508157a";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac80adf0aee0b710b7f0bd10c410cbf0d890ddf0e78100c104c106a10791087109610a410b210c010ce109610dc10ea10f91107111511241133114211511160116f117e118d119c11ab11ba120312151223125512631271127f128d129b12a912b712c512d312e112ef12fd130b13191327133513431351135f136e137d138c139a13a813b613c413d213e013ee151c15a415b315c215d01642";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xf69508063d426c73943342c5337e3c20812f13b966bb573c68a2ad9bbc6bcefc
+    0xf76d4cd32dbc7b9804df455c150fdd51807bd4bfe5214aa201f6f80b27195540
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x0898325e539e0f460f729b88fbe2e6d9ddf6c75caf8dbb178bdd2844a811876d
+    0x1bf255d6f7e7d8cc08001daf8db53b157187169810d0adc37a3a92bc3a830e3f
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x273a2d7f5b24df6d3c09a363f75b2c795d987d87d86da855b7483892c7906e81
+    0xc4a4ab154dec61b0036b5882af23240a1ad518ce6c3212110585fca3647cd304
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -69,8 +71,13 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
+contract RainterpreterExpressionDeployer is
+    IExpressionDeployerV1,
+    IDebugExpressionDeployerV1,
+    IERC165
+{
     using LibStackPointer for StackPointer;
+    using LibUint256Array for uint256[];
 
     /// The config of the deployed expression including uncompiled sources. Will
     /// only be emitted after the config passes the integrity check.
@@ -194,11 +201,66 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         return AllStandardOps.integrityFunctionPointers();
     }
 
+    /// @inheritdoc IDebugExpressionDeployerV1
+    function offchainDebugEval(
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        FullyQualifiedNamespace namespace_,
+        uint256[][] memory context_,
+        SourceIndex sourceIndex_,
+        uint256[] memory initialStack_,
+        uint256 minOutputs_
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
+            .newState(sources_, constants_, integrityFunctionPointers());
+        StackPointer stackTop_ = integrityCheckState_.stackBottom;
+        stackTop_ = LibIntegrityCheck.push(
+            integrityCheckState_,
+            stackTop_,
+            initialStack_.length
+        );
+        LibIntegrityCheck.ensureIntegrity(
+            integrityCheckState_,
+            sourceIndex_,
+            stackTop_,
+            minOutputs_
+        );
+        uint256[] memory stack_;
+        {
+            uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(
+                integrityCheckState_.stackMaxTop
+            );
+            for (uint256 i_; i_ < sources_.length; i_++) {
+                LibInterpreterState.compile(
+                    sources_[i_],
+                    OPCODE_FUNCTION_POINTERS
+                );
+            }
+            stack_ = new uint256[](stackLength_);
+            LibMemCpy.unsafeCopyWordsTo(
+                initialStack_.dataPointer(),
+                stack_.dataPointer(),
+                initialStack_.length
+            );
+        }
+
+        return
+            IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
+                store,
+                namespace_,
+                sources_,
+                constants_,
+                context_,
+                stack_,
+                sourceIndex_
+            );
+    }
+
     function integrityCheck(
         bytes[] memory sources_,
         uint256[] memory constants_,
         uint256[] memory minOutputs_
-    ) public view returns (uint256) {
+    ) internal view returns (uint256) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
         if (minOutputs_.length > sources_.length) {

@@ -528,16 +528,13 @@ contract OrderBook is
                     // Don't know the balance diff yet!
                     0
                 );
-                context_ = LibContext.build(
-                    callingContext_,
-                    signedContext_
-                );
+                context_ = LibContext.build(callingContext_, signedContext_);
             }
 
             // The state changes produced here are handled in _recordVaultIO so
             // that local storage writes happen before writes on the interpreter.
             StateNamespace namespace_ = StateNamespace.wrap(
-                uint(uint160(order_.owner))
+                uint256(uint160(order_.owner))
             );
             (uint256[] memory stack_, uint256[] memory kvs_) = order_
                 .evaluable
