@@ -129,9 +129,9 @@ contract FlowERC20 is
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view virtual returns (FlowERC20IO memory, uint256[] memory) {
+    ) internal view virtual returns (FlowERC20IOV1 memory, uint256[] memory) {
         uint256[] memory refs_;
-        FlowERC20IO memory flowIO_;
+        FlowERC20IOV1 memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -162,14 +162,14 @@ contract FlowERC20 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) internal virtual nonReentrant returns (FlowERC20IO memory) {
+    ) internal virtual nonReentrant returns (FlowERC20IOV1 memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
                 callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (FlowERC20IO memory flowIO_, uint256[] memory kvs_) = _previewFlow(
+            (FlowERC20IOV1 memory flowIO_, uint256[] memory kvs_) = _previewFlow(
                 evaluable_,
                 context_
             );
@@ -188,12 +188,12 @@ contract FlowERC20 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external view virtual returns (FlowERC20IO memory) {
+    ) external view virtual returns (FlowERC20IOV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowERC20IO memory flowERC20IO_, ) = _previewFlow(
+        (FlowERC20IOV1 memory flowERC20IO_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -204,7 +204,7 @@ contract FlowERC20 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external payable virtual returns (FlowERC20IO memory) {
+    ) external virtual returns (FlowERC20IOV1 memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }
 }

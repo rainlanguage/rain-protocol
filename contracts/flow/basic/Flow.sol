@@ -12,7 +12,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
     0x9a42c3d95d5dc305c2a29eb66e0aa97decfaddd27e2f7e47cc4eeaa80cb4f06c
 );
 
-contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
@@ -32,7 +32,7 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowTransfer memory, uint256[] memory) {
+    ) internal view returns (FlowTransferV1 memory, uint256[] memory) {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -45,12 +45,12 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external view virtual returns (FlowTransfer memory) {
+    ) external view virtual returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowTransfer memory flowTransfer_, ) = _previewFlow(
+        (FlowTransferV1 memory flowTransfer_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -61,14 +61,14 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
+    ) external virtual nonReentrant returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
         (
-            FlowTransfer memory flowTransfer_,
+            FlowTransferV1 memory flowTransfer_,
             uint256[] memory kvs_
         ) = _previewFlow(evaluable_, context_);
         LibFlow.flow(flowTransfer_, evaluable_.store, kvs_);

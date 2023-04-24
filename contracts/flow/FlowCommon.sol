@@ -126,6 +126,4 @@ contract FlowCommon is
             );
         return (stack_.asStackPointerUp(), stack_.asStackPointerAfter(), kvs_);
     }
-
-    receive() external payable virtual {}
 }

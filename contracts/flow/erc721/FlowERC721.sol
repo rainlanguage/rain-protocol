@@ -188,9 +188,9 @@ contract FlowERC721 is
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowERC721IO memory, uint256[] memory) {
+    ) internal view returns (FlowERC721IOV1 memory, uint256[] memory) {
         uint256[] memory refs_;
-        FlowERC721IO memory flowIO_;
+        FlowERC721IOV1 memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -222,14 +222,14 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) internal virtual nonReentrant returns (FlowERC721IO memory) {
+    ) internal virtual nonReentrant returns (FlowERC721IOV1 memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
                 callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (FlowERC721IO memory flowIO_, uint256[] memory kvs_) = _previewFlow(
+            (FlowERC721IOV1 memory flowIO_, uint256[] memory kvs_) = _previewFlow(
                 evaluable_,
                 context_
             );
@@ -252,12 +252,12 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external view virtual returns (FlowERC721IO memory) {
+    ) external view virtual returns (FlowERC721IOV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowERC721IO memory flowERC721IO_, ) = _previewFlow(
+        (FlowERC721IOV1 memory flowERC721IO_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -268,7 +268,7 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external payable virtual returns (FlowERC721IO memory) {
+    ) external virtual returns (FlowERC721IOV1 memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }
 }
