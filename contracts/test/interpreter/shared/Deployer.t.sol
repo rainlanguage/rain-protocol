@@ -30,7 +30,7 @@ contract Deployer is Test{
 
         //Read from the config file
         string memory root = vm.projectRoot();
-        string memory path = string.concat(root, "/test_forge/deployer.config.json");
+        string memory path = string.concat(root, "/contracts/test/interpreter/shared/deployer.config.json");
         json = vm.readFile(path);   
 
         expressionDeployerV2 = stdJson.readAddress(json,".expressionDeployerV2") ;
@@ -77,7 +77,7 @@ contract Deployer is Test{
     function testAddExpressionDeployerDebug(address alice_, uint256 a_, uint256 b_) public {   
 
         vm.selectFork(mumbaiFork); 
-        
+
         // Loading Source For Add Expression 
         bytes[] memory sources = stdJson.readBytesArray(json,".sources");    
 
