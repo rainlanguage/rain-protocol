@@ -9,7 +9,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC20V2.sol";
+import "rain.interface.flow/IFlowERC20V3.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -34,7 +34,7 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 /// @title FlowERC20
 contract FlowERC20 is
     ICloneableV1,
-    IFlowERC20V2,
+    IFlowERC20V3,
     ReentrancyGuard,
     FlowCommon,
     ERC20

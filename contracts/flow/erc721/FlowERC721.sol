@@ -10,7 +10,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC721V2.sol";
+import "rain.interface.flow/IFlowERC721V3.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -39,7 +39,7 @@ uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 /// @title FlowERC721
 contract FlowERC721 is
     ICloneableV1,
-    IFlowERC721V2,
+    IFlowERC721V3,
     ReentrancyGuard,
     FlowCommon,
     ERC721
