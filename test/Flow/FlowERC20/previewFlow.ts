@@ -6,7 +6,9 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC20, FlowERC20IOV1Struct, FlowTransferV1Struct
+  FlowERC20,
+  FlowERC20IOV1Struct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -43,7 +45,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
-
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
@@ -60,7 +61,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     await erc1155B.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [
@@ -252,7 +252,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     await erc721B.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -600,7 +599,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     await erc1155.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [
@@ -756,7 +754,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     await erc721.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -1126,7 +1123,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [],

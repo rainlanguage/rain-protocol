@@ -1,8 +1,6 @@
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
-import {
-  FlowERC1155
-} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { FlowERC1155 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowTransferV1Struct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";

@@ -9,7 +9,9 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC20, FlowERC20IOV1Struct, FlowTransferV1Struct
+  FlowERC20,
+  FlowERC20IOV1Struct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -68,7 +70,6 @@ describe("FlowERC20 multicall tests", async function () {
     await erc1155Out.initialize();
 
     const flowTransfer_A: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -169,7 +170,6 @@ describe("FlowERC20 multicall tests", async function () {
     await erc721Out.initialize();
 
     const flowTransfer_B: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,

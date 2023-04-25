@@ -2,7 +2,8 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
-  FlowERC721, FlowERC721IOV1Struct
+  FlowERC721,
+  FlowERC721IOV1Struct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {

@@ -1,9 +1,7 @@
 import { FlowTransferV1Struct } from "../../typechain/contracts/flow/basic/Flow";
-import {
-  FlowERC1155IOV1Struct
-} from "../../typechain/contracts/flow/erc1155/FlowERC1155";
-import {  FlowERC20IOV1Struct } from "../../typechain/contracts/flow/erc20/FlowERC20";
-import {  FlowERC721IOV1Struct } from "../../typechain/contracts/flow/erc721/FlowERC721";
+import { FlowERC1155IOV1Struct } from "../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { FlowERC20IOV1Struct } from "../../typechain/contracts/flow/erc20/FlowERC20";
+import { FlowERC721IOV1Struct } from "../../typechain/contracts/flow/erc721/FlowERC721";
 
 /**
  * @public
@@ -16,7 +14,6 @@ export const fillEmptyAddress = (
   flow: FlowTransferV1Struct,
   address: string
 ): FlowTransferV1Struct => {
-  
   // erc20
   for (const erc20 of flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -49,7 +46,6 @@ export const fillEmptyAddressERC20 = (
   flow: FlowERC20IOV1Struct,
   address: string
 ): FlowERC20IOV1Struct => {
-  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -92,7 +88,6 @@ export const fillEmptyAddressERC721 = (
   flow: FlowERC721IOV1Struct,
   address: string
 ): FlowERC721IOV1Struct => {
-  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -135,7 +130,6 @@ export const fillEmptyAddressERC1155 = (
   flow: FlowERC1155IOV1Struct,
   address: string
 ): FlowERC1155IOV1Struct => {
-  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;

@@ -12,8 +12,9 @@ import { getEvents } from "../../../utils/events";
 
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
-  FlowERC20, FlowTransferV1Struct,
-  } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+  FlowERC20,
+  FlowTransferV1Struct,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
@@ -51,7 +52,6 @@ describe("FlowERC20 flowTime tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,

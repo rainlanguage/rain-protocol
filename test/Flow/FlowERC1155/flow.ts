@@ -8,7 +8,8 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC1155, FlowERC1155IOV1Struct
+  FlowERC1155,
+  FlowERC1155IOV1Struct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowTransferV1Struct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
@@ -216,7 +217,7 @@ describe("FlowERC1155 flow tests", async function () {
 
   it("should mint and burn tokens per flow in exchange for another token (e.g. ERC20)", async () => {
     const signers = await ethers.getSigners();
-    const [deployer, you] = signers; 
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -240,7 +241,7 @@ describe("FlowERC1155 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(0),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
@@ -259,13 +260,13 @@ describe("FlowERC1155 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(2 + eighteenZeros),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
     };
 
-    // for mint flow 
+    // for mint flow
     const tokenId = 0;
     const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
 
@@ -432,7 +433,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const me = flow;
 
-    // -- PERFORM MINT -- 
+    // -- PERFORM MINT --
 
     // Ensure parties hold enough ERC20
     await erc20In.transfer(you.address, flowTransferMint.erc20[0].amount);
@@ -440,7 +441,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     await erc20In
       .connect(you)
-      .approve(me.address, flowTransferMint.erc20[0].amount); 
+      .approve(me.address, flowTransferMint.erc20[0].amount);
 
     const flowStructMint = await flow
       .connect(you)
@@ -453,14 +454,13 @@ describe("FlowERC1155 flow tests", async function () {
 
     const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
 
-    // Check Balances 
+    // Check Balances
 
     const meMintBalanceIn = await erc20In.balanceOf(me.address);
     const meMintBalanceOut = await erc20Out.balanceOf(me.address);
     const youMintBalanceIn = await erc20In.balanceOf(you.address);
-    const youMintBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youMintBalanceOut = await erc20Out.balanceOf(you.address);
 
-   
     assert(
       meMintBalanceIn.eq(await flowERC1155IOMint.flow.erc20[0].amount),
       `wrong balance for me (flow contract)
@@ -495,7 +495,7 @@ describe("FlowERC1155 flow tests", async function () {
     assert(me20Balance1.isZero());
     assert(you20Balance1.eq(tokenAmount));
 
-    // -- PERFORM BURN -- 
+    // -- PERFORM BURN --
 
     // Ensure parties hold enough ERC20
     await erc20In.transfer(you.address, flowTransferBurn.erc20[0].amount);
@@ -503,7 +503,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     await erc20In
       .connect(you)
-      .approve(me.address, flowTransferBurn.erc20[0].amount); 
+      .approve(me.address, flowTransferBurn.erc20[0].amount);
 
     const flowStructBurn = await flow
       .connect(you)
@@ -516,12 +516,12 @@ describe("FlowERC1155 flow tests", async function () {
 
     const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
 
-    // Check Balances 
+    // Check Balances
 
     const meBurnBalanceIn = await erc20In.balanceOf(me.address);
     const meBurnBalanceOut = await erc20Out.balanceOf(me.address);
     const youBurnBalanceIn = await erc20In.balanceOf(you.address);
-    const youBurnBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youBurnBalanceOut = await erc20Out.balanceOf(you.address);
 
     // Has balance from previous tx
     assert(
@@ -576,7 +576,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc1155Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -769,7 +768,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc721Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,
@@ -928,8 +926,6 @@ describe("FlowERC1155 flow tests", async function () {
     assert(owner721Out === you.address);
   });
 
-
-
   it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
@@ -947,7 +943,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc1155Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [
@@ -1152,7 +1147,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc721Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -1346,7 +1340,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,
@@ -1515,10 +1508,9 @@ describe("FlowERC1155 flow tests", async function () {
     );
   });
 
-
   it("should not be able to access values set in a flow across different flows", async () => {
     const signers = await ethers.getSigners();
-    const [deployer, you] = signers; 
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -1542,7 +1534,7 @@ describe("FlowERC1155 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(2 + eighteenZeros),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
@@ -1721,38 +1713,38 @@ describe("FlowERC1155 flow tests", async function () {
       .connect(you)
       .flow(flowInitialized[0].evaluable, [1234], []);
 
-      const meABalanceIn = await erc20In.balanceOf(me.address);
-      const meABalanceOut = await erc20Out.balanceOf(me.address);
-      const youABalanceIn = await erc20In.balanceOf(you.address);
-      const youABalanceOut = await erc20Out.balanceOf(you.address);
-  
-      assert(
-        meABalanceIn.eq(await flowERC1155IO.flow.erc20[0].amount),
-        `wrong balance for me (flow contract)
+    const meABalanceIn = await erc20In.balanceOf(me.address);
+    const meABalanceOut = await erc20Out.balanceOf(me.address);
+    const youABalanceIn = await erc20In.balanceOf(you.address);
+    const youABalanceOut = await erc20Out.balanceOf(you.address);
+
+    assert(
+      meABalanceIn.eq(await flowERC1155IO.flow.erc20[0].amount),
+      `wrong balance for me (flow contract)
         expected  ${flowERC1155IO.flow.erc20[0].amount}
         got       ${meABalanceIn}`
-      );
-  
-      assert(
-        meABalanceOut.eq(BigNumber.from(0)),
-        `wrong balance for me (flow contract)
+    );
+
+    assert(
+      meABalanceOut.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
         expected  ${0}
         got       ${meABalanceOut}`
-      );
-  
-      assert(
-        youABalanceIn.eq(BigNumber.from(0)),
-        `wrong balance for me (flow contract)
+    );
+
+    assert(
+      youABalanceIn.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
         expected  ${0}
         got       ${youABalanceIn}`
-      );
-  
-      assert(
-        youABalanceOut.eq(await flowERC1155IO.flow.erc20[1].amount),
-        `wrong balance for you (signer1 contract)
+    );
+
+    assert(
+      youABalanceOut.eq(await flowERC1155IO.flow.erc20[1].amount),
+      `wrong balance for you (signer1 contract)
         expected  ${flowERC1155IO.flow.erc20[1].amount}
         got       ${youABalanceOut}`
-      );
+    );
 
     // FlowB
 
@@ -1770,12 +1762,14 @@ describe("FlowERC1155 flow tests", async function () {
     const meBBalanceIn = await erc20In.balanceOf(me.address);
     const meBBalanceOut = await erc20Out.balanceOf(me.address);
     const youBBalanceIn = await erc20In.balanceOf(you.address);
-    const youBBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youBBalanceOut = await erc20Out.balanceOf(you.address);
 
-    const expectedMeBBalance = ethers.BigNumber.from(await flowTransfer.erc20[0].amount).mul(2)
-    const expectedYouBBalance = ethers.BigNumber.from(await flowTransfer.erc20[1].amount).mul(2)
-
-
+    const expectedMeBBalance = ethers.BigNumber.from(
+      await flowTransfer.erc20[0].amount
+    ).mul(2);
+    const expectedYouBBalance = ethers.BigNumber.from(
+      await flowTransfer.erc20[1].amount
+    ).mul(2);
 
     assert(
       meBBalanceIn.eq(expectedMeBBalance),
@@ -1820,7 +1814,6 @@ describe("FlowERC1155 flow tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,

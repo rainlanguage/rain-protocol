@@ -229,10 +229,10 @@ contract FlowERC721 is
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (FlowERC721IOV1 memory flowIO_, uint256[] memory kvs_) = _previewFlow(
-                evaluable_,
-                context_
-            );
+            (
+                FlowERC721IOV1 memory flowIO_,
+                uint256[] memory kvs_
+            ) = _previewFlow(evaluable_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }

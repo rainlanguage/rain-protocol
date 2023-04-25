@@ -8,7 +8,9 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC20, FlowERC20IOV1Struct, FlowTransferV1Struct,
+  FlowERC20,
+  FlowERC20IOV1Struct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -52,7 +54,6 @@ describe("FlowERC20 flow tests", async function () {
     const [deployer, you] = signers;
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [],
@@ -209,7 +210,7 @@ describe("FlowERC20 flow tests", async function () {
 
   it("should mint and burn tokens per flow in exchange for another token (e.g. ERC20 )", async () => {
     const signers = await ethers.getSigners();
-    const [deployer, you] = signers;   
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -219,7 +220,6 @@ describe("FlowERC20 flow tests", async function () {
       {}
     )) as ReserveToken18;
     await erc20Out.initialize();
-
 
     const flowTransferMint: FlowTransferV1Struct = {
       erc20: [
@@ -234,7 +234,7 @@ describe("FlowERC20 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(0),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
@@ -252,7 +252,7 @@ describe("FlowERC20 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(2 + eighteenZeros),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
@@ -278,7 +278,7 @@ describe("FlowERC20 flow tests", async function () {
       flow: flowTransferMint,
     };
 
-    // for burn flow 
+    // for burn flow
     const mintBurn = ethers.BigNumber.from(0);
     const burnBurn = ethers.BigNumber.from(2 + eighteenZeros);
 
@@ -445,8 +445,7 @@ describe("FlowERC20 flow tests", async function () {
       "should not have minted any tokens before calling flow that mints"
     );
 
-    
-    // -- PERFORM MINT -- 
+    // -- PERFORM MINT --
 
     // Ensure parties hold enough ERC20
     await erc20In.transfer(you.address, flowTransferMint.erc20[0].amount);
@@ -454,7 +453,7 @@ describe("FlowERC20 flow tests", async function () {
 
     await erc20In
       .connect(you)
-      .approve(me.address, flowTransferMint.erc20[0].amount); 
+      .approve(me.address, flowTransferMint.erc20[0].amount);
 
     const flowStructMint = await flow
       .connect(you)
@@ -465,16 +464,15 @@ describe("FlowERC20 flow tests", async function () {
       fillEmptyAddressERC20(flowERC20IOMint, flow.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []); 
+    const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
 
-    // Check Balances 
+    // Check Balances
 
     const meMintBalanceIn = await erc20In.balanceOf(me.address);
     const meMintBalanceOut = await erc20Out.balanceOf(me.address);
     const youMintBalanceIn = await erc20In.balanceOf(you.address);
-    const youMintBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youMintBalanceOut = await erc20Out.balanceOf(you.address);
 
-   
     assert(
       meMintBalanceIn.eq(await flowERC20IOMint.flow.erc20[0].amount),
       `wrong balance for me (flow contract)
@@ -503,7 +501,6 @@ describe("FlowERC20 flow tests", async function () {
       got       ${youMintBalanceOut}`
     );
 
-
     const me20Balance1 = await flow.balanceOf(me.address);
     const you20Balance1 = await flow.balanceOf(you.address);
     const totalSupply1 = await flow.totalSupply();
@@ -517,7 +514,7 @@ describe("FlowERC20 flow tests", async function () {
     );
     assert(totalSupply1.eq(mintMint));
 
-    // -- PERFORM BURN -- 
+    // -- PERFORM BURN --
 
     // Ensure parties hold enough ERC20
     await erc20In.transfer(you.address, flowTransferBurn.erc20[0].amount);
@@ -525,7 +522,7 @@ describe("FlowERC20 flow tests", async function () {
 
     await erc20In
       .connect(you)
-      .approve(me.address, flowTransferBurn.erc20[0].amount); 
+      .approve(me.address, flowTransferBurn.erc20[0].amount);
 
     const flowStructBurn = await flow
       .connect(you)
@@ -536,14 +533,14 @@ describe("FlowERC20 flow tests", async function () {
       fillEmptyAddressERC20(flowERC20IOBurn, flow.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []); 
-    
-    // Check Balances 
+    const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
+
+    // Check Balances
 
     const meBurnBalanceIn = await erc20In.balanceOf(me.address);
     const meBurnBalanceOut = await erc20Out.balanceOf(me.address);
     const youBurnBalanceIn = await erc20In.balanceOf(you.address);
-    const youBurnBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youBurnBalanceOut = await erc20Out.balanceOf(you.address);
 
     // Has balance from previous tx
     assert(
@@ -576,7 +573,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const me20Balance2 = await flow.balanceOf(me.address);
     const you20Balance2 = await flow.balanceOf(you.address);
-    const totalSupply2 = await flow.totalSupply(); 
+    const totalSupply2 = await flow.totalSupply();
 
     assert(me20Balance2.isZero());
     assert(
@@ -605,7 +602,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc1155Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -805,7 +801,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc721Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,
@@ -991,7 +986,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc1155Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [],
       erc1155: [
@@ -1203,7 +1197,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc721Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [],
       erc721: [
         {
@@ -1403,7 +1396,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,
@@ -1580,7 +1572,7 @@ describe("FlowERC20 flow tests", async function () {
 
   it("should not be able to access values set in a flow across different flows", async () => {
     const signers = await ethers.getSigners();
-    const [deployer, you] = signers; 
+    const [deployer, you] = signers;
 
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
@@ -1604,7 +1596,7 @@ describe("FlowERC20 flow tests", async function () {
           to: you.address,
           token: erc20Out.address,
           amount: ethers.BigNumber.from(2 + eighteenZeros),
-        }
+        },
       ],
       erc721: [],
       erc1155: [],
@@ -1791,8 +1783,8 @@ describe("FlowERC20 flow tests", async function () {
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const txFlow = await flow
-    .connect(you)
-    .flow(flowInitialized[0].evaluable, [1234], []);
+      .connect(you)
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meABalanceIn = await erc20In.balanceOf(me.address);
     const meABalanceOut = await erc20Out.balanceOf(me.address);
@@ -1841,12 +1833,14 @@ describe("FlowERC20 flow tests", async function () {
     const meBBalanceIn = await erc20In.balanceOf(me.address);
     const meBBalanceOut = await erc20Out.balanceOf(me.address);
     const youBBalanceIn = await erc20In.balanceOf(you.address);
-    const youBBalanceOut = await erc20Out.balanceOf(you.address); 
+    const youBBalanceOut = await erc20Out.balanceOf(you.address);
 
-    const expectedMeBBalance = ethers.BigNumber.from(await flowTransfer.erc20[0].amount).mul(2)
-    const expectedYouBBalance = ethers.BigNumber.from(await flowTransfer.erc20[1].amount).mul(2)
-
-
+    const expectedMeBBalance = ethers.BigNumber.from(
+      await flowTransfer.erc20[0].amount
+    ).mul(2);
+    const expectedYouBBalance = ethers.BigNumber.from(
+      await flowTransfer.erc20[1].amount
+    ).mul(2);
 
     assert(
       meBBalanceIn.eq(expectedMeBBalance),
@@ -1891,7 +1885,6 @@ describe("FlowERC20 flow tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-      
       erc20: [
         {
           from: you.address,

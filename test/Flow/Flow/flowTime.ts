@@ -1,8 +1,9 @@
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
-  Flow, FlowTransferV1Struct,
-  } from "../../../typechain/contracts/flow/basic/Flow";
+  Flow,
+  FlowTransferV1Struct,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";

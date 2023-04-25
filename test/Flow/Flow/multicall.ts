@@ -8,7 +8,8 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  Flow, FlowTransferV1Struct
+  Flow,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";

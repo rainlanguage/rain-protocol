@@ -8,8 +8,10 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  Flow, FlowTransferV1Struct, FlowTransferV1StructOutput,
-  } from "../../../typechain/contracts/flow/basic/Flow";
+  Flow,
+  FlowTransferV1Struct,
+  FlowTransferV1StructOutput,
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -42,7 +44,6 @@ describe("Flow flow tests", async function () {
     //Deploy Clone Factory
     cloneFactory = await flowCloneFactory();
   });
-
 
   it("should flow for erc721<->erc1155 on the good path", async () => {
     const signers = await ethers.getSigners();
@@ -846,7 +847,6 @@ describe("Flow flow tests", async function () {
     await erc20Out.initialize();
 
     const flowTransfer: FlowTransferV1Struct = {
-     
       erc20: [
         {
           from: you.address,
