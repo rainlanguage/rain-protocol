@@ -2,8 +2,7 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
-  FlowERC721,
-  FlowERC721IOStruct,
+  FlowERC721, FlowERC721IOV1Struct
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
@@ -47,7 +46,7 @@ describe("FlowERC721 tokenURI test", async function () {
 
     const tokenId = 0;
 
-    const flowERC721IOMint: FlowERC721IOStruct = {
+    const flowERC721IOMint: FlowERC721IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -56,14 +55,13 @@ describe("FlowERC721 tokenURI test", async function () {
       ],
       burns: [],
       flow: {
-        native: [],
         erc20: [],
         erc721: [],
         erc1155: [],
       },
     };
 
-    const flowERC721IOBurn: FlowERC721IOStruct = {
+    const flowERC721IOBurn: FlowERC721IOV1Struct = {
       mints: [],
       burns: [
         {
@@ -72,7 +70,6 @@ describe("FlowERC721 tokenURI test", async function () {
         },
       ],
       flow: {
-        native: [],
         erc20: [],
         erc721: [],
         erc1155: [],
@@ -102,11 +99,6 @@ describe("FlowERC721 tokenURI test", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
         
         /**
          * burns of this erc721 token
@@ -143,11 +135,6 @@ describe("FlowERC721 tokenURI test", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
         
         /**
          * burns of this erc721 token

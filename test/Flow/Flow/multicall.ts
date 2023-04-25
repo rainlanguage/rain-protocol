@@ -8,8 +8,7 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  Flow,
-  FlowTransferStruct,
+  Flow, FlowTransferV1Struct
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -78,8 +77,7 @@ describe("Flow multiCall tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-    const flowTransfer_A: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_A: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -133,18 +131,12 @@ describe("Flow multiCall tests", async function () {
         erc20-token: flowtransfer-you-to-me-erc20-token,
         erc20-from: you,
         erc20-to: me,
-        erc20-amount: flowtransfer-you-to-me-erc20-amount,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        erc20-amount: flowtransfer-you-to-me-erc20-amount;
       `
       );
 
     // FLOW_B
-    const flowTransfer_B: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_B: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -202,12 +194,8 @@ describe("Flow multiCall tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
         
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
       `
       );
 

@@ -20,7 +20,7 @@ import "../FlowCommon.sol";
 error InvalidTransfer();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xe322e12a5fb3c5532fde121cb99a8d3252f395479ae707631611ac6949f1ce89
+    0xd1413df6f080a3403d4e89e2e3accd89498ca68d1ad43ae96058c4241f71db47
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(

@@ -9,9 +9,7 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC1155,
-  FlowERC1155IOStruct,
-  FlowTransferStruct,
+  FlowERC1155, FlowERC1155IOV1Struct,FlowTransferV1Struct
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -77,8 +75,8 @@ describe("FlowERC1155 multiCall tests", async function () {
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
 
-    const flowTransfer_A: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_A: FlowTransferV1Struct = {
+      
       erc20: [],
       erc721: [
         {
@@ -99,14 +97,14 @@ describe("FlowERC1155 multiCall tests", async function () {
       ],
     };
 
-    const flowERC1155IO_A: FlowERC1155IOStruct = {
+    const flowERC1155IO_A: FlowERC1155IOV1Struct = {
       mints: [],
       burns: [],
       flow: flowTransfer_A,
     };
 
-    const flowTransfer_B: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_B: FlowTransferV1Struct = {
+      
       erc20: [
         {
           from: you.address,
@@ -125,7 +123,7 @@ describe("FlowERC1155 multiCall tests", async function () {
       ],
       erc1155: [],
     };
-    const flowERC1155IO_B: FlowERC1155IOStruct = {
+    const flowERC1155IO_B: FlowERC1155IOV1Struct = {
       mints: [],
       burns: [],
       flow: flowTransfer_B,
@@ -171,10 +169,7 @@ describe("FlowERC1155 multiCall tests", async function () {
          */
         transfererc20slist: sentinel,
         
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
         
         /**
          * burns of this erc1155 token
@@ -225,10 +220,7 @@ describe("FlowERC1155 multiCall tests", async function () {
         erc20-to: me,
         erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
         
         /**
          * burns of this erc1155 token

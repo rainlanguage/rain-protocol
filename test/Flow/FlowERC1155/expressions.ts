@@ -2,11 +2,11 @@ import { assert } from "chai";
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
-import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import {
   ContextEvent,
   FlowERC1155,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { SignedContextV1Struct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
@@ -65,11 +65,6 @@ describe("FlowERC1155 expressions tests", async function () {
         transfererc20slist: sentinel,
 
         /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-
-        /**
          * burns of this erc1155 token
          */
         burnslist: sentinel1155,
@@ -118,7 +113,7 @@ describe("FlowERC1155 expressions tests", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: alice.address,
         signature: goodSignature0,

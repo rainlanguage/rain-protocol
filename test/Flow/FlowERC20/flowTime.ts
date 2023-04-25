@@ -12,9 +12,8 @@ import { getEvents } from "../../../utils/events";
 
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
-  FlowERC20,
-  FlowTransferStruct,
-} from "../../../typechain/contracts/flow/erc20/FlowERC20";
+  FlowERC20, FlowTransferV1Struct,
+  } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
@@ -51,8 +50,8 @@ describe("FlowERC20 flowTime tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
+      
       erc20: [
         {
           from: you.address,
@@ -113,11 +112,6 @@ describe("FlowERC20 flowTime tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
      
         /**
          * burns of this erc20 token

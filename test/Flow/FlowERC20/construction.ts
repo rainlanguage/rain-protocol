@@ -81,18 +81,6 @@ describe("FlowERC20 construction tests", async function () {
          */
         transfererc20slist: seperator,
         
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: seperator,
-          /* 0 */ 
-          nativefrom0: me,
-          nativeto0: to,
-          nativeamount0: amount,
-          /* 1 */ 
-          nativefrom1: to,
-          nativeto1: me,
-          nativeamount1: amount,
         
         /**
          * burns of this erc20 token

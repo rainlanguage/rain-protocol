@@ -78,11 +78,6 @@ describe("FlowERC1155 construction tests", async function () {
       transfererc20slist: seperator,
       
       /**
-       * native (gas) token transfers
-       */
-      transfernativeslist: seperator,
-      
-      /**
        * burns of this erc1155 token
        */
       burnslist: seperator,

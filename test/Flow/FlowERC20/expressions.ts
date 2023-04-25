@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
-import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { SignedContextV1Struct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import {
   ContextEvent,
   FlowERC20,
@@ -65,11 +65,6 @@ describe("FlowERC20 expressions test", async function () {
         transfererc20slist: sentinel,
 
         /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-
-        /**
          * burns of this erc20 token
          */
         burnslist: sentinel20,
@@ -119,7 +114,7 @@ describe("FlowERC20 expressions test", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: alice.address,
         signature: goodSignature0,

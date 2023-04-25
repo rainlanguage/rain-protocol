@@ -71,20 +71,7 @@ describe("Flow construction tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: seperator,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: seperator,
-        /* 0 */ 
-        nativefrom0: from,
-        nativeto0: to,
-        nativeamount0: amount,
-        /* 1 */ 
-        nativefrom1: to,
-        nativeto1: from,
-        nativeamount1: amount;
+        transfererc20slist: seperator;
       `
       );
 

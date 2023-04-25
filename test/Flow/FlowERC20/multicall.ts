@@ -8,10 +8,8 @@ import {
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import {
-  FlowERC20,
-  FlowERC20IOStruct,
+  FlowERC20, FlowERC20IOV1Struct, FlowTransferV1Struct
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -69,8 +67,8 @@ describe("FlowERC20 multicall tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-    const flowTransfer_A: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_A: FlowTransferV1Struct = {
+      
       erc20: [],
       erc721: [
         {
@@ -91,7 +89,7 @@ describe("FlowERC20 multicall tests", async function () {
       ],
     };
 
-    const flowERC20IO_A: FlowERC20IOStruct = {
+    const flowERC20IO_A: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -147,10 +145,7 @@ describe("FlowERC20 multicall tests", async function () {
          */
         transfererc20slist: sentinel,
         
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
         
         /**
          * burns of this erc20 token
@@ -173,8 +168,8 @@ describe("FlowERC20 multicall tests", async function () {
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
 
-    const flowTransfer_B: FlowTransferStruct = {
-      native: [],
+    const flowTransfer_B: FlowTransferV1Struct = {
+      
       erc20: [
         {
           from: you.address,
@@ -194,7 +189,7 @@ describe("FlowERC20 multicall tests", async function () {
       erc1155: [],
     };
 
-    const flowERC20IO_B: FlowERC20IOStruct = {
+    const flowERC20IO_B: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -247,10 +242,7 @@ describe("FlowERC20 multicall tests", async function () {
         erc20-to: me,
         erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
         
         /**
          * burns of this erc20 token

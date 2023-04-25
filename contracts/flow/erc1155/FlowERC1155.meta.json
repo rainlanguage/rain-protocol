@@ -14,7 +14,7 @@
           "name": "Uri",
           "abiName": "uri",
           "desc": "A base URI for this contract's tokens.",
-          "path": "[14].inputs[1].components[0]"
+          "path": "[13].inputs[1].components[0]"
         }
       ],
       "expressions": [
@@ -22,7 +22,7 @@
           "name": "Can transfer",
           "abiName": "evaluableConfig",
           "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
-          "path": "[14].inputs[1].components[1]",
+          "path": "[13].inputs[1].components[1]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -75,7 +75,7 @@
           "name": "Flows",
           "abiName": "flowConfig",
           "desc": "The available flows for this token.",
-          "path": "[14].inputs[1].components[2]",
+          "path": "[13].inputs[1].components[2]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

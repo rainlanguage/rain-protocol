@@ -14,19 +14,19 @@
           "name": "Name",
           "abiName": "name",
           "desc": "Name of the token",
-          "path": "[15].inputs[1].components[0]"
+          "path": "[14].inputs[1].components[0]"
         },
         {
           "name": "Symbol",
           "abiName": "symbol",
           "desc": "Symbol for the token",
-          "path": "[15].inputs[1].components[1]"
+          "path": "[14].inputs[1].components[1]"
         },
         {
           "name": "Base URI",
           "abiName": "baseURI",
           "desc": "baseURI for token",
-          "path": "[15].inputs[1].components[2]"
+          "path": "[14].inputs[1].components[2]"
         }
       ],
       "expressions": [
@@ -34,7 +34,7 @@
           "name": "Can transfer",
           "abiName": "evaluableConfig",
           "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
-          "path": "[15].inputs[1].components[3]",
+          "path": "[14].inputs[1].components[3]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -87,7 +87,7 @@
           "name": "Flows",
           "abiName": "flowConfig",
           "desc": "The available flows for this token.",
-          "path": "[15].inputs[1].components[4]",
+          "path": "[14].inputs[1].components[4]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

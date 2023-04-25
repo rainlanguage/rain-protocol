@@ -1,9 +1,9 @@
+import { FlowTransferV1Struct } from "../../typechain/contracts/flow/basic/Flow";
 import {
-  FlowERC1155IOStruct,
-  FlowTransferStruct,
+  FlowERC1155IOV1Struct
 } from "../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { FlowERC20IOStruct } from "../../typechain/contracts/flow/erc20/FlowERC20";
-import { FlowERC721IOStruct } from "../../typechain/contracts/flow/erc721/FlowERC721";
+import {  FlowERC20IOV1Struct } from "../../typechain/contracts/flow/erc20/FlowERC20";
+import {  FlowERC721IOV1Struct } from "../../typechain/contracts/flow/erc721/FlowERC721";
 
 /**
  * @public
@@ -13,15 +13,10 @@ import { FlowERC721IOStruct } from "../../typechain/contracts/flow/erc721/FlowER
  * @param address address to fill in FlowTransferStruct
  */
 export const fillEmptyAddress = (
-  flow: FlowTransferStruct,
+  flow: FlowTransferV1Struct,
   address: string
-): FlowTransferStruct => {
-  // native
-  for (const native of flow.native) {
-    if (native.from == "") native.from = address;
-    else if (native.to == "") native.to = address;
-  }
-
+): FlowTransferV1Struct => {
+  
   // erc20
   for (const erc20 of flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -51,15 +46,10 @@ export const fillEmptyAddress = (
  * @param address address to fill in FlowTransferStruct
  */
 export const fillEmptyAddressERC20 = (
-  flow: FlowERC20IOStruct,
+  flow: FlowERC20IOV1Struct,
   address: string
-): FlowERC20IOStruct => {
-  // native
-  for (const native of flow.flow.native) {
-    if (native.from == "") native.from = address;
-    else if (native.to == "") native.to = address;
-  }
-
+): FlowERC20IOV1Struct => {
+  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -99,15 +89,10 @@ export const fillEmptyAddressERC20 = (
  * @param address address to fill in FlowTransferStruct
  */
 export const fillEmptyAddressERC721 = (
-  flow: FlowERC721IOStruct,
+  flow: FlowERC721IOV1Struct,
   address: string
-): FlowERC721IOStruct => {
-  // native
-  for (const native of flow.flow.native) {
-    if (native.from == "") native.from = address;
-    else if (native.to == "") native.to = address;
-  }
-
+): FlowERC721IOV1Struct => {
+  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;
@@ -147,15 +132,10 @@ export const fillEmptyAddressERC721 = (
  * @param address address to fill in FlowTransferStruct
  */
 export const fillEmptyAddressERC1155 = (
-  flow: FlowERC1155IOStruct,
+  flow: FlowERC1155IOV1Struct,
   address: string
-): FlowERC1155IOStruct => {
-  // native
-  for (const native of flow.flow.native) {
-    if (native.from == "") native.from = address;
-    else if (native.to == "") native.to = address;
-  }
-
+): FlowERC1155IOV1Struct => {
+  
   // erc20
   for (const erc20 of flow.flow.erc20) {
     if (erc20.from == "") erc20.from = address;
