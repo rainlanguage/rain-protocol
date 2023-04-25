@@ -5,9 +5,9 @@ import { CloneFactory } from "../../../typechain";
 import {
   ContextEvent,
   Flow,
+  SignedContextV1Struct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { SignedContextStruct } from "../../../typechain/contracts/lobby/Lobby";
 import { getEventArgs, getEvents } from "../../../utils";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
@@ -57,12 +57,8 @@ describe("Flow deployExpression tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel ;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
       `
       );
 
@@ -100,12 +96,8 @@ describe("Flow deployExpression tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
       `
       );
 
@@ -134,7 +126,7 @@ describe("Flow deployExpression tests", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await alice.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: alice.address,
         signature: goodSignature0,

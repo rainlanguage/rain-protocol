@@ -1,9 +1,6 @@
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterStore,
-} from "../../../../typechain";
+import { Rainterpreter, RainterpreterStore } from "../../../../typechain";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
@@ -12,7 +9,6 @@ import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { standardEvaluableConfig, compileSource } from "../../../../utils";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 import assert from "assert";
-
 
 describe("Rainterpreter offchainDebugEval tests", async function () {
   let rainterpreter: Rainterpreter;
@@ -37,7 +33,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     `);
 
     const compiledSource0 = [];
-    sources0.forEach(source => {
+    sources0.forEach((source) => {
       compiledSource0.push(compileSource(source, pointers));
     });
 
@@ -65,7 +61,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     `);
 
     const compiledSource1 = [];
-    sources1.forEach(source => {
+    sources1.forEach((source) => {
       compiledSource1.push(compileSource(source, pointers));
     });
 
@@ -100,7 +96,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     const context2 = [[0xfffffffffff, 0x12031]];
 
     const compiledSource2 = [];
-    sources2.forEach(source => {
+    sources2.forEach((source) => {
       compiledSource2.push(compileSource(source, pointers));
     });
 
@@ -133,7 +129,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     `);
 
     const compiledSource3 = [];
-    sources3.forEach(source => {
+    sources3.forEach((source) => {
       compiledSource3.push(compileSource(source, pointers));
     });
 
@@ -171,7 +167,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
       );
 
     const compiledSource0 = [];
-    sources0.forEach(source => {
+    sources0.forEach((source) => {
       compiledSource0.push(compileSource(source, pointers));
     });
 
@@ -185,7 +181,6 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
         [0, 0, 0, 0],
         0
       );
-
 
     const expectedResult0: [BigNumber[], BigNumber[]] = [
       [BigNumber.from(10), BigNumber.from(20)],
@@ -222,7 +217,7 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
       );
 
     const compiledSource1 = [];
-    sources1.forEach(source => {
+    sources1.forEach((source) => {
       compiledSource1.push(compileSource(source, pointers));
     });
 

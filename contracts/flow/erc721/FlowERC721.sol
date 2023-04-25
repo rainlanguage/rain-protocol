@@ -10,7 +10,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC721V2.sol";
+import "rain.interface.flow/IFlowERC721V3.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -26,7 +26,7 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xe793279419a4f45301425753503a5dd8d6aaf63221cf1f2971d391bd6c7389c3
+    0x36be58e0561b6641cf17d785c9bb2ad465636db1d100be229ef8bd41c6e33a5c
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -39,7 +39,7 @@ uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 /// @title FlowERC721
 contract FlowERC721 is
     ICloneableV1,
-    IFlowERC721V2,
+    IFlowERC721V3,
     ReentrancyGuard,
     FlowCommon,
     ERC721
@@ -188,9 +188,9 @@ contract FlowERC721 is
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowERC721IO memory, uint256[] memory) {
+    ) internal view returns (FlowERC721IOV1 memory, uint256[] memory) {
         uint256[] memory refs_;
-        FlowERC721IO memory flowIO_;
+        FlowERC721IOV1 memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -222,17 +222,17 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) internal virtual nonReentrant returns (FlowERC721IO memory) {
+    ) internal virtual nonReentrant returns (FlowERC721IOV1 memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
                 callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (FlowERC721IO memory flowIO_, uint256[] memory kvs_) = _previewFlow(
-                evaluable_,
-                context_
-            );
+            (
+                FlowERC721IOV1 memory flowIO_,
+                uint256[] memory kvs_
+            ) = _previewFlow(evaluable_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
@@ -252,12 +252,12 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external view virtual returns (FlowERC721IO memory) {
+    ) external view virtual returns (FlowERC721IOV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowERC721IO memory flowERC721IO_, ) = _previewFlow(
+        (FlowERC721IOV1 memory flowERC721IO_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -268,7 +268,7 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external payable virtual returns (FlowERC721IO memory) {
+    ) external virtual returns (FlowERC721IOV1 memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }
 }

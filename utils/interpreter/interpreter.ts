@@ -297,4 +297,4 @@ export const compileSource = (source, pointers): string => {
     result += pointersArray[parseInt(chunk.slice(0, 4), 16)] + chunk.slice(4);
   }
   return "0x" + result;
-}
+};

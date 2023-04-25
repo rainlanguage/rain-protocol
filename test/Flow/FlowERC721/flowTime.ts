@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
   FlowERC721,
-  FlowTransferStruct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
@@ -52,8 +52,7 @@ describe("FlowERC721 flowTime tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -115,10 +114,7 @@ describe("FlowERC721 flowTime tests", async function () {
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
      
         /**
          * burns of this erc721 token

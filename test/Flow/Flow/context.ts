@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
   Flow,
-  FlowTransferStruct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
@@ -52,8 +52,7 @@ describe("Flow context tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowStructFull: FlowTransferStruct = {
-      native: [],
+    const flowStructFull: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -72,8 +71,7 @@ describe("Flow context tests", async function () {
       erc1155: [],
     };
 
-    const flowStructReduced: FlowTransferStruct = {
-      native: [],
+    const flowStructReduced: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -141,11 +139,6 @@ describe("Flow context tests", async function () {
             flowtransfer-me-to-you-erc20-amount-full
           )
         ),
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
         
         /* Setting flow time */
         : set(flow-id block-timestamp());
@@ -383,8 +376,7 @@ describe("Flow context tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -445,11 +437,6 @@ describe("Flow context tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
         
         /* Setting flow time */
         : set(flow-id block-timestamp());

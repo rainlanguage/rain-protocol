@@ -9,9 +9,9 @@ import {
 } from "../../../typechain";
 import {
   Flow,
-  FlowTransferStruct,
+  FlowTransferV1Struct,
+  FlowTransferV1StructOutput,
 } from "../../../typechain/contracts/flow/basic/Flow";
-import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -45,179 +45,6 @@ describe("Flow flow tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
-  it("should flow for erc1155<->native on the good path", async () => {
-    const signers = await ethers.getSigners();
-    const [deployer, you] = signers;
-
-    const erc1155In = (await basicDeploy(
-      "ReserveTokenERC1155",
-      {}
-    )) as ReserveTokenERC1155;
-    await erc1155In.initialize();
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(0),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [
-        {
-          token: erc1155In.address,
-          id: 0,
-          amount: ethers.BigNumber.from(1 + sixZeros),
-          from: you.address,
-          to: "", // Contract Address
-        },
-      ],
-    };
-
-    const { sources: sourceFlowIO, constants: constantsFlowIO } =
-      await standardEvaluableConfig(
-        rainlang`
-        /* variables */
-        sentinel: ${RAIN_FLOW_SENTINEL},
-        you: context<0 0>(),
-        me: context<0 1>(),
-        
-        flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
-        flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
-        flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-        
-        /**
-         * erc1155 transfers
-         */
-        transfererc1155slist: sentinel,
-        /* 0 */
-        erc1155-token: flowtransfer-you-to-me-erc1155-token,
-        erc1155-from: you,
-        erc1155-to: me,
-        erc1155-id: flowtransfer-you-to-me-erc1155-id,
-        erc1155-amount: flowtransfer-you-to-me-erc1155-amount,
-      
-        /**
-         * erc721 transfers
-         */
-        transfererc721slist: sentinel,
-        
-        /**
-         * er20 transfers
-         */
-        transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0 native-to-0 native-amount-0: you me flowtransfer-you-to-me-native-amount,
-        /* 1 */
-        native-from-1 native-to-1 native-amount-1: me you flowtransfer-me-to-you-native-amount;
-      `
-      );
-
-    const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
-    };
-
-    const { flow } = await deployFlowClone(
-      deployer,
-      cloneFactory,
-      implementation,
-      flowConfigStruct
-    );
-
-    const flowInitialized = (await getEvents(
-      flow.deployTransaction,
-      "FlowInitialized",
-      flow
-    )) as FlowInitializedEvent["args"][];
-
-    const me = flow;
-
-    // prepare output Ether
-
-    await signers[0].sendTransaction({
-      to: me.address,
-      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
-    });
-
-    // prepare input ERC1155
-
-    await erc1155In.mintNewToken();
-
-    await erc1155In.safeTransferFrom(
-      signers[0].address,
-      you.address,
-      flowTransfer.erc1155[0].id,
-      flowTransfer.erc1155[0].amount,
-      new Uint8Array()
-    );
-
-    await erc1155In.connect(you).setApprovalForAll(me.address, true);
-
-    const youEtherBalance0 = await ethers.provider.getBalance(you.address);
-
-    const flowStruct = await flow
-      .connect(you)
-      .previewFlow(flowInitialized[0].evaluable, [1234], []);
-
-    await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
-
-    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
-
-    const txFlow = await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], []);
-
-    // check input ERC1155 affected balances correctly
-
-    const me1155BalanceIn = await erc1155In.balanceOf(
-      me.address,
-      flowTransfer.erc1155[0].id
-    );
-    const you1155BalanceIn = await erc1155In.balanceOf(
-      you.address,
-      flowTransfer.erc1155[0].id
-    );
-
-    assert(me1155BalanceIn.eq(flowTransfer.erc1155[0].amount as BigNumber));
-    assert(you1155BalanceIn.isZero());
-
-    // check output Ether affected balances correctly
-
-    const { gasUsed } = await txFlow.wait();
-    const { gasPrice } = txFlow;
-
-    const meEtherBalanceOut = await ethers.provider.getBalance(me.address);
-    const youEtherBalanceOut = await ethers.provider.getBalance(you.address);
-
-    const expectedYouEtherBalanceOut = youEtherBalance0
-      .add(flowTransfer.native[1].amount as BigNumber)
-      .sub(gasUsed.mul(gasPrice));
-
-    assert(meEtherBalanceOut.isZero());
-    assert(
-      youEtherBalanceOut.eq(expectedYouEtherBalanceOut),
-      `wrong balance
-      expected  ${expectedYouEtherBalanceOut}
-      got       ${youEtherBalanceOut}`
-    );
-  });
-
   it("should flow for erc721<->erc1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
@@ -234,8 +61,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -293,12 +119,8 @@ describe("Flow flow tests", async function () {
       /**
        * er20 transfers
        */
-      transfererc20slist: sentinel,
+      transfererc20slist: sentinel;
       
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel;
     `
       );
 
@@ -397,8 +219,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -452,12 +273,8 @@ describe("Flow flow tests", async function () {
       erc20-token: flowtransfer-you-to-me-erc20-token,
       erc20-from: you,
       erc20-to: me,
-      erc20-amount: flowtransfer-you-to-me-erc20-amount,
+      erc20-amount: flowtransfer-you-to-me-erc20-amount;
 
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel;
     `
       );
 
@@ -528,165 +345,6 @@ describe("Flow flow tests", async function () {
     assert(owner721Out === you.address);
   });
 
-  it("should flow for native<->erc20 on the good path", async () => {
-    const signers = await ethers.getSigners();
-    const [deployer, you] = signers;
-
-    const erc20Out = (await basicDeploy(
-      "ReserveToken18",
-      {}
-    )) as ReserveToken18;
-    await erc20Out.initialize();
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(0),
-        },
-      ],
-      erc20: [
-        {
-          from: "", // Contract address
-          to: you.address,
-          token: erc20Out.address,
-          amount: ethers.BigNumber.from(2 + eighteenZeros),
-        },
-      ],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const { sources: sourceFlowIO, constants: constantsFlowIO } =
-      await standardEvaluableConfig(
-        rainlang`
-      /* variables */
-      sentinel: ${RAIN_FLOW_SENTINEL},
-      you: context<0 0>(),
-      me: context<0 1>(),
-      
-      flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[0].token}, 
-      flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[0].amount},
-      flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-      flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-      
-      /**
-       * erc1155 transfers
-       */
-      transfererc1155slist: sentinel,
-    
-      /**
-       * erc721 transfers
-       */
-      transfererc721slist: sentinel,
-
-      /**
-       * er20 transfers
-       */
-      transfererc20slist: sentinel,
-      erc20-token: flowtransfer-me-to-you-erc20-token,
-      erc20-from: me,
-      erc20-to: you,
-      erc20-amount: flowtransfer-me-to-you-erc20-amount,
-
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel,
-      native-from-0: you,
-      native-to-0: me,
-      native-amount-0: flowtransfer-you-to-me-native-amount,
-      
-      native-from-1: me,
-      native-to-1: you,
-      native-amount-1: flowtransfer-me-to-you-native-amount;
-    `
-      );
-    const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
-    };
-
-    const { flow } = await deployFlowClone(
-      deployer,
-      cloneFactory,
-      implementation,
-      flowConfigStruct
-    );
-
-    const flowInitialized = (await getEvents(
-      flow.deployTransaction,
-      "FlowInitialized",
-      flow
-    )) as FlowInitializedEvent["args"][];
-
-    const me = flow;
-
-    // prepare output ERC20
-    await erc20Out.transfer(me.address, flowTransfer.erc20[0].amount);
-
-    // prepare input Ether
-    const youBalance0 = await ethers.provider.getBalance(you.address);
-
-    const flowStruct = await flow
-      .connect(you)
-      .previewFlow(flowInitialized[0].evaluable, [1234], []);
-
-    await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
-        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-      });
-
-    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
-
-    const txFlow = await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], [], {
-        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-      });
-
-    // check input Ether affected balances correctly
-
-    const { gasUsed } = await txFlow.wait();
-    const { gasPrice } = txFlow;
-
-    const youEtherBalance1 = await ethers.provider.getBalance(you.address);
-    const meEtherBalance1 = await ethers.provider.getBalance(me.address);
-
-    const expectedYouEtherBalance1 = youBalance0
-      .sub(flowTransfer.native[0].amount as BigNumber)
-      .sub(gasUsed.mul(gasPrice));
-
-    assert(
-      youEtherBalance1.eq(expectedYouEtherBalance1),
-      `wrong balance for you (signer1)
-      expected  ${expectedYouEtherBalance1}
-      got       ${youEtherBalance1}`
-    );
-
-    const expectedMeEtherBalance1 = flowTransfer.native[0].amount as BigNumber;
-
-    assert(
-      meEtherBalance1.eq(expectedMeEtherBalance1),
-      `wrong balance for me (flow contract)
-      expected  ${expectedMeEtherBalance1}
-      got       ${meEtherBalance1}`
-    );
-
-    // check output ERC20 affected balances correctly
-    const me20Balance1 = await erc20Out.balanceOf(me.address);
-    const you20Balance1 = await erc20Out.balanceOf(you.address);
-
-    assert(me20Balance1.isZero());
-    assert(you20Balance1.eq(flowTransfer.erc20[0].amount as BigNumber));
-  });
-
   it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
@@ -703,8 +361,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [],
       erc1155: [
@@ -765,12 +422,8 @@ describe("Flow flow tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
+        transfererc20slist: sentinel;
+      
       `
       );
 
@@ -815,7 +468,7 @@ describe("Flow flow tests", async function () {
 
     await erc1155In.connect(you).setApprovalForAll(me.address, true);
 
-    const flowStruct: FlowTransferStructOutput = await flow
+    const flowStruct: FlowTransferV1StructOutput = await flow
       .connect(you)
       .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
@@ -883,8 +536,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -941,12 +593,8 @@ describe("Flow flow tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -1047,8 +695,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -1103,12 +750,7 @@ describe("Flow flow tests", async function () {
         erc20-token-1: flowtransfer-me-to-you-erc20-token,
         erc20-from-1: me,
         erc20-to-1: you,
-        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount;
       `
       );
 
@@ -1191,350 +833,6 @@ describe("Flow flow tests", async function () {
     );
   });
 
-  it("should flow for native<->native on the good path", async () => {
-    const signers = await ethers.getSigners();
-    const [deployer, you] = signers;
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(3 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const { sources: sourceFlowIO, constants: constantsFlowIO } =
-      await standardEvaluableConfig(
-        rainlang`
-        /* variables */
-        sentinel: ${RAIN_FLOW_SENTINEL},
-        you: context<0 0>(),
-        me: context<0 1>(),
-        
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-        
-        /**
-         * erc1155 transfers
-         */
-        transfererc1155slist: sentinel,
-      
-        /**
-         * erc721 transfers
-         */
-        transfererc721slist: sentinel,
-
-        /**
-         * er20 transfers
-         */
-        transfererc20slist: sentinel,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: me,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 1 */
-        native-from-1: me,
-        native-to-1: you,
-        native-amount-1: flowtransfer-me-to-you-native-amount;
-      `
-      );
-
-    const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
-    };
-
-    const { flow } = await deployFlowClone(
-      deployer,
-      cloneFactory,
-      implementation,
-      flowConfigStruct
-    );
-
-    const flowInitialized = (await getEvents(
-      flow.deployTransaction,
-      "FlowInitialized",
-      flow
-    )) as FlowInitializedEvent["args"][];
-
-    const me = flow;
-
-    // Ensure Flow contract holds enough Ether
-    await signers[0].sendTransaction({
-      to: me.address,
-      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
-    });
-
-    const youBalance0 = await ethers.provider.getBalance(you.address);
-    const meBalance0 = await ethers.provider.getBalance(me.address);
-
-    assert(meBalance0.eq(await flowTransfer.native[1].amount));
-
-    const flowStruct = await flow
-      .connect(you)
-      .previewFlow(flowInitialized[0].evaluable, [1234], []);
-
-    await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
-        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-      });
-    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
-
-    const txFlow = await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], [], {
-        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-      });
-
-    const { gasUsed } = await txFlow.wait();
-    const { gasPrice } = txFlow;
-
-    const youBalance1 = await ethers.provider.getBalance(you.address);
-    const meBalance1 = await ethers.provider.getBalance(me.address);
-
-    const expectedYouBalance1 = youBalance0
-      .sub(await flowTransfer.native[0].amount)
-      .add(await flowTransfer.native[1].amount)
-      .sub(gasUsed.mul(gasPrice));
-
-    assert(
-      youBalance1.eq(expectedYouBalance1),
-      `wrong balance for you (signer1)
-      expected  ${expectedYouBalance1}
-      got       ${youBalance1}`
-    );
-
-    const expectedMeBalance1 = meBalance0
-      .add(await flowTransfer.native[0].amount)
-      .sub(await flowTransfer.native[1].amount);
-
-    assert(
-      meBalance1.eq(expectedMeBalance1),
-      `wrong balance for me (flow contract)
-      expected  ${expectedMeBalance1}
-      got       ${meBalance1}`
-    );
-  });
-
-  it("should receive Ether", async () => {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const { sources: sourceFlowIO, constants: constantsFlowIO } =
-      await standardEvaluableConfig(
-        rainlang`
-      /* variables */
-      sentinel: ${RAIN_FLOW_SENTINEL},
-      /**
-       * erc1155 transfers
-       */
-      transfererc1155slist: sentinel,
-    
-      /**
-       * erc721 transfers
-       */
-      transfererc721slist: sentinel,
-
-      /**
-       * er20 transfers
-       */
-      transfererc20slist: sentinel,
-     
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel;
-    `
-      );
-
-    const flowConfigStruct: FlowConfig = {
-      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
-    };
-
-    const { flow } = await deployFlowClone(
-      deployer,
-      cloneFactory,
-      implementation,
-      flowConfigStruct
-    );
-
-    await signers[0].sendTransaction({
-      to: flow.address,
-      value: ethers.BigNumber.from(ethers.BigNumber.from(1 + sixZeros)),
-    });
-  });
-
-  it("should error if native flow (to & from) is other than the source contract", async () => {
-    const signers = await ethers.getSigners();
-    const [deployer, you, bob] = signers;
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(3 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const { sources: sourceFlowIOIn, constants: constantsFlowIOIn } =
-      await standardEvaluableConfig(
-        rainlang`
-        /* variables */
-        sentinel: ${RAIN_FLOW_SENTINEL},
-        you: context<0 0>(),
-        me: context<0 1>(),
-        bob: ${bob.address},
-
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-        
-        /**
-         * erc1155 transfers
-         */
-        transfererc1155slist: sentinel,
-      
-        /**
-         * erc721 transfers
-         */
-        transfererc721slist: sentinel,
-
-        /**
-         * er20 transfers
-         */
-        transfererc20slist: sentinel,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: bob,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 1 */
-        native-from-1: me,
-        native-to-1: you,
-        native-amount-1: flowtransfer-me-to-you-native-amount;
-      `
-      );
-
-    const { sources: sourceFlowIOOut, constants: constantsFlowIOOut } =
-      await standardEvaluableConfig(
-        rainlang`
-        /* variables */
-        sentinel: ${RAIN_FLOW_SENTINEL},
-        you: context<0 0>(),
-        me: context<0 1>(),
-        bob: ${bob.address},
-
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-        
-        /**
-         * erc1155 transfers
-         */
-        transfererc1155slist: sentinel,
-      
-        /**
-         * erc721 transfers
-         */
-        transfererc721slist: sentinel,
-
-        /**
-         * er20 transfers
-         */
-        transfererc20slist: sentinel,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: me,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 1 */
-        native-from-1: bob,
-        native-to-1: you,
-        native-amount-1: flowtransfer-me-to-you-native-amount;
-      `
-      );
-
-    const flowConfigStruct: FlowConfig = {
-      flows: [
-        { sources: sourceFlowIOIn, constants: constantsFlowIOIn },
-        { sources: sourceFlowIOOut, constants: constantsFlowIOOut },
-      ],
-    };
-
-    const { flow } = await deployFlowClone(
-      deployer,
-      cloneFactory,
-      implementation,
-      flowConfigStruct
-    );
-
-    const flowInitialized = (await getEvents(
-      flow.deployTransaction,
-      "FlowInitialized",
-      flow
-    )) as FlowInitializedEvent["args"][];
-
-    const me = flow;
-
-    const dispatchIN = flowInitialized[0].evaluable;
-    const dispatchOUT = flowInitialized[1].evaluable;
-
-    // Ensure Flow contract holds enough Ether
-    await signers[0].sendTransaction({
-      to: me.address,
-      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
-    });
-
-    await assertError(
-      async () =>
-        await flow.connect(you).flow(dispatchIN, [1234], [], {
-          value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-        }),
-      "UnsupportedNativeFlow()",
-      "Flowed an unsupported Native Flow"
-    );
-
-    await assertError(
-      async () =>
-        await flow.connect(you).flow(dispatchOUT, [1234], [], {
-          value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-        }),
-      "UnsupportedNativeFlow()",
-      "Flowed an unsupported Native Flow"
-    );
-  });
-
   it("should error if ERC20 flow (from) is other than the source contract or msg.sender", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you, bob] = signers;
@@ -1548,8 +846,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -1604,12 +901,8 @@ describe("Flow flow tests", async function () {
         erc20-token-1: flowtransfer-me-to-you-erc20-token,
         erc20-from-1: me,
         erc20-to-1: you,
-        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -1649,12 +942,8 @@ describe("Flow flow tests", async function () {
         erc20-token-1: flowtransfer-me-to-you-erc20-token,
         erc20-from-1: bob,
         erc20-to-1: you,
-        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -1720,8 +1009,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -1779,12 +1067,8 @@ describe("Flow flow tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -1848,8 +1132,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [],
       erc1155: [
@@ -1911,12 +1194,8 @@ describe("Flow flow tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
         
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -1982,8 +1261,7 @@ describe("Flow flow tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -2038,12 +1316,8 @@ describe("Flow flow tests", async function () {
         erc20-token-1: flowtransfer-me-to-you-erc20-token,
         erc20-from-1: me,
         erc20-to-1: you,
-        erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
+        erc20-amount-1: flowtransfer-me-to-you-erc20-amount;
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel;
       `
       );
 
@@ -2106,8 +1380,7 @@ describe("Flow flow tests", async function () {
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -2152,11 +1425,6 @@ describe("Flow flow tests", async function () {
         erc20-to-0: me,
         erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-
         : set(key block-timestamp()); 
       `
       );
@@ -2193,12 +1461,8 @@ describe("Flow flow tests", async function () {
       erc20-token-0: flowtransfer-you-to-me-erc20-token,
       erc20-from-0: you,
       erc20-to-0: me,
-      erc20-amount-0: flowtransfer-you-to-me-erc20-amount,
+      erc20-amount-0: flowtransfer-you-to-me-erc20-amount;
 
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel;
     `
       );
     const flowConfigStruct: FlowConfig = {
