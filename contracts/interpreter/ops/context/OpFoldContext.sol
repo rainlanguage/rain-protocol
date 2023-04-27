@@ -18,6 +18,9 @@ import "../core/OpCall.sol";
 /// pushed to the stack on top of any additional inputs specified by the
 /// expression. The additional inputs are the accumulators and so the number of
 /// outputs in the called source needs to match the number of accumulator inputs.
+/// An initial row offset can be specified to allow a fixed number of additional
+/// context items to be used in expressions while still allowing a dynamic
+/// iterator over the tail of the column.
 library OpFoldContext {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for StackPointer;
