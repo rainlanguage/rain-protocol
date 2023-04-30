@@ -26,20 +26,20 @@
           "contextColumns": [
             {
               "name": "Base",
-              "desc": "Base context column",
+              "desc": "Base context column.",
               "alias": "base",
               "columnIndex": 0,
               "cells": [
                 {
                   "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
+                  "desc": "The contract or EOA that called flow.",
+                  "alias": "flow-caller",
                   "cellIndex": 0
                 },
                 {
-                  "name": "This Contract",
-                  "desc": "The address of the Flow contract this expression is for",
-                  "alias": "this-contract",
+                  "name": "Flow contract",
+                  "desc": "The address of the contract that is flowing.",
+                  "alias": "flow-contract",
                   "cellIndex": 1
                 }
               ]
