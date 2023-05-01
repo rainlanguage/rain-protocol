@@ -40,3 +40,6 @@
 [submodule "lib/rain.interface.orderbook"]
 	path = lib/rain.interface.orderbook
 	url = https://github.com/rainprotocol/rain.interface.orderbook
+[submodule "lib/rain.interface.sale"]
+	path = lib/rain.interface.sale
+	url = https://github.com/rainprotocol/rain.interface.sale
