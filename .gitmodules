@@ -1,9 +1,6 @@
 [submodule "lib/sol.metadata"]
 	path = lib/sol.metadata
 	url = https://github.com/rainprotocol/sol.metadata
-[submodule "lib/sol.lib.memory"]
-	path = lib/sol.lib.memory
-	url = https://github.com/rainprotocol/sol.lib.memory
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
