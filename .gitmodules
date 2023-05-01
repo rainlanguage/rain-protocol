@@ -40,3 +40,6 @@
 [submodule "lib/rain.interface.interpreter"]
 	path = lib/rain.interface.interpreter
 	url = https://github.com/rainprotocol/rain.interface.interpreter
+[submodule "lib/sol.lib.binmaskflag"]
+	path = lib/sol.lib.binmaskflag
+	url = https://github.com/rainprotocol/sol.lib.binmaskflag
