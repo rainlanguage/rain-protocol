@@ -118,7 +118,7 @@ contract FlowERC1155 is
                     {
                         context_ = LibContext.build(
                             // Transfer params are caller context.
-                            LibUint256Array.matrixFrom(
+                            LibUint256Matrix.matrixFrom(
                                 LibUint256Array.arrayFrom(
                                     uint256(uint160(operator_)),
                                     uint256(uint160(from_)),
