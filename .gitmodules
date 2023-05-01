@@ -40,3 +40,6 @@
 [submodule "lib/rain.cooldown"]
 	path = lib/rain.cooldown
 	url = https://github.com/rainprotocol/rain.cooldown
+[submodule "lib/rain.interface.factory"]
+	path = lib/rain.interface.factory
+	url = https://github.com/rainprotocol/rain.interface.factory
