@@ -23,8 +23,8 @@ bytes32 constant CALLER_META_HASH = bytes32(
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 

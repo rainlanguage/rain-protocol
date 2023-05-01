@@ -25,8 +25,8 @@ uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 /// @title FlowERC20
 contract FlowERC20 is
