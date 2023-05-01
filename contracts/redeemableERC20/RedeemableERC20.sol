@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "../erc20/ERC20Redeem.sol";
