@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";

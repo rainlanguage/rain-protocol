@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
@@ -23,8 +23,8 @@ bytes32 constant CALLER_META_HASH = bytes32(
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 

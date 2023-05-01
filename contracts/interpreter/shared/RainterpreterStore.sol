@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "../run/LibInterpreterState.sol";

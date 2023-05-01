@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -25,8 +25,8 @@ uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 /// @title FlowERC20
 contract FlowERC20 is
