@@ -47,13 +47,13 @@ describe("FlowERC20 flow tests", async function () {
 
     //Deploy Clone Factory
     cloneFactory = await flowCloneFactory();
-  }); 
+  });
 
   it("should not flow if number of sentinels is less than MIN_FLOW_SENTINELS", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
 
-    // Check when all sentinels are present 
+    // Check when all sentinels are present
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
@@ -116,23 +116,23 @@ describe("FlowERC20 flow tests", async function () {
       flow.deployTransaction,
       "FlowInitialized",
       flow
-    )) as FlowInitializedEvent["args"][]; 
+    )) as FlowInitializedEvent["args"][];
 
     await assert(
-      async () => await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
-      "Static Call Failed",
-    ) 
-    
-    await assert(
-      async () => await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], []),
-      "Flow Failed",
-    )   
+      async () =>
+        await flow
+          .connect(you)
+          .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
+      "Static Call Failed"
+    );
 
-    // Check for erreneous number of sentinels  
+    await assert(
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "Flow Failed"
+    );
+
+    // Check for erreneous number of sentinels
 
     const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
       await standardEvaluableConfig(
@@ -167,24 +167,25 @@ describe("FlowERC20 flow tests", async function () {
       `
       );
 
-    const { sources : sourcesErr0, constants : constantsErr0  } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourcesErr0, constants: constantsErr0 } =
+      await standardEvaluableConfig(
+        rainlang`
         /* sourceHandleTransfer */
         _: 1;
         `
-    );
+      );
 
     const expressionConfigErr0: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
       expressionConfig: {
-        sources : sourcesErr0,
-        constants : constantsErr0,
+        sources: sourcesErr0,
+        constants: constantsErr0,
       },
       flows: [{ sources: sourceFlowErr0, constants: constantsFlowErr0 }],
     };
 
-    const { flow : flowErr0 } = await flowERC20Clone(
+    const { flow: flowErr0 } = await flowERC20Clone(
       deployer,
       cloneFactory,
       implementation,
@@ -195,25 +196,27 @@ describe("FlowERC20 flow tests", async function () {
       flowErr0.deployTransaction,
       "FlowInitialized",
       flowErr0
-    )) as FlowInitializedEvent["args"][]; 
+    )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () => await flowErr0
-      .connect(you)
-      .callStatic.flow(flowInitializedErr0[0].evaluable, [1234], []),
+      async () =>
+        await flowErr0
+          .connect(you)
+          .callStatic.flow(flowInitializedErr0[0].evaluable, [1234], []),
       "",
-      "Erreneous Sentinels",
-    )  
-    
-    await assertError(
-      async () => await flowErr0
-      .connect(you)
-      .flow(flowInitializedErr0[0].evaluable, [1234], []),
-      "",
-      "Flow For Erreneous Sentinels",
-    )   
+      "Erreneous Sentinels"
+    );
 
-    // Check for erreneous number of sentinels  
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .flow(flowInitializedErr0[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+
+    // Check for erreneous number of sentinels
 
     const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
       await standardEvaluableConfig(
@@ -247,24 +250,25 @@ describe("FlowERC20 flow tests", async function () {
       `
       );
 
-    const { sources : sourcesErr1, constants : constantsErr1  } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourcesErr1, constants: constantsErr1 } =
+      await standardEvaluableConfig(
+        rainlang`
         /* sourceHandleTransfer */
         _: 1;
         `
-    );
+      );
 
     const expressionConfigErr1: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
       expressionConfig: {
-        sources : sourcesErr1,
-        constants : constantsErr1,
+        sources: sourcesErr1,
+        constants: constantsErr1,
       },
       flows: [{ sources: sourceFlowErr1, constants: constantsFlowErr1 }],
     };
 
-    const { flow : flowErr1 } = await flowERC20Clone(
+    const { flow: flowErr1 } = await flowERC20Clone(
       deployer,
       cloneFactory,
       implementation,
@@ -275,25 +279,25 @@ describe("FlowERC20 flow tests", async function () {
       flowErr1.deployTransaction,
       "FlowInitialized",
       flowErr1
-    )) as FlowInitializedEvent["args"][]; 
+    )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () => await flowErr1
-      .connect(you)
-      .callStatic.flow(flowInitializedErr1[0].evaluable, [1234], []),
+      async () =>
+        await flowErr1
+          .connect(you)
+          .callStatic.flow(flowInitializedErr1[0].evaluable, [1234], []),
       "",
-      "Erreneous Sentinels",
-    )  
-    
+      "Erreneous Sentinels"
+    );
+
     await assertError(
-      async () => await flowErr1
-      .connect(you)
-      .flow(flowInitializedErr1[0].evaluable, [1234], []),
+      async () =>
+        await flowErr1
+          .connect(you)
+          .flow(flowInitializedErr1[0].evaluable, [1234], []),
       "",
-      "Flow For Erreneous Sentinels",
-    )  
-
-
+      "Flow For Erreneous Sentinels"
+    );
   });
 
   it("should support transferPreflight hook", async () => {

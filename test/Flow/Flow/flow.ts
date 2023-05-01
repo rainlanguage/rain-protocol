@@ -43,13 +43,13 @@ describe("Flow flow tests", async function () {
 
     //Deploy Clone Factory
     cloneFactory = await flowCloneFactory();
-  }); 
+  });
 
   it("should not flow if number of sentinels is less than MIN_FLOW_SENTINELS", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
 
-    // Check when all sentinels are present 
+    // Check when all sentinels are present
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
@@ -91,33 +91,33 @@ describe("Flow flow tests", async function () {
       flow.deployTransaction,
       "FlowInitialized",
       flow
-    )) as FlowInitializedEvent["args"][]; 
+    )) as FlowInitializedEvent["args"][];
 
     await assert(
-      async () => await flow
-      .connect(you)
-      .previewFlow(flowInitialized[0].evaluable, [1234], []),
-      "Preview Failed",
-    )
-    
+      async () =>
+        await flow
+          .connect(you)
+          .previewFlow(flowInitialized[0].evaluable, [1234], []),
+      "Preview Failed"
+    );
+
     await assert(
-      async () => await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
-      "Static Call Failed",
-    ) 
-    
+      async () =>
+        await flow
+          .connect(you)
+          .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
+      "Static Call Failed"
+    );
+
     await assert(
-      async () => await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], []),
-      "Flow Failed",
-    ) 
-    
-    
-    // Check for erreneous number of sentinels 
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "Flow Failed"
+    );
+
+    // Check for erreneous number of sentinels
     const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
-    await standardEvaluableConfig(
+      await standardEvaluableConfig(
         rainlang`
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
@@ -138,7 +138,7 @@ describe("Flow flow tests", async function () {
        * Missing ERC20 sentinel 
        */
      `
-     );   
+      );
 
     const flowConfigErr0: FlowConfig = {
       flows: [{ sources: sourceFlowErr0, constants: constantsFlowErr0 }],
@@ -158,33 +158,35 @@ describe("Flow flow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () => await flowErr0
-      .connect(you)
-      .previewFlow(flowErr0Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Preview For Erreneous Sentinels",
-    )
-    
-    await assertError(
-      async () => await flowErr0
-      .connect(you)
-      .callStatic.flow(flowErr0Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Erreneous Sentinels",
-    ) 
-    
-    await assertError(
-      async () => await flowErr0
-      .connect(you)
-      .flow(flowErr0Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Flow For Erreneous Sentinels",
-    )
+      async () =>
+        await flowErr0
+          .connect(you)
+          .previewFlow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Preview For Erreneous Sentinels"
+    );
 
-    
-    // Check for erreneous number of sentinels 
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .callStatic.flow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
+
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .flow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+
+    // Check for erreneous number of sentinels
     const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
-    await standardEvaluableConfig(
+      await standardEvaluableConfig(
         rainlang`
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
@@ -195,7 +197,7 @@ describe("Flow flow tests", async function () {
        * Missing sentinels 
        */
      `
-     );   
+      );
 
     const flowConfigErr1: FlowConfig = {
       flows: [{ sources: sourceFlowErr1, constants: constantsFlowErr1 }],
@@ -215,29 +217,31 @@ describe("Flow flow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () => await flowErr1
-      .connect(you)
-      .previewFlow(flowErr1Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Preview For Erreneous Sentinels",
-    )  
+      async () =>
+        await flowErr1
+          .connect(you)
+          .previewFlow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Preview For Erreneous Sentinels"
+    );
 
     await assertError(
-      async () => await flowErr1
-      .connect(you)
-      .callStatic.flow(flowErr1Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Erreneous Sentinels",
-    ) 
-    
-    await assertError(
-      async () => await flowErr1
-      .connect(you)
-      .flow(flowErr1Initialized[0].evaluable, [1234], []),
-      "" ,
-      "Flow For Erreneous Sentinels",
-    )
+      async () =>
+        await flowErr1
+          .connect(you)
+          .callStatic.flow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
 
+    await assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .flow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
   });
 
   it("should flow for erc721<->erc1155 on the good path", async () => {
