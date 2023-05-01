@@ -41,6 +41,3 @@
 [submodule "lib/rain.interface.sale"]
 	path = lib/rain.interface.sale
 	url = https://github.com/rainprotocol/rain.interface.sale
-[submodule "lib/forge-std"]
-	path = lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
