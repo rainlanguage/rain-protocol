@@ -40,3 +40,6 @@
 [submodule "lib/sol.lib.binmaskflag"]
 	path = lib/sol.lib.binmaskflag
 	url = https://github.com/rainprotocol/sol.lib.binmaskflag
+[submodule "lib/sol.metadata"]
+	path = lib/sol.metadata
+	url = https://github.com/rainprotocol/sol.metadata
