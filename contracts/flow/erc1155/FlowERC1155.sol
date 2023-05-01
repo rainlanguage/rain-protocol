@@ -19,7 +19,7 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xe80b1aae2390119195d4db1a633df026aa8b73e64468d4f9f4935420b9cc0e4b
+    0x9bb748a9adab5313636f9eeb840bda9e0cce51fa068e8d2e3e92fbe1612a5161
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
