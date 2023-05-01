@@ -4,9 +4,6 @@
 [submodule "lib/sol.metadata"]
 	path = lib/sol.metadata
 	url = https://github.com/rainprotocol/sol.metadata
-[submodule "lib/rain.cooldown"]
-	path = lib/rain.cooldown
-	url = https://github.com/rainprotocol/rain.cooldown
 [submodule "lib/rain.math.saturating"]
 	path = lib/rain.math.saturating
 	url = https://github.com/rainprotocol/rain.math.saturating
