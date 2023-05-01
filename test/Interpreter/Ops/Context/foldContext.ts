@@ -26,20 +26,133 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     await logic.deployed();
   });
 
+  it("should skip 2 context rows", async () => {
+    const sourceIndex = 1;
+    const column = 0;
+    const width = 4;
+    const startingRow = 2;
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
+      */
+      a b c d e: ,
+      _: add(a b c d e);`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+      rainInterpreter,
+      1
+    );
+
+    const context = [
+      [10, 20, 30, 40],
+      [100, 200, 300, 400],
+      [1000, 2000, 3000, 4000],
+      [5, 6, 7, 8],
+    ];
+
+    const contextWithRowSkip = [
+      [30, 40],
+      [300, 400],
+      [3000, 4000],
+      [7, 8],
+    ];
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
+    const result = await logic.stackTop();
+    const expectedResult = contextWithRowSkip
+      .flat()
+      .reduce((acc, val) => acc + val);
+    assert(
+      result.eq(expectedResult),
+      `Invalid value calculated using FOLD_CONTEXT, expected ${expectedResult} actual ${result}`
+    );
+  });
+
+  it("should skip a context row", async () => {
+    const sourceIndex = 1;
+    const column = 0;
+    const width = 4;
+    const startingRow = 1;
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
+      */
+      a b c d e: ,
+      _: add(a b c d e);`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+      rainInterpreter,
+      1
+    );
+
+    const context = [
+      [10, 20, 30, 40],
+      [100, 200, 300, 400],
+      [1000, 2000, 3000, 4000],
+      [5, 6, 7, 8],
+    ];
+
+    const contextWithRowSkip = [
+      [20, 30, 40],
+      [200, 300, 400],
+      [2000, 3000, 4000],
+      [6, 7, 8],
+    ];
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
+    const result = await logic.stackTop();
+    const expectedResult = contextWithRowSkip
+      .flat()
+      .reduce((acc, val) => acc + val);
+    assert(
+      result.eq(expectedResult),
+      `Invalid value calculated using FOLD_CONTEXT, expected ${expectedResult} actual ${result}`
+    );
+  });
+
   it("should add all the elements in the context", async () => {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       a b c d e: ,
       _: add(a b c d e);`
@@ -77,16 +190,17 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       acc a1 a2 a3 a4: ,
       a: equal-to(a1 ${X}),
@@ -136,16 +250,17 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
       _: add(s0 s1 s2 s3 s4),
@@ -183,16 +298,17 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 0;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0: ,
       `
@@ -226,16 +342,17 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
       _: add(s0 s1 s2 s3 s4);
@@ -316,18 +433,19 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
-      _ _: fold-context<${width} ${column} ${sourceIndex}>(0 0);
+      _ _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0 0);
 
-      /* 
+      /*
         sourceCalculate
       */
-       
+
       evencount oddcount s2 s3 s4 s5: ,
       retevencount: call<2 1>(s2 s3 s4 s5),
 
@@ -338,7 +456,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       _: retoddcount;
 
 
-      /* 
+      /*
       sourceCountEvent
       */
       s0 s1 s2 s3: ,
