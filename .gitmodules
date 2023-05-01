@@ -16,9 +16,6 @@
 [submodule "lib/sol.lib.memory"]
 	path = lib/sol.lib.memory
 	url = https://github.com/rainprotocol/sol.lib.memory
-[submodule "lib/rain.interface.orderbook"]
-	path = lib/rain.interface.orderbook
-	url = https://github.com/rainprotocol/rain.interface.orderbook
 [submodule "lib/rain.lib.typecast"]
 	path = lib/rain.lib.typecast
 	url = https://github.com/rainprotocol/rain.lib.typecast
