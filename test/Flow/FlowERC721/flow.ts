@@ -48,6 +48,285 @@ describe("FlowERC721 flow tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
+  it("should not flow if number of sentinels is less than MIN_FLOW_SENTINELS", async () => {
+    const signers = await ethers.getSigners();
+    const [deployer, you] = signers;
+
+    // Check when all sentinels are present
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+            
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721,
+        
+        /**
+         * mints of this erc721 token
+        */
+        mintslist: sentinel721;
+      `
+      );
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+    );
+
+    const expressionConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const { flow } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigStruct,
+        flows: [
+          {
+            sources: sourceFlowIO,
+            constants: constantsFlowIO,
+          },
+        ],
+      }
+    );
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    assert(
+      async () =>
+        await flow
+          .connect(you)
+          .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
+      "Static Call Failed"
+    );
+
+    assert(
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "Flow Failed"
+    );
+
+    // Check for erreneous number of sentinels
+    const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel,
+            
+        /**
+         * burns of this erc721 token
+         */
+        burnslist: sentinel721;
+        
+        /**
+         * Missing Mint sentinel
+        */
+      `
+      );
+
+    const { sources: sourcesErr0, constants: constantsErr0 } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+      );
+
+    const expressionConfigErr0 = {
+      sources: sourcesErr0,
+      constants: constantsErr0,
+    };
+
+    const { flow: flowErr0 } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigErr0,
+        flows: [
+          {
+            sources: sourceFlowErr0,
+            constants: constantsFlowErr0,
+          },
+        ],
+      }
+    );
+
+    const flowInitializedErr0 = (await getEvents(
+      flowErr0.deployTransaction,
+      "FlowInitialized",
+      flowErr0
+    )) as FlowInitializedEvent["args"][];
+
+    assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .callStatic.flow(flowInitializedErr0[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
+
+    assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .flow(flowInitializedErr0[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+
+    // Check for erreneous number of sentinels
+    const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* variables */
+        sentinel: ${RAIN_FLOW_SENTINEL},
+        sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
+        you: context<0 0>(),
+        me: context<0 1>(),
+        /**
+         * erc1155 transfers
+         */
+        transfererc1155slist: sentinel,
+      
+        /**
+         * erc721 transfers
+         */
+        transfererc721slist: sentinel,
+
+        /**
+         * er20 transfers
+         */
+        transfererc20slist: sentinel;
+            
+        /**
+         * Missing Burn Sentinel
+         */
+        
+        /**
+         * Missing Mint sentinel
+        */
+      `
+      );
+
+    const { sources: sourcesErr1, constants: constantsErr1 } =
+      await standardEvaluableConfig(
+        rainlang`
+        /* sourceHandleTransfer */
+        _: 1;
+        
+        /* sourceTokenURI */
+        _: 1;
+        `
+      );
+
+    const expressionConfigErr1 = {
+      sources: sourcesErr1,
+      constants: constantsErr1,
+    };
+
+    const { flow: flowErr1 } = await flowERC721Clone(
+      deployer,
+      cloneFactory,
+      implementation,
+      {
+        baseURI: "https://www.rainprotocol.xyz/nft/",
+        name: "FlowERC721",
+        symbol: "F721",
+        expressionConfig: expressionConfigErr1,
+        flows: [
+          {
+            sources: sourceFlowErr1,
+            constants: constantsFlowErr1,
+          },
+        ],
+      }
+    );
+
+    const flowInitializedErr1 = (await getEvents(
+      flowErr1.deployTransaction,
+      "FlowInitialized",
+      flowErr1
+    )) as FlowInitializedEvent["args"][];
+
+    assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .callStatic.flow(flowInitializedErr1[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
+
+    assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .flow(flowInitializedErr1[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+  });
+
   it("should support transferPreflight hook", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
