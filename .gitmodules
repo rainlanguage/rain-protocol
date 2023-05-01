@@ -40,3 +40,6 @@
 [submodule "lib/rain.lib.typecast"]
 	path = lib/rain.lib.typecast
 	url = https://github.com/rainprotocol/rain.lib.typecast
+[submodule "lib/rain.math.fixedpoint"]
+	path = lib/rain.math.fixedpoint
+	url = https://github.com/rainprotocol/rain.math.fixedpoint
