@@ -22,9 +22,6 @@
 [submodule "lib/rain.lib.typecast"]
 	path = lib/rain.lib.typecast
 	url = https://github.com/rainprotocol/rain.lib.typecast
-[submodule "lib/rain.interface.interpreter"]
-	path = lib/rain.interface.interpreter
-	url = https://github.com/rainprotocol/rain.interface.interpreter
 [submodule "lib/rain.interface.sale"]
 	path = lib/rain.interface.sale
 	url = https://github.com/rainprotocol/rain.interface.sale
