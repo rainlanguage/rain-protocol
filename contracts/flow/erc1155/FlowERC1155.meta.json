@@ -95,20 +95,20 @@
           "contextColumns": [
             {
               "name": "Base",
-              "desc": "Base context column",
+              "desc": "Base context column.",
               "alias": "base",
               "columnIndex": 0,
               "cells": [
                 {
-                  "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
+                  "name": "Flow caller",
+                  "desc": "The contract or wallet that called flow.",
+                  "alias": "flow-caller",
                   "cellIndex": 0
                 },
                 {
-                  "name": "This contract",
-                  "desc": "The address of the FlowERC721 contract this expression is for",
-                  "alias": "this-contract",
+                  "name": "Flow contract",
+                  "desc": "The address of the FlowERC1155 contract.",
+                  "alias": "flow-contract",
                   "cellIndex": 1
                 }
               ]

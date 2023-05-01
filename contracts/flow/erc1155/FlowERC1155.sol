@@ -113,32 +113,26 @@ contract FlowERC1155 is
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
 
-                for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                    uint256[][] memory context_;
-                    {
-                        context_ = LibContext.build(
-                            // Transfer params are caller context.
-                            LibUint256Matrix.matrixFrom(
-                                LibUint256Array.arrayFrom(
-                                    uint256(uint160(operator_)),
-                                    uint256(uint160(from_)),
-                                    uint256(uint160(to_))
-                                ),
-                                ids_,
-                                amounts_
+                (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
+                    evaluable_.store,
+                    DEFAULT_STATE_NAMESPACE,
+                    _dispatch(evaluable_.expression),
+                    LibContext.build(
+                        // Transfer params are caller context.
+                        LibUint256Matrix.matrixFrom(
+                            LibUint256Array.arrayFrom(
+                                uint256(uint160(operator_)),
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_))
                             ),
-                            new SignedContextV1[](0)
-                        );
-                    }
-                    (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
-                        evaluable_.store,
-                        DEFAULT_STATE_NAMESPACE,
-                        _dispatch(evaluable_.expression),
-                        context_
-                    );
-                    if (kvs_.length > 0) {
-                        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-                    }
+                            ids_,
+                            amounts_
+                        ),
+                        new SignedContextV1[](0)
+                    )
+                );
+                if (kvs_.length > 0) {
+                    evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                 }
             }
         }
