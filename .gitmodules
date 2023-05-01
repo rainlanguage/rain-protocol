@@ -40,3 +40,6 @@
 [submodule "lib/rain.math.fixedpoint"]
 	path = lib/rain.math.fixedpoint
 	url = https://github.com/rainprotocol/rain.math.fixedpoint
+[submodule "lib/rain.math.saturating"]
+	path = lib/rain.math.saturating
+	url = https://github.com/rainprotocol/rain.math.saturating
