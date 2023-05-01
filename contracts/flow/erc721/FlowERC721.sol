@@ -157,8 +157,8 @@ contract FlowERC721 is
             super._afterTokenTransfer(from_, to_, tokenId_, batchSize_);
 
             if (evalHandleTransfer) {
-                // Mint and burn access MUST be handled by CAN_FLOW.
-                // CAN_TRANSFER will only restrict subsequent transfers.
+                // Mint and burn access MUST be handled by flow.
+                // HANDLE_TRANSFER will only restrict subsequent transfers.
                 if (!(from_ == address(0) || to_ == address(0))) {
                     Evaluable memory evaluable_ = evaluable;
                     (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
@@ -166,7 +166,9 @@ contract FlowERC721 is
                         DEFAULT_STATE_NAMESPACE,
                         _dispatchHandleTransfer(evaluable_.expression),
                         LibContext.build(
-                            // Transfer params are caller context.
+                            // Transfer information.
+                            // Does NOT include `batchSize_` because handle
+                            // transfer is NOT called for mints.
                             LibUint256Array
                                 .arrayFrom(
                                     uint256(uint160(from_)),

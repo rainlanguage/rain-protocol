@@ -1,39 +1,39 @@
 {
   "name": "Flow ERC721",
   "abiName": "FlowERC721",
-  "desc": "An ERC721 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
+  "desc": "A flow contract that is also an ERC721 token that can be minted by expressions. Transfers can be restricted by an expression.",
   "alias": "flow-erc721",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
     {
       "name": "initialize",
       "abiName": "initialize",
-      "desc": "Initialize a Flow ERC721 contract. This is an intialized implementation of a Flow ERC721",
+      "desc": "Initialize a FlowERC721 contract.",
       "inputs": [
         {
           "name": "Name",
           "abiName": "name",
-          "desc": "Name of the token",
+          "desc": "Name of the ERC721 token that is minted.",
           "path": "[14].inputs[1].components[0]"
         },
         {
           "name": "Symbol",
           "abiName": "symbol",
-          "desc": "Symbol for the token",
+          "desc": "Symbol for the ERC721 token that is minted.",
           "path": "[14].inputs[1].components[1]"
         },
         {
           "name": "Base URI",
           "abiName": "baseURI",
-          "desc": "baseURI for token",
+          "desc": "Base URI for the ERC721 token that is minted.",
           "path": "[14].inputs[1].components[2]"
         }
       ],
       "expressions": [
         {
-          "name": "Can transfer",
+          "name": "Handle transfer",
           "abiName": "evaluableConfig",
-          "desc": "An expression that determines whether this token can be transferred. Mint and burns must be handled by the flow expressions.",
+          "desc": "Review and restrict transfers of the flow contract's own ERC721 token. Mint and burns must be controlled by the flow expressions instead.",
           "path": "[14].inputs[1].components[3]",
           "signedContext": false,
           "contextColumns": [
@@ -44,40 +44,42 @@
               "columnIndex": 0,
               "cells": [
                 {
-                  "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
+                  "name": "Transfer caller",
+                  "desc": "The contract or wallet that called transfer.",
+                  "alias": "transfer-caller",
                   "cellIndex": 0
                 },
                 {
-                  "name": "This contract",
-                  "desc": "The address of the FlowERC721 contract this expression is for",
-                  "alias": "this-contract",
+                  "name": "Flow contract",
+                  "desc": "The address of the FlowERC721 contract.",
+                  "alias": "flow-contract",
+                  "cellIndex": 1
+                }
+              ]
+            },
+            {
+              "name": "Transfer information",
+              "desc": "Information about the current transfer.",
+              "alias": "transfer-information",
+              "columnIndex": 1,
+              "cells": [
+                {
+                  "name": "Transfer from address",
+                  "desc": "The address the token is being transferred from.",
+                  "alias": "transfer-from-address",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "Transfer to address",
+                  "desc": "The address the token is being transferred to.",
+                  "alias": "transfer-to-address",
                   "cellIndex": 1
                 },
                 {
-                  "name": "From",
-                  "desc": "The address this token is being transferred from",
-                  "alias": "from-address",
-                  "cellIndex": 2
-                },
-                {
-                  "name": "To",
-                  "desc": "The address this token is being transferred from",
-                  "alias": "to-address",
-                  "cellIndex": 3
-                },
-                {
                   "name": "Token ID",
-                  "desc": "The ID of the token being transferred",
-                  "alias": "token-id",
-                  "cellIndex": 4
-                },
-                {
-                  "name": "Batch size",
-                  "desc": "If a mint transfer, the number of tokens minted. Batch size is always non-zero",
-                  "alias": "batch-size",
-                  "cellIndex": 5
+                  "desc": "The ID of the token being transferred.",
+                  "alias": "transfer-token-id",
+                  "cellIndex": 2
                 }
               ]
             }
@@ -86,27 +88,27 @@
         {
           "name": "Flows",
           "abiName": "flowConfig",
-          "desc": "The available flows for this token.",
+          "desc": "The available flows.",
           "path": "[14].inputs[1].components[4]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [
             {
               "name": "Base",
-              "desc": "Base context column",
+              "desc": "Base context column.",
               "alias": "base",
               "columnIndex": 0,
               "cells": [
                 {
-                  "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
+                  "name": "Flow caller",
+                  "desc": "The contract or wallet that called flow.",
+                  "alias": "flow-caller",
                   "cellIndex": 0
                 },
                 {
-                  "name": "This contract",
-                  "desc": "The address of the FlowERC721 contract this expression is for",
-                  "alias": "this-contract",
+                  "name": "Flow contract",
+                  "desc": "The address of the FlowERC721 contract.",
+                  "alias": "flow-contract",
                   "cellIndex": 1
                 }
               ]

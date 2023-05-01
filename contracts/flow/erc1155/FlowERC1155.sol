@@ -14,9 +14,6 @@ import "../../sentinel/LibSentinel.sol";
 import "../libraries/LibFlow.sol";
 import "../FlowCommon.sol";
 
-/// Thrown when eval of the transfer entrypoint returns 0.
-error InvalidTransfer();
-
 uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -25,9 +22,9 @@ bytes32 constant CALLER_META_HASH = bytes32(
     0x233093916e6ec24b7a65bba4cd2a2ad52c0829da78cef7bb815907965d94b04a
 );
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 1;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
@@ -67,7 +64,7 @@ contract FlowERC1155 is
         ) = config_.evaluableConfig.deployer.deployExpression(
                 config_.evaluableConfig.sources,
                 config_.evaluableConfig.constants,
-                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
+                LibUint256Array.arrayFrom(HANDLE_TRANSFER_MIN_OUTPUTS)
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
 
@@ -80,8 +77,8 @@ contract FlowERC1155 is
         return
             LibEncodedDispatch.encode(
                 expression_,
-                CAN_TRANSFER_ENTRYPOINT,
-                CAN_TRANSFER_MAX_OUTPUTS
+                HANDLE_TRANSFER_ENTRYPOINT,
+                HANDLE_TRANSFER_MAX_OUTPUTS
             );
     }
 
@@ -112,7 +109,7 @@ contract FlowERC1155 is
                 data_
             );
             // Mint and burn access MUST be handled by flow.
-            // CAN_TRANSFER will only restrict subsequent transfers.
+            // HANDLE_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
 
@@ -121,30 +118,24 @@ contract FlowERC1155 is
                     {
                         context_ = LibContext.build(
                             // Transfer params are caller context.
-                            LibUint256Array
-                                .arrayFrom(
+                            LibUint256Array.matrixFrom(
+                                LibUint256Array.arrayFrom(
                                     uint256(uint160(operator_)),
                                     uint256(uint160(from_)),
-                                    uint256(uint160(to_)),
-                                    ids_[i_],
-                                    amounts_[i_]
-                                )
-                                .matrixFrom(),
+                                    uint256(uint160(to_))
+                                ),
+                                ids_,
+                                amounts_
+                            ),
                             new SignedContextV1[](0)
                         );
                     }
-                    (
-                        uint256[] memory stack_,
-                        uint256[] memory kvs_
-                    ) = evaluable_.interpreter.eval(
-                            evaluable_.store,
-                            DEFAULT_STATE_NAMESPACE,
-                            _dispatch(evaluable_.expression),
-                            context_
-                        );
-                    if (stack_[stack_.length - 1] == 0) {
-                        revert InvalidTransfer();
-                    }
+                    (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
+                        evaluable_.store,
+                        DEFAULT_STATE_NAMESPACE,
+                        _dispatch(evaluable_.expression),
+                        context_
+                    );
                     if (kvs_.length > 0) {
                         evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                     }
