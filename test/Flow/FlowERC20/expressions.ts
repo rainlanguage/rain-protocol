@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
@@ -48,12 +48,12 @@ describe("FlowERC20 expressions test", async function () {
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -68,7 +68,7 @@ describe("FlowERC20 expressions test", async function () {
          * burns of this erc20 token
          */
         burnslist: sentinel20,
-        
+
         /**
          * mints of this erc20 token
         */

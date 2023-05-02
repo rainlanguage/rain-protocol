@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import fs from "fs";
 import { ethers } from "hardhat";
@@ -137,13 +137,13 @@ describe("FlowERC1155 multiCall tests", async function () {
         sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-you-to-me-erc721-token: ${flowTransfer_A.erc721[0].token},
         flowtransfer-you-to-me-erc721-id: ${flowTransfer_A.erc721[0].id},
         flowtransfer-me-to-you-erc1155-token:  ${flowTransfer_A.erc1155[0].token},
         flowtransfer-me-to-you-erc1155-id: ${flowTransfer_A.erc1155[0].id},
         flowtransfer-me-to-you-erc1155-amount: ${flowTransfer_A.erc1155[0].amount},
-        
+
         /**
          * erc1155 transfers
          */
@@ -154,7 +154,7 @@ describe("FlowERC1155 multiCall tests", async function () {
         erc1155-to: you,
         erc1155-id: flowtransfer-me-to-you-erc1155-id,
         erc1155-amount: flowtransfer-me-to-you-erc1155-amount,
-      
+
         /**
          * erc721 transfers
          */
@@ -168,14 +168,14 @@ describe("FlowERC1155 multiCall tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc1155 token
          */
         burnslist: sentinel1155,
-        
+
         /**
          * mints of this erc1155 token
         */
@@ -191,17 +191,17 @@ describe("FlowERC1155 multiCall tests", async function () {
         sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-me-to-you-erc721-token: ${flowTransfer_B.erc721[0].token},
         flowtransfer-me-to-you-erc721-id: ${flowTransfer_B.erc721[0].id},
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer_B.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer_B.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer_B.erc20[0].amount},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -220,13 +220,13 @@ describe("FlowERC1155 multiCall tests", async function () {
         erc20-to: me,
         erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-        
-        
+
+
         /**
          * burns of this erc1155 token
          */
         burnslist: sentinel1155,
-        
+
         /**
          * mints of this erc1155 token
         */

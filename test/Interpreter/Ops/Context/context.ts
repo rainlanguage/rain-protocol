@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";

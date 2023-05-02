@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { TierV2Test } from "../../../typechain";
 import { zeroPad4 } from "../../../utils/bytes";

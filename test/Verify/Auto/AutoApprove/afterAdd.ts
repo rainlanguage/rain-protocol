@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../../typechain";

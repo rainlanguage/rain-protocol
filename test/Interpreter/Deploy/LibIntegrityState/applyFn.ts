@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { LibIntegrityCheckTest } from "../../../../typechain";
 import { INITIAL_STACK_BOTTOM } from "../../../../utils/constants/interpreter";
 import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";

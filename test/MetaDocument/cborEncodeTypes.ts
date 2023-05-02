@@ -1,5 +1,5 @@
 import cbor from "cbor";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 import { getAbi } from "../../utils/meta/rainMetaDocument";
 import { arrayify } from "ethers/lib/utils";

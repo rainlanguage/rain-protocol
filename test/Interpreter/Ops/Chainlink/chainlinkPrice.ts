@@ -1,5 +1,5 @@
 import { smock } from "@defi-wonderland/smock";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { IInterpreterV1Consumer } from "../../../../typechain";
 import {
   assertError,

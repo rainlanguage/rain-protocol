@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 export const assertError = async (f, s: string, e: string) => {
   let didError = false;

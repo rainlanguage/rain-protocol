@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
@@ -90,22 +90,22 @@ describe("FlowERC721 tokenURI test", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
          */
@@ -126,23 +126,23 @@ describe("FlowERC721 tokenURI test", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
         _ _: bob tokenid,
-        
+
         /**
          * mints of this erc721 token
          */
@@ -155,7 +155,7 @@ describe("FlowERC721 tokenURI test", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         me: context<0 1>(),
         you: context<0 0>(),

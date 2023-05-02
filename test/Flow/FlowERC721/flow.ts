@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import {
@@ -65,7 +65,7 @@ describe("FlowERC721 flow tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -75,12 +75,12 @@ describe("FlowERC721 flow tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-            
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
@@ -92,7 +92,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -154,7 +154,7 @@ describe("FlowERC721 flow tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -164,12 +164,12 @@ describe("FlowERC721 flow tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-            
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721;
-        
+
         /**
          * Missing Mint sentinel
         */
@@ -181,7 +181,7 @@ describe("FlowERC721 flow tests", async function () {
         rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -247,7 +247,7 @@ describe("FlowERC721 flow tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -257,11 +257,11 @@ describe("FlowERC721 flow tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel;
-            
+
         /**
          * Missing Burn Sentinel
          */
-        
+
         /**
          * Missing Mint sentinel
         */
@@ -273,7 +273,7 @@ describe("FlowERC721 flow tests", async function () {
         rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -360,29 +360,29 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         tokenid: ${mintId},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
          */
@@ -576,17 +576,17 @@ describe("FlowERC721 flow tests", async function () {
         flowio-input-erc20-amount: ${flowERC721IOMint.flow.erc20[0].amount},
         flowio-output-erc20-amount: ${flowERC721IOMint.flow.erc20[1].amount},
         tokenid: ${flowERC721IOMint.mints[0].id},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
@@ -595,8 +595,8 @@ describe("FlowERC721 flow tests", async function () {
         erc20-token-0 erc20-from-0 erc20-to-0 erc20-amount-0: flowio-input-token you me flowio-input-erc20-amount,
         /* 1 */
         erc20-from-1 erc20-to-1 erc20-amount-1: flowio-output-token me you flowio-output-erc20-amount,
-        
-        
+
+
         /**
          * burns of this erc721 token
          */
@@ -622,17 +622,17 @@ describe("FlowERC721 flow tests", async function () {
         flowio-input-erc20-amount: ${flowERC721IOBurn.flow.erc20[0].amount},
         flowio-output-erc20-amount: ${flowERC721IOBurn.flow.erc20[1].amount},
         tokenid: ${flowERC721IOBurn.burns[0].id},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
@@ -641,7 +641,7 @@ describe("FlowERC721 flow tests", async function () {
         erc20-token-0 erc20-from-0 erc20-to-0 erc20-amount-0: flowio-input-token you me flowio-input-erc20-amount,
         /* 1 */
         erc20-token-1  erc20-from-1 erc20-to-1 erc20-amount-1: flowio-output-token me you flowio-output-erc20-amount,
-        
+
         /**
          * burns of this erc721 token
          */
@@ -659,7 +659,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
       `
@@ -895,13 +895,13 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
         flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
         flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[0].token},
         flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[0].id},
         flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[0].amount},
-        
+
         /**
          * erc1155 transfers
          */
@@ -912,7 +912,7 @@ describe("FlowERC721 flow tests", async function () {
         erc1155-to: you,
         erc1155-id: flowtransfer-me-to-you-erc1155-id,
         erc1155-amount: flowtransfer-me-to-you-erc1155-amount,
-      
+
         /**
          * erc721 transfers
          */
@@ -926,14 +926,14 @@ describe("FlowERC721 flow tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
@@ -945,7 +945,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -1091,17 +1091,17 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[0].token},
         flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[0].id},
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -1120,13 +1120,13 @@ describe("FlowERC721 flow tests", async function () {
         erc20-to: me,
         erc20-amount: flowtransfer-you-to-me-erc20-amount,
 
-        
-        
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
@@ -1138,7 +1138,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -1273,14 +1273,14 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-you-to-me-erc1155-token:  ${flowTransfer.erc1155[0].token},
         flowtransfer-you-to-me-erc1155-id: ${flowTransfer.erc1155[0].id},
         flowtransfer-you-to-me-erc1155-amount: ${flowTransfer.erc1155[0].amount},
         flowtransfer-me-to-you-erc1155-token:  ${flowTransfer.erc1155[1].token},
         flowtransfer-me-to-you-erc1155-id: ${flowTransfer.erc1155[1].id},
         flowtransfer-me-to-you-erc1155-amount: ${flowTransfer.erc1155[1].amount},
-        
+
         /**
          * erc1155 transfers
          */
@@ -1297,19 +1297,19 @@ describe("FlowERC721 flow tests", async function () {
         erc1155-to-1: you,
         erc1155-id-1: flowtransfer-me-to-you-erc1155-id,
         erc1155-amount-1: flowtransfer-me-to-you-erc1155-amount,
-      
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc721 token
          */
@@ -1325,7 +1325,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -1480,18 +1480,18 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
+
         flowtransfer-you-to-me-erc721-token: ${flowTransfer.erc721[0].token},
         flowtransfer-you-to-me-erc721-id: ${flowTransfer.erc721[0].id},
-        
+
         flowtransfer-me-to-you-erc721-token: ${flowTransfer.erc721[1].token},
         flowtransfer-me-to-you-erc721-id: ${flowTransfer.erc721[1].id},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -1501,7 +1501,7 @@ describe("FlowERC721 flow tests", async function () {
         erc721-from-0: you,
         erc721-to-0: me,
         erc721-id-0: flowtransfer-you-to-me-erc721-id,
-        
+
         /* 1 */
         erc721-token-1: flowtransfer-me-to-you-erc721-token,
         erc721-from-1: me,
@@ -1513,13 +1513,13 @@ describe("FlowERC721 flow tests", async function () {
          */
         transfererc20slist: sentinel,
 
-        
-        
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
@@ -1531,7 +1531,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -1678,17 +1678,17 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token},
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -1709,13 +1709,13 @@ describe("FlowERC721 flow tests", async function () {
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-        
-     
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
@@ -1727,7 +1727,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -1863,24 +1863,24 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         tokenid: ${flowERC721IOMint.mints[0].id},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc721 token
          */
@@ -1901,24 +1901,24 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         bob: ${bob.address},
         tokenid: ${flowERC721IOBurn.burns[0].id},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        
-        
+
+
+
         /**
          * burns of this erc721 token
          */
@@ -1936,7 +1936,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
       `
@@ -2064,12 +2064,12 @@ describe("FlowERC721 flow tests", async function () {
         flowtransfer-me-to-you-erc20-token: ${flowERC721IO.flow.erc20[1].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -2094,12 +2094,12 @@ describe("FlowERC721 flow tests", async function () {
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
         mintslist: sentinel721,
-        
+
         /* Setting a value */
         : set(key block-timestamp());
       `
@@ -2117,15 +2117,15 @@ describe("FlowERC721 flow tests", async function () {
         flowtransfer-me-to-you-erc20-token: ${flowERC721IO.flow.erc20[1].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
-        
+
         /* Getting the value set in flowA and ensuring if that value is not set */
-        : ensure(is-zero(get(key))), 
-        
+        : ensure(is-zero(get(key))),
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -2150,12 +2150,12 @@ describe("FlowERC721 flow tests", async function () {
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
         mintslist: sentinel721,
-        
+
         /* Setting a value */
         : set(key block-timestamp());
       `
@@ -2165,7 +2165,7 @@ describe("FlowERC721 flow tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
         `
@@ -2354,22 +2354,22 @@ describe("FlowERC721 flow tests", async function () {
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token},
         flowtransfer-me-to-you-erc20-base-amount: ${
           flowTransfer.erc20[1].amount
         },
         flowtransfer-me-to-you-erc20-bonus-amount: ${ethers.BigNumber.from(
           4 + eighteenZeros
         )},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -2391,13 +2391,13 @@ describe("FlowERC721 flow tests", async function () {
 
         erc20-amount-1: if(greater-than(get(you) 0) flowtransfer-me-to-you-erc20-bonus-amount flowtransfer-me-to-you-erc20-base-amount),
 
-        
-     
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
         */
