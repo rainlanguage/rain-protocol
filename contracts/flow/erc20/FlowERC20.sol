@@ -68,12 +68,7 @@ contract FlowERC20 is
                 .length >
             0
         ) {
-            evalHandleTransfer =
-                config_
-                    .evaluableConfig
-                    .sources[SourceIndex.unwrap(HANDLE_TRANSFER_ENTRYPOINT)]
-                    .length >
-                0;
+            evalHandleTransfer = true;
             (
                 IInterpreterV1 interpreter_,
                 IInterpreterStoreV1 store_,
