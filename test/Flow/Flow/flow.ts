@@ -45,6 +45,205 @@ describe("Flow flow tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
+  it("should not flow if number of sentinels is less than MIN_FLOW_SENTINELS", async () => {
+    const signers = await ethers.getSigners();
+    const [deployer, you] = signers;
+
+    // Check when all sentinels are present
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel,
+
+      /**
+       * er20 transfers
+       */
+      transfererc20slist: sentinel;
+      
+    `
+      );
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [{ sources: sourceFlowIO, constants: constantsFlowIO }],
+    };
+
+    const { flow } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigStruct
+    );
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    await assert(
+      async () =>
+        await flow
+          .connect(you)
+          .previewFlow(flowInitialized[0].evaluable, [1234], []),
+      "Preview Failed"
+    );
+
+    await assert(
+      async () =>
+        await flow
+          .connect(you)
+          .callStatic.flow(flowInitialized[0].evaluable, [1234], []),
+      "Static Call Failed"
+    );
+
+    await assert(
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "Flow Failed"
+    );
+
+    // Check for erreneous number of sentinels
+    const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>(),
+      
+      /**
+       * erc1155 transfers
+       */
+      transfererc1155slist: sentinel,
+    
+      /**
+       * erc721 transfers
+       */
+      transfererc721slist: sentinel;
+
+      /**
+       * Missing ERC20 sentinel 
+       */
+     `
+      );
+
+    const flowConfigErr0: FlowConfig = {
+      flows: [{ sources: sourceFlowErr0, constants: constantsFlowErr0 }],
+    };
+
+    const { flow: flowErr0 } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigErr0
+    );
+
+    const flowErr0Initialized = (await getEvents(
+      flowErr0.deployTransaction,
+      "FlowInitialized",
+      flowErr0
+    )) as FlowInitializedEvent["args"][];
+
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .previewFlow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Preview For Erreneous Sentinels"
+    );
+
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .callStatic.flow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
+
+    await assertError(
+      async () =>
+        await flowErr0
+          .connect(you)
+          .flow(flowErr0Initialized[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+
+    // Check for erreneous number of sentinels
+    const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* variables */
+      sentinel: ${RAIN_FLOW_SENTINEL},
+      you: context<0 0>(),
+      me: context<0 1>();
+      
+      /**
+       * Missing sentinels 
+       */
+     `
+      );
+
+    const flowConfigErr1: FlowConfig = {
+      flows: [{ sources: sourceFlowErr1, constants: constantsFlowErr1 }],
+    };
+
+    const { flow: flowErr1 } = await deployFlowClone(
+      deployer,
+      cloneFactory,
+      implementation,
+      flowConfigErr1
+    );
+
+    const flowErr1Initialized = (await getEvents(
+      flowErr1.deployTransaction,
+      "FlowInitialized",
+      flowErr1
+    )) as FlowInitializedEvent["args"][];
+
+    await assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .previewFlow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Preview For Erreneous Sentinels"
+    );
+
+    await assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .callStatic.flow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Erreneous Sentinels"
+    );
+
+    await assertError(
+      async () =>
+        await flowErr1
+          .connect(you)
+          .flow(flowErr1Initialized[0].evaluable, [1234], []),
+      "",
+      "Flow For Erreneous Sentinels"
+    );
+  });
+
   it("should flow for erc721<->erc1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;

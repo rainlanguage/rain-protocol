@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "./libraries/LibFlow.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
@@ -28,7 +28,7 @@ uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
 uint256 constant FLAG_ROW_FLOW_TIME = 2;
 
-uint256 constant MIN_FLOW_SENTINELS = 4;
+uint256 constant MIN_FLOW_SENTINELS = 3;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 uint16 constant FLOW_MAX_OUTPUTS = type(uint16).max;
