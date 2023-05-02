@@ -44,6 +44,7 @@ contract FlowERC20 is
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
+    bool private evalHandleTransfer;
     Evaluable internal evaluable;
 
     constructor(
@@ -56,21 +57,37 @@ contract FlowERC20 is
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        (
-            IInterpreterV1 interpreter_,
-            IInterpreterStoreV1 store_,
-            address expression_
-        ) = config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.sources,
-                config_.evaluableConfig.constants,
-                LibUint256Array.arrayFrom(HANDLE_TRANSFER_MIN_OUTPUTS)
-            );
-        evaluable = Evaluable(interpreter_, store_, expression_);
 
         flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+
+        if (
+            config_.evaluableConfig.sources.length > 0 &&
+            config_
+                .evaluableConfig
+                .sources[SourceIndex.unwrap(HANDLE_TRANSFER_ENTRYPOINT)]
+                .length >
+            0
+        ) {
+            evalHandleTransfer =
+                config_
+                    .evaluableConfig
+                    .sources[SourceIndex.unwrap(HANDLE_TRANSFER_ENTRYPOINT)]
+                    .length >
+                0;
+            (
+                IInterpreterV1 interpreter_,
+                IInterpreterStoreV1 store_,
+                address expression_
+            ) = config_.evaluableConfig.deployer.deployExpression(
+                    config_.evaluableConfig.sources,
+                    config_.evaluableConfig.constants,
+                    LibUint256Array.arrayFrom(HANDLE_TRANSFER_MIN_OUTPUTS)
+                );
+            evaluable = Evaluable(interpreter_, store_, expression_);
+        }
     }
 
-    function _dispatch(
+    function _dispatchHandleTransfer(
         address expression_
     ) internal pure returns (EncodedDispatch) {
         return
@@ -92,12 +109,15 @@ contract FlowERC20 is
 
             // Mint and burn access MUST be handled by flow.
             // HANDLE_TRANSFER will only restrict subsequent transfers.
-            if (!(from_ == address(0) || to_ == address(0))) {
+            if (
+                evalHandleTransfer &&
+                !(from_ == address(0) || to_ == address(0))
+            ) {
                 Evaluable memory evaluable_ = evaluable;
                 (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
                     evaluable_.store,
                     DEFAULT_STATE_NAMESPACE,
-                    _dispatch(evaluable_.expression),
+                    _dispatchHandleTransfer(evaluable_.expression),
                     LibContext.build(
                         // The transfer params are caller context because the caller
                         // is triggering the transfer.
