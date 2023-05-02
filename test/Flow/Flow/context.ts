@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
@@ -98,10 +98,10 @@ describe("Flow context tests", async function () {
         you: context<0 0>(),
         me: context<0 1>(),
         flow-id: context<1 0>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowStructFull.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowStructFull.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowStructFull.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowStructFull.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowStructFull.erc20[1].token},
         flowtransfer-me-to-you-erc20-amount-full: ${flowStructFull.erc20[1].amount},
         flowtransfer-me-to-you-erc20-amount-reduced: ${flowStructReduced.erc20[1].amount},
         one-day: 86400,
@@ -111,7 +111,7 @@ describe("Flow context tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -131,15 +131,15 @@ describe("Flow context tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1:  eager-if(
-          is-zero(flow-time) 
-          flowtransfer-me-to-you-erc20-amount-full 
+          is-zero(flow-time)
+          flowtransfer-me-to-you-erc20-amount-full
           eager-if(
-            less-than(block-timestamp() add(flow-time one-day)) 
-            flowtransfer-me-to-you-erc20-amount-reduced 
+            less-than(block-timestamp() add(flow-time one-day))
+            flowtransfer-me-to-you-erc20-amount-reduced
             flowtransfer-me-to-you-erc20-amount-full
           )
         ),
-        
+
         /* Setting flow time */
         : set(flow-id block-timestamp());
       `
@@ -403,13 +403,13 @@ describe("Flow context tests", async function () {
         you: context<0 0>(),
         me: context<0 1>(),
         flow-id: context<1 0>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token},
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
         flow-time: get(flow-id),
-        
+
         /* CAN FLOW */
         : ensure(is-zero(flow-time)),
 
@@ -417,7 +417,7 @@ describe("Flow context tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -437,7 +437,7 @@ describe("Flow context tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
-        
+
         /* Setting flow time */
         : set(flow-id block-timestamp());
       `

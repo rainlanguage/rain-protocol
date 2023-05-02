@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { arrayify, hexlify } from "ethers/lib/utils";
 import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";

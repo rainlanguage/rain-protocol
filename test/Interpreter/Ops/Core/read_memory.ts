@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
@@ -56,7 +56,8 @@ describe("READ_MEMORY Opcode test", async function () {
     );
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from(constants[0]);
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
@@ -94,7 +95,8 @@ describe("READ_MEMORY Opcode test", async function () {
       ethers.BigNumber.from(expectedTimeStamp),
     ];
 
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );

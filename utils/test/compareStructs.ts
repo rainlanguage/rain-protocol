@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import {
@@ -8,7 +8,7 @@ import {
 import { ExpressionConfig } from "../types";
 
 /**
- * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
+ * Uses `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
  * Will safely recurse over nested structs and compare nested properties.
  * Throws an error if any comparisons fail.
  * @param solStruct Solidity struct, returned from something such as an emitted solidity Event. This should have an array-like structure with raw values followed by key-values (e.g. `solStruct: ['foo', 'bar', prop1: 'foo', prop2: 'bar']`).
@@ -36,7 +36,7 @@ export const compareStructs = (
 };
 
 /**
- * Uses chai `assert` to compare Solidity structs by checking whether the values for each property are equivalent.
+ * Uses `assert` to compare Solidity structs by checking whether the values for each property are equivalent.
  * Will safely recurse over nested structs and compare nested properties.
  * Throws an error if any comparisons fail.
  * @param solStructActual Solidity struct, returned from something such as an emitted solidity Event. This should have an array-like structure with raw values followed by key-values (e.g. `solStruct: ['foo', 'bar', prop1: 'foo', prop2: 'bar']`).

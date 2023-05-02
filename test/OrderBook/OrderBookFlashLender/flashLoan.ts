@@ -10,7 +10,7 @@ import {
 } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { keccak256 } from "ethers/lib/utils";
 import { assertError } from "../../../utils/test/assertError";

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../typechain";
 import {

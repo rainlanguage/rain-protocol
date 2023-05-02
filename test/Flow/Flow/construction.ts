@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 
 import {
@@ -57,17 +57,17 @@ describe("Flow construction tests", async function () {
         to: context<0 0>(),
         amount: 2,
         seperator: 2,
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: seperator,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: seperator,
-        
+
         /**
          * er20 transfers
          */

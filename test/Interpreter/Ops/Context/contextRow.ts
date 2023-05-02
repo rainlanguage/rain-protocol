@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -77,15 +77,15 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   it("should return correct context value when specifying CONTEXT_ROW operand for 2D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      _: context-row<0>(0), 
-      _: context-row<0>(1), 
-      _: context-row<0>(2), 
-      _: context-row<0>(3), 
-      _: context-row<1>(0), 
-      _: context-row<1>(1), 
-      _: context-row<1>(2), 
-      _: context-row<1>(3), 
-      _: context-row<2>(0), 
+      _: context-row<0>(0),
+      _: context-row<0>(1),
+      _: context-row<0>(2),
+      _: context-row<0>(3),
+      _: context-row<1>(0),
+      _: context-row<1>(1),
+      _: context-row<1>(2),
+      _: context-row<1>(3),
+      _: context-row<2>(0),
       _: context-row<2>(1);`
     );
     const { consumerLogic, interpreter, dispatch } =
@@ -120,9 +120,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
   it("should return correct context value when specifying CONTEXT_ROW operand for 1D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      _: context-row<0>(0), 
-      _: context-row<0>(1), 
-      _: context-row<0>(2), 
+      _: context-row<0>(0),
+      _: context-row<0>(1),
+      _: context-row<0>(2),
       _: context-row<0>(3);`
     );
 

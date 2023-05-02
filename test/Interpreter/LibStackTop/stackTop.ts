@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { LibStackPointerTest } from "../../../typechain";
 import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 

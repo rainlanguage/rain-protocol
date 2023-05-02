@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { Contract } from "ethers";
 import type { RandomTest } from "../../../typechain";
 import { assertError } from "../../../utils";

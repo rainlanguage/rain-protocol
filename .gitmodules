@@ -22,9 +22,6 @@
 [submodule "lib/rain.math.saturating"]
 	path = lib/rain.math.saturating
 	url = https://github.com/rainprotocol/rain.math.saturating
-[submodule "lib/sol.lib.datacontract"]
-	path = lib/sol.lib.datacontract
-	url = https://github.com/rainprotocol/sol.lib.datacontract
 [submodule "lib/sol.lib.memory"]
 	path = lib/sol.lib.memory
 	url = https://github.com/rainprotocol/sol.lib.memory
@@ -43,3 +40,6 @@
 [submodule "lib/sol.metadata"]
 	path = lib/sol.metadata
 	url = https://github.com/rainprotocol/sol.metadata
+[submodule "lib/sol.lib.datacontract"]
+	path = lib/sol.lib.datacontract
+	url = https://github.com/rainprotocol/sol.lib.datacontract

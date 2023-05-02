@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
 import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
