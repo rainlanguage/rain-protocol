@@ -34,9 +34,6 @@
 [submodule "lib/sol.lib.binmaskflag"]
 	path = lib/sol.lib.binmaskflag
 	url = https://github.com/rainprotocol/sol.lib.binmaskflag
-[submodule "lib/sol.lib.datacontract"]
-	path = lib/sol.lib.datacontract
-	url = https://github.com/rainprotocol/sol.lib.datacontract
 [submodule "lib/sol.lib.memory"]
 	path = lib/sol.lib.memory
 	url = https://github.com/rainprotocol/sol.lib.memory
