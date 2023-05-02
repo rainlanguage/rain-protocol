@@ -9,7 +9,7 @@ import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let tokenWithOwner: ReserveTokenOwner;
@@ -44,7 +44,9 @@ describe("RainInterpreter EIP5313 ops", async function () {
     const signers = await ethers.getSigners();
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: erc-5313-owner(${tokenWithOwner.address});`
+      rainlang`
+        @${opMetaHash}
+_: erc-5313-owner(${tokenWithOwner.address});`
     );
     console.log(sources, constants);
     const expression0 = await expressionConsumerDeploy(
@@ -73,7 +75,9 @@ describe("RainInterpreter EIP5313 ops", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`_: erc-5313-owner(${tokenWithOwner.address});`
+        rainlang`
+        @${opMetaHash}
+_: erc-5313-owner(${tokenWithOwner.address});`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -100,7 +104,9 @@ describe("RainInterpreter EIP5313 ops", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
-        rainlang`_: erc-5313-owner(${tokenWithOwner.address});`
+        rainlang`
+        @${opMetaHash}
+_: erc-5313-owner(${tokenWithOwner.address});`
       );
 
     const expression1 = await expressionConsumerDeploy(

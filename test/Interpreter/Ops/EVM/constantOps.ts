@@ -5,7 +5,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter EInterpreter constant ops", async () => {
@@ -28,7 +28,9 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
   it("should return block.timestamp", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: block-timestamp();`
+      rainlang`
+        @${opMetaHash}
+_: block-timestamp();`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -54,7 +56,9 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
   it("should return block.number", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: block-number();`
+      rainlang`
+        @${opMetaHash}
+_: block-number();`
     );
 
     const expression0 = await expressionConsumerDeploy(

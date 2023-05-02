@@ -27,7 +27,7 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { FlowTransferV1Struct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
@@ -133,6 +133,8 @@ describe("FlowERC721 multicall tests", async function () {
     const { sources: sourceFlowIO_A, constants: constantsFlowIO_A } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -185,6 +187,8 @@ describe("FlowERC721 multicall tests", async function () {
     const { sources: sourceFlowIO_B, constants: constantsFlowIO_B } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -232,6 +236,8 @@ describe("FlowERC721 multicall tests", async function () {
       );
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
 

@@ -4,7 +4,7 @@ import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter prb Ops tests", async function () {
@@ -27,7 +27,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should calculate the arithmetic average of x and y, rounding down", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`_: prb-avg(0 3e6);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+_: prb-avg(0 3e6);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -46,6 +48,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         avg: prb-avg(200e18 400e18);
         `);
 
@@ -69,6 +73,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         avg: prb-avg(1e24 1e25);
       `);
 
@@ -93,7 +99,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should yield the smallest whole UD60x18 number greater than or equal to x", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-ceil(0);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-ceil(0);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -112,6 +120,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-ceil(3141592653589793000);
         `);
 
@@ -135,6 +145,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-ceil(1125000000000000000);
       `);
 
@@ -160,7 +172,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should divide two UD60x18 numbers, returning a new UD60x18 number. Rounds towards zero.", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-div(0 3141592653589793000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-div(0 3141592653589793000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -180,6 +194,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-div(1000000000000000000000000 1000000000000000000);
         `);
 
@@ -203,6 +219,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-div(22000000000000000000 7000000000000000000);
       `);
 
@@ -226,6 +244,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-div(50000000000000000 20000000000000000);
       `);
 
@@ -251,7 +271,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should calculate the natural exponent of x", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-exp(14984651468134608);`
+        rainlang`
+        @${opMetaHash}
+output: prb-exp(14984651468134608);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -274,6 +296,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp(2000000000000000000);
         `);
 
@@ -297,6 +321,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp(1000);
       `);
 
@@ -320,6 +346,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp(0);
       `);
 
@@ -347,7 +375,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-exp2(14984651468134608);`
+        rainlang`
+        @${opMetaHash}
+output: prb-exp2(14984651468134608);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -370,6 +400,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp2(2000000000000000000);
         `);
 
@@ -393,6 +425,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp2(11892150000000000000);
       `);
 
@@ -416,6 +450,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-exp2(0);
       `);
 
@@ -440,7 +476,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should yeild the greatest whole UD60x18 number less than or equal to x", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-floor(0);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-floor(0);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -459,6 +497,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-floor(3141592653589793000);
         `);
 
@@ -482,6 +522,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-floor(1125000000000000000);
       `);
 
@@ -506,7 +548,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should yield the excess beyond the floor of x", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-frac(0);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-frac(0);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -525,6 +569,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-frac(3141592653589793000);
         `);
 
@@ -548,6 +594,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-frac(max-uint256);
       `);
 
@@ -573,7 +621,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should calculate the geometric mean of x and y, i.e. $$sqrt(x * y)$$, rounding down", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-gm(0 3141592653589793000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-gm(0 3141592653589793000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -593,6 +643,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-gm(2000000000000000000 8000000000000000000);
         `);
 
@@ -616,6 +668,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-gm(3141592653589793000 8200000000000000000);
       `);
 
@@ -639,6 +693,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-gm(2404800000000000000000 7899210662000000000000);
       `);
 
@@ -663,7 +719,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should calculate 1 / x, rounding toward zero", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-inv(1);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-inv(1);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -685,6 +743,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-inv(3141592653589793000);
         `);
 
@@ -708,6 +768,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-inv(max-uint256);
       `);
 
@@ -730,7 +792,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should calculate the natural logarithm of x", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-ln(1125000000000000000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-ln(1125000000000000000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -753,6 +817,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-ln(3141592653589793000);
         `);
 
@@ -776,6 +842,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-ln(max-uint256);
       `);
 
@@ -801,7 +869,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should calculate the binary logarithm of x", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-log2(8000000000000000000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-log2(8000000000000000000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -824,6 +894,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-log2(3141592653589793000);
         `);
 
@@ -847,6 +919,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-log2(max-uint256);
       `);
 
@@ -872,7 +946,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should calculate the common logarithm of x", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-log10(10000000000000000000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-log10(10000000000000000000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -895,6 +971,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-log10(3141592653589793000);
         `);
 
@@ -918,6 +996,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-log10(max-uint256);
       `);
 
@@ -941,6 +1021,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-log10(10000000000000000000000000000000000000000000000000000000000000000000);
       `);
 
@@ -965,7 +1047,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should multiply two UD60x18 numbers together, returning a new UD60x18 number", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-mul(0 max-uint256);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-mul(0 max-uint256);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -984,6 +1068,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-mul(10000000000000000 50000000000000000);
         `);
 
@@ -1007,6 +1093,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-mul(2098000000000000000 1119000000000000000);
       `);
 
@@ -1030,6 +1118,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-mul(3142857142857142857 2718281828459045400);
       `);
 
@@ -1055,7 +1145,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it("should raise x to the power of y", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-pow(3142857142857142857 1000000000000000000);`
+        rainlang`
+        @${opMetaHash}
+output: prb-pow(3142857142857142857 1000000000000000000);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -1078,6 +1170,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-pow(0 0);
         `);
 
@@ -1101,6 +1195,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-pow(32150000000000000000 23990000000000000000);
       `);
 
@@ -1124,6 +1220,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-pow(3142857142857142857 3142857142857142857);
       `);
 
@@ -1149,7 +1247,9 @@ describe("RainInterpreter prb Ops tests", async function () {
   it('should raise x (an UD60x18 number) to the power y (unsigned basic integer) using the famous algorithm "exponentiation by squaring"', async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
-        rainlang`output: prb-powu(3142857142857142857 2);`
+        rainlang`
+        @${opMetaHash}
+output: prb-powu(3142857142857142857 2);`
       );
 
     const expression0 = await expressionConsumerDeploy(
@@ -1172,6 +1272,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-powu(0 0);
         `);
 
@@ -1195,6 +1297,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-powu(2000000000000000000 100);
       `);
 
@@ -1218,6 +1322,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-powu(3142857142857142857 3);
       `);
 
@@ -1242,7 +1348,9 @@ describe("RainInterpreter prb Ops tests", async function () {
 
   it("should calculate the square root of x, rounding down", async () => {
     const { sources: sources0, constants: constants0 } =
-      await standardEvaluableConfig(rainlang`output: prb-sqrt(0);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+output: prb-sqrt(0);`);
 
     const expression0 = await expressionConsumerDeploy(
       sources0,
@@ -1261,6 +1369,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-sqrt(3141592653589793000);
         `);
 
@@ -1284,6 +1394,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-sqrt(1);
       `);
 
@@ -1304,6 +1416,8 @@ describe("RainInterpreter prb Ops tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         output: prb-sqrt(50000000000000000000000000000000000000000000000000000000000);
       `);
 

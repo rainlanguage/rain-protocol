@@ -10,6 +10,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -47,6 +48,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -89,6 +92,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -131,6 +136,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -174,6 +181,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -231,6 +240,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -430,6 +441,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -469,6 +482,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -502,6 +517,8 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */

@@ -33,6 +33,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../utils/interpreter/interpreter";
 import {
@@ -57,7 +58,6 @@ const Opcode = RainterpreterOps;
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  const opMetaHash = `0x47ed85f917e187757bff09371cedcf5c0eb277c27e4673feb2d3cc040c66c993`;
   const callerMetaHash = `0x56ffc3fc82109c33f1e1544157a70144fc15e7c6e9ae9c65a636fd165b1bc51c`;
 
   beforeEach(async () => {

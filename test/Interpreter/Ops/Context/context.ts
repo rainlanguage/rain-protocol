@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
@@ -16,7 +16,9 @@ describe("RainInterpreter context", async function () {
 
   it("should support context height [COLUMN] up to 16", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<15 0>();`
+      rainlang`
+        @${opMetaHash}
+_: context<15 0>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -34,7 +36,9 @@ describe("RainInterpreter context", async function () {
 
   it("should support context width [ROW] up to 16", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 15>();`
+      rainlang`
+        @${opMetaHash}
+_: context<0 15>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -52,7 +56,9 @@ describe("RainInterpreter context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 3>();`
+      rainlang`
+        @${opMetaHash}
+_: context<0 3>();`
     );
     const { consumerLogic, interpreter, dispatch } =
       await iinterpreterV1ConsumerDeploy(sources, constants, 1);
@@ -73,7 +79,9 @@ describe("RainInterpreter context", async function () {
 
   it("should not necessarily require square context matrix", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+_: context<0 0>(),
       _: context<0 1>(),
       _: context<0 2>(),
       _: context<0 3>(),
@@ -109,7 +117,9 @@ describe("RainInterpreter context", async function () {
 
   it("should return correct context value when specifying context operand for 2D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+_: context<0 0>(),
       _: context<0 1>(),
       _: context<0 2>(),
       _: context<0 3>(),
@@ -152,7 +162,9 @@ describe("RainInterpreter context", async function () {
 
   it("should return correct context value when specifying context operand for 1D context", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+_: context<0 0>(),
       _: context<0 1>(),
       _: context<0 2>(),`
     );
@@ -182,7 +194,9 @@ describe("RainInterpreter context", async function () {
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: context<0 0>()`
+      rainlang`
+        @${opMetaHash}
+_: context<0 0>()`
     );
 
     const { consumerLogic, interpreter, dispatch } =

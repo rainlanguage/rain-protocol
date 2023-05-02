@@ -29,7 +29,7 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
@@ -57,6 +57,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -90,6 +92,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -137,6 +141,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -170,6 +176,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourcesErr0, constants: constantsErr0 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -221,6 +229,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -253,6 +263,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourcesErr1, constants: constantsErr1 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -332,6 +344,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -371,6 +385,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceCanTransfer, constants: constantsCanTransfer } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
           /* sourceHandleTransfer */
           _: ensure(1) 1;
         `
@@ -379,6 +395,8 @@ describe("FlowERC20 flow tests", async function () {
     // prettier-ignore
     const { sources: sourceCannotTransfer, constants: constantsCannotTransfer } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
           /* sourceHandleTransfer */
           _: ensure(0) 1;
         `
@@ -552,6 +570,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIOMint, constants: constantsFlowIOMint } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -600,6 +620,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIOBurn, constants: constantsFlowIOBurn } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -648,6 +670,8 @@ describe("FlowERC20 flow tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
       `
@@ -892,6 +916,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -946,6 +972,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
           /* sourceHandleTransfer */
           _: 1;
           `
@@ -1090,6 +1118,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1143,6 +1173,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -1276,6 +1308,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1335,6 +1369,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
           /* sourceHandleTransfer */
           _: 1;
           `
@@ -1485,6 +1521,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1542,6 +1580,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -1684,6 +1724,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1739,6 +1781,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -1875,6 +1919,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIOA, constants: constantsFlowIOA } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1930,6 +1976,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIOB, constants: constantsFlowIOB } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -1986,6 +2034,8 @@ describe("FlowERC20 flow tests", async function () {
       );
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -2173,6 +2223,8 @@ describe("FlowERC20 flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -2231,6 +2283,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         you: context<0 0>(),
         _: 1,

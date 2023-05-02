@@ -25,7 +25,7 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
@@ -52,6 +52,8 @@ describe("Flow construction tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         from: context<0 1>(),
         to: context<0 0>(),

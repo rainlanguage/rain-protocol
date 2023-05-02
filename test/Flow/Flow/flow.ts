@@ -26,7 +26,7 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddress } from "../../../utils/flow";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
@@ -53,6 +53,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),
@@ -119,6 +121,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowErr0, constants: constantsFlowErr0 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),
@@ -188,6 +192,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowErr1, constants: constantsFlowErr1 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),
@@ -284,6 +290,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),
@@ -441,6 +449,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),
@@ -584,6 +594,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -757,6 +769,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -916,6 +930,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1067,6 +1083,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIOIn, constants: constantsFlowIOIn } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1108,6 +1126,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIOOut, constants: constantsFlowIOOut } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1230,6 +1250,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1355,6 +1377,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1482,6 +1506,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1595,6 +1621,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIOA, constants: constantsFlowIOA } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
@@ -1631,6 +1659,8 @@ describe("Flow flow tests", async function () {
     const { sources: sourceFlowIOB, constants: constantsFlowIOB } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
       /* variables */
       sentinel: ${RAIN_FLOW_SENTINEL},
       you: context<0 0>(),

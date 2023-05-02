@@ -16,7 +16,7 @@ import {
   FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
@@ -73,6 +73,8 @@ describe("FlowERC20 flowTime tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
@@ -130,6 +132,8 @@ describe("FlowERC20 flowTime tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `

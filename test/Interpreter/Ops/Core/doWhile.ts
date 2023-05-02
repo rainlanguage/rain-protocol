@@ -8,6 +8,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -32,6 +33,8 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
       sourceMain
       */
@@ -74,6 +77,8 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -120,6 +125,8 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
@@ -164,6 +171,8 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
