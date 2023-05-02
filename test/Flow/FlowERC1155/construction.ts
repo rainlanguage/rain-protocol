@@ -89,7 +89,7 @@ describe("FlowERC1155 construction tests", async function () {
       /**
        * mints of this erc1155 token
        */
-      mintslist: seperator,
+      mintslist: seperator;
     `
       );
 
@@ -135,10 +135,10 @@ describe("FlowERC1155 construction tests", async function () {
       await getTouchDeployer();
 
     const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("flow1155"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("flow1155"),
+      deployer: touchDeployer.address,
+    };
 
     const flowERC1155 = (await flowERC1155Factory.deploy(
       deployerDiscoverableMetaConfig0
@@ -150,10 +150,10 @@ describe("FlowERC1155 construction tests", async function () {
     );
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
-      {
-        meta: getRainMetaDocumentFromContract("orderbook"),
-        deployer: touchDeployer.address,
-      };
+    {
+      meta: getRainMetaDocumentFromContract("orderbook"),
+      deployer: touchDeployer.address,
+    };
 
     await assertError(
       async () =>
