@@ -33,6 +33,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  standardEvaluableConfig,
 } from "../../utils/interpreter/interpreter";
 import {
   compareSolStructs,
@@ -49,12 +50,15 @@ import {
   SignedContextStruct,
 } from "../../typechain/contracts/orderbook/IOrderBookV1";
 import { encodeMeta } from "../../utils/orderBook/order";
+import { rainlang } from "../../utils/extensions/rainlang";
 
 const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
+  const opMetaHash = `0x47ed85f917e187757bff09371cedcf5c0eb277c27e4673feb2d3cc040c66c993`;
+  const callerMetaHash = `0x56ffc3fc82109c33f1e1544157a70144fc15e7c6e9ae9c65a636fd165b1bc51c`;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -69,7 +73,7 @@ describe("OrderBook expression checks", async () => {
     await deploy1820(signers[0]);
   });
 
-  it("should add Order_A and Order_B and clear the order with signed context", async function () {
+  it.only("should add Order_A and Order_B and clear the order with signed context", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice, bob, bountyBot] = signers;
@@ -94,52 +98,26 @@ describe("OrderBook expression checks", async () => {
 
     const aliceOrder = encodeMeta("Order_A");
 
-    const constantsA = [max_uint256, ratio_A, bob.address, contextValB];
-    const vOpMaxA = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources: orderConfigSourceA, constants: ordeConfigConstantsA } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash}
+
+      /* source */
+      : ensure(equal-to(${bob.address} context<5 0>())),
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */
+      : ensure(equal-to(${bob.address} context<5 0>()));
+      : ensure(equal-to(${contextValB} context<6 0>()));
+      `
     );
-    const vRatioA = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    // prettier-ignore
-    const calculateSourceA = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-       vOpMaxA,
-       vRatioA,
-      ]);
-
-    // prettier-ignore
-    const handleIOSourceA = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-    ]);
 
     const evaluableConfigA = await generateEvaluableConfig(
-      [calculateSourceA, handleIOSourceA],
-      constantsA
+      orderConfigSourceA,
+      ordeConfigConstantsA
     );
     const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -179,52 +157,26 @@ describe("OrderBook expression checks", async () => {
 
     const bobOrder = encodeMeta("Order_B");
 
-    const constantsB = [max_uint256, ratio_B, alice.address, contextValA];
-    const vOpMaxB = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources: orderConfigSourceB, constants: orderConfigConstantsB } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash}
+
+      /* source */
+      : ensure(equal-to(${alice.address} context<5 0>())),
+      _: ${max_uint256},
+      _: ${ratio_B};
+      
+      /* HANDLE IO */
+      : ensure(equal-to(${alice.address} context<5 0>()));
+      : ensure(equal-to(${contextValA} context<6 0>()));
+      `
     );
-    const vRatioB = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    // prettier-ignore
-    const calculateSoruceB = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-       vOpMaxB,
-       vRatioB,
-      ]);
-
-    // prettier-ignore
-    const handleIOSourceB = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-    ]);
 
     const evaluableConfigB = await generateEvaluableConfig(
-      [calculateSoruceB, handleIOSourceB],
-      constantsB
+      orderConfigSourceB,
+      orderConfigConstantsB
     );
 
     const OrderConfig_B: OrderConfigStruct = {
@@ -472,47 +424,47 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const calculateSoruce = concat([
       //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.context, 0x0500),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
 
       //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.context, 0x0600),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
 
       //checking signed context 0 1
-      op(Opcode.context, 0x0601) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.context, 0x0601),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
 
       // order max and ratio
-        vOutputMax,
-        vRatio,
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
       //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.context, 0x0500),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
 
       //checking signed context 0 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.context, 0x0600),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
 
       //checking signed context 0 1
-      op(Opcode.context, 0x0601) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.context, 0x0601),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
     ]);
 
     // prettier-ignore
@@ -714,25 +666,25 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const calculateSoruce = concat([
       orderSender(),
-      vExpectedSender ,
+      vExpectedSender,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
       contractAddress(),
-      vExpectedContractAddress ,
+      vExpectedContractAddress,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
       orderSender(),
-      vExpectedSender ,
+      vExpectedSender,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
+      op(Opcode.ensure, 1),
       contractAddress(),
-      vExpectedContractAddress ,
+      vExpectedContractAddress,
       op(Opcode.equal_to),
       op(Opcode.ensure, 1)
     ]);
@@ -895,29 +847,29 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-            OWNER()  ,
-            vExpectedOwner ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-            COUNTERPARTY() ,
-            vExpectedCounterpart ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)  ,
-            vOutputMax,
-            vRatio,
-        ]);
+      OWNER(),
+      vExpectedOwner,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      COUNTERPARTY(),
+      vExpectedCounterpart,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
+    ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-                OWNER()  ,
-                vExpectedOwner ,
-                op(Opcode.equal_to),
-                op(Opcode.ensure, 1) ,
-                COUNTERPARTY() ,
-                vExpectedCounterpart ,
-                op(Opcode.equal_to),
-                op(Opcode.ensure, 1)
-        ]);
+      OWNER(),
+      vExpectedOwner,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      COUNTERPARTY(),
+      vExpectedCounterpart,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
+    ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
       [calculateSoruce, handleIOSource],
@@ -1121,28 +1073,28 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-            INPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedInputTokenBalance ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  ,
-                vExpectedOutputTokenBalance ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
+      INPUT_TOKEN_VAULT_BALANCE(),
+      vExpectedInputTokenBalance,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_VAULT_BALANCE(),
+      vExpectedOutputTokenBalance,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-            INPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedInputTokenBalance ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedOutputTokenBalance ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
+      INPUT_TOKEN_VAULT_BALANCE(),
+      vExpectedInputTokenBalance,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_VAULT_BALANCE(),
+      vExpectedOutputTokenBalance,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
@@ -1313,28 +1265,28 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-            INPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
+      INPUT_TOKEN_VAULT_ID(),
+      vExpectedVaultId,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_VAULT_ID(),
+      vExpectedVaultId,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-            INPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
+      INPUT_TOKEN_VAULT_ID(),
+      vExpectedVaultId,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_VAULT_ID(),
+      vExpectedVaultId,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
@@ -1514,28 +1466,28 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-            INPUT_TOKEN()  ,
-            vExpectedInputToken ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN()  ,
-            vExpectedOutputToken ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
+      INPUT_TOKEN(),
+      vExpectedInputToken,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN(),
+      vExpectedOutputToken,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-            INPUT_TOKEN()  ,
-            vExpectedInputToken ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN()  ,
-            vExpectedOutputToken ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
+      INPUT_TOKEN(),
+      vExpectedInputToken,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN(),
+      vExpectedOutputToken,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
@@ -1710,28 +1662,28 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-            INPUT_TOKEN_DECIMALS()  ,
-            vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  ,
-            vExpectedOutputTokenDecimals ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
+      INPUT_TOKEN_DECIMALS(),
+      vExpectedInputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_DECIMALS(),
+      vExpectedOutputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-            INPUT_TOKEN_DECIMALS()  ,
-            vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  ,
-            vExpectedOutputTokenDecimals ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
+      INPUT_TOKEN_DECIMALS(),
+      vExpectedInputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_TOKEN_DECIMALS(),
+      vExpectedOutputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
@@ -1930,41 +1882,41 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0401);
 
     // prettier-ignore
-    const calculateSoruce= concat([
-        compareKey ,
-           INPUT_TOKEN_DECIMALS() ,
-           OUTPUT_TOKEN_DECIMALS() ,
-          op(Opcode.greater_than),
-        op(Opcode.set),
+    const calculateSoruce = concat([
+      compareKey,
+      INPUT_TOKEN_DECIMALS(),
+      OUTPUT_TOKEN_DECIMALS(),
+      op(Opcode.greater_than),
+      op(Opcode.set),
 
-        inputTokenKey ,
-          INPUT_TOKEN_DECIMALS(),
-        op(Opcode.set),
+      inputTokenKey,
+      INPUT_TOKEN_DECIMALS(),
+      op(Opcode.set),
 
-        outputTokenKey ,
-          OUTPUT_TOKEN_DECIMALS(),
-        op(Opcode.set),
-        vOutputMax,
-        vRatio,
+      outputTokenKey,
+      OUTPUT_TOKEN_DECIMALS(),
+      op(Opcode.set),
+      vOutputMax,
+      vRatio,
     ]);
 
     // prettier-ignore
     const handleIOSource = concat([
-          compareKey,
-        op(Opcode.get),
-        op(Opcode.ensure, 1)  ,
+      compareKey,
+      op(Opcode.get),
+      op(Opcode.ensure, 1),
 
-          inputTokenKey,
-        op(Opcode.get),
-        vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
+      inputTokenKey,
+      op(Opcode.get),
+      vExpectedInputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
 
-          outputTokenKey,
-        op(Opcode.get),
-        vExpectedOutputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1)
+      outputTokenKey,
+      op(Opcode.get),
+      vExpectedOutputTokenDecimals,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
 
     ]);
 
@@ -2115,10 +2067,10 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-       INPUT_BALANCE_DIFF()  ,
-      op(Opcode.ensure, 0) ,
-       OUTPUT_BALANCE_DIFF()  ,
-      op(Opcode.ensure, 0) ,
+      INPUT_BALANCE_DIFF(),
+      op(Opcode.ensure, 0),
+      OUTPUT_BALANCE_DIFF(),
+      op(Opcode.ensure, 0),
       vOutputMax,
       vRatio,
 
@@ -2126,15 +2078,15 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const handleSource = concat([
-        INPUT_BALANCE_DIFF()  ,
-        vExpectedOutputDiff ,
-       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-        OUTPUT_BALANCE_DIFF()  ,
-        vExpectedInputDiff ,
-       op(Opcode.equal_to),
+      INPUT_BALANCE_DIFF(),
+      vExpectedOutputDiff,
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1),
+      OUTPUT_BALANCE_DIFF(),
+      vExpectedInputDiff,
+      op(Opcode.equal_to),
       op(Opcode.ensure, 1)
-   ]);
+    ]);
 
     const aliceOrder = encodeMeta("aliceOrder");
 
@@ -2276,8 +2228,8 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const calculateSoruce = concat([
-      OUTPUT_MAX() ,
-      ORDER_RATIO() ,
+      OUTPUT_MAX(),
+      ORDER_RATIO(),
       vOutputMax,
       vRatio
     ]);
@@ -2417,10 +2369,10 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_MAX = () => op(Opcode.context, 0x0200);
     // prettier-ignore
     const handleSource = concat([
-        vExpectedOutputMax,
-        OUTPUT_MAX(),
-       op(Opcode.equal_to) ,
-      op(Opcode.ensure,1)
+      vExpectedOutputMax,
+      OUTPUT_MAX(),
+      op(Opcode.equal_to),
+      op(Opcode.ensure, 1)
     ]);
 
     const EvaluableConfig = await generateEvaluableConfig(

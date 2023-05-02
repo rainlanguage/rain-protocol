@@ -7,9 +7,9 @@ import {
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { ExpressionConfig, rlc } from "rainlang";
+import { ExpressionConfig, rlc, MetaStore } from "@rainprotocol/rainlang";
 import { getRainMetaDocumentFromOpmeta } from "../meta";
-import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
+import { ethers } from "hardhat";
 
 export enum MemoryType {
   Stack,
@@ -257,18 +257,10 @@ export async function generateEvaluableConfig(
 export const standardEvaluableConfig = async (
   expression: string
 ): Promise<ExpressionConfig> => {
-  const rainDocumentEncoded = getRainMetaDocumentFromOpmeta();
-
-  const dataDecoded = decodeRainMetaDocument(rainDocumentEncoded);
-
-  // Find the correct element related to OPS_META_V1
-  const opsMetaMap = dataDecoded.find(
-    (elem_) => elem_.get(1) === MAGIC_NUMBERS.OPS_META_V1
-  );
-
-  const hexOpsMeta = hexlify(opsMetaMap.get(0));
-
-  return await rlc(expression, hexOpsMeta)
+  const store = new MetaStore();
+  await store.updateStore(opMetaHash);
+  
+  return await rlc(expression, store)
     .then((expressionConfig) => {
       return expressionConfig;
     })
@@ -298,3 +290,11 @@ export const compileSource = (source, pointers): string => {
   }
   return "0x" + result;
 };
+
+export const getOpMetaHash = (): string => {
+  const rainDocumentEncoded = getRainMetaDocumentFromOpmeta();
+  // return ethers.utils.keccak256()
+  return "0x47ed85f917e187757bff09371cedcf5c0eb277c27e4673feb2d3cc040c66c993";
+};
+
+export const opMetaHash = getOpMetaHash();
