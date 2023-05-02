@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
   Flow,
-  SignedContextStruct,
+  SignedContextV1Struct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -57,12 +57,9 @@ describe("Flow signed context tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
         
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
+        
       `
       );
 
@@ -91,7 +88,7 @@ describe("Flow signed context tests", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await goodSigner.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature0,
@@ -110,7 +107,7 @@ describe("Flow signed context tests", async function () {
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
-    const signedContexts1: SignedContextStruct[] = [
+    const signedContexts1: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature0,
@@ -156,12 +153,9 @@ describe("Flow signed context tests", async function () {
         /**
          * er20 transfers
          */
-        transfererc20slist: sentinel,
+        transfererc20slist: sentinel;
         
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
+        
       `
       );
 
@@ -187,7 +181,7 @@ describe("Flow signed context tests", async function () {
 
     const goodSignature = await goodSigner.signMessage(arrayify(hash));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature,
@@ -201,7 +195,7 @@ describe("Flow signed context tests", async function () {
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
-    const signedContexts1: SignedContextStruct[] = [
+    const signedContexts1: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: badSignature,

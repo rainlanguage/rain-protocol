@@ -14,13 +14,13 @@
           "name": "Dummy Expression",
           "abiName": "dummyConfig",
           "desc": "A dummy expression.",
-          "path": "[12].inputs[1].components[0]"
+          "path": "[11].inputs[1].components[0]"
         },
         {
           "name": "Flows",
           "abiName": "config",
           "desc": "The available flows.",
-          "path": "[12].inputs[1].components[1]",
+          "path": "[11].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

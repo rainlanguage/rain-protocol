@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IInterpreterExternV1.sol";
@@ -9,7 +9,13 @@ import "sol.lib.memory/LibUint256Array.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the inputs don't match the expected inputs.
+/// @param expected The expected number of inputs.
+/// @param actual The actual number of inputs.
 error BadInputs(uint256 expected, uint256 actual);
+
+/// Thrown when the opcode is not known.
+/// @param opcode The opcode that is not known.
+error UnknownOp(uint256 opcode);
 
 /// EXPERIMENTAL implementation of `IInterpreterExternV1`.
 /// Currently only implements the Chainlink oracle price opcode as a starting
@@ -51,8 +57,7 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
                 .peek()
                 .arrayFrom();
         } else {
-            LibInterpreterState.debugStack(inputs_.asStackPointer(), stackTop_);
-            outputs_ = inputs_;
+            revert UnknownOp(opcode_);
         }
         return outputs_;
     }

@@ -25,6 +25,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["scale18-dynamic", "fp-dynamic"]
+  "outputs": 1
 }

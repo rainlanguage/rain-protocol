@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "sol.lib.memory/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -7,13 +7,14 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/caller/LibContext.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.interface.factory/ICloneableV1.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -33,7 +34,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9b2d564af04618063cfea638988b2d5c0d21122dafc9759a41444ac9fc70c5eb
+    0x2fa94bd67d8a5c326e609881e8d66f161fea332869dc4516296266140d5c8130
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -129,7 +130,7 @@ uint256 constant PHASE_INVALID = 4;
 
 contract Lobby is
     ICloneableV1,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     Phased,
     ReentrancyGuard,
     DeployerDiscoverableMetaV1
@@ -137,6 +138,7 @@ contract Lobby is
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using Math for uint256;
@@ -166,7 +168,7 @@ contract Lobby is
     event Invalid(
         address sender,
         uint256[] callerContext,
-        SignedContext[] signedContext
+        SignedContextV1[] signedContext
     );
 
     uint256 internal immutable maxTimeoutDuration;
@@ -332,7 +334,7 @@ contract Lobby is
 
     function join(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyPhase(PHASE_PLAYERS_PENDING)
@@ -343,8 +345,7 @@ contract Lobby is
         unchecked {
             Evaluable memory evaluable_ = evaluable;
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -375,7 +376,7 @@ contract Lobby is
 
     function leave(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContext_
+        SignedContextV1[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
@@ -383,8 +384,7 @@ contract Lobby is
         deposits[msg.sender] = 0;
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContext_
         );
         emit Context(msg.sender, context_);
@@ -410,7 +410,7 @@ contract Lobby is
 
     function claim(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyAtLeastPhase(PHASE_RESULT_PENDING)
@@ -448,8 +448,7 @@ contract Lobby is
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -495,7 +494,7 @@ contract Lobby is
     function _isInvalid(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal returns (bool, uint256[] memory) {
         // Timeouts ALWAYS allow an invalid result, unless the lobby is complete.
         // This guards against the expressions themselves being buggy and/or the
@@ -506,8 +505,7 @@ contract Lobby is
         }
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
@@ -527,7 +525,7 @@ contract Lobby is
 
     function invalid(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external onlyNotPhase(PHASE_COMPLETE) nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         // It is NOT possible to rollback a prior completion. Complete/invalid

@@ -69,7 +69,7 @@ describe("OrderBook expression checks", async () => {
     await deploy1820(signers[0]);
   });
 
-  it("should add Order_A and Order_B and clear the order", async function () {
+  it("should add Order_A and Order_B and clear the order with signed context", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice, bob, bountyBot] = signers;
@@ -105,16 +105,16 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const calculateSoruceA = concat([   
+    const calculateSourceA = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
       op(Opcode.ensure, 1) ,
 
@@ -125,20 +125,20 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const handleIOSourceA = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) 
+      op(Opcode.ensure, 1)
     ]);
 
     const evaluableConfigA = await generateEvaluableConfig(
-      [calculateSoruceA, handleIOSourceA],
+      [calculateSourceA, handleIOSourceA],
       constantsA
     );
     const OrderConfig_A: OrderConfigStruct = {
@@ -190,18 +190,18 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const calculateSoruceB = concat([ 
+    const calculateSoruceB = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
+      op(Opcode.ensure, 1) ,
 
        vOpMaxB,
        vRatioB,
@@ -210,16 +210,16 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const handleIOSourceB = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) 
+      op(Opcode.ensure, 1)
     ]);
 
     const evaluableConfigB = await generateEvaluableConfig(
@@ -470,25 +470,25 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const calculateSoruce = concat([ 
+    const calculateSoruce = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,  
+      op(Opcode.ensure, 1) ,
 
-      //checking context[1]
-      op(Opcode.context, 0x0701) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)), 
+      //checking signed context 0 1
+      op(Opcode.context, 0x0601) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,  
-      
+      op(Opcode.ensure, 1) ,
+
       // order max and ratio
         vOutputMax,
         vRatio,
@@ -497,22 +497,22 @@ describe("OrderBook expression checks", async () => {
     // prettier-ignore
     const handleIOSource = concat([
       //checking signer
-      op(Opcode.context, 0x0600) , 
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)), 
+      op(Opcode.context, 0x0500) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,   
+      op(Opcode.ensure, 1) ,
 
-      //checking context[0]
-      op(Opcode.context, 0x0700) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)), 
+      //checking signed context 0 0
+      op(Opcode.context, 0x0600) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,  
+      op(Opcode.ensure, 1) ,
 
-      //checking context[1]
-      op(Opcode.context, 0x0701) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)), 
+      //checking signed context 0 1
+      op(Opcode.context, 0x0601) ,
+      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,  
+      op(Opcode.ensure, 1) ,
     ]);
 
     // prettier-ignore
@@ -716,11 +716,11 @@ describe("OrderBook expression checks", async () => {
       orderSender(),
       vExpectedSender ,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
-      contractAddress(), 
+      op(Opcode.ensure, 1) ,
+      contractAddress(),
       vExpectedContractAddress ,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
+      op(Opcode.ensure, 1) ,
         vOutputMax,
         vRatio,
     ]);
@@ -730,11 +730,11 @@ describe("OrderBook expression checks", async () => {
       orderSender(),
       vExpectedSender ,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) , 
+      op(Opcode.ensure, 1) ,
       contractAddress(),
       vExpectedContractAddress ,
       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) 
+      op(Opcode.ensure, 1)
     ]);
 
     // prettier-ignore

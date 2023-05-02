@@ -4,7 +4,6 @@ pragma solidity ^0.8.15;
 import "../../../../interpreter/run/LibInterpreterState.sol";
 import "../../../../interpreter/run/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
-import "../../../../type/LibCast.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibBytes.sol";
 import "hardhat/console.sol";
@@ -20,37 +19,8 @@ contract LibInterpreterStateTest {
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibBytes for bytes;
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
-        view
-        returns (StackPointer)[];
-    using LibConvert for uint256[];
 
     constructor() {}
-
-    function debug(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        uint256 stackLength_,
-        uint256[][] memory context_,
-        DebugStyle debugStyle_,
-        IInterpreterV1 interpreter_
-    )
-        external
-        view
-        returns (StackPointer stackTop_, StackPointer stackTopAfter_)
-    {
-        InterpreterState memory state_;
-        bytes memory serialized_ = serialize(
-            interpreter_,
-            sources_,
-            constants_,
-            stackLength_
-        );
-        state_ = serialized_.deserialize();
-        state_.context = context_;
-        stackTop_ = state_.stackBottom;
-        stackTopAfter_ = state_.debug(stackTop_.up(stackLength_), debugStyle_);
-    }
 
     function serDeserialize(
         bytes[] memory sources_,

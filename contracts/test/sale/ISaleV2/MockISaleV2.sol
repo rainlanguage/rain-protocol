@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
-import "../../../sale/ISaleV2.sol";
+import "rain.interface.sale/ISaleV2.sol";
 
 contract MockISaleV2 is ISaleV2 {
     /// @inheritdoc ISaleV2

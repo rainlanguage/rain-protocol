@@ -53,7 +53,7 @@ describe("ISaleV2 Reserve tests", async function () {
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isale_v2_reserve),
+      op(Opcode.sale_v2_reserve),
     ])];
     const constants = [fakeSale.address];
 

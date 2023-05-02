@@ -65,7 +65,7 @@ describe("RainInterpreter update tier range op", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
-        Opcode.update_times_for_tier_range,
+        Opcode.tier_v2_update_times_for_tier_range,
         tierRangeUnrestricted(Tier.ZERO, 9) // beyond max tier of Tier.EIGHT
       ),
     ]);

@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-mul",
-  "desc": "PRBMath UD60x18: Multiplies two UD60x18 numbers together, returning a new UD60x18 number.",
+  "name": "prb-mul",
+  "desc": "Multiplies two 18 decimal fixed point numbers together.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-mul"]
+  "aliases": ["decimal18-mul"]
 }

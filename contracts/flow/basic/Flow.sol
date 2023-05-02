@@ -1,27 +1,21 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.interface.factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9d5630ebe10389bd4e63e702739f19c298bf228a80ccb45f27d83401e9d07ef7
+    0xf263190ca6541dc5dc0be4da98d733bfc25e589110aa1a081443f62641676509
 );
 
-struct FlowConfig {
-    // https://github.com/ethereum/solidity/issues/13597
-    EvaluableConfig dummyConfig;
-    EvaluableConfig[] config;
-}
-
-contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
-
-    event Initialize(address sender, FlowConfig config);
+    using LibUint256Matrix for uint256[];
 
     constructor(
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
@@ -38,7 +32,7 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowTransfer memory, uint256[] memory) {
+    ) internal view returns (FlowTransferV1 memory, uint256[] memory) {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -50,14 +44,13 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
-    ) external view virtual returns (FlowTransfer memory) {
+        SignedContextV1[] memory signedContexts_
+    ) external view virtual returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowTransfer memory flowTransfer_, ) = _previewFlow(
+        (FlowTransferV1 memory flowTransfer_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -67,18 +60,18 @@ contract Flow is ICloneableV1, ReentrancyGuard, FlowCommon {
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
-    ) external payable virtual nonReentrant {
+        SignedContextV1[] memory signedContexts_
+    ) external virtual nonReentrant returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
         (
-            FlowTransfer memory flowTransfer_,
+            FlowTransferV1 memory flowTransfer_,
             uint256[] memory kvs_
         ) = _previewFlow(evaluable_, context_);
         LibFlow.flow(flowTransfer_, evaluable_.store, kvs_);
+        return flowTransfer_;
     }
 }

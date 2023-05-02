@@ -3,7 +3,6 @@ pragma solidity ^0.8.15;
 
 import "../../run/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
-import "../../../type/LibCast.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
@@ -11,7 +10,6 @@ import "../../deploy/LibIntegrityCheck.sol";
 /// @notice Opcode for hashing a list of values.
 library OpHash {
     using LibStackPointer for StackPointer;
-    using LibCast for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256[] memory values_) internal pure returns (uint256) {

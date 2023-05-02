@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-div",
-  "desc": "PRBMath UD60x18: Divides two UD60x18 numbers, returning a new UD60x18 number. Rounds towards zero.",
+  "name": "prb-div",
+  "desc": "Divides two 18 decimal fixed point numbers. Rounds towards zero.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-div"]
+  "aliases": ["decimal18-div"]
 }

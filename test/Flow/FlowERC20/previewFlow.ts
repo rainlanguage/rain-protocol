@@ -7,8 +7,8 @@ import {
 } from "../../../typechain";
 import {
   FlowERC20,
-  FlowERC20IOStruct,
-  FlowTransferStruct,
+  FlowERC20IOV1Struct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -45,144 +45,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
-  it("should preview defined flow IO for native Ether", async () => {
-    const signers = await ethers.getSigners();
-    const [deployer, you] = signers;
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const flowERC20IO: FlowERC20IOStruct = {
-      mints: [
-        {
-          account: you.address,
-          amount: ethers.BigNumber.from(20 + eighteenZeros),
-        },
-      ],
-      burns: [
-        {
-          account: you.address,
-          amount: ethers.BigNumber.from(10 + eighteenZeros),
-        },
-      ],
-      flow: flowTransfer,
-    };
-
-    const { sources: sourceFlowIO, constants: constantsFlowIO } =
-      await standardEvaluableConfig(
-        rainlang`
-        /* variables */
-        sentinel: ${RAIN_FLOW_SENTINEL},
-        sentinel20: ${RAIN_FLOW_ERC20_SENTINEL},
-        you: context<0 0>(),
-        me: context<0 1>(),
-        burnamount: ${flowERC20IO.burns[0].amount},
-        mintamount: ${flowERC20IO.mints[0].amount}, 
-
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
-        
-        /**
-         * erc1155 transfers
-         */
-        transfererc1155slist: sentinel,
-      
-        /**
-         * erc721 transfers
-         */
-        transfererc721slist: sentinel,
-
-        /**
-         * er20 transfers
-         */
-        transfererc20slist: sentinel,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: me,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 1 */
-        native-from-1: me,
-        native-to-1: you,
-        native-amount-1: flowtransfer-me-to-you-native-amount,
-
-        /**
-       * burns of this erc20 token
-       */
-        burnslist: sentinel20,
-        burn-account burn-amount: you burnamount,
-        /**
-         * mints of this erc20 token
-        */
-        mintslist: sentinel20,
-        mint-account mint-amount: you mintamount;
-      `
-      );
-
-    const { sources, constants } = await standardEvaluableConfig(
-      rainlang`
-        /* sourceHandleTransfer */
-        _: 1;
-        `
-    );
-
-    const expressionConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const { flow } = await flowERC20Clone(
-      deployer,
-      cloneFactory,
-      implementation,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        expressionConfig: expressionConfigStruct,
-        flows: [
-          {
-            sources: sourceFlowIO,
-            constants: constantsFlowIO,
-          },
-        ],
-      }
-    );
-
-    const flowInitialized = (await getEvents(
-      flow.deployTransaction,
-      "FlowInitialized",
-      flow
-    )) as FlowInitializedEvent["args"][];
-
-    const flowERC20IOPreview = await flow
-      .connect(you)
-      .previewFlow(flowInitialized[0].evaluable, [1234], []);
-    compareStructs(
-      flowERC20IOPreview,
-      fillEmptyAddressERC20(flowERC20IO, flow.address),
-      true
-    );
-  });
-
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
@@ -198,8 +60,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155B.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [],
       erc1155: [
@@ -234,7 +95,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       ],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -316,10 +177,7 @@ describe("FlowERC20 previewFlow tests", async function () {
        */
       transfererc20slist: sentinel,
       
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel,
+      
       /**
        * burns of this erc20 token
        */
@@ -393,8 +251,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721B.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -425,7 +282,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       erc1155: [],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -499,10 +356,7 @@ describe("FlowERC20 previewFlow tests", async function () {
          */
         transfererc20slist: sentinel,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
+        
         
         /**
        * burns of this erc20 token
@@ -571,19 +425,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const erc20B = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20B.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: 10,
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: 50,
-        },
-      ],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -614,7 +456,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       erc1155: [],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -649,8 +491,6 @@ describe("FlowERC20 previewFlow tests", async function () {
         flowtransfer-me-to-you-erc20-amount-a: ${flowTransfer.erc20[2].amount},
         flowtransfer-me-to-you-erc20-token-b:  ${flowTransfer.erc20[3].token}, 
         flowtransfer-me-to-you-erc20-amount-b: ${flowTransfer.erc20[3].amount},
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
         
         /**
          * erc1155 transfers
@@ -687,18 +527,6 @@ describe("FlowERC20 previewFlow tests", async function () {
         erc20-to-3: you,
         erc20-amount-3: flowtransfer-me-to-you-erc20-amount-b,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: me,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 0 */
-        native-from-0: me,
-        native-to-0: you,
-        native-amount-0: flowtransfer-me-to-you-native-amount,
         
          /**
        * burns of this erc20 token
@@ -770,8 +598,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [],
       erc1155: [
@@ -792,7 +619,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       ],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -853,10 +680,7 @@ describe("FlowERC20 previewFlow tests", async function () {
        */
       transfererc20slist: sentinel,
       
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel,
+      
       
       /**
       * burns of this erc20 token
@@ -929,8 +753,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [
         {
@@ -949,7 +772,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       erc1155: [],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -1008,10 +831,7 @@ describe("FlowERC20 previewFlow tests", async function () {
        */
       transfererc20slist: sentinel,
 
-      /**
-       * native (gas) token transfers
-      */
-      transfernativeslist: sentinel,
+      
       
        /**
        * burns of this erc20 token
@@ -1078,19 +898,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const erc20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: 10,
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: 50,
-        },
-      ],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -1109,7 +917,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       erc1155: [],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -1140,8 +948,6 @@ describe("FlowERC20 previewFlow tests", async function () {
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
         flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
-        flowtransfer-you-to-me-native-amount: ${flowTransfer.native[0].amount},
-        flowtransfer-me-to-you-native-amount: ${flowTransfer.native[1].amount},
         /**
          * erc1155 transfers
          */
@@ -1167,18 +973,6 @@ describe("FlowERC20 previewFlow tests", async function () {
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        /* 0 */
-        native-from-0: you,
-        native-to-0: me,
-        native-amount-0: flowtransfer-you-to-me-native-amount,
-        /* 0 */
-        native-from-0: me,
-        native-to-0: you,
-        native-amount-0: flowtransfer-me-to-you-native-amount,
 
         /**
        * burns of this erc20 token
@@ -1266,10 +1060,7 @@ describe("FlowERC20 previewFlow tests", async function () {
          */
         transfererc20slist: sentinel,
         
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
+        
         
         /**
          * burns of this erc20 token
@@ -1331,14 +1122,13 @@ describe("FlowERC20 previewFlow tests", async function () {
     const signers = await ethers.getSigners();
     const [deployer, you] = signers;
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [],
       erc721: [],
       erc1155: [],
     };
 
-    const flowERC20IO: FlowERC20IOStruct = {
+    const flowERC20IO: FlowERC20IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -1377,11 +1167,6 @@ describe("FlowERC20 previewFlow tests", async function () {
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
         
         /**
        * burns of this erc20 token

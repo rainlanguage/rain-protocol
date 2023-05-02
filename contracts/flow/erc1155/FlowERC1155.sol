@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
+
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.factory/ICloneableV1.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interface.flow/IFlowERC1155V3.sol";
 
 import "../../sentinel/LibSentinel.sol";
 import "../libraries/LibFlow.sol";
-import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../FlowCommon.sol";
-import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.factory/ICloneableV1.sol";
 
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
@@ -17,26 +21,8 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
 );
 
-struct FlowERC1155Config {
-    string uri;
-    EvaluableConfig evaluableConfig;
-    EvaluableConfig[] flowConfig;
-}
-
-struct ERC1155SupplyChange {
-    address account;
-    uint256 id;
-    uint256 amount;
-}
-
-struct FlowERC1155IO {
-    ERC1155SupplyChange[] mints;
-    ERC1155SupplyChange[] burns;
-    FlowTransfer flow;
-}
-
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x27a3c4014babbb0c4370760d8ef2aed49d39aeb8872f6357cbd8268cdf9998f8
+    0x233093916e6ec24b7a65bba4cd2a2ad52c0829da78cef7bb815907965d94b04a
 );
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -45,13 +31,18 @@ uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
-contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
+contract FlowERC1155 is
+    ICloneableV1,
+    IFlowERC1155V3,
+    ReentrancyGuard,
+    FlowCommon,
+    ERC1155
+{
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-
-    event Initialize(address sender, FlowERC1155Config config);
+    using LibUint256Matrix for uint256[];
 
     Evaluable internal evaluable;
 
@@ -129,16 +120,17 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
                     uint256[][] memory context_;
                     {
                         context_ = LibContext.build(
-                            new uint256[][](0),
                             // Transfer params are caller context.
-                            LibUint256Array.arrayFrom(
-                                uint(uint160(operator_)),
-                                uint256(uint160(from_)),
-                                uint256(uint160(to_)),
-                                ids_[i_],
-                                amounts_[i_]
-                            ),
-                            new SignedContext[](0)
+                            LibUint256Array
+                                .arrayFrom(
+                                    uint256(uint160(operator_)),
+                                    uint256(uint160(from_)),
+                                    uint256(uint160(to_)),
+                                    ids_[i_],
+                                    amounts_[i_]
+                                )
+                                .matrixFrom(),
+                            new SignedContextV1[](0)
                         );
                     }
                     (
@@ -164,9 +156,9 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowERC1155IO memory, uint256[] memory) {
+    ) internal view returns (FlowERC1155IOV1 memory, uint256[] memory) {
         uint256[] memory refs_;
-        FlowERC1155IO memory flowIO_;
+        FlowERC1155IOV1 memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -195,17 +187,16 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
     function _flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
-    ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
+        SignedContextV1[] memory signedContexts_
+    ) internal virtual nonReentrant returns (FlowERC1155IOV1 memory) {
         unchecked {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
             (
-                FlowERC1155IO memory flowIO_,
+                FlowERC1155IOV1 memory flowIO_,
                 uint256[] memory kvs_
             ) = _previewFlow(evaluable_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
@@ -232,14 +223,13 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
     function previewFlow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
-    ) external view virtual returns (FlowERC1155IO memory) {
+        SignedContextV1[] memory signedContexts_
+    ) external view virtual returns (FlowERC1155IOV1 memory) {
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowERC1155IO memory flowERC1155IO_, ) = _previewFlow(
+        (FlowERC1155IOV1 memory flowERC1155IO_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -249,8 +239,8 @@ contract FlowERC1155 is ICloneableV1, ReentrancyGuard, FlowCommon, ERC1155 {
     function flow(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
-    ) external payable virtual returns (FlowERC1155IO memory) {
+        SignedContextV1[] memory signedContexts_
+    ) external virtual returns (FlowERC1155IOV1 memory) {
         return _flow(evaluable_, callerContext_, signedContexts_);
     }
 }

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
 import "../math/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import "./ISaleV2.sol";
+import "rain.interface.sale/ISaleV2.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -16,8 +16,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.interpreter/IInterpreterCallerV1.sol";
-import "../interpreter/caller/LibContext.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import "rain.interface.interpreter/LibContext.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
@@ -146,9 +146,16 @@ uint16 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
 uint16 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint256 constant CONTEXT_COLUMNS = 2;
+/// @dev Number of columns excluding the base column added by lib context.
+uint256 constant CONTEXT_COLUMNS = 3;
+/// @dev Index of the base column.
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+/// @dev Index of the calculations column.
 uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+/// @dev Index of the buy column.
 uint256 constant CONTEXT_BUY_COLUMN = 2;
+/// @dev Index of the sender column.
+uint256 constant CONTEXT_SENDER_COLUMN = 3;
 
 uint256 constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
 uint256 constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
@@ -165,7 +172,7 @@ contract Sale is
     Cooldown,
     ISaleV2,
     ReentrancyGuard,
-    IInterpreterCallerV1,
+    IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
     using Math for uint256;
@@ -431,8 +438,7 @@ contract Sale is
                         _dispatchCanLive(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            new uint256[](0),
-                            new SignedContext[](0)
+                            new SignedContextV1[](0)
                         )
                     );
                 return (stack_[stack_.length - 1] > 0, evaluable_.store, kvs_);
@@ -484,11 +490,15 @@ contract Sale is
         )
     {
         unchecked {
-            uint256[][] memory context_ = LibContext.build(
-                new uint256[][](CONTEXT_COLUMNS),
-                targetUnits_.arrayFrom(),
-                new SignedContext[](0)
+            uint256[][] memory callerContext_ = new uint256[][](
+                CONTEXT_COLUMNS
             );
+            uint256[][] memory context_ = LibContext.build(
+                callerContext_,
+                new SignedContextV1[](0)
+            );
+            context_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
+
             Evaluable memory evaluable_ = evaluable;
             (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                 .interpreter

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../sale/ISaleV2.sol";
+import "rain.interface.sale/ISaleV2.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -13,7 +13,7 @@ library OpISaleV2SaleStatus {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 sale_) internal view returns (uint256) {
-        return uint(ISaleV2(address(uint160(sale_))).saleStatus());
+        return uint256(ISaleV2(address(uint160(sale_))).saleStatus());
     }
 
     function integrity(

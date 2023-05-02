@@ -1,14 +1,13 @@
 {
-  "name": "isale-v2-reserve",
-  "desc": "The reserve token address",
+  "name": "sale-v2-reserve",
+  "desc": "The reserve token of a SaleV2.",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "isale-address"
+        "name": "sale-address"
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["sale-reserve"]
+  "outputs": 1
 }
