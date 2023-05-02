@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -65,30 +65,30 @@ describe("FlowERC20 construction tests", async function () {
         to: 2,
         amount: 2,
         seperator: 2,
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: seperator,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: seperator,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: seperator,
-        
-        
+
+
         /**
          * burns of this erc20 token
          */
         burnslist: seperator,
         burnto: to,
         burnamount: amount,
-        
+
         /**
          * mints of this erc20 token
          */

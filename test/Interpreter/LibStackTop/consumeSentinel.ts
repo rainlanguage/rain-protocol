@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackPointerTest } from "../../../typechain";

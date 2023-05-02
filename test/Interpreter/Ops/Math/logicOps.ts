@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { BigNumber } from "ethers";
 import { hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";

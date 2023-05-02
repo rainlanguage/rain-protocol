@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -54,7 +54,7 @@ describe("FlowERC721 construction tests", async function () {
       rainlang`
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         _: 1;
       `
@@ -68,30 +68,30 @@ describe("FlowERC721 construction tests", async function () {
         to: 2,
         amount: 2,
         seperator: 2,
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: seperator,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: seperator,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: seperator,
-        
-        
+
+
         /**
          * burns of this erc721 token
          */
         burnslist: seperator,
         burnto: to,
         burnamount: amount,
-        
+
         /**
          * mints of this erc721 token
          */

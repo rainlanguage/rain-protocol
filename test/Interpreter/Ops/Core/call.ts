@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   assertError,
@@ -260,7 +260,8 @@ describe("CALL Opcode test", async function () {
       ethers.BigNumber.from("10"),
       ethers.BigNumber.from("20"),
     ];
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );

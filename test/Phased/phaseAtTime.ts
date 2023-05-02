@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { PhasedTest } from "../../typechain";
 import * as Util from "../../utils";
 import { Phase } from "../../utils/types/phased";

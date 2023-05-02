@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { LibMemorySizeTest } from "../../../typechain";
 import { libMemorySizeDeploy } from "../../../utils/deploy/test/libMemorySize/deploy";
 

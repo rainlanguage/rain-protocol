@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
@@ -33,13 +33,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
       _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       a b c d e: ,
       _: add(a b c d e);`
@@ -80,13 +80,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
       _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       acc a1 a2 a3 a4: ,
       a: equal-to(a1 ${X}),
@@ -139,13 +139,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
       _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
       _: add(s0 s1 s2 s3 s4),
@@ -186,13 +186,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
       _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0: ,
       `
@@ -229,13 +229,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
+      /*
+        sources[0]
       */
       _: fold-context<${width} ${column} ${sourceIndex}>(0);
 
-      /* 
-        sources[1] 
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
       _: add(s0 s1 s2 s3 s4);
@@ -319,15 +319,15 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _ _: fold-context<${width} ${column} ${sourceIndex}>(0 0);
 
-      /* 
+      /*
         sourceCalculate
       */
-       
+
       evencount oddcount s2 s3 s4 s5: ,
       retevencount: call<2 1>(s2 s3 s4 s5),
 
@@ -338,7 +338,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       _: retoddcount;
 
 
-      /* 
+      /*
       sourceCountEvent
       */
       s0 s1 s2 s3: ,

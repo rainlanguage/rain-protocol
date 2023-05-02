@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
@@ -47,7 +47,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue});
@@ -89,7 +89,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue});
@@ -131,7 +131,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue});
@@ -174,7 +174,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue});
@@ -231,7 +231,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
         _ loopoutput _: loop-n<${n} 1 3>(
@@ -240,27 +240,27 @@ describe("LOOP_N Opcode test", async function () {
             ${level}
           ),
         _ _ _ _ _ _ _ _: explode-32(loopoutput);
-        
-      /* 
-        sourceAdd source 
+
+      /*
+        sourceAdd source
       */
         s0 s1 s2: ,
         _ _ _: call<2 3>(s0 s1 s2);
-      
-      /* 
-        sourceAddAndShiftRight source 
+
+      /*
+        sourceAddAndShiftRight source
       */
         s0 s1 s2: ,
         increment: add(s0 ${incrementValue}),
 
         /* right shifting */
           shrval: call<3 1>(increment s1 s2),
-        
+
         /* decrementing the level */
           lvldcr: saturating-sub(s2 1);
-        
-      /* 
-        sourceShiftRight 
+
+      /*
+        sourceShiftRight
       */
         s0 s1 s2: ,
         levelmul: mul(${bits} s2),
@@ -293,7 +293,8 @@ describe("LOOP_N Opcode test", async function () {
     );
     const result0 = await logic.stack();
     expectedResult = expectedResult.reverse();
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult,
       `Invalid output, expected ${expectedResult}, actual ${result0}`
     );
@@ -429,7 +430,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _ _: loop-n<${n} 1 2>(${initialValue} ${initialValue});
@@ -468,7 +469,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue});
@@ -501,7 +502,7 @@ describe("LOOP_N Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       _: loop-n<${n} 1 1>(${initialValue} ${initialValue});

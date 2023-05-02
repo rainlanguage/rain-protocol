@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -32,15 +32,15 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
       sourceMain
       */
      c0: ${initValue},
      c2: ${minimumValue},
      condition: less-than(c0 c2),
      _ _: do-while<1>(c0 c0 condition);
-     
-     
+
+
       /* do-while source */
       s0 s1: ,
       o1: add(s1 ${loopValue}),
@@ -74,7 +74,7 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       constant: ${initValue},
@@ -83,7 +83,7 @@ describe("DO_WHILE Opcode test", async function () {
       /* do-while source */
       s0 : ,
       _: sub(
-          s0 
+          s0
           ${loopValue}
         ),
       _: read-memory<1 ${MemoryType.Stack}>();
@@ -120,7 +120,7 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       c1: ${initValue},
@@ -164,14 +164,14 @@ describe("DO_WHILE Opcode test", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+      /*
         sourceMain
       */
       c0: ${loopCounter},
       c1: ${initAcc},
       condition: call<2 1>(c1), /* callCheckAcc */
       _ _: do-while<1>(c0 c1 condition);
-      
+
       /* sourceWHILE */
       s0 s1: ,
       o0 o1: call<3 2>(s0 s1),

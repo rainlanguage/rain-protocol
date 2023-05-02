@@ -16,7 +16,7 @@ import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowERC721Implementation = async (): Promise<FlowERC721> => {
