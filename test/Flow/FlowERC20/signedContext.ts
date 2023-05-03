@@ -16,7 +16,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC20Config } from "../../../utils/types/flow";
 

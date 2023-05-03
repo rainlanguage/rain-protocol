@@ -16,7 +16,10 @@ import {
   FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";

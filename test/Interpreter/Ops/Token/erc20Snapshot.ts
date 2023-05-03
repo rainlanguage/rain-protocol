@@ -12,7 +12,10 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let signers: SignerWithAddress[];

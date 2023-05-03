@@ -1,7 +1,11 @@
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { assertError, opMetaHash, standardEvaluableConfig } from "../../../../utils";
+import {
+  assertError,
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";

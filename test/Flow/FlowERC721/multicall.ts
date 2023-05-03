@@ -27,7 +27,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { FlowTransferV1Struct } from "../../../typechain/contracts/flow/erc721/FlowERC721";

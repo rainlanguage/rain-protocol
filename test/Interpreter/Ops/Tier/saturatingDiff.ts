@@ -5,7 +5,10 @@ import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../../../utils/tier";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 

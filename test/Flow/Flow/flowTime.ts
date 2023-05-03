@@ -17,7 +17,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { FlowConfig } from "../../../utils/types/flow";
 
 describe("Flow flowTime tests", async function () {

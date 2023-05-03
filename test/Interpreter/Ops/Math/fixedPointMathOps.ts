@@ -1,7 +1,11 @@
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { assertError, opMetaHash, standardEvaluableConfig } from "../../../../utils";
+import {
+  assertError,
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils";
 import {
   eighteenZeros,
   max_uint256,

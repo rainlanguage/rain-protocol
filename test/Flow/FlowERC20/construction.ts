@@ -26,7 +26,10 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
 

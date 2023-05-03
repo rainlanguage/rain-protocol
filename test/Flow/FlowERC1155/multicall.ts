@@ -29,7 +29,10 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 describe("FlowERC1155 multiCall tests", async function () {

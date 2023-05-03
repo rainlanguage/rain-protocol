@@ -131,11 +131,16 @@ export const encodeCBOROpMeta = () => {
   return cborEncode(opsMeta, MAGIC_NUMBERS.OPS_META_V1, "application/json", {
     contentEncoding: "deflate",
   });
-}; 
+};
 
-/** 
-* @returns An hex string that is the keccak256 has of the contract meta
-*/
-export const getCallerMetaForContract = (contractName_: ContractMeta): string => {  
-  return solidityKeccak256(["bytes"], [getRainMetaDocumentFromContract(contractName_)]) ;
-}
+/**
+ * @returns An hex string that is the keccak256 has of the contract meta
+ */
+export const getCallerMetaForContract = (
+  contractName_: ContractMeta
+): string => {
+  return solidityKeccak256(
+    ["bytes"],
+    [getRainMetaDocumentFromContract(contractName_)]
+  );
+};

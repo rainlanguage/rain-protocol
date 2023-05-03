@@ -7,7 +7,11 @@ import {
   Rainterpreter,
   RainterpreterStore,
 } from "../../../../typechain";
-import { opMetaHash, randomUint256, standardEvaluableConfig } from "../../../../utils";
+import {
+  opMetaHash,
+  randomUint256,
+  standardEvaluableConfig,
+} from "../../../../utils";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,

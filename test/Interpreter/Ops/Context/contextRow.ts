@@ -3,7 +3,10 @@ import { ethers } from "hardhat";
 import { flatten2D } from "../../../../utils/array/flatten";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { opMetaHash, standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 

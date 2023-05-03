@@ -17,7 +17,10 @@ import {
 } from "../../../utils/deploy/flow/basic/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { opMetaHash, standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { FlowConfig } from "../../../utils/types/flow";
 
 describe("Flow deployExpression tests", async function () {

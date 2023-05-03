@@ -6,7 +6,11 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-import { standardEvaluableConfig, compileSource, opMetaHash } from "../../../../utils";
+import {
+  standardEvaluableConfig,
+  compileSource,
+  opMetaHash,
+} from "../../../../utils";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 import assert from "assert";
 

@@ -55,8 +55,7 @@ const Opcode = RainterpreterOps;
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  const callerMetaHash = getCallerMetaForContract('orderbook'); 
-
+  const callerMetaHash = getCallerMetaForContract("orderbook");
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -96,8 +95,9 @@ describe("OrderBook expression checks", async () => {
 
     const aliceOrder = encodeMeta("Order_A");
 
-    const { sources: orderConfigSourceA, constants: ordeConfigConstantsA } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: orderConfigSourceA, constants: ordeConfigConstantsA } =
+      await standardEvaluableConfig(
+        rainlang`
       /* meta hash */
       @${opMetaHash}
       @${callerMetaHash}
@@ -111,7 +111,7 @@ describe("OrderBook expression checks", async () => {
       : ensure(equal-to(${bob.address} context<5 0>()));
       : ensure(equal-to(${contextValB} context<6 0>()));
       `
-    );
+      );
 
     const evaluableConfigA = await generateEvaluableConfig(
       orderConfigSourceA,
@@ -155,8 +155,9 @@ describe("OrderBook expression checks", async () => {
 
     const bobOrder = encodeMeta("Order_B");
 
-    const { sources: orderConfigSourceB, constants: orderConfigConstantsB } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: orderConfigSourceB, constants: orderConfigConstantsB } =
+      await standardEvaluableConfig(
+        rainlang`
       /* meta hash */
       @${opMetaHash}
       @${callerMetaHash}
@@ -170,7 +171,7 @@ describe("OrderBook expression checks", async () => {
       : ensure(equal-to(${alice.address} context<5 0>()));
       : ensure(equal-to(${contextValA} context<6 0>()));
       `
-    );
+      );
 
     const evaluableConfigB = await generateEvaluableConfig(
       orderConfigSourceB,
@@ -1699,7 +1700,6 @@ describe("OrderBook expression checks", async () => {
     const key2 = ethers.BigNumber.from(randomUint256());
     const key3 = ethers.BigNumber.from(randomUint256());
 
-
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
       /* meta hash */
@@ -1860,7 +1860,7 @@ describe("OrderBook expression checks", async () => {
     const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
     const aop = fixedPointMul(aip, ratio_A);
 
-    const aliceOrder = encodeMeta("aliceOrder"); 
+    const aliceOrder = encodeMeta("aliceOrder");
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
@@ -1890,10 +1890,7 @@ describe("OrderBook expression checks", async () => {
       `
     );
 
-    const EvaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants
-    );
+    const EvaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const OrderConfig: OrderConfigStruct = {
       validInputs: [
@@ -2013,7 +2010,7 @@ describe("OrderBook expression checks", async () => {
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
-    const aliceOrder = encodeMeta("aliceOrder"); 
+    const aliceOrder = encodeMeta("aliceOrder");
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
@@ -2028,11 +2025,10 @@ describe("OrderBook expression checks", async () => {
       _: ${max_uint256},
       _: ${ratio_A};
       `
-    );  
-
+    );
 
     const EvaluableConfig = await generateEvaluableConfig(
-      [sources[0],[]],
+      [sources[0], []],
       constants
     );
 
@@ -2138,7 +2134,7 @@ describe("OrderBook expression checks", async () => {
 
     // The ratio is 1:1 from the perspective of the expression.
     // This is a statement of economic equivalence in 18 decimal fixed point.
-    const ratio_A = ethers.BigNumber.from(10).pow(18); 
+    const ratio_A = ethers.BigNumber.from(10).pow(18);
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
@@ -2170,10 +2166,7 @@ describe("OrderBook expression checks", async () => {
       `
     );
 
-    const EvaluableConfig = await generateEvaluableConfig(
-      sources,
-      constants
-    );
+    const EvaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -2225,7 +2218,6 @@ describe("OrderBook expression checks", async () => {
       outputIOIndex: 0,
       signedContext: [],
     };
-
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA18.address,
