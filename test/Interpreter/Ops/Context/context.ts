@@ -128,7 +128,7 @@ _: context<0 0>(),
       _: context<1 2>(),
       _: context<1 3>(),
       _: context<2 0>(),
-      _: context<2 1>(),`
+      _: context<2 1>();`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -166,7 +166,7 @@ _: context<0 0>(),
         @${opMetaHash}
 _: context<0 0>(),
       _: context<0 1>(),
-      _: context<0 2>(),`
+      _: context<0 2>();`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -196,7 +196,7 @@ _: context<0 0>(),
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-_: context<0 0>()`
+_: context<0 0>();`
     );
 
     const { consumerLogic, interpreter, dispatch } =
