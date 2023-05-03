@@ -625,7 +625,7 @@ describe("FlowERC721 flow tests", async function () {
          * mints of this erc721 token
         */
        mintslist: sentinel721,
-       mint-account mint-id: you tokenid,
+       mint-account mint-id: you tokenid;
       `
       );
 
@@ -672,7 +672,7 @@ describe("FlowERC721 flow tests", async function () {
         /**
          * mints of this erc721 token
          */
-        mintslist: sentinel721,
+        mintslist: sentinel721;
       `
       );
 
@@ -1935,7 +1935,7 @@ describe("FlowERC721 flow tests", async function () {
          * mints of this erc721 token
         */
        mintslist: sentinel721,
-       mint-account mint-id: you tokenid,
+       mint-account mint-id: you tokenid;
       `
       );
 
@@ -1975,7 +1975,7 @@ describe("FlowERC721 flow tests", async function () {
         /**
          * mints of this erc721 token
          */
-        mintslist: sentinel721,
+        mintslist: sentinel721;
       `
       );
 
