@@ -96,7 +96,7 @@ value0: context<0 0>(),
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-_: hash(${ethers.constants.MaxUint256})`
+_: hash(${ethers.constants.MaxUint256});`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,

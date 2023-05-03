@@ -215,7 +215,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       b: equal-to(a2 ${X}),
       c: equal-to(a3 ${X}),
       d: equal-to(a4 ${X}),
-      _: add(acc a b c d),
+      _: add(acc a b c d);
       `
     );
 
@@ -273,7 +273,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
         sources[1]
       */
       s0 s1 s2 s3 s4: ,
-      _: add(s0 s1 s2 s3 s4),
+      _: add(s0 s1 s2 s3 s4);
       `
     );
 
@@ -320,13 +320,12 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
       /*
-        sources[1]
+        sources[1] is empty
       */
-      s0: ,
       `
     );
     const expression0 = await expressionConsumerDeploy(
-      sources,
+      [sources[0],[]],
       constants,
       rainInterpreter,
       1

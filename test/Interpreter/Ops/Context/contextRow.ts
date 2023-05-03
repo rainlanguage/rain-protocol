@@ -18,7 +18,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-_: context-row<15>(0)`
+_: context-row<15>(0);`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -40,7 +40,7 @@ _: context-row<15>(0)`
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-_: context-row<0>(${MAX_ROWS - 1})`
+_: context-row<0>(${MAX_ROWS - 1});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -61,7 +61,7 @@ _: context-row<0>(${MAX_ROWS - 1})`
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-_: context-row<0>(10)`
+_: context-row<0>(10);`
     );
 
     const { consumerLogic, interpreter, dispatch } =

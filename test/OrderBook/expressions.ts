@@ -20,6 +20,8 @@ import {
   assertError,
   fixedPointDiv,
   fixedPointMul,
+  getCallerMetaForContract,
+  getRainMetaDocumentFromContract,
   minBN,
   RainterpreterOps,
   randomUint256,
@@ -56,7 +58,8 @@ const Opcode = RainterpreterOps;
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  const callerMetaHash = `0x56ffc3fc82109c33f1e1544157a70144fc15e7c6e9ae9c65a636fd165b1bc51c`;
+  const callerMetaHash = getCallerMetaForContract('orderbook'); 
+
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -2029,8 +2032,6 @@ describe("OrderBook expression checks", async () => {
       _: ${ratio_A};
       `
     );  
-
-    console.log("sources : " , sources )
 
 
     const EvaluableConfig = await generateEvaluableConfig(

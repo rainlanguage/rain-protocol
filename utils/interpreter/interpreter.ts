@@ -8,8 +8,8 @@ import {
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { ExpressionConfig, rlc, MetaStore } from "@rainprotocol/rainlang";
-import { getRainMetaDocumentFromOpmeta } from "../meta";
-import { ethers } from "hardhat";
+import { getRainMetaDocumentFromOpmeta } from "../meta"; 
+import keccak256 from 'keccak256'
 
 export enum MemoryType {
   Stack,
@@ -291,10 +291,14 @@ export const compileSource = (source, pointers): string => {
   return "0x" + result;
 };
 
+/**
+ * @returns A hex string which is the keccak256 hash of opmeta
+*/
 export const getOpMetaHash = (): string => {
-  const rainDocumentEncoded = getRainMetaDocumentFromOpmeta();
-  // return ethers.utils.keccak256()
-  return "0x47ed85f917e187757bff09371cedcf5c0eb277c27e4673feb2d3cc040c66c993";
+  return '0x'+keccak256(getRainMetaDocumentFromOpmeta()).toString('hex');
 };
 
+/**
+ * @returns Keccak256 OpMetaHash
+*/
 export const opMetaHash = getOpMetaHash();
