@@ -1,5 +1,5 @@
 import { BigNumberish, BytesLike } from "ethers";
-import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { concat, Hexable, hexlify, zeroPad, solidityKeccak256 } from "ethers/lib/utils";
 import { PromiseOrValue } from "../../typechain/common";
 import { EvaluableConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 import {
@@ -9,7 +9,6 @@ import {
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { ExpressionConfig, rlc, MetaStore } from "@rainprotocol/rainlang";
 import { getRainMetaDocumentFromOpmeta } from "../meta"; 
-import keccak256 from 'keccak256'
 
 export enum MemoryType {
   Stack,
@@ -295,7 +294,7 @@ export const compileSource = (source, pointers): string => {
  * @returns A hex string which is the keccak256 hash of opmeta
 */
 export const getOpMetaHash = (): string => {
-  return '0x'+keccak256(getRainMetaDocumentFromOpmeta()).toString('hex');
+  return solidityKeccak256(["bytes"], [getRainMetaDocumentFromOpmeta()]);
 };
 
 /**
