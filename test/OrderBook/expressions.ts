@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
 import {
@@ -21,7 +21,6 @@ import {
   fixedPointDiv,
   fixedPointMul,
   getCallerMetaForContract,
-  getRainMetaDocumentFromContract,
   minBN,
   RainterpreterOps,
   randomUint256,
@@ -36,8 +35,6 @@ import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
-  memoryOperand,
-  MemoryType,
   op,
   opMetaHash,
   standardEvaluableConfig,
