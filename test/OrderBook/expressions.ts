@@ -1,5 +1,4 @@
 import { strict as assert } from "assert";
-
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
@@ -22,7 +21,6 @@ import {
   fixedPointMul,
   getCallerMetaForContract,
   minBN,
-  RainterpreterOps,
   randomUint256,
 } from "../../utils";
 import {
@@ -35,7 +33,6 @@ import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
-  op,
   opMetaHash,
   standardEvaluableConfig,
 } from "../../utils/interpreter/interpreter";
@@ -49,8 +46,6 @@ import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import { encodeMeta } from "../../utils/orderBook/order";
 import { rainlang } from "../../utils/extensions/rainlang";
 import { SignedContextV1Struct } from "../../typechain/contracts/lobby/Lobby";
-
-const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
@@ -1849,9 +1844,6 @@ describe("OrderBook expression checks", async () => {
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-
-    const INPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0304);
-    const OUTPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0404);
 
     // ORDERS
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
