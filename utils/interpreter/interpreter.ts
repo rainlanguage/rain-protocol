@@ -296,11 +296,19 @@ export const compileSource = (source, pointers): string => {
   return "0x" + result;
 };
 
+let opMetaHashResult: string;
+
 /**
  * @returns A hex string which is the keccak256 hash of opmeta
  */
 export const getOpMetaHash = (): string => {
-  return solidityKeccak256(["bytes"], [getRainMetaDocumentFromOpmeta()]);
+  if (!opMetaHashResult) {
+    opMetaHashResult = solidityKeccak256(
+      ["bytes"],
+      [getRainMetaDocumentFromOpmeta()]
+    );
+  }
+  return opMetaHashResult;
 };
 
 /**
