@@ -20,7 +20,7 @@ import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpr
 
 const Opcode = AllStandardOps;
 
-describe("IOrderBookV1 vault balance tests", async function () {
+describe("IOrderBookV2 vault balance tests", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
   let fakeOrderBook: FakeContract<OrderBook>;

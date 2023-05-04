@@ -1,10 +1,13 @@
 import { strict as assert } from "assert";
-
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
+  AfterClearEvent,
+  ClearConfigStruct,
+  ClearEvent,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
@@ -16,8 +19,8 @@ import {
   assertError,
   fixedPointDiv,
   fixedPointMul,
+  getCallerMetaForContract,
   minBN,
-  RainterpreterOps,
   randomUint256,
 } from "../../utils";
 import {
@@ -30,9 +33,8 @@ import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import {
   generateEvaluableConfig,
-  memoryOperand,
-  MemoryType,
-  op,
+  opMetaHash,
+  standardEvaluableConfig,
 } from "../../utils/interpreter/interpreter";
 import {
   compareSolStructs,
@@ -41,20 +43,14 @@ import {
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
-import {
-  AfterClearEvent,
-  ClearConfigStruct,
-  ClearEvent,
-  ClearStateChangeStruct,
-  SignedContextStruct,
-} from "../../typechain/contracts/orderbook/IOrderBookV1";
 import { encodeMeta } from "../../utils/orderBook/order";
-
-const Opcode = RainterpreterOps;
+import { rainlang } from "../../utils/extensions/rainlang";
+import { SignedContextV1Struct } from "../../typechain/contracts/lobby/Lobby";
 
 describe("OrderBook expression checks", async () => {
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
+  const callerMetaHash = getCallerMetaForContract("orderbook");
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -94,52 +90,27 @@ describe("OrderBook expression checks", async () => {
 
     const aliceOrder = encodeMeta("Order_A");
 
-    const constantsA = [max_uint256, ratio_A, bob.address, contextValB];
-    const vOpMaxA = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatioA = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const { sources: orderConfigSourceA, constants: ordeConfigConstantsA } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash}
 
-    // prettier-ignore
-    const calculateSourceA = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-       vOpMaxA,
-       vRatioA,
-      ]);
-
-    // prettier-ignore
-    const handleIOSourceA = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-    ]);
+      /* source */
+      : ensure(equal-to(${bob.address} context<5 0>())),
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */
+      : ensure(equal-to(${bob.address} context<5 0>()));
+      : ensure(equal-to(${contextValB} context<6 0>()));
+      `
+      );
 
     const evaluableConfigA = await generateEvaluableConfig(
-      [calculateSourceA, handleIOSourceA],
-      constantsA
+      orderConfigSourceA,
+      ordeConfigConstantsA
     );
     const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
@@ -179,52 +150,27 @@ describe("OrderBook expression checks", async () => {
 
     const bobOrder = encodeMeta("Order_B");
 
-    const constantsB = [max_uint256, ratio_B, alice.address, contextValA];
-    const vOpMaxB = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatioB = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const { sources: orderConfigSourceB, constants: orderConfigConstantsB } =
+      await standardEvaluableConfig(
+        rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash}
 
-    // prettier-ignore
-    const calculateSoruceB = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-       vOpMaxB,
-       vRatioB,
-      ]);
-
-    // prettier-ignore
-    const handleIOSourceB = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-    ]);
+      /* source */
+      : ensure(equal-to(${alice.address} context<5 0>())),
+      _: ${max_uint256},
+      _: ${ratio_B};
+      
+      /* HANDLE IO */
+      : ensure(equal-to(${alice.address} context<5 0>()));
+      : ensure(equal-to(${contextValA} context<6 0>()));
+      `
+      );
 
     const evaluableConfigB = await generateEvaluableConfig(
-      [calculateSoruceB, handleIOSourceB],
-      constantsB
+      orderConfigSourceB,
+      orderConfigConstantsB
     );
 
     const OrderConfig_B: OrderConfigStruct = {
@@ -326,7 +272,7 @@ describe("OrderBook expression checks", async () => {
     const hashA = solidityKeccak256(["uint256[]"], [contextA]);
     const goodSignatureA = await alice.signMessage(arrayify(hashA));
 
-    const signedContextsA: SignedContextStruct[] = [
+    const signedContextsA: SignedContextV1Struct[] = [
       {
         signer: alice.address,
         signature: goodSignatureA,
@@ -339,7 +285,7 @@ describe("OrderBook expression checks", async () => {
     const hashB = solidityKeccak256(["uint256[]"], [contextB]);
     const goodSignatureB = await bob.signMessage(arrayify(hashB));
 
-    const signedContextsB: SignedContextStruct[] = [
+    const signedContextsB: SignedContextV1Struct[] = [
       {
         signer: bob.address,
         signature: goodSignatureB,
@@ -453,73 +399,42 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [
-      max_uint256,
-      ratio_A,
-      bob.address,
-      contextVal1,
-      contextVal2,
-    ];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
+
+      /* CalculateIO source */
+      order-taker : ${bob.address} ,
+      context-val-1 : ${contextVal1} ,
+      context-val-2 : ${contextVal2} ,
+
+      
+      : ensure(equal-to(order-taker context<5 0>())),
+      : ensure(equal-to(context-val-1 context<6 0>())),
+      : ensure(equal-to(context-val-2 context<6 1>())),
+
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      order-taker : ${bob.address} ,
+      context-val-1 : ${contextVal1} ,
+      context-val-2 : ${contextVal2} , 
+
+      : ensure(equal-to(order-taker context<5 0>())),
+      : ensure(equal-to(context-val-1 context<6 0>())),
+      : ensure(equal-to(context-val-2 context<6 1>()));
+      `
     );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    // prettier-ignore
-    const calculateSoruce = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0 1
-      op(Opcode.context, 0x0601) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      // order max and ratio
-        vOutputMax,
-        vRatio,
-    ]);
-
-    // prettier-ignore
-    const handleIOSource = concat([
-      //checking signer
-      op(Opcode.context, 0x0500) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0 0
-      op(Opcode.context, 0x0600) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-
-      //checking signed context 0 1
-      op(Opcode.context, 0x0601) ,
-      op(Opcode.read_memory,memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-    ]);
 
     // prettier-ignore
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -567,7 +482,7 @@ describe("OrderBook expression checks", async () => {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
-    const signedContexts1: SignedContextStruct[] = [
+    const signedContexts1: SignedContextV1Struct[] = [
       {
         signer: bob.address,
         signature: goodSignature1,
@@ -690,58 +605,41 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, bob.address, orderBook.address];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedSender = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vExpectedContractAddress = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const orderSender = () => op(Opcode.context, 0x0000);
-    const contractAddress = () => op(Opcode.context, 0x0001);
+      /* CalculateIO source */
+      expected-sender : ${bob.address} ,
+      orderbook : ${orderBook.address} ,
+      
+      : ensure(equal-to(expected-sender context<0 0>())),
+      : ensure(equal-to(orderbook  context<0 1>())),
+      : ensure(equal-to(expected-sender  orderbook-caller-address())),
+      : ensure(equal-to(orderbook  orderbook-contract-address())),
 
-    // prettier-ignore
-    const calculateSoruce = concat([
-      orderSender(),
-      vExpectedSender ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-      contractAddress(),
-      vExpectedContractAddress ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
-    ]);
 
-    // prettier-ignore
-    const handleIOSource = concat([
-      orderSender(),
-      vExpectedSender ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-      contractAddress(),
-      vExpectedContractAddress ,
-      op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-    ]);
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-sender : ${bob.address} ,
+      orderbook : ${orderBook.address} ,
+      
+      : ensure(equal-to(expected-sender context<0 0>())),
+      : ensure(equal-to(orderbook  context<0 1>())),
+      : ensure(equal-to(expected-sender  orderbook-caller-address())),
+      : ensure(equal-to(orderbook  orderbook-contract-address()));
+      `
+    );
 
     // prettier-ignore
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -871,57 +769,39 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const OWNER = () => op(Opcode.context, 0x0101);
-    const COUNTERPARTY = () => op(Opcode.context, 0x0102);
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const constants_A = [max_uint256, ratio_A, alice.address, bob.address];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedOwner = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
+      /* CalculateIO source */
+      expected-owner : ${alice.address} ,
+      expected-counterparty : ${bob.address} ,
+      
+      : ensure(equal-to(expected-owner context<1 1>())),
+      : ensure(equal-to(expected-counterparty  context<1 2>())),
+      : ensure(equal-to(expected-owner  order-owner-address())),
+      : ensure(equal-to(expected-counterparty   counterparty-address())),
 
-    const vExpectedCounterpart = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-owner : ${alice.address} ,
+      expected-counterparty : ${bob.address} ,
+      
+      : ensure(equal-to(expected-owner context<1 1>())),
+      : ensure(equal-to(expected-counterparty  context<1 2>())),
+      : ensure(equal-to(expected-owner  order-owner-address())),
+      : ensure(equal-to(expected-counterparty  counterparty-address()));
+      `
     );
-
-    // prettier-ignore
-    const calculateSoruce = concat([
-            OWNER()  ,
-            vExpectedOwner ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-            COUNTERPARTY() ,
-            vExpectedCounterpart ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)  ,
-            vOutputMax,
-            vRatio,
-        ]);
-
-    // prettier-ignore
-    const handleIOSource = concat([
-                OWNER()  ,
-                vExpectedOwner ,
-                op(Opcode.equal_to),
-                op(Opcode.ensure, 1) ,
-                COUNTERPARTY() ,
-                vExpectedCounterpart ,
-                op(Opcode.equal_to),
-                op(Opcode.ensure, 1)
-        ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1098,56 +978,39 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, depositAmountA, depositAmountB];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedInputTokenBalance = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vExpectedOutputTokenBalance = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const INPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.context, 0x0303);
-    const OUTPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.context, 0x0403);
+      /* CalculateIO source */
+      expected-input-token-balance : ${depositAmountA} ,
+      expected-output-token-balance : ${depositAmountB} ,
+      
+      : ensure(equal-to(expected-input-token-balance context<3 3>())),
+      : ensure(equal-to(expected-output-token-balance  context<4 3>())),
+      : ensure(equal-to(expected-input-token-balance  vault-input-balance-before())),
+      : ensure(equal-to(expected-output-token-balance   vault-output-balance-before())),
 
-    // prettier-ignore
-    const calculateSoruce = concat([
-            INPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedInputTokenBalance ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  ,
-                vExpectedOutputTokenBalance ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
-    ]);
 
-    // prettier-ignore
-    const handleIOSource = concat([
-            INPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedInputTokenBalance ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  ,
-            vExpectedOutputTokenBalance ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
-    ]);
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-input-token-balance : ${depositAmountA} ,
+      expected-output-token-balance : ${depositAmountB} ,
+      
+      : ensure(equal-to(expected-input-token-balance context<3 3>())),
+      : ensure(equal-to(expected-output-token-balance  context<4 3>())),
+      : ensure(equal-to(expected-input-token-balance  vault-input-balance-before())),
+      : ensure(equal-to(expected-output-token-balance  vault-output-balance-before()));
+      `
+    );
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1294,52 +1157,37 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, aliceVault];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedVaultId = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const INPUT_TOKEN_VAULT_ID = () => op(Opcode.context, 0x0302);
-    const OUTPUT_TOKEN_VAULT_ID = () => op(Opcode.context, 0x0402);
+      /* CalculateIO source */
+      expected-vault-id : ${aliceVault} ,
+      
+      : ensure(equal-to(expected-vault-id context<3 2>())),
+      : ensure(equal-to(expected-vault-id  context<4 2>())),
+      : ensure(equal-to(expected-vault-id vault-input-id())),
+      : ensure(equal-to(expected-vault-id   vault-output-id())),
 
-    // prettier-ignore
-    const calculateSoruce = concat([
-            INPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
-    ]);
 
-    // prettier-ignore
-    const handleIOSource = concat([
-            INPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  ,
-            vExpectedVaultId ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
-    ]);
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-vault-id : ${aliceVault} ,
+      
+      : ensure(equal-to(expected-vault-id context<3 2>())),
+      : ensure(equal-to(expected-vault-id  context<4 2>())),
+      : ensure(equal-to(expected-vault-id vault-input-id())),
+      : ensure(equal-to(expected-vault-id   vault-output-id()));
+      `
+    );
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1486,61 +1334,39 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [
-      max_uint256,
-      ratio_A,
-      tokenA18.address,
-      tokenB06.address,
-    ];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedInputToken = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vExpectedOutputToken = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const INPUT_TOKEN = () => op(Opcode.context, 0x0300);
-    const OUTPUT_TOKEN = () => op(Opcode.context, 0x0400);
+      /* CalculateIO source */
+      expected-input-token : ${tokenA18.address} ,
+      expected-output-token : ${tokenB06.address} ,
 
-    // prettier-ignore
-    const calculateSoruce = concat([
-            INPUT_TOKEN()  ,
-            vExpectedInputToken ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN()  ,
-            vExpectedOutputToken ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
-    ]);
+      : ensure(equal-to(expected-input-token context<3 0>())),
+      : ensure(equal-to(expected-output-token  context<4 0>())),
+      : ensure(equal-to(expected-input-token vault-input-token-address())),
+      : ensure(equal-to(expected-output-token  vault-output-token-address())),
 
-    // prettier-ignore
-    const handleIOSource = concat([
-            INPUT_TOKEN()  ,
-            vExpectedInputToken ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN()  ,
-            vExpectedOutputToken ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
-    ]);
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-input-token : ${tokenA18.address} ,
+      expected-output-token : ${tokenB06.address} ,
+
+      : ensure(equal-to(expected-input-token context<3 0>())),
+      : ensure(equal-to(expected-output-token  context<4 0>())),
+      : ensure(equal-to(expected-input-token vault-input-token-address())),
+      : ensure(equal-to(expected-output-token  vault-output-token-address()));
+      `
+    );
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1687,56 +1513,39 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, tokenADecimals, tokenBDecimals];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedInputTokenDecimals = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vExpectedOutputTokenDecimals = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const INPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0301);
-    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0401);
+      /* CalculateIO source */
+      expected-input-token-deciamls : ${tokenADecimals} ,
+      expected-output-token-deciamls : ${tokenBDecimals} ,
 
-    // prettier-ignore
-    const calculateSoruce = concat([
-            INPUT_TOKEN_DECIMALS()  ,
-            vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  ,
-            vExpectedOutputTokenDecimals ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1) ,
-        vOutputMax,
-        vRatio,
-    ]);
+      : ensure(equal-to(expected-input-token-deciamls context<3 1>())),
+      : ensure(equal-to(expected-output-token-deciamls  context<4 1>())),
+      : ensure(equal-to(expected-input-token-deciamls vault-input-token-decimals())),
+      : ensure(equal-to(expected-output-token-deciamls  vault-output-token-decimals())),
 
-    // prettier-ignore
-    const handleIOSource = concat([
-            INPUT_TOKEN_DECIMALS()  ,
-            vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  ,
-            vExpectedOutputTokenDecimals ,
-            op(Opcode.equal_to),
-            op(Opcode.ensure, 1)
-    ]);
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-input-token-deciamls : ${tokenADecimals} ,
+      expected-output-token-deciamls : ${tokenBDecimals} ,
+
+      : ensure(equal-to(expected-input-token-deciamls context<3 1>())),
+      : ensure(equal-to(expected-output-token-deciamls  context<4 1>())),
+      : ensure(equal-to(expected-input-token-deciamls vault-input-token-decimals())),
+      : ensure(equal-to(expected-output-token-deciamls  vault-output-token-decimals()));
+      `
+    );
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -1886,91 +1695,42 @@ describe("OrderBook expression checks", async () => {
     const key2 = ethers.BigNumber.from(randomUint256());
     const key3 = ethers.BigNumber.from(randomUint256());
 
-    const constants_A = [
-      max_uint256,
-      ratio_A,
-      key1,
-      key2,
-      key3,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
+
+      /* CalculateIO source */
+      compare-key : ${key1} ,
+      input-token-key : ${key2} ,
+      output-token-key : ${key3} , 
+
+      :set(compare-key greater-than(vault-input-token-decimals() vault-output-token-decimals())) ,
+      :set(input-token-key vault-input-token-decimals()) ,
+      :set(output-token-key vault-output-token-decimals()) ,
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */  
+      compare-key : ${key1} ,
+      input-token-key : ${key2} ,
+      output-token-key : ${key3} , 
+
+      expected-input-token-decimals : ${tokenADecimals} , 
+      expected-output-token-decimals : ${tokenBDecimals} , 
+
+      : ensure(equal-to(get(compare-key) 1)),
+      : ensure(equal-to(get(input-token-key) expected-input-token-decimals)),
+      : ensure(equal-to(get(output-token-key) expected-output-token-decimals));
+
+      `
     );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    const compareKey = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const inputTokenKey = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
-    const outputTokenKey = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 4)
-    );
-
-    const vExpectedInputTokenDecimals = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 5)
-    );
-    const vExpectedOutputTokenDecimals = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 6)
-    );
-
-    const INPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0301);
-    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.context, 0x0401);
-
-    // prettier-ignore
-    const calculateSoruce= concat([
-        compareKey ,
-           INPUT_TOKEN_DECIMALS() ,
-           OUTPUT_TOKEN_DECIMALS() ,
-          op(Opcode.greater_than),
-        op(Opcode.set),
-
-        inputTokenKey ,
-          INPUT_TOKEN_DECIMALS(),
-        op(Opcode.set),
-
-        outputTokenKey ,
-          OUTPUT_TOKEN_DECIMALS(),
-        op(Opcode.set),
-        vOutputMax,
-        vRatio,
-    ]);
-
-    // prettier-ignore
-    const handleIOSource = concat([
-          compareKey,
-        op(Opcode.get),
-        op(Opcode.ensure, 1)  ,
-
-          inputTokenKey,
-        op(Opcode.get),
-        vExpectedInputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1) ,
-
-          outputTokenKey,
-        op(Opcode.get),
-        vExpectedOutputTokenDecimals ,
-        op(Opcode.equal_to),
-        op(Opcode.ensure, 1)
-
-    ]);
 
     const EvaluableConfigAlice = await generateEvaluableConfig(
-      [calculateSoruce, handleIOSource],
-      constants_A
+      sources,
+      constants
     );
 
     const OrderConfigAlice: OrderConfigStruct = {
@@ -2085,9 +1845,6 @@ describe("OrderBook expression checks", async () => {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const INPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0304);
-    const OUTPUT_BALANCE_DIFF = () => op(Opcode.context, 0x0404);
-
     // ORDERS
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const amountB = ethers.BigNumber.from("2" + eighteenZeros);
@@ -2095,53 +1852,37 @@ describe("OrderBook expression checks", async () => {
     const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
     const aop = fixedPointMul(aip, ratio_A);
 
-    const constants_A = [max_uint256, ratio_A, aip, aop];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedInputDiff = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vExpectedOutputDiff = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 3)
-    );
-
-    // prettier-ignore
-    const calculateSoruce = concat([
-       INPUT_BALANCE_DIFF()  ,
-      op(Opcode.ensure, 0) ,
-       OUTPUT_BALANCE_DIFF()  ,
-      op(Opcode.ensure, 0) ,
-      vOutputMax,
-      vRatio,
-
-    ]);
-
-    // prettier-ignore
-    const handleSource = concat([
-        INPUT_BALANCE_DIFF()  ,
-        vExpectedOutputDiff ,
-       op(Opcode.equal_to),
-      op(Opcode.ensure, 1) ,
-        OUTPUT_BALANCE_DIFF()  ,
-        vExpectedInputDiff ,
-       op(Opcode.equal_to),
-      op(Opcode.ensure, 1)
-   ]);
-
     const aliceOrder = encodeMeta("aliceOrder");
 
-    const EvaluableConfig = await generateEvaluableConfig(
-      [calculateSoruce, handleSource],
-      constants_A
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
+
+      /* CalculateIO source */
+
+      : ensure(equal-to(0 context<3 4>())),
+      : ensure(equal-to(0  context<4 4>())),
+      : ensure(equal-to(0 vault-input-balance-increase())),
+      : ensure(equal-to(0  vault-output-balance-decrease())),
+
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-input-diff : ${aip} ,
+      expected-output-diff : ${aop} ,
+
+      : ensure(equal-to(expected-output-diff context<3 4>())),
+      : ensure(equal-to(expected-input-diff  context<4 4>())),
+      : ensure(equal-to(expected-output-diff vault-input-balance-increase())),
+      : ensure(equal-to(expected-input-diff  vault-output-balance-decrease()));
+      `
     );
+
+    const EvaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const OrderConfig: OrderConfigStruct = {
       validInputs: [
@@ -2261,31 +2002,26 @@ describe("OrderBook expression checks", async () => {
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
-    const constants_A = [max_uint256, ratio_A, amountB];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    const OUTPUT_MAX = () => op(Opcode.context, 0x0200);
-    const ORDER_RATIO = () => op(Opcode.context, 0x0201);
-
-    // prettier-ignore
-    const calculateSoruce = concat([
-      OUTPUT_MAX() ,
-      ORDER_RATIO() ,
-      vOutputMax,
-      vRatio
-    ]);
-
     const aliceOrder = encodeMeta("aliceOrder");
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
+
+      /* CalculateIO source */
+      output-max : order-output-max(),
+      ratio : order-io-ratio(),
+
+      _: ${max_uint256},
+      _: ${ratio_A};
+      `
+    );
+
     const EvaluableConfig = await generateEvaluableConfig(
-      [calculateSoruce, []],
-      constants_A
+      [sources[0], []],
+      constants
     );
 
     const OrderConfig: OrderConfigStruct = {
@@ -2364,7 +2100,7 @@ describe("OrderBook expression checks", async () => {
     );
   });
 
-  it("should scale outputMax to token deciamls and cap it to the vault balance of the owner", async function () {
+  it("should sacle ratio according to decimal difference and scale outputMax to token deciamls and cap it to the vault balance of the owner", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 18;
@@ -2392,41 +2128,37 @@ describe("OrderBook expression checks", async () => {
     // This is a statement of economic equivalence in 18 decimal fixed point.
     const ratio_A = ethers.BigNumber.from(10).pow(18);
 
+    // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+    const maximumIORatio = fixedPointMul(
+      ratio_A,
+      ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+    );
+
     // Alice and Bob will each deposit 2 units of tokenB
     const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
-    const constants_A = [max_uint256, ratio_A, depositAmountB];
-    const vOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vRatio = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vExpectedOutputMax = op(
-      Opcode.read_memory,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    // prettier-ignore
-    const calculateSoruce = concat([
-      vOutputMax,
-      vRatio,
-    ]);
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+      /* meta hash */
+      @${opMetaHash}
+      @${callerMetaHash} 
 
-    const OUTPUT_MAX = () => op(Opcode.context, 0x0200);
-    // prettier-ignore
-    const handleSource = concat([
-        vExpectedOutputMax,
-        OUTPUT_MAX(),
-       op(Opcode.equal_to) ,
-      op(Opcode.ensure,1)
-    ]);
+      /* CalculateIO source */
+      _: ${max_uint256},
+      _: ${ratio_A};
+      
+      /* HANDLE IO */ 
+      expected-max-output : ${depositAmountB} ,
+      expected-ratio : ${maximumIORatio} ,
 
-    const EvaluableConfig = await generateEvaluableConfig(
-      [calculateSoruce, handleSource],
-      constants_A
+      : ensure(equal-to(expected-max-output context<2 0>())),
+      : ensure(equal-to(expected-ratio  context<2 1>())),
+      : ensure(equal-to(expected-max-output order-output-max())),
+      : ensure(equal-to(expected-ratio  order-io-ratio())); 
+      `
     );
+
+    const EvaluableConfig = await generateEvaluableConfig(sources, constants);
 
     const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
@@ -2478,12 +2210,6 @@ describe("OrderBook expression checks", async () => {
       outputIOIndex: 0,
       signedContext: [],
     };
-
-    // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
-    const maximumIORatio = fixedPointMul(
-      ratio_A,
-      ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
-    );
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA18.address,

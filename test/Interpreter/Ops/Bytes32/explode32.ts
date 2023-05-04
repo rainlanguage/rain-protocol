@@ -1,7 +1,7 @@
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -27,7 +27,9 @@ describe("EXPLODE32 Opcode test", async function () {
 
   it("should explode a single value into 8x 32 bit integers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`value: context<0 0>(), /* initial value */
+      rainlang`
+        @${opMetaHash}
+value: context<0 0>(), /* initial value */
       _ _ _ _ _ _ _ _: explode-32(value);`
     );
 

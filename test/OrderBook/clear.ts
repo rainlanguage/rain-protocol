@@ -2,7 +2,6 @@ import { strict as assert } from "assert";
 
 import { ethers } from "hardhat";
 import type { ReserveToken18, ReserveTokenDecimals } from "../../typechain";
-import { OrderNotFoundEvent } from "../../typechain/contracts/orderbook/IOrderBookV1";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -13,6 +12,7 @@ import {
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
+  OrderNotFoundEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import { randomUint256 } from "../../utils/bytes";
 import {

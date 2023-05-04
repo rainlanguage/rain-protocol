@@ -6,7 +6,11 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
-import { standardEvaluableConfig, compileSource } from "../../../../utils";
+import {
+  standardEvaluableConfig,
+  compileSource,
+  opMetaHash,
+} from "../../../../utils";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 import assert from "assert";
 
@@ -27,6 +31,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
   it("should debug for simple expressions using offchainDebugEval", async () => {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
         _: add(1 2 3),
         : set(123 4),
         _: any(0 2 0);
@@ -57,6 +63,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
 
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
        _: hash(${ethers.constants.MaxUint256});
     `);
 
@@ -89,6 +97,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
 
     const { sources: sources2, constants: constants2 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
        value0: context<0 0>(),
       value1: context<0 1>(),
       _: hash(value0 value1);
@@ -125,6 +135,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
 
     const { sources: sources3, constants: constants3 } =
       await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+
       _ _: set(1337 1) get(1337) set(1337 2) get(1337);
     `);
 
@@ -156,6 +168,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     const { sources: sources0, constants: constants0 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* main source 0 */
         _ _:  call<1 2>(10);
 
@@ -192,6 +206,8 @@ describe("Rainterpreter offchainDebugEval tests", async function () {
     const { sources: sources1, constants: constants1 } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /*
           sourceMain
         */

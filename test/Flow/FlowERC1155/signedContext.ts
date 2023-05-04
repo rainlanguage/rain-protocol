@@ -16,7 +16,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
@@ -42,6 +45,8 @@ describe("FlowERC1155 signed context tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
@@ -76,6 +81,8 @@ describe("FlowERC1155 signed context tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
       `
@@ -159,6 +166,8 @@ describe("FlowERC1155 signed context tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
           /* variables */
           sentinel: ${RAIN_FLOW_SENTINEL},
           sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
@@ -193,6 +202,8 @@ describe("FlowERC1155 signed context tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
     rainlang`
+        @${opMetaHash}
+
       /* sourceHandleTransfer */
       _: 1;
     `

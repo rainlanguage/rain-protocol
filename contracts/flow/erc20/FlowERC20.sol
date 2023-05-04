@@ -16,20 +16,17 @@ import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
-/// Thrown when eval of the transfer entrypoint returns 0.
-error InvalidTransfer();
-
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xd1413df6f080a3403d4e89e2e3accd89498ca68d1ad43ae96058c4241f71db47
+    0x080b8626c7efbe240a47c135e2869515d4023c9dc60de2bf64f7932c03bc4f75
 );
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
 );
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint16 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+uint256 constant HANDLE_TRANSFER_MIN_OUTPUTS = 0;
+uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 /// @title FlowERC20
 contract FlowERC20 is
@@ -47,6 +44,7 @@ contract FlowERC20 is
     using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
+    bool private evalHandleTransfer;
     Evaluable internal evaluable;
 
     constructor(
@@ -59,28 +57,39 @@ contract FlowERC20 is
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        (
-            IInterpreterV1 interpreter_,
-            IInterpreterStoreV1 store_,
-            address expression_
-        ) = config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.sources,
-                config_.evaluableConfig.constants,
-                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            );
-        evaluable = Evaluable(interpreter_, store_, expression_);
 
         flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+
+        if (
+            config_.evaluableConfig.sources.length > 0 &&
+            config_
+                .evaluableConfig
+                .sources[SourceIndex.unwrap(HANDLE_TRANSFER_ENTRYPOINT)]
+                .length >
+            0
+        ) {
+            evalHandleTransfer = true;
+            (
+                IInterpreterV1 interpreter_,
+                IInterpreterStoreV1 store_,
+                address expression_
+            ) = config_.evaluableConfig.deployer.deployExpression(
+                    config_.evaluableConfig.sources,
+                    config_.evaluableConfig.constants,
+                    LibUint256Array.arrayFrom(HANDLE_TRANSFER_MIN_OUTPUTS)
+                );
+            evaluable = Evaluable(interpreter_, store_, expression_);
+        }
     }
 
-    function _dispatch(
+    function _dispatchHandleTransfer(
         address expression_
     ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
-                CAN_TRANSFER_ENTRYPOINT,
-                CAN_TRANSFER_MAX_OUTPUTS
+                HANDLE_TRANSFER_ENTRYPOINT,
+                HANDLE_TRANSFER_MAX_OUTPUTS
             );
     }
 
@@ -92,33 +101,31 @@ contract FlowERC20 is
     ) internal virtual override {
         unchecked {
             super._afterTokenTransfer(from_, to_, amount_);
+
             // Mint and burn access MUST be handled by flow.
-            // CAN_TRANSFER will only restrict subsequent transfers.
-            if (!(from_ == address(0) || to_ == address(0))) {
+            // HANDLE_TRANSFER will only restrict subsequent transfers.
+            if (
+                evalHandleTransfer &&
+                !(from_ == address(0) || to_ == address(0))
+            ) {
                 Evaluable memory evaluable_ = evaluable;
-                uint256[][] memory context_ = LibContext.build(
-                    // The transfer params are caller context because the caller
-                    // is triggering the transfer.
-                    LibUint256Array
-                        .arrayFrom(
-                            uint256(uint160(from_)),
-                            uint256(uint160(to_)),
-                            amount_
-                        )
-                        .matrixFrom(),
-                    new SignedContextV1[](0)
+                (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
+                    evaluable_.store,
+                    DEFAULT_STATE_NAMESPACE,
+                    _dispatchHandleTransfer(evaluable_.expression),
+                    LibContext.build(
+                        // The transfer params are caller context because the caller
+                        // is triggering the transfer.
+                        LibUint256Array
+                            .arrayFrom(
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_)),
+                                amount_
+                            )
+                            .matrixFrom(),
+                        new SignedContextV1[](0)
+                    )
                 );
-                (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
-                    .interpreter
-                    .eval(
-                        evaluable_.store,
-                        DEFAULT_STATE_NAMESPACE,
-                        _dispatch(evaluable_.expression),
-                        context_
-                    );
-                if (stack_[stack_.length - 1] == 0) {
-                    revert InvalidTransfer();
-                }
                 if (kvs_.length > 0) {
                     evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                 }

@@ -1,7 +1,7 @@
 {
   "name": "Flow",
   "abiName": "Flow",
-  "desc": "A flow contract, that can transfer token based on a deployed expression",
+  "desc": "Flow contracts transfer tokens based on deployed expressions.",
   "alias": "flow",
   "source": "https://github.com/rainprotocol/rain-protocol",
   "methods": [
@@ -13,7 +13,7 @@
         {
           "name": "Dummy Expression",
           "abiName": "dummyConfig",
-          "desc": "A dummy expression.",
+          "desc": "A dummy expression. This is here to workaround a bug in Solidity.",
           "path": "[11].inputs[1].components[0]"
         },
         {
@@ -26,20 +26,20 @@
           "contextColumns": [
             {
               "name": "Base",
-              "desc": "Base context column",
+              "desc": "Base context column.",
               "alias": "base",
               "columnIndex": 0,
               "cells": [
                 {
-                  "name": "Caller",
-                  "desc": "The contract or EOA that called transfer",
-                  "alias": "caller",
+                  "name": "Flow caller",
+                  "desc": "The contract or wallet that called flow.",
+                  "alias": "flow-caller",
                   "cellIndex": 0
                 },
                 {
-                  "name": "This Contract",
-                  "desc": "The address of the Flow contract this expression is for",
-                  "alias": "this-contract",
+                  "name": "Flow contract",
+                  "desc": "The address of the flow contract.",
+                  "alias": "flow-contract",
                   "cellIndex": 1
                 }
               ]

@@ -5,6 +5,7 @@ import {
   assertError,
   eighteenZeros,
   getBlockTimestamp,
+  opMetaHash,
   sixZeros,
   standardEvaluableConfig,
   timewarp,
@@ -47,7 +48,9 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 3600;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`
+        @${opMetaHash}
+_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -95,7 +98,9 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`
+        @${opMetaHash}
+_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -131,7 +136,9 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`
+        @${opMetaHash}
+_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =
@@ -164,7 +171,9 @@ describe("chainlink-price Opcode tests", async function () {
     const staleAfter = (await getBlockTimestamp()) + 10000;
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: chainlink-price(${feed} ${staleAfter});`
+      rainlang`
+        @${opMetaHash}
+_: chainlink-price(${feed} ${staleAfter});`
     );
 
     const { consumerLogic, interpreter, dispatch } =

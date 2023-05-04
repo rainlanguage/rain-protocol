@@ -26,7 +26,7 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x36be58e0561b6641cf17d785c9bb2ad465636db1d100be229ef8bd41c6e33a5c
+    0xb45a690d69760662f71ac675f2f411c5462bf6bb0fef4167f48c7cacd99304fb
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -71,10 +71,19 @@ contract FlowERC721 is
         flowCommonInit(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
 
         if (config_.evaluableConfig.sources.length > 0) {
-            evalHandleTransfer = config_.evaluableConfig.sources[0].length > 0;
+            evalHandleTransfer =
+                config_
+                    .evaluableConfig
+                    .sources[SourceIndex.unwrap(HANDLE_TRANSFER_ENTRYPOINT)]
+                    .length >
+                0;
             evalTokenURI =
                 config_.evaluableConfig.sources.length > 1 &&
-                config_.evaluableConfig.sources[1].length > 0;
+                config_
+                    .evaluableConfig
+                    .sources[SourceIndex.unwrap(TOKEN_URI_ENTRYPOINT)]
+                    .length >
+                0;
 
             (
                 IInterpreterV1 interpreter_,
@@ -156,30 +165,33 @@ contract FlowERC721 is
         unchecked {
             super._afterTokenTransfer(from_, to_, tokenId_, batchSize_);
 
-            if (evalHandleTransfer) {
-                // Mint and burn access MUST be handled by CAN_FLOW.
-                // CAN_TRANSFER will only restrict subsequent transfers.
-                if (!(from_ == address(0) || to_ == address(0))) {
-                    Evaluable memory evaluable_ = evaluable;
-                    (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
-                        evaluable_.store,
-                        DEFAULT_STATE_NAMESPACE,
-                        _dispatchHandleTransfer(evaluable_.expression),
-                        LibContext.build(
-                            // Transfer params are caller context.
-                            LibUint256Array
-                                .arrayFrom(
-                                    uint256(uint160(from_)),
-                                    uint256(uint160(to_)),
-                                    tokenId_
-                                )
-                                .matrixFrom(),
-                            new SignedContextV1[](0)
-                        )
-                    );
-                    if (kvs_.length > 0) {
-                        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-                    }
+            // Mint and burn access MUST be handled by flow.
+            // HANDLE_TRANSFER will only restrict subsequent transfers.
+            if (
+                evalHandleTransfer &&
+                !(from_ == address(0) || to_ == address(0))
+            ) {
+                Evaluable memory evaluable_ = evaluable;
+                (, uint256[] memory kvs_) = evaluable_.interpreter.eval(
+                    evaluable_.store,
+                    DEFAULT_STATE_NAMESPACE,
+                    _dispatchHandleTransfer(evaluable_.expression),
+                    LibContext.build(
+                        // Transfer information.
+                        // Does NOT include `batchSize_` because handle
+                        // transfer is NOT called for mints.
+                        LibUint256Array
+                            .arrayFrom(
+                                uint256(uint160(from_)),
+                                uint256(uint160(to_)),
+                                tokenId_
+                            )
+                            .matrixFrom(),
+                        new SignedContextV1[](0)
+                    )
+                );
+                if (kvs_.length > 0) {
+                    evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                 }
             }
         }

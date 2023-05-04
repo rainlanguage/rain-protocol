@@ -5,7 +5,10 @@ import { assertError } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 describe("RainInterpreter FOLD_CONTEXT", async function () {
@@ -34,6 +37,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -90,6 +95,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -146,6 +153,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -194,6 +203,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -207,7 +218,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       b: equal-to(a2 ${X}),
       c: equal-to(a3 ${X}),
       d: equal-to(a4 ${X}),
-      _: add(acc a b c d),
+      _: add(acc a b c d);
       `
     );
 
@@ -254,6 +265,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -263,7 +276,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
         sources[1]
       */
       s0 s1 s2 s3 s4: ,
-      _: add(s0 s1 s2 s3 s4),
+      _: add(s0 s1 s2 s3 s4);
       `
     );
 
@@ -302,19 +315,20 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
       _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
 
       /*
-        sources[1]
+        sources[1] is empty
       */
-      s0: ,
       `
     );
     const expression0 = await expressionConsumerDeploy(
-      sources,
+      [sources[0], []],
       constants,
       rainInterpreter,
       1
@@ -346,6 +360,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sources[0]
       */
@@ -437,6 +453,8 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /*
         sourceMain
       */
