@@ -51,7 +51,6 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-    using LibInterpreterState for InterpreterState;
 
     event Initialize(address sender, CombineTierConfig config);
 

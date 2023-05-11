@@ -49,7 +49,6 @@ contract FlowERC721 is
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-    using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
     bool private evalHandleTransfer;

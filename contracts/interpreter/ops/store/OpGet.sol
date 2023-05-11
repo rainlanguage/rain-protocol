@@ -11,10 +11,8 @@ import "rain.lib.memkv/LibMemoryKV.sol";
 /// @notice Opcode for reading from storage.
 library OpGet {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using LibMemoryKV for MemoryKV;
-    using LibMemoryKV for MemoryKVPtr;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,

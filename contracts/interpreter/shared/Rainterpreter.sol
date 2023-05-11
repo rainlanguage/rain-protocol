@@ -22,15 +22,12 @@ import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable
 contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
     using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
-    using LibInterpreterState for bytes;
-    using LibInterpreterState for InterpreterState;
     using LibCast for function(InterpreterState memory, Operand, Pointer)
         view
         returns (Pointer)[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
-    using LibInterpreterState for StateNamespace;
 
     // @inheritdoc IERC165
     function supportsInterface(

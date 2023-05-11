@@ -11,7 +11,6 @@ import "rain.lib.memkv/LibMemoryKV.sol";
 /// @notice Opcode for recording k/v state changes to be set in storage.
 library OpSet {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using LibMemoryKV for MemoryKV;
 

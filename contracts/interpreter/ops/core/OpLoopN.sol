@@ -21,7 +21,6 @@ error InsufficientLoopOutputs(uint256 inputs, uint256 outputs);
 /// `outputs + (inputs - outputs) * n`
 library OpLoopN {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(

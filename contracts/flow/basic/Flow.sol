@@ -13,7 +13,6 @@ bytes32 constant CALLER_META_HASH = bytes32(
 );
 
 contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
-    using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
 

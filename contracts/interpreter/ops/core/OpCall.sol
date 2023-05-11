@@ -26,7 +26,6 @@ import "sol.lib.binmaskflag/Binary.sol";
 library OpCall {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256;
 
     /// Interpreter integrity logic.

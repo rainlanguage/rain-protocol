@@ -25,7 +25,6 @@ error DoWhileMaxInputs(uint256 inputs);
 library OpDoWhile {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
 
     /// Interpreter integrity for do while.
     /// The loop itself pops a single value from the stack to determine whether

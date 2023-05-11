@@ -40,7 +40,6 @@ contract FlowCommon is
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
-    using LibInterpreterState for InterpreterState;
     using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;

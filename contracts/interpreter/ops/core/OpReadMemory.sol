@@ -25,7 +25,6 @@ uint256 constant OPERAND_MEMORY_TYPE_CONSTANT = 1;
 /// array by index.
 library OpReadMemory {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using Math for uint256;
 

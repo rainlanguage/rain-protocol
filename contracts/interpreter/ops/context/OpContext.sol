@@ -14,7 +14,6 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// cannot be predicted at deploy time.
 library OpContext {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
     /// Interpreter integrity logic.

@@ -17,7 +17,6 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// the context reads is set to the entire column.
 library OpContextRow {
     using LibStackPointer for Pointer;
-    using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
     /// Interpreter integrity logic.

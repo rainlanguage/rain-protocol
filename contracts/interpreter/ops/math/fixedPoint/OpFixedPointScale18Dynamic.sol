@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "sol.lib.binmaskflag/Binary.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpFixedPointScale18Dynamic

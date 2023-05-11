@@ -12,8 +12,6 @@ import "hardhat/console.sol";
 /// Test wrapper around `LibInterpreterState` library.
 contract LibInterpreterStateTest {
     using LibMemory for bytes;
-    using LibInterpreterState for InterpreterState;
-    using LibInterpreterState for bytes;
     using LibStackPointer for uint256[];
     using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
