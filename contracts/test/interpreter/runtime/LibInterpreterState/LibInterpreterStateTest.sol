@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "rain.lib.interpreter/LibInterpreterState.sol";
-import "../../../../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibBytes.sol";
@@ -15,7 +15,7 @@ contract LibInterpreterStateTest {
     using LibInterpreterState for InterpreterState;
     using LibInterpreterState for bytes;
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibBytes for bytes;

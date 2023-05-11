@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
@@ -12,7 +12,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 /// below its starting point at the stack bottom. For the virtual stack used by
 /// the integrity check we can start it in the middle of the `uint256` range and
 /// achieve something analogous to signed integers with unsigned integer types.
-StackPointer constant INITIAL_STACK_BOTTOM = StackPointer.wrap(
+Pointer constant INITIAL_STACK_BOTTOM = Pointer.wrap(
     type(uint256).max / 2
 );
 
@@ -45,7 +45,7 @@ error MinFinalStack(uint256 minStackOutputs, uint256 actualStackOutputs);
 /// configuration of what is being checked such as the sources and size of the
 /// constants, the current and maximum stack height is being recomputed on every
 /// checked opcode. The stack is virtual during the integrity check so whatever
-/// the `StackPointer` values are during the check, it's always undefined
+/// the `Pointer` values are during the check, it's always undefined
 /// behaviour to actually try to read/write to them.
 ///
 /// @param sources All the sources of the expression are provided to the
@@ -71,12 +71,12 @@ struct IntegrityCheckState {
     // gas to calculate offsets.
     bytes[] sources;
     uint256 constantsLength;
-    StackPointer stackBottom;
-    StackPointer stackHighwater;
-    StackPointer stackMaxTop;
-    function(IntegrityCheckState memory, Operand, StackPointer)
+    Pointer stackBottom;
+    Pointer stackHighwater;
+    Pointer stackMaxTop;
+    function(IntegrityCheckState memory, Operand, Pointer)
         view
-        returns (StackPointer)[] integrityFunctionPointers;
+        returns (Pointer)[] integrityFunctionPointers;
 }
 
 /// @title LibIntegrityCheck
@@ -100,15 +100,15 @@ struct IntegrityCheckState {
 /// enforces correct pop/push calculations for every opcode.
 library LibIntegrityCheck {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using Math for uint256;
 
     function newState(
         bytes[] memory sources_,
         uint256[] memory constants_,
-        function(IntegrityCheckState memory, Operand, StackPointer)
+        function(IntegrityCheckState memory, Operand, Pointer)
             view
-            returns (StackPointer)[]
+            returns (Pointer)[]
             memory integrityFns_
     ) internal pure returns (IntegrityCheckState memory) {
         return
@@ -134,11 +134,11 @@ library LibIntegrityCheck {
     /// the max stack top for.
     function syncStackMaxTop(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackPointer_
+        Pointer stackPointer_
     ) internal pure {
         if (
-            StackPointer.unwrap(stackPointer_) >
-            StackPointer.unwrap(integrityCheckState_.stackMaxTop)
+            Pointer.unwrap(stackPointer_) >
+            Pointer.unwrap(integrityCheckState_.stackMaxTop)
         ) {
             integrityCheckState_.stackMaxTop = stackPointer_;
         }
@@ -169,16 +169,16 @@ library LibIntegrityCheck {
     function ensureIntegrity(
         IntegrityCheckState memory integrityCheckState_,
         SourceIndex sourceIndex_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         uint256 minStackOutputs_
-    ) internal view returns (StackPointer) {
+    ) internal view returns (Pointer) {
         unchecked {
             // It's generally more efficient to ensure the stack bottom has
             // plenty of headroom to make underflows from pops impossible rather
             // than guard every single pop against underflow.
             if (
-                StackPointer.unwrap(integrityCheckState_.stackBottom) <
-                StackPointer.unwrap(INITIAL_STACK_BOTTOM)
+                Pointer.unwrap(integrityCheckState_.stackBottom) <
+                Pointer.unwrap(INITIAL_STACK_BOTTOM)
             ) {
                 revert MinStackBottom();
             }
@@ -230,8 +230,8 @@ library LibIntegrityCheck {
     /// @return The stack top after it has pushed an item.
     function push(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         stackTop_ = stackTop_.up();
         integrityCheckState_.syncStackMaxTop(stackTop_);
         return stackTop_;
@@ -244,16 +244,16 @@ library LibIntegrityCheck {
     /// @param n_ The number of items to push to the virtual stack.
     function push(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         stackTop_ = stackTop_.up(n_);
         // Any time we push more than 1 item to the stack we move the highwater
         // to the last item, as nested multioutput is disallowed.
         if (n_ > 1) {
-            integrityCheckState_.stackHighwater = StackPointer.wrap(
-                StackPointer.unwrap(integrityCheckState_.stackHighwater).max(
-                    StackPointer.unwrap(stackTop_.down())
+            integrityCheckState_.stackHighwater = Pointer.wrap(
+                Pointer.unwrap(integrityCheckState_.stackHighwater).max(
+                    Pointer.unwrap(stackTop_.down())
                 )
             );
         }
@@ -267,9 +267,9 @@ library LibIntegrityCheck {
     /// creep in.
     function pushIgnoreHighwater(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         stackTop_ = stackTop_.up(n_);
         integrityCheckState_.syncStackMaxTop(stackTop_);
         return stackTop_;
@@ -284,8 +284,8 @@ library LibIntegrityCheck {
     /// @return The virtual stack top after the pop.
     function pop(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         stackTop_ = stackTop_.down();
         integrityCheckState_.popUnderflowCheck(stackTop_);
         return stackTop_;
@@ -298,9 +298,9 @@ library LibIntegrityCheck {
     /// @param n_ The number of items to pop off the virtual stack.
     function pop(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         if (n_ > 0) {
             stackTop_ = stackTop_.down(n_);
             integrityCheckState_.popUnderflowCheck(stackTop_);
@@ -314,9 +314,9 @@ library LibIntegrityCheck {
     /// @param n_ as per `pop`.
     function popIgnoreHighwater(
         IntegrityCheckState memory,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return stackTop_.down(n_);
     }
 
@@ -328,11 +328,11 @@ library LibIntegrityCheck {
     /// @param stackTop_ as per `pop`.
     function popUnderflowCheck(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_
+        Pointer stackTop_
     ) internal pure {
         if (
-            StackPointer.unwrap(stackTop_) <=
-            StackPointer.unwrap(integrityCheckState_.stackHighwater)
+            Pointer.unwrap(stackTop_) <=
+            Pointer.unwrap(integrityCheckState_.stackHighwater)
         ) {
             revert StackPopUnderflow(
                 integrityCheckState_.stackBottom.toIndex(
@@ -352,10 +352,10 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied n times.
     function applyFnN(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256) internal view returns (uint256),
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, n_));
     }
@@ -369,10 +369,10 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied n times.
     function applyFnN(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256) internal view,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.pop(stackTop_, n_);
     }
 
@@ -384,9 +384,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
@@ -398,9 +398,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256) internal view
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.pop(stackTop_, 2);
     }
 
@@ -412,9 +412,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
@@ -428,9 +428,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 3));
     }
@@ -449,12 +449,12 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256, uint256, uint256)
             internal
             view
             returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 4));
     }
@@ -469,10 +469,10 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256[] memory) internal view returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(
                 integrityCheckState_.pop(stackTop_, length_)
@@ -495,13 +495,13 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256, uint256[] memory)
             internal
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -526,13 +526,13 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256, uint256, uint256[] memory)
             internal
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -557,13 +557,13 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(uint256, uint256[] memory, uint256[] memory)
             internal
             view
             returns (uint256[] memory),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -585,9 +585,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(Operand, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
@@ -604,9 +604,9 @@ library LibIntegrityCheck {
     /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
+        Pointer stackTop_,
         function(Operand, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }

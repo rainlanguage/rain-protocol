@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "rain.interface.flow/IFlowV3.sol";
 
-import "../../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "../../sentinel/LibSentinel.sol";
 
@@ -37,14 +37,14 @@ uint256 constant RAIN_FLOW_SENTINEL = uint256(
 
 library LibFlow {
     using SafeERC20 for IERC20;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using SafeCast for uint256;
     using LibFlow for FlowTransferV1;
     using LibUint256Array for uint256[];
 
     function stackToFlow(
-        StackPointer stackBottom_,
-        StackPointer stackTop_
+        Pointer stackBottom_,
+        Pointer stackTop_
     ) internal pure returns (FlowTransferV1 memory) {
         unchecked {
             FlowTransferV1 memory transfer_;

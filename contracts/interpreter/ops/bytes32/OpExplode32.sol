@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
@@ -9,14 +9,14 @@ import "../../deploy/LibIntegrityCheck.sol";
 /// @title OpExplode
 /// @notice Opcode for exploding a single value into 8x 32 bit integers.
 library OpExplode32 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_), 8);
     }
@@ -24,9 +24,9 @@ library OpExplode32 {
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        (StackPointer location_, uint256 i_) = stackTop_.pop();
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
+        (Pointer location_, uint256 i_) = stackTop_.pop();
         uint256 mask_ = uint256(type(uint32).max);
         return
             location_.push(

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -13,7 +13,7 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// is provided at runtime from the calling contract on a per-eval basis so
 /// cannot be predicted at deploy time.
 library OpContext {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -22,8 +22,8 @@ library OpContext {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityCheckState_.push(stackTop_);
@@ -35,8 +35,8 @@ library OpContext {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // The indexing syntax here enforces OOB checks at runtime.
         return
             stackTop_.push(

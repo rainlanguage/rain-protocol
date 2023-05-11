@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
@@ -20,15 +20,15 @@ error InsufficientLoopOutputs(uint256 inputs, uint256 outputs);
 /// all the intermediate excess outputs as:
 /// `outputs + (inputs - outputs) * n`
 library OpLoopN {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 n_ = Operand.unwrap(operand_) >> 12;
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
@@ -39,7 +39,7 @@ library OpLoopN {
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) & MASK_12BIT
             );
-            StackPointer highwater_ = integrityCheckState_.stackHighwater;
+            Pointer highwater_ = integrityCheckState_.stackHighwater;
             for (uint256 i_ = 0; i_ < n_; i_++) {
                 // Ignore intermediate highwaters because call will set it past
                 // the inputs and then the outputs each time.
@@ -58,8 +58,8 @@ library OpLoopN {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         uint256 n_ = Operand.unwrap(operand_) >> 12;
         Operand callOperand_ = Operand.wrap(
             Operand.unwrap(operand_) & MASK_12BIT

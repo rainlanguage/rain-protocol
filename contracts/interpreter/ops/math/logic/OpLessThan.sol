@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpLessThan
 /// @notice Opcode to compare the top two stack values.
 library OpLessThan {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
@@ -19,16 +19,16 @@ library OpLessThan {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

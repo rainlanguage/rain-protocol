@@ -5,7 +5,7 @@ import "sol.lib.binmaskflag/Binary.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpReadMemory.sol";
 import "../../extern/LibExtern.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 
 /// Thrown when the length of results from an extern don't match what the operand
 /// defines. This is bad because it implies our integrity check miscalculated the
@@ -16,13 +16,13 @@ error BadExternResultsLength(uint256 expected, uint256 actual);
 
 library OpExtern {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_5BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 5) & MASK_5BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 10;
@@ -44,8 +44,8 @@ library OpExtern {
     function intern(
         InterpreterState memory interpreterState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         IInterpreterExternV1 interpreterExtern_;
         ExternDispatch externDispatch_;
         uint256 head_;

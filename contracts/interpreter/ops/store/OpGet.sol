@@ -2,15 +2,15 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "../../../kv/LibMemoryKV.sol";
+import "rain.lib.memkv/LibMemoryKV.sol";
 
 /// @title OpGet
 /// @notice Opcode for reading from storage.
 library OpGet {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using LibMemoryKV for MemoryKV;
@@ -19,8 +19,8 @@ library OpGet {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             // Pop key
             // Stack value
@@ -38,8 +38,8 @@ library OpGet {
     function run(
         InterpreterState memory interpreterState_,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         uint256 k_;
         (stackTop_, k_) = stackTop_.pop();
         MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(

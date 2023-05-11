@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -13,15 +13,15 @@ error ZeroInputs();
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             if (inputs_ == 0) {
@@ -45,8 +45,8 @@ library OpSelectLte {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             uint256 mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;

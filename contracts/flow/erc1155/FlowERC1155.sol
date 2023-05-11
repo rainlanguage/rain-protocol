@@ -35,7 +35,7 @@ contract FlowERC1155 is
     FlowCommon,
     ERC1155
 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -159,8 +159,8 @@ contract FlowERC1155 is
         uint256[] memory refs_;
         FlowERC1155IOV1 memory flowIO_;
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
         (stackTop_, refs_) = stackTop_.consumeStructs(

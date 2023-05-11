@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "rain.lib.typecast/LibCast.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
@@ -11,7 +11,7 @@ import "../../deploy/LibIntegrityCheck.sol";
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibCast for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -30,8 +30,8 @@ library OpERC1155BalanceOfBatch {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
@@ -44,8 +44,8 @@ library OpERC1155BalanceOfBatch {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

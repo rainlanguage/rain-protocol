@@ -34,8 +34,8 @@ contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
         uint256[][] memory context_
     ) internal view returns (FlowTransferV1 memory, uint256[] memory) {
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
         return (LibFlow.stackToFlow(stackBottom_, stackTop_), kvs_);

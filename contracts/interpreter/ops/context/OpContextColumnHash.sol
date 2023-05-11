@@ -11,13 +11,13 @@ import "rain.lib.interpreter/LibInterpreterState.sol";
 /// handles dynamic length columns without an expensive fold operation.
 library OpContextColumnHash {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityCheckState_.push(stackTop_);
@@ -26,8 +26,8 @@ library OpContextColumnHash {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             stackTop_.push(
                 uint256(

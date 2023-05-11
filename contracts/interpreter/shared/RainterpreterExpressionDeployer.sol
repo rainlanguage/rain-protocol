@@ -76,7 +76,7 @@ contract RainterpreterExpressionDeployer is
     IDebugExpressionDeployerV1,
     IERC165
 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256[];
 
     /// The config of the deployed expression including uncompiled sources. Will
@@ -192,9 +192,9 @@ contract RainterpreterExpressionDeployer is
         view
         virtual
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
+                returns (Pointer)[]
                 memory
         )
     {
@@ -213,7 +213,7 @@ contract RainterpreterExpressionDeployer is
     ) external view returns (uint256[] memory, uint256[] memory) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(sources_, constants_, integrityFunctionPointers());
-        StackPointer stackTop_ = integrityCheckState_.stackBottom;
+        Pointer stackTop_ = integrityCheckState_.stackBottom;
         stackTop_ = LibIntegrityCheck.push(
             integrityCheckState_,
             stackTop_,
@@ -275,8 +275,8 @@ contract RainterpreterExpressionDeployer is
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
-        StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        StackPointer initialStackHighwater_ = integrityCheckState_
+        Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
+        Pointer initialStackHighwater_ = integrityCheckState_
             .stackHighwater;
         for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as

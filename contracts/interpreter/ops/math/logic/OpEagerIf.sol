@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
@@ -8,7 +8,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @notice Opcode for selecting a value based on a condition.
 library OpEagerIf {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function f(
         uint256 a_,
@@ -21,8 +21,8 @@ library OpEagerIf {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
@@ -38,8 +38,8 @@ library OpEagerIf {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             return stackTop_.applyFn(f, Operand.unwrap(operand_) + 1);
         }

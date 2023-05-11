@@ -45,7 +45,7 @@ contract FlowERC721 is
     ERC721
 {
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
@@ -204,8 +204,8 @@ contract FlowERC721 is
         uint256[] memory refs_;
         FlowERC721IOV1 memory flowIO_;
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
         // mints

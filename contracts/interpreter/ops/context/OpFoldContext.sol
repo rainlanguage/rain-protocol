@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../core/OpCall.sol";
@@ -23,13 +23,13 @@ import "../core/OpCall.sol";
 /// iterator over the tail of the column.
 library OpFoldContext {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             // We don't use the column for anything in the integrity check.
@@ -62,8 +62,8 @@ library OpFoldContext {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_3BIT;

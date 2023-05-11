@@ -8,7 +8,7 @@ import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
-import "../../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -34,12 +34,12 @@ contract AutoApprove is
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).

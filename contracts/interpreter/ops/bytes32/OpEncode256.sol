@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -15,7 +15,7 @@ error TruncatedEncoding(uint256 startBit, uint256 length);
 /// @title OpEncode256
 /// @notice Opcode for encoding binary data into a 256 bit value.
 library OpEncode256 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
@@ -43,8 +43,8 @@ library OpEncode256 {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 startBit_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
             uint256 length_ = Operand.unwrap(operand_) & MASK_8BIT;
@@ -58,8 +58,8 @@ library OpEncode256 {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f, operand_);
     }
 }

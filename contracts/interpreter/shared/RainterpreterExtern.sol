@@ -4,7 +4,7 @@ pragma solidity =0.8.19;
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/IInterpreterExternV1.sol";
 import "../ops/chainlink/OpChainlinkOraclePrice.sol";
-import "../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
@@ -24,7 +24,7 @@ error UnknownOp(uint256 opcode);
 /// quaint.
 contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
 
     // @inheritdoc ERC165
@@ -44,7 +44,7 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
         if (inputs_.length != 2) {
             revert BadInputs(2, inputs_.length);
         }
-        StackPointer stackTop_ = inputs_.asStackPointerAfter();
+        Pointer stackTop_ = inputs_.asStackPointerAfter();
         uint256 opcode_ = (ExternDispatch.unwrap(dispatch_) >> 16) & MASK_16BIT;
 
         // Operand operand_ = Operand.wrap(ExternDispatch.unwrap(dispatch_) & MASK_16BIT);

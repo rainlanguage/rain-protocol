@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
-import "../../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
@@ -10,7 +10,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @notice Opcode for scaling a number to 18 decimal fixed point.
 library OpFixedPointScale18 {
     using FixedPointDecimalScale for uint256;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(Operand operand_, uint256 a_) internal pure returns (uint256) {
@@ -24,16 +24,16 @@ library OpFixedPointScale18 {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f, operand_);
     }
 }

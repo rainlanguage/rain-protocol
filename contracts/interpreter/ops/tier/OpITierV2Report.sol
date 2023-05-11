@@ -2,15 +2,15 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.report` as an opcode.
 library OpITierV2Report {
-    using LibStackPointer for StackPointer;
-    using LibStackPointer for uint256[];
+    using LibStackPointer for Pointer;
+    using LibPointer for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
@@ -28,8 +28,8 @@ library OpITierV2Report {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
@@ -42,8 +42,8 @@ library OpITierV2Report {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer stackTopAfter_) {
+        Pointer stackTop_
+    ) internal view returns (Pointer stackTopAfter_) {
         return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

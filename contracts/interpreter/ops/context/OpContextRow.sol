@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -16,7 +16,7 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// within bounds at runtime. As we do NOT know statically which row will be read
 /// the context reads is set to the entire column.
 library OpContextRow {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -25,8 +25,8 @@ library OpContextRow {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         function(uint256) internal pure returns (uint256) fn_;
@@ -39,10 +39,10 @@ library OpContextRow {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // The indexing syntax here enforces OOB checks at runtime.
-        (StackPointer location_, uint256 row_) = stackTop_.pop();
+        (Pointer location_, uint256 row_) = stackTop_.pop();
         location_.set(state_.context[Operand.unwrap(operand_)][row_]);
         return stackTop_;
     }

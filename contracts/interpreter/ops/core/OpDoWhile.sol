@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
@@ -24,7 +24,7 @@ error DoWhileMaxInputs(uint256 inputs);
 /// loop (although the user paying gas might).
 library OpDoWhile {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
 
     /// Interpreter integrity for do while.
@@ -35,8 +35,8 @@ library OpDoWhile {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             /// We need outputs to be _larger than_ inputs so inputs must be
@@ -73,8 +73,8 @@ library OpDoWhile {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             uint256 outputs_ = inputs_ + 1;

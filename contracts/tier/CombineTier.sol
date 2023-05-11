@@ -6,7 +6,7 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
@@ -47,7 +47,7 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];

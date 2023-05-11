@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -140,7 +140,7 @@ contract Lobby is
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using Math for uint256;
     using SaturatingMath for uint256;
     using LibFixedPointMath for uint256;

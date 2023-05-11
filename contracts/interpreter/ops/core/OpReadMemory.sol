@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -24,7 +24,7 @@ uint256 constant OPERAND_MEMORY_TYPE_CONSTANT = 1;
 /// either be copying values from anywhere in the stack or from the constants
 /// array by index.
 library OpReadMemory {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using Math for uint256;
@@ -32,8 +32,8 @@ library OpReadMemory {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPERAND_MEMORY_TYPE_STACK) {
@@ -46,9 +46,9 @@ library OpReadMemory {
 
             // Ensure that highwater is moved past any stack item that we
             // read so that copied values cannot later be consumed.
-            integrityCheckState_.stackHighwater = StackPointer.wrap(
-                StackPointer.unwrap(integrityCheckState_.stackHighwater).max(
-                    StackPointer.unwrap(
+            integrityCheckState_.stackHighwater = Pointer.wrap(
+                Pointer.unwrap(integrityCheckState_.stackHighwater).max(
+                    Pointer.unwrap(
                         integrityCheckState_.stackBottom.up(offset_)
                     )
                 )
@@ -67,8 +67,8 @@ library OpReadMemory {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
             uint256 offset_ = Operand.unwrap(operand_) >> 1;
@@ -83,7 +83,7 @@ library OpReadMemory {
                     )
                 )
             }
-            return StackPointer.wrap(StackPointer.unwrap(stackTop_) + 0x20);
+            return Pointer.wrap(Pointer.unwrap(stackTop_) + 0x20);
         }
     }
 }

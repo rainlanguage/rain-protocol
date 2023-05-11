@@ -5,7 +5,7 @@ import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../../kv/LibMemoryKV.sol";
+import "rain.lib.memkv/LibMemoryKV.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
 import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -20,13 +20,13 @@ import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
 contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
+    using LibCast for function(InterpreterState memory, Operand, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer)[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
@@ -60,7 +60,7 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
             context_,
             compiledSources_
         );
-        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLengthFinal_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(stackLengthFinal_);
         return (tail_, state_.stateKV.toUint256Array());
@@ -90,7 +90,7 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
         state_.context = context_;
 
         // Eval the expression and return up to maxOutputs_ from the final stack.
-        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
