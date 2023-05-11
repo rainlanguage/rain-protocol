@@ -1,5 +1,5 @@
 import { artifacts } from "hardhat";
-import { arrayify } from "rainlang";
+import { arrayify } from "@rainprotocol/rainlang";
 import { deflateJson } from "../../utils";
 import { cborEncode, MAGIC_NUMBERS } from "../../utils/meta/cbor";
 import { verifyContract } from "../verify";

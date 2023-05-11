@@ -1,5 +1,5 @@
 import { artifacts, ethers } from "hardhat";
-import { arrayify } from "rainlang";
+import { arrayify } from "@rainprotocol/rainlang";
 import { RainterpreterExpressionDeployer } from "../../../typechain";
 import {
   CloneFactory,

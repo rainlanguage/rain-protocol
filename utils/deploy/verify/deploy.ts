@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { artifacts, ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../../typechain";
 import { VerifyConfigStruct } from "../../../typechain/contracts/verify/Verify";

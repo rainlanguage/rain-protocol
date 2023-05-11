@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 
 import {
@@ -25,7 +25,10 @@ import {
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
@@ -52,39 +55,28 @@ describe("Flow construction tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         from: context<0 1>(),
         to: context<0 0>(),
         amount: 2,
         seperator: 2,
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: seperator,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: seperator,
-        
+
         /**
          * er20 transfers
          */
-        transfererc20slist: seperator,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: seperator,
-        /* 0 */ 
-        nativefrom0: from,
-        nativeto0: to,
-        nativeamount0: amount,
-        /* 1 */ 
-        nativefrom1: to,
-        nativeto1: from,
-        nativeamount1: amount;
+        transfererc20slist: seperator;
       `
       );
 

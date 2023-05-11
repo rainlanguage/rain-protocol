@@ -201,7 +201,5 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    # Install contracts on submodules
-    forge install
   '';
 }

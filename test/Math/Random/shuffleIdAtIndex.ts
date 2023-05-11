@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { RandomTest } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { assertError } from "../../../utils/test/assertError";

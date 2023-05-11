@@ -1,11 +1,14 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../../../utils/tier";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
@@ -36,7 +39,9 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`
+        @${opMetaHash}
+_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -74,7 +79,9 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`
+        @${opMetaHash}
+_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -109,7 +116,9 @@ describe("RainInterpreter tier report saturating diff op", async function () {
     ];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
+      rainlang`
+        @${opMetaHash}
+_: tier-v2-saturating-diff(${reports[0]} ${reports[1]});`
     );
 
     const expression0 = await expressionConsumerDeploy(
