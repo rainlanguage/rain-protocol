@@ -5,7 +5,7 @@ import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeab
 import "../../run/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "rain.lib.typecast/LibCast.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC1155BalanceOfBatch

@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 

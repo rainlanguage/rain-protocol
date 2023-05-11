@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC721BalanceOf

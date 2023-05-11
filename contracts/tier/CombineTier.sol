@@ -7,7 +7,7 @@ import {TierV2} from "./TierV2.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";

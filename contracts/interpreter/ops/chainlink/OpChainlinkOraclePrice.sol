@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import {LibChainlink} from "../../../chainlink/LibChainlink.sol";
 import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpChainlinkOraclePrice
