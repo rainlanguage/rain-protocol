@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
+import "rain.lib.interpreter/LibOp.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
@@ -11,6 +12,7 @@ import "./OpEncode256.sol";
 /// @notice Opcode for decoding binary data from a 256 bit value that was encoded
 /// with OpEncode256.
 library OpDecode256 {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

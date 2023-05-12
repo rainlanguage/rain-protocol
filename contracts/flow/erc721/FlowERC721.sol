@@ -16,7 +16,6 @@ import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
-import "../../sentinel/LibSentinel.sol";
 
 /// Thrown when burner of tokens is not the owner of tokens.
 error BurnerNotOwner();

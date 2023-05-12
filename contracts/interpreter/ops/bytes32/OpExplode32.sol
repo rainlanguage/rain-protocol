@@ -26,10 +26,10 @@ library OpExplode32 {
         Operand,
         Pointer stackTop_
     ) internal pure returns (Pointer) {
-        (Pointer location_, uint256 i_) = stackTop_.pop();
+        (Pointer location_, uint256 i_) = stackTop_.unsafePop();
         uint256 mask_ = uint256(type(uint32).max);
         return
-            location_.push(
+            location_.unsafePush(
                 i_ & mask_,
                 (i_ >> 0x20) & mask_,
                 (i_ >> 0x40) & mask_,

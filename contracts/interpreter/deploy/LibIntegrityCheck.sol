@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "sol.lib.memory/LibPointer.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
@@ -100,6 +101,7 @@ struct IntegrityCheckState {
 /// enforces correct pop/push calculations for every opcode.
 library LibIntegrityCheck {
     using LibIntegrityCheck for IntegrityCheckState;
+    using LibPointer for Pointer;
     using LibStackPointer for Pointer;
     using Math for uint256;
 
@@ -118,7 +120,7 @@ library LibIntegrityCheck {
                 INITIAL_STACK_BOTTOM,
                 // Highwater starts underneath stack bottom as it errors on an
                 // greater than _or equal to_ check.
-                INITIAL_STACK_BOTTOM.down(),
+                INITIAL_STACK_BOTTOM.unsafeSubWord(),
                 INITIAL_STACK_BOTTOM,
                 integrityFns_
             );
@@ -213,7 +215,7 @@ library LibIntegrityCheck {
             }
             uint256 finalStackOutputs_ = integrityCheckState_
                 .stackBottom
-                .toIndex(stackTop_);
+                .unsafeToIndex(stackTop_);
             if (minStackOutputs_ > finalStackOutputs_) {
                 revert MinFinalStack(minStackOutputs_, finalStackOutputs_);
             }
@@ -232,7 +234,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         Pointer stackTop_
     ) internal pure returns (Pointer) {
-        stackTop_ = stackTop_.up();
+        stackTop_ = stackTop_.unsafeAddWord();
         integrityCheckState_.syncStackMaxTop(stackTop_);
         return stackTop_;
     }
@@ -247,13 +249,13 @@ library LibIntegrityCheck {
         Pointer stackTop_,
         uint256 n_
     ) internal pure returns (Pointer) {
-        stackTop_ = stackTop_.up(n_);
+        stackTop_ = stackTop_.unsafeAddWords(n_);
         // Any time we push more than 1 item to the stack we move the highwater
         // to the last item, as nested multioutput is disallowed.
         if (n_ > 1) {
             integrityCheckState_.stackHighwater = Pointer.wrap(
                 Pointer.unwrap(integrityCheckState_.stackHighwater).max(
-                    Pointer.unwrap(stackTop_.down())
+                    Pointer.unwrap(stackTop_.unsafeSubWord())
                 )
             );
         }
@@ -270,7 +272,7 @@ library LibIntegrityCheck {
         Pointer stackTop_,
         uint256 n_
     ) internal pure returns (Pointer) {
-        stackTop_ = stackTop_.up(n_);
+        stackTop_ = stackTop_.unsafeAddWords(n_);
         integrityCheckState_.syncStackMaxTop(stackTop_);
         return stackTop_;
     }
@@ -286,7 +288,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         Pointer stackTop_
     ) internal pure returns (Pointer) {
-        stackTop_ = stackTop_.down();
+        stackTop_ = stackTop_.unsafeSubWord();
         integrityCheckState_.popUnderflowCheck(stackTop_);
         return stackTop_;
     }
@@ -302,7 +304,7 @@ library LibIntegrityCheck {
         uint256 n_
     ) internal pure returns (Pointer) {
         if (n_ > 0) {
-            stackTop_ = stackTop_.down(n_);
+            stackTop_ = stackTop_.unsafeSubWords(n_);
             integrityCheckState_.popUnderflowCheck(stackTop_);
         }
         return stackTop_;
@@ -317,7 +319,7 @@ library LibIntegrityCheck {
         Pointer stackTop_,
         uint256 n_
     ) internal pure returns (Pointer) {
-        return stackTop_.down(n_);
+        return stackTop_.unsafeSubWords(n_);
     }
 
     /// Ensures that pops have not underflowed the stack, i.e. that the stack
@@ -335,10 +337,10 @@ library LibIntegrityCheck {
             Pointer.unwrap(integrityCheckState_.stackHighwater)
         ) {
             revert StackPopUnderflow(
-                integrityCheckState_.stackBottom.toIndex(
+                integrityCheckState_.stackBottom.unsafeToIndex(
                     integrityCheckState_.stackHighwater
                 ),
-                integrityCheckState_.stackBottom.toIndex(stackTop_)
+                integrityCheckState_.stackBottom.unsafeToIndex(stackTop_)
             );
         }
     }

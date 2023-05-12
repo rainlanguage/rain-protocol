@@ -10,13 +10,13 @@ import "rain.interface.factory/ICloneableV1.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.flow/IFlowERC1155V3.sol";
 
-import "../../sentinel/LibSentinel.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "../libraries/LibFlow.sol";
 import "../FlowCommon.sol";
 
-uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
+Sentinel constant RAIN_FLOW_ERC1155_SENTINEL = Sentinel.wrap(uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
-);
+));
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x9bb748a9adab5313636f9eeb840bda9e0cce51fa068e8d2e3e92fbe1612a5161
@@ -36,6 +36,7 @@ contract FlowERC1155 is
     ERC1155
 {
     using LibStackPointer for Pointer;
+    using LibStackSentinel for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -156,28 +157,28 @@ contract FlowERC1155 is
         Evaluable memory evaluable_,
         uint256[][] memory context_
     ) internal view returns (FlowERC1155IOV1 memory, uint256[] memory) {
-        uint256[] memory refs_;
         FlowERC1155IOV1 memory flowIO_;
         (
             Pointer stackBottom_,
             Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
-        (stackTop_, refs_) = stackTop_.consumeStructs(
-            stackBottom_,
+        Pointer tuplesPointer_;
+        (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+            stackTop_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
         assembly ("memory-safe") {
-            mstore(flowIO_, refs_)
+            mstore(flowIO_, tuplesPointer_)
         }
-        (stackTop_, refs_) = stackTop_.consumeStructs(
-            stackBottom_,
+        (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+            stackTop_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
         assembly ("memory-safe") {
-            mstore(add(flowIO_, 0x20), refs_)
+            mstore(add(flowIO_, 0x20), tuplesPointer_)
         }
         flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
         return (flowIO_, kvs_);
