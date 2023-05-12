@@ -38,26 +38,26 @@ library OpGet {
         Operand,
         Pointer stackTop_
     ) internal view returns (Pointer) {
-        uint256 k_;
-        (stackTop_, k_) = stackTop_.pop();
-        MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
-            MemoryKVKey.wrap(k_)
-        );
-        uint256 v_ = 0;
+        uint256 key_;
+        (stackTop_, key_) = stackTop_.pop();
+        (uint256 exists_, MemoryKVVal value_) = interpreterState_.stateKV.get(MemoryKVKey.wrap(key_));
+
         // Cache MISS, get from external store.
-        if (MemoryKVPtr.unwrap(kvPtr_) == 0) {
-            v_ = interpreterState_.store.get(interpreterState_.namespace, k_);
+        if (exists_ == 0) {
+            uint256 storeValue_ = interpreterState_.store.get(interpreterState_.namespace, MemoryKVKey.unwrap(key_));
+
             // Push fetched value to memory to make subsequent lookups on the
             // same key find a cache HIT.
-            interpreterState_.stateKV = interpreterState_.stateKV.setVal(
-                MemoryKVKey.wrap(k_),
-                MemoryKVVal.wrap(v_)
+            interpreterState_.stateKV = interpreterState_.stateKV.set(
+                MemoryKVKey.wrap(key_),
+                MemoryKVVal.wrap(storeValue_)
             );
+
+            return stackTop_.push(storeValue_);
         }
         // Cache HIT.
         else {
-            v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
+            return stackTop_.push(MemoryKVVal.unwrap(value_));
         }
-        return stackTop_.push(v_);
     }
 }

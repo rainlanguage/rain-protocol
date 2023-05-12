@@ -6,6 +6,7 @@ import "sol.lib.datacontract/LibDataContract.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
 import "rain.interface.interpreter/unstable/IDebugExpressionDeployerV1.sol";
+import "rain.lib.interpreter/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -231,7 +232,7 @@ contract RainterpreterExpressionDeployer is
                 integrityCheckState_.stackMaxTop
             );
             for (uint256 i_; i_ < sources_.length; i_++) {
-                LibInterpreterState.compile(
+                LibCompile.unsafeCompile(
                     sources_[i_],
                     OPCODE_FUNCTION_POINTERS
                 );
@@ -320,17 +321,16 @@ contract RainterpreterExpressionDeployer is
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(
-                LibInterpreterState.serializeSize(
+                LibInterpreterStateDataContract.serializeSize(
                     sources_,
-                    constants_,
-                    stackLength_
+                    constants_
                 )
             );
 
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
         // provided function pointers.
-        LibInterpreterState.serialize(
+        LibInterpreterStateDataContract.unsafeSerialize(
             pointer_,
             sources_,
             constants_,

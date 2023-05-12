@@ -27,7 +27,6 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
         returns (Pointer)[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
-    using LibMemoryKV for MemoryKVPtr;
 
     // @inheritdoc IERC165
     function supportsInterface(
