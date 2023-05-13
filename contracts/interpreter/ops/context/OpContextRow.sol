@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -16,6 +17,7 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// within bounds at runtime. As we do NOT know statically which row will be read
 /// the context reads is set to the entire column.
 library OpContextRow {
+    using LibPointer for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
@@ -41,8 +43,8 @@ library OpContextRow {
         Pointer stackTop_
     ) internal pure returns (Pointer) {
         // The indexing syntax here enforces OOB checks at runtime.
-        (Pointer location_, uint256 row_) = stackTop_.pop();
-        location_.set(state_.context[Operand.unwrap(operand_)][row_]);
+        (Pointer location_, uint256 row_) = stackTop_.unsafePop();
+        location_.unsafeWriteWord(state_.context[Operand.unwrap(operand_)][row_]);
         return stackTop_;
     }
 }

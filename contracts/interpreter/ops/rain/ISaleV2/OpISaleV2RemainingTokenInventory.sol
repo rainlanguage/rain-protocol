@@ -4,12 +4,14 @@ pragma solidity ^0.8.15;
 import "rain.interface.sale/ISaleV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpISaleV2RemainingTokenInventory
 /// @notice Opcode for ISaleV2 `remainingTokenInventory`.
 library OpISaleV2RemainingTokenInventory {
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 sale_) internal view returns (uint256) {

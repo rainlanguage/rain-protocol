@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpHash
@@ -11,6 +12,7 @@ import "../../deploy/LibIntegrityCheck.sol";
 library OpHash {
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
+    using LibOp for Pointer;
 
     function f(uint256[] memory values_) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(values_)));

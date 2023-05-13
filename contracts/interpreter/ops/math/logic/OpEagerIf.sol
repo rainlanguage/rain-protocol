@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpEagerIf
@@ -9,6 +10,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 library OpEagerIf {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
 
     function f(
         uint256 a_,

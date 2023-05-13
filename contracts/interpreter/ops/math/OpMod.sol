@@ -3,11 +3,13 @@ pragma solidity =0.8.19;
 
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpMod
 /// @notice Opcode to mod N numbers.
 library OpMod {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

@@ -4,12 +4,14 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC20TotalSupply
 /// @notice Opcode for ERC20 `totalSupply`.
 library OpERC20TotalSupply {
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 token_) internal view returns (uint256) {

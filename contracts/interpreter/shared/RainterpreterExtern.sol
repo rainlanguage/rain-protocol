@@ -7,6 +7,7 @@ import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.binmaskflag/Binary.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the inputs don't match the expected inputs.
@@ -27,6 +28,8 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
     using LibStackPointer for uint256[];
     using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
+    using LibOp for Pointer;
 
     // @inheritdoc ERC165
     function supportsInterface(
@@ -45,7 +48,7 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
         if (inputs_.length != 2) {
             revert BadInputs(2, inputs_.length);
         }
-        Pointer stackTop_ = inputs_.asStackPointerAfter();
+        Pointer stackTop_ = inputs_.endPointer();
         uint256 opcode_ = (ExternDispatch.unwrap(dispatch_) >> 16) & MASK_16BIT;
 
         // Operand operand_ = Operand.wrap(ExternDispatch.unwrap(dispatch_) & MASK_16BIT);
@@ -55,7 +58,7 @@ contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
         if (opcode_ == 0) {
             outputs_ = stackTop_
                 .applyFn(OpChainlinkOraclePrice.f)
-                .peek()
+                .unsafePeek()
                 .arrayFrom();
         } else {
             revert UnknownOp(opcode_);

@@ -6,11 +6,13 @@ import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "rain.lib.typecast/LibCast.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibCast for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;

@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpEvery
 /// @notice Opcode to compare the top N stack values.
 library OpEvery {
+    using LibPointer for Pointer;
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
@@ -32,16 +36,16 @@ library OpEvery {
         Operand operand_,
         Pointer stackTop_
     ) internal pure returns (Pointer) {
-        Pointer bottom_ = stackTop_.down(Operand.unwrap(operand_));
+        Pointer bottom_ = stackTop_.unsafeSubWords(Operand.unwrap(operand_));
         for (
             Pointer i_ = bottom_;
             Pointer.unwrap(i_) < Pointer.unwrap(stackTop_);
-            i_ = i_.up()
+            i_ = i_.unsafeAddWord()
         ) {
-            if (i_.peekUp() == 0) {
-                return bottom_.push(0);
+            if (i_.unsafeReadWord() == 0) {
+                return bottom_.unsafePush(0);
             }
         }
-        return bottom_.up();
+        return bottom_.unsafeAddWord();
     }
 }

@@ -4,11 +4,13 @@ pragma solidity ^0.8.15;
 import "../../../tier/ITierV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.report` as an opcode.
 library OpITierV2Report {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibPointer for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;

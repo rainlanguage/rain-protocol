@@ -24,6 +24,6 @@ library OpTimestamp {
         Operand,
         Pointer stackTop_
     ) internal view returns (Pointer) {
-        return stackTop_.push(block.timestamp);
+        return stackTop_.unsafePush(block.timestamp);
     }
 }

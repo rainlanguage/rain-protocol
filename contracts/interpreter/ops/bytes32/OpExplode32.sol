@@ -25,19 +25,19 @@ library OpExplode32 {
         InterpreterState memory,
         Operand,
         Pointer stackTop_
-    ) internal pure returns (Pointer) {
+    ) internal pure returns (Pointer stackTopAfter_) {
         (Pointer location_, uint256 i_) = stackTop_.unsafePop();
         uint256 mask_ = uint256(type(uint32).max);
-        return
-            location_.unsafePush(
-                i_ & mask_,
-                (i_ >> 0x20) & mask_,
-                (i_ >> 0x40) & mask_,
-                (i_ >> 0x60) & mask_,
-                (i_ >> 0x80) & mask_,
-                (i_ >> 0xA0) & mask_,
-                (i_ >> 0xC0) & mask_,
-                (i_ >> 0xE0) & mask_
-            );
+        assembly ("memory-safe") {
+            mstore(location_, and(i_, mask_))
+            mstore(add(location_, 0x20), and(mask_, shr(0x20, i_)))
+            mstore(add(location_, 0x40), and(mask_, shr(0x40, i_)))
+            mstore(add(location_, 0x60), and(mask_, shr(0x60, i_)))
+            mstore(add(location_, 0x80), and(mask_, shr(0x80, i_)))
+            mstore(add(location_, 0xA0), and(mask_, shr(0xA0, i_)))
+            mstore(add(location_, 0xC0), and(mask_, shr(0xC0, i_)))
+            mstore(add(location_, 0xE0), shr(0xE0, i_))
+            stackTopAfter_ := add(location_, 0x100)
+        }
     }
 }

@@ -3,9 +3,11 @@ pragma solidity =0.8.19;
 
 import "../../../deploy/LibIntegrityCheck.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import {UD60x18, log10} from "@prb/math/src/ud60x18/Math.sol";
 
 library OpPRBLog10 {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

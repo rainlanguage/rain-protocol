@@ -24,6 +24,6 @@ library OpBlockNumber {
         Operand,
         Pointer stackTop_
     ) internal view returns (Pointer) {
-        return stackTop_.push(block.number);
+        return stackTop_.unsafePush(block.number);
     }
 }

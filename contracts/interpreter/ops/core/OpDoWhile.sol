@@ -81,10 +81,10 @@ library OpDoWhile {
                 Operand.unwrap(operand_) | (outputs_ << 4)
             );
             uint256 do_;
-            (stackTop_, do_) = stackTop_.pop();
+            (stackTop_, do_) = stackTop_.unsafePop();
             while (do_ > 0) {
                 stackTop_ = OpCall.run(state_, callOperand_, stackTop_);
-                (stackTop_, do_) = stackTop_.pop();
+                (stackTop_, do_) = stackTop_.unsafePop();
             }
             return stackTop_;
         }

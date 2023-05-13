@@ -3,12 +3,14 @@ pragma solidity ^0.8.15;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC721BalanceOf
 /// @notice Opcode for getting the current erc721 balance of an account.
 library OpERC721BalanceOf {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

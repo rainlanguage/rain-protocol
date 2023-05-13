@@ -398,7 +398,7 @@ contract Lobby is
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
-        uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
+        uint256 amount_ = stack_.endPointer().unsafePeek().min(deposit_);
         totalDeposited -= amount_;
         emit Leave(msg.sender, address(token), deposit_, amount_);
 

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import {LibChainlink} from "../../../chainlink/LibChainlink.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
@@ -9,6 +10,7 @@ import "../../deploy/LibIntegrityCheck.sol";
 /// @title OpChainlinkOraclePrice
 /// @notice Opcode for chainlink oracle prices.
 library OpChainlinkOraclePrice {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -24,6 +25,7 @@ uint256 constant OPERAND_MEMORY_TYPE_CONSTANT = 1;
 /// either be copying values from anywhere in the stack or from the constants
 /// array by index.
 library OpReadMemory {
+    using LibPointer for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
     using Math for uint256;
@@ -36,7 +38,7 @@ library OpReadMemory {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPERAND_MEMORY_TYPE_STACK) {
-            uint256 stackTopIndex_ = integrityCheckState_.stackBottom.toIndex(
+            uint256 stackTopIndex_ = integrityCheckState_.stackBottom.unsafeToIndex(
                 stackTop_
             );
             if (offset_ >= stackTopIndex_) {
@@ -48,7 +50,7 @@ library OpReadMemory {
             integrityCheckState_.stackHighwater = Pointer.wrap(
                 Pointer.unwrap(integrityCheckState_.stackHighwater).max(
                     Pointer.unwrap(
-                        integrityCheckState_.stackBottom.up(offset_)
+                        integrityCheckState_.stackBottom.unsafeAddWords(offset_)
                     )
                 )
             );

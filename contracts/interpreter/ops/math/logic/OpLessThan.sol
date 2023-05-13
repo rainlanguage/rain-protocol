@@ -2,11 +2,13 @@
 pragma solidity ^0.8.15;
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpLessThan
 /// @notice Opcode to compare the top two stack values.
 library OpLessThan {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

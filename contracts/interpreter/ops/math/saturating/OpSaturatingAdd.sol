@@ -4,11 +4,13 @@ pragma solidity ^0.8.15;
 import "rain.math.saturating/SaturatingMath.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.
 library OpSaturatingAdd {
+    using LibOp for Pointer;
     using SaturatingMath for uint256;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;

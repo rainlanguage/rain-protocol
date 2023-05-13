@@ -3,7 +3,9 @@ pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibEval.sol";
 import "sol.lib.memory/LibMemCpy.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -24,8 +26,10 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// in the called source will 0 index from the first input, NOT the bottom of
 /// the calling stack.
 library OpCall {
+    using LibEval for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for Pointer;
+    using LibPointer for Pointer;
     using LibUint256Array for uint256;
 
     /// Interpreter integrity logic.
@@ -61,7 +65,7 @@ library OpCall {
             stackTop_,
             inputs_
         );
-        integrityCheckState_.stackHighwater = stackTop_.down();
+        integrityCheckState_.stackHighwater = stackTop_.unsafeSubWord();
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
@@ -111,7 +115,7 @@ library OpCall {
         Pointer stackBottom_ = state_.stackBottom;
 
         // Set the inner stack bottom to below the inputs.
-        state_.stackBottom = stackTop_.down(inputs_);
+        state_.stackBottom = stackTop_.unsafeSubWords(inputs_);
 
         // Eval the source from the operand on the current state using the stack
         // top above the inputs as the starting stack top. The final stack top
@@ -120,13 +124,13 @@ library OpCall {
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibMemCpy.unsafeCopyWordsTo(
-            Pointer.wrap(Pointer.unwrap(stackTopEval_.down(outputs_))),
+            Pointer.wrap(Pointer.unwrap(stackTopEval_.unsafeSubWords(outputs_))),
             Pointer.wrap(Pointer.unwrap(state_.stackBottom)),
             outputs_
         );
 
         // The outer stack top should now point above the outputs.
-        stackTopAfter_ = state_.stackBottom.up(outputs_);
+        stackTopAfter_ = state_.stackBottom.unsafeAddWords(outputs_);
 
         // The outer stack bottom needs to be reinstated as it was before eval.
         state_.stackBottom = stackBottom_;

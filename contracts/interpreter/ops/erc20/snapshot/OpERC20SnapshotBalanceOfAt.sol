@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC20SnapshotBalanceOfAt
@@ -11,6 +12,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Snapshot
 library OpERC20SnapshotBalanceOfAt {
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(

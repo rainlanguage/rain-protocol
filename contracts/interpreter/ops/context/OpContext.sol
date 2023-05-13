@@ -38,7 +38,7 @@ library OpContext {
     ) internal pure returns (Pointer) {
         // The indexing syntax here enforces OOB checks at runtime.
         return
-            stackTop_.push(
+            stackTop_.unsafePush(
                 state_.context[Operand.unwrap(operand_) >> 8][
                     Operand.unwrap(operand_) & MASK_8BIT
                 ]

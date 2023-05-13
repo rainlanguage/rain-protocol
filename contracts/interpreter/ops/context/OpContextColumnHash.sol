@@ -29,7 +29,7 @@ library OpContextColumnHash {
         Pointer stackTop_
     ) internal pure returns (Pointer) {
         return
-            stackTop_.push(
+            stackTop_.unsafePush(
                 uint256(
                     keccak256(
                         // Using encodePacked here instead of encode so that we

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -14,6 +15,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 library OpFixedPointScale18Dynamic {
     using FixedPointDecimalScale for uint256;
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(

@@ -3,12 +3,14 @@ pragma solidity ^0.8.15;
 
 import "../../../../verify/IVerifyV1.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIVerifyV1AccountStatusAtTime
 /// @notice Opcode for IVerifyV1 `accountStatusAtTime`.
 library OpIVerifyV1AccountStatusAtTime {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

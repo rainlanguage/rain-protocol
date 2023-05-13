@@ -6,6 +6,8 @@ import "../../deploy/LibIntegrityCheck.sol";
 import "./OpReadMemory.sol";
 import "../../extern/LibExtern.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "sol.lib.memory/LibPointer.sol";
 
 /// Thrown when the length of results from an extern don't match what the operand
 /// defines. This is bad because it implies our integrity check miscalculated the
@@ -17,6 +19,8 @@ error BadExternResultsLength(uint256 expected, uint256 actual);
 library OpExtern {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for Pointer;
+    using LibPointer for Pointer;
+    using LibUint256Array for uint256[];
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
@@ -65,8 +69,10 @@ library OpExtern {
             (interpreterExtern_, externDispatch_) = LibExtern.decode(
                 encodedDispatch_
             );
-            (head_, tail_) = stackTop_.list(inputs_);
-            stackTop_ = stackTop_.down(inputs_).down().push(head_);
+            (head_, tail_) = stackTop_.unsafeList(inputs_);
+            unchecked {
+                stackTop_ = stackTop_.unsafeSubWords(inputs_ + 1).unsafePush(head_);
+            }
         }
 
         {
@@ -81,7 +87,8 @@ library OpExtern {
                 revert BadExternResultsLength(outputs_, results_.length);
             }
 
-            stackTop_ = stackTop_.push(results_);
+            LibMemCpy.unsafeCopyWordsTo(results_.dataPointer(), stackTop_, results_.length);
+            stackTop_ = stackTop_.unsafeAddWords(results_.length);
         }
 
         return stackTop_;

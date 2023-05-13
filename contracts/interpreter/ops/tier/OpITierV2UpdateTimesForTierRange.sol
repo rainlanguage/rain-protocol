@@ -3,10 +3,12 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 library OpUpdateTimesForTierRange {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

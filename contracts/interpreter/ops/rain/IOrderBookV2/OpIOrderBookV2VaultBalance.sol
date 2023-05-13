@@ -4,12 +4,14 @@ pragma solidity ^0.8.15;
 import "rain.interface.orderbook/IOrderBookV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIOrderBookV2VaultBalance
 /// @notice Opcode for IOrderBookV2 `vaultBalance`.
 library OpIOrderBookV2VaultBalance {
     using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(

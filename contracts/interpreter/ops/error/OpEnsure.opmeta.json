@@ -1,19 +1,17 @@
 {
   "name": "ensure",
-  "desc": "Require items(s) of the stack to be true, i.e. greater than zero, revert if not",
+  "desc": "Require top of the stack to be truthy, i.e. greater than zero. Reverts if top of stack is 0.",
   "operand": [
     {
-      "name": "inputs",
-      "bits": [0, 7],
-      "validRange": [[1, 255]]
+      "name": "operand",
+      "bits": [0, 15],
+      "validRange": [[0, 65535]]
     }
   ],
   "inputs": {
-    "bits": [0, 7],
     "parameters": [
       {
-        "name": "input",
-        "spread": true
+        "name": "maybe-truthy"
       }
     ]
   },

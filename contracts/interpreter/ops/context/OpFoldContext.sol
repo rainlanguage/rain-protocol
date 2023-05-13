@@ -79,7 +79,7 @@ library OpFoldContext {
             for (uint256 i_ = row_; i_ < state_.context[column_].length; i_++) {
                 // Push the width of the context columns onto the stack as rows.
                 for (uint256 j_ = 0; j_ < width_; j_++) {
-                    stackTop_ = stackTop_.push(
+                    stackTop_ = stackTop_.unsafePush(
                         state_.context[column_ + j_][i_]
                     );
                 }

@@ -3,12 +3,14 @@ pragma solidity ^0.8.15;
 
 import "rain.interface.sale/ISaleV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpISaleV2Token
 /// @notice Opcode for ISaleV2 `token`.
 library OpISaleV2Token {
+    using LibOp for Pointer;
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

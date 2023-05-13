@@ -228,7 +228,7 @@ contract RainterpreterExpressionDeployer is
         );
         uint256[] memory stack_;
         {
-            uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(
+            uint256 stackLength_ = integrityCheckState_.stackBottom.unsafeToIndex(
                 integrityCheckState_.stackMaxTop
             );
             for (uint256 i_; i_ < sources_.length; i_++) {
@@ -296,7 +296,7 @@ contract RainterpreterExpressionDeployer is
         }
 
         return
-            integrityCheckState_.stackBottom.toIndex(
+            integrityCheckState_.stackBottom.unsafeToIndex(
                 integrityCheckState_.stackMaxTop
             );
     }
