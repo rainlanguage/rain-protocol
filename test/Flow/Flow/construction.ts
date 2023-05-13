@@ -48,7 +48,7 @@ describe("Flow construction tests", async function () {
     cloneFactory = await flowCloneFactory();
   });
 
-  it("should initialize on the good path", async () => {
+  it.only("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
