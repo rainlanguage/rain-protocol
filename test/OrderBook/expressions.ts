@@ -65,7 +65,7 @@ describe("OrderBook expression checks", async () => {
     await deploy1820(signers[0]);
   });
 
-  it.only("should add Order_A and Order_B and clear the order with signed context", async function () {
+  it("should add Order_A and Order_B and clear the order with signed context", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice, bob, bountyBot] = signers;

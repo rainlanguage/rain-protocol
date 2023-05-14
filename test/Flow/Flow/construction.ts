@@ -145,7 +145,7 @@ describe("Flow construction tests", async function () {
     );
   });
 
-  it.only("should validate contract meta with abi", async function () {
+  it("should validate contract meta with abi", async function () {
     assert(
       validateContractMetaAgainstABI("flow"),
       "Contract Meta Inconsistent with Contract ABI"
