@@ -7,7 +7,11 @@ import "rain.lib.interpreter/LibInterpreterState.sol";
 import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
-error ExpressionError(InterpreterState state, Operand operand, Pointer stackTop);
+error ExpressionError(
+    InterpreterState state,
+    Operand operand,
+    Pointer stackTop
+);
 
 /// @title OpEnsure
 /// @notice Opcode for requiring some truthy values.

@@ -71,7 +71,9 @@ library OpExtern {
             );
             (head_, tail_) = stackTop_.unsafeList(inputs_);
             unchecked {
-                stackTop_ = stackTop_.unsafeSubWords(inputs_ + 1).unsafePush(head_);
+                stackTop_ = stackTop_.unsafeSubWords(inputs_ + 1).unsafePush(
+                    head_
+                );
             }
         }
 
@@ -87,7 +89,11 @@ library OpExtern {
                 revert BadExternResultsLength(outputs_, results_.length);
             }
 
-            LibMemCpy.unsafeCopyWordsTo(results_.dataPointer(), stackTop_, results_.length);
+            LibMemCpy.unsafeCopyWordsTo(
+                results_.dataPointer(),
+                stackTop_,
+                results_.length
+            );
             stackTop_ = stackTop_.unsafeAddWords(results_.length);
         }
 

@@ -14,9 +14,9 @@ import "sol.lib.memory/LibStackPointer.sol";
 import "../libraries/LibFlow.sol";
 import "../FlowCommon.sol";
 
-Sentinel constant RAIN_FLOW_ERC1155_SENTINEL = Sentinel.wrap(uint256(
-    keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
-));
+Sentinel constant RAIN_FLOW_ERC1155_SENTINEL = Sentinel.wrap(
+    uint256(keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS)
+);
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x9bb748a9adab5313636f9eeb840bda9e0cce51fa068e8d2e3e92fbe1612a5161
@@ -157,31 +157,40 @@ contract FlowERC1155 is
         Evaluable memory evaluable_,
         uint256[][] memory context_
     ) internal view returns (FlowERC1155IOV1 memory, uint256[] memory) {
-        FlowERC1155IOV1 memory flowIO_;
+        ERC1155SupplyChange[] memory mints_;
+        ERC1155SupplyChange[] memory burns_;
+        Pointer tuplesPointer_;
         (
             Pointer stackBottom_,
             Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
-        Pointer tuplesPointer_;
+        // mints
         (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
             stackTop_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
         assembly ("memory-safe") {
-            mstore(flowIO_, tuplesPointer_)
+            mints_ := tuplesPointer_
         }
+        // burns
         (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
             stackTop_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
         assembly ("memory-safe") {
-            mstore(add(flowIO_, 0x20), tuplesPointer_)
+            burns_ := tuplesPointer_
         }
-        flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
-        return (flowIO_, kvs_);
+        return (
+            FlowERC1155IOV1(
+                mints_,
+                burns_,
+                LibFlow.stackToFlow(stackBottom_, stackTop_)
+            ),
+            kvs_
+        );
     }
 
     function _flow(

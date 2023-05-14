@@ -44,7 +44,9 @@ library OpContextRow {
     ) internal pure returns (Pointer) {
         // The indexing syntax here enforces OOB checks at runtime.
         (Pointer location_, uint256 row_) = stackTop_.unsafePop();
-        location_.unsafeWriteWord(state_.context[Operand.unwrap(operand_)][row_]);
+        location_.unsafeWriteWord(
+            state_.context[Operand.unwrap(operand_)][row_]
+        );
         return stackTop_;
     }
 }

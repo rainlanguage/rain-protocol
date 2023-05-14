@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "rain.interface.flow/IFlowV3.sol";
 
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
+
+import "hardhat/console.sol";
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -35,12 +37,13 @@ bytes32 constant SENTINEL_HIGH_BITS = bytes32(
 /// - Won't collide with common values like `type(uint256).max` and
 ///   `type(uint256).min`
 /// - Won't collide with other sentinels from unrelated contexts
-Sentinel constant RAIN_FLOW_SENTINEL = Sentinel.wrap(uint256(
-    keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
-));
+Sentinel constant RAIN_FLOW_SENTINEL = Sentinel.wrap(
+    uint256(keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS)
+);
 
 library LibFlow {
     using SafeERC20 for IERC20;
+    using LibPointer for Pointer;
     using LibStackPointer for Pointer;
     using LibStackSentinel for Pointer;
     using SafeCast for uint256;
@@ -52,7 +55,9 @@ library LibFlow {
         Pointer stackTop_
     ) internal pure returns (FlowTransferV1 memory) {
         unchecked {
-            FlowTransferV1 memory transfer_;
+            ERC20Transfer[] memory erc20_;
+            ERC721Transfer[] memory erc721_;
+            ERC1155Transfer[] memory erc1155_;
             Pointer tuplesPointer_;
             // erc20
             (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
@@ -61,7 +66,7 @@ library LibFlow {
                 4
             );
             assembly ("memory-safe") {
-                mstore(transfer_, tuplesPointer_)
+                erc20_ := tuplesPointer_
             }
             // erc721
             (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
@@ -70,7 +75,7 @@ library LibFlow {
                 4
             );
             assembly ("memory-safe") {
-                mstore(add(transfer_, 0x20), tuplesPointer_)
+                erc721_ := tuplesPointer_
             }
             // erc1155
             (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
@@ -79,9 +84,9 @@ library LibFlow {
                 5
             );
             assembly ("memory-safe") {
-                mstore(add(transfer_, 0x40), tuplesPointer_)
+                erc1155_ := tuplesPointer_
             }
-            return transfer_;
+            return FlowTransferV1(erc20_, erc721_, erc1155_);
         }
     }
 

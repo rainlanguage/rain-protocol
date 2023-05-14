@@ -40,11 +40,16 @@ library OpGet {
     ) internal view returns (Pointer) {
         uint256 key_;
         (stackTop_, key_) = stackTop_.unsafePop();
-        (uint256 exists_, MemoryKVVal value_) = interpreterState_.stateKV.get(MemoryKVKey.wrap(key_));
+        (uint256 exists_, MemoryKVVal value_) = interpreterState_.stateKV.get(
+            MemoryKVKey.wrap(key_)
+        );
 
         // Cache MISS, get from external store.
         if (exists_ == 0) {
-            uint256 storeValue_ = interpreterState_.store.get(interpreterState_.namespace, key_);
+            uint256 storeValue_ = interpreterState_.store.get(
+                interpreterState_.namespace,
+                key_
+            );
 
             // Push fetched value to memory to make subsequent lookups on the
             // same key find a cache HIT.

@@ -13,9 +13,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 /// below its starting point at the stack bottom. For the virtual stack used by
 /// the integrity check we can start it in the middle of the `uint256` range and
 /// achieve something analogous to signed integers with unsigned integer types.
-Pointer constant INITIAL_STACK_BOTTOM = Pointer.wrap(
-    type(uint256).max / 2
-);
+Pointer constant INITIAL_STACK_BOTTOM = Pointer.wrap(type(uint256).max / 2);
 
 /// It is a misconfiguration to set the initial stack bottom to zero or some
 /// small value as this trivially exposes the integrity check to potential

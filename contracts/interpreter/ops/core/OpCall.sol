@@ -124,7 +124,9 @@ library OpCall {
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibMemCpy.unsafeCopyWordsTo(
-            Pointer.wrap(Pointer.unwrap(stackTopEval_.unsafeSubWords(outputs_))),
+            Pointer.wrap(
+                Pointer.unwrap(stackTopEval_.unsafeSubWords(outputs_))
+            ),
             Pointer.wrap(Pointer.unwrap(state_.stackBottom)),
             outputs_
         );

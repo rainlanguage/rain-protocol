@@ -38,9 +38,9 @@ library OpReadMemory {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPERAND_MEMORY_TYPE_STACK) {
-            uint256 stackTopIndex_ = integrityCheckState_.stackBottom.unsafeToIndex(
-                stackTop_
-            );
+            uint256 stackTopIndex_ = integrityCheckState_
+                .stackBottom
+                .unsafeToIndex(stackTop_);
             if (offset_ >= stackTopIndex_) {
                 revert OutOfBoundsStackRead(stackTopIndex_, offset_);
             }

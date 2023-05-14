@@ -65,7 +65,7 @@ describe("OrderBook expression checks", async () => {
     await deploy1820(signers[0]);
   });
 
-  it("should add Order_A and Order_B and clear the order with signed context", async function () {
+  it.only("should add Order_A and Order_B and clear the order with signed context", async function () {
     const signers = await ethers.getSigners();
 
     const [, alice, bob, bountyBot] = signers;
@@ -101,7 +101,7 @@ describe("OrderBook expression checks", async () => {
       : ensure(equal-to(${bob.address} context<5 0>())),
       _: ${max_uint256},
       _: ${ratio_A};
-      
+
       /* HANDLE IO */
       : ensure(equal-to(${bob.address} context<5 0>()));
       : ensure(equal-to(${contextValB} context<6 0>()));
@@ -161,7 +161,7 @@ describe("OrderBook expression checks", async () => {
       : ensure(equal-to(${alice.address} context<5 0>())),
       _: ${max_uint256},
       _: ${ratio_B};
-      
+
       /* HANDLE IO */
       : ensure(equal-to(${alice.address} context<5 0>()));
       : ensure(equal-to(${contextValA} context<6 0>()));
@@ -403,14 +403,14 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       order-taker : ${bob.address} ,
       context-val-1 : ${contextVal1} ,
       context-val-2 : ${contextVal2} ,
 
-      
+
       : ensure(equal-to(order-taker context<5 0>())),
       : ensure(equal-to(context-val-1 context<6 0>())),
       : ensure(equal-to(context-val-2 context<6 1>())),
@@ -418,11 +418,11 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       order-taker : ${bob.address} ,
       context-val-1 : ${contextVal1} ,
-      context-val-2 : ${contextVal2} , 
+      context-val-2 : ${contextVal2} ,
 
       : ensure(equal-to(order-taker context<5 0>())),
       : ensure(equal-to(context-val-1 context<6 0>())),
@@ -609,12 +609,12 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-sender : ${bob.address} ,
       orderbook : ${orderBook.address} ,
-      
+
       : ensure(equal-to(expected-sender context<0 0>())),
       : ensure(equal-to(orderbook  context<0 1>())),
       : ensure(equal-to(expected-sender  orderbook-caller-address())),
@@ -623,11 +623,11 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-sender : ${bob.address} ,
       orderbook : ${orderBook.address} ,
-      
+
       : ensure(equal-to(expected-sender context<0 0>())),
       : ensure(equal-to(orderbook  context<0 1>())),
       : ensure(equal-to(expected-sender  orderbook-caller-address())),
@@ -773,12 +773,12 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-owner : ${alice.address} ,
       expected-counterparty : ${bob.address} ,
-      
+
       : ensure(equal-to(expected-owner context<1 1>())),
       : ensure(equal-to(expected-counterparty  context<1 2>())),
       : ensure(equal-to(expected-owner  order-owner-address())),
@@ -787,11 +787,11 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-owner : ${alice.address} ,
       expected-counterparty : ${bob.address} ,
-      
+
       : ensure(equal-to(expected-owner context<1 1>())),
       : ensure(equal-to(expected-counterparty  context<1 2>())),
       : ensure(equal-to(expected-owner  order-owner-address())),
@@ -982,12 +982,12 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-input-token-balance : ${depositAmountA} ,
       expected-output-token-balance : ${depositAmountB} ,
-      
+
       : ensure(equal-to(expected-input-token-balance context<3 3>())),
       : ensure(equal-to(expected-output-token-balance  context<4 3>())),
       : ensure(equal-to(expected-input-token-balance  vault-input-balance-before())),
@@ -996,11 +996,11 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-input-token-balance : ${depositAmountA} ,
       expected-output-token-balance : ${depositAmountB} ,
-      
+
       : ensure(equal-to(expected-input-token-balance context<3 3>())),
       : ensure(equal-to(expected-output-token-balance  context<4 3>())),
       : ensure(equal-to(expected-input-token-balance  vault-input-balance-before())),
@@ -1161,11 +1161,11 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-vault-id : ${aliceVault} ,
-      
+
       : ensure(equal-to(expected-vault-id context<3 2>())),
       : ensure(equal-to(expected-vault-id  context<4 2>())),
       : ensure(equal-to(expected-vault-id vault-input-id())),
@@ -1174,10 +1174,10 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-vault-id : ${aliceVault} ,
-      
+
       : ensure(equal-to(expected-vault-id context<3 2>())),
       : ensure(equal-to(expected-vault-id  context<4 2>())),
       : ensure(equal-to(expected-vault-id vault-input-id())),
@@ -1338,7 +1338,7 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-input-token : ${tokenA18.address} ,
@@ -1352,8 +1352,8 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-input-token : ${tokenA18.address} ,
       expected-output-token : ${tokenB06.address} ,
 
@@ -1517,7 +1517,7 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       expected-input-token-deciamls : ${tokenADecimals} ,
@@ -1531,8 +1531,8 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-input-token-deciamls : ${tokenADecimals} ,
       expected-output-token-deciamls : ${tokenBDecimals} ,
 
@@ -1699,12 +1699,12 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       compare-key : ${key1} ,
       input-token-key : ${key2} ,
-      output-token-key : ${key3} , 
+      output-token-key : ${key3} ,
 
       :set(compare-key greater-than(vault-input-token-decimals() vault-output-token-decimals())) ,
       :set(input-token-key vault-input-token-decimals()) ,
@@ -1712,14 +1712,14 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */  
+
+      /* HANDLE IO */
       compare-key : ${key1} ,
       input-token-key : ${key2} ,
-      output-token-key : ${key3} , 
+      output-token-key : ${key3} ,
 
-      expected-input-token-decimals : ${tokenADecimals} , 
-      expected-output-token-decimals : ${tokenBDecimals} , 
+      expected-input-token-decimals : ${tokenADecimals} ,
+      expected-output-token-decimals : ${tokenBDecimals} ,
 
       : ensure(equal-to(get(compare-key) 1)),
       : ensure(equal-to(get(input-token-key) expected-input-token-decimals)),
@@ -1858,7 +1858,7 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
 
@@ -1870,8 +1870,8 @@ describe("OrderBook expression checks", async () => {
 
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-input-diff : ${aip} ,
       expected-output-diff : ${aop} ,
 
@@ -2008,7 +2008,7 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       output-max : order-output-max(),
@@ -2141,20 +2141,20 @@ describe("OrderBook expression checks", async () => {
       rainlang`
       /* meta hash */
       @${opMetaHash}
-      @${callerMetaHash} 
+      @${callerMetaHash}
 
       /* CalculateIO source */
       _: ${max_uint256},
       _: ${ratio_A};
-      
-      /* HANDLE IO */ 
+
+      /* HANDLE IO */
       expected-max-output : ${depositAmountB} ,
       expected-ratio : ${maximumIORatio} ,
 
       : ensure(equal-to(expected-max-output context<2 0>())),
       : ensure(equal-to(expected-ratio  context<2 1>())),
       : ensure(equal-to(expected-max-output order-output-max())),
-      : ensure(equal-to(expected-ratio  order-io-ratio())); 
+      : ensure(equal-to(expected-ratio  order-io-ratio()));
       `
     );
 

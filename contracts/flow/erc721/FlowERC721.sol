@@ -21,9 +21,9 @@ import "../FlowCommon.sol";
 /// Thrown when burner of tokens is not the owner of tokens.
 error BurnerNotOwner();
 
-Sentinel constant RAIN_FLOW_ERC721_SENTINEL = Sentinel.wrap(uint256(
-    keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS
-));
+Sentinel constant RAIN_FLOW_ERC721_SENTINEL = Sentinel.wrap(
+    uint256(keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS)
+);
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0xb45a690d69760662f71ac675f2f411c5462bf6bb0fef4167f48c7cacd99304fb
@@ -201,13 +201,15 @@ contract FlowERC721 is
         Evaluable memory evaluable_,
         uint256[][] memory context_
     ) internal view returns (FlowERC721IOV1 memory, uint256[] memory) {
-        FlowERC721IOV1 memory flowIO_;
+        ERC721SupplyChange[] memory mints_;
+        ERC721SupplyChange[] memory burns_;
+        Pointer tuplesPointer_;
+
         (
             Pointer stackBottom_,
             Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
-        Pointer tuplesPointer_;
         // mints
         (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
             stackTop_,
@@ -215,7 +217,7 @@ contract FlowERC721 is
             2
         );
         assembly ("memory-safe") {
-            mstore(flowIO_, tuplesPointer_)
+            mints_ := tuplesPointer_
         }
         // burns
         (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
@@ -224,10 +226,16 @@ contract FlowERC721 is
             2
         );
         assembly ("memory-safe") {
-            mstore(add(flowIO_, 0x20), tuplesPointer_)
+            burns_ := tuplesPointer_
         }
-        flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
-        return (flowIO_, kvs_);
+        return (
+            FlowERC721IOV1(
+                mints_,
+                burns_,
+                LibFlow.stackToFlow(stackBottom_, stackTop_)
+            ),
+            kvs_
+        );
     }
 
     function _flow(

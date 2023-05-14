@@ -1,13 +1,7 @@
 {
   "name": "ensure",
   "desc": "Require top of the stack to be truthy, i.e. greater than zero. Reverts if top of stack is 0.",
-  "operand": [
-    {
-      "name": "operand",
-      "bits": [0, 15],
-      "validRange": [[0, 65535]]
-    }
-  ],
+  "operand": 0,
   "inputs": {
     "parameters": [
       {

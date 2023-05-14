@@ -86,11 +86,7 @@ contract LibIntegrityCheckTest {
         uint256[] memory constants_,
         Pointer stackMaxTop_,
         Pointer stackTop_
-    )
-        external
-        view
-        returns (Pointer stackTopAfter_, uint256 newStackMaxTop)
-    {
+    ) external view returns (Pointer stackTopAfter_, uint256 newStackMaxTop) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(sources_, constants_, integrityFunctionPointers());
         integrityCheckState_.stackMaxTop = stackMaxTop_;
@@ -105,11 +101,7 @@ contract LibIntegrityCheckTest {
         Pointer stackMaxTop_,
         Pointer stackTop_,
         uint256 n_
-    )
-        external
-        view
-        returns (Pointer stackTopAfter_, uint256 newStackMaxTop)
-    {
+    ) external view returns (Pointer stackTopAfter_, uint256 newStackMaxTop) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(sources_, constants_, integrityFunctionPointers());
         integrityCheckState_.stackMaxTop = stackMaxTop_;
@@ -123,11 +115,7 @@ contract LibIntegrityCheckTest {
         uint256[] memory constants_,
         Pointer stackMaxTop_,
         Pointer stackTop_
-    )
-        external
-        view
-        returns (Pointer stackTopAfter_, uint256 newStackMaxTop)
-    {
+    ) external view returns (Pointer stackTopAfter_, uint256 newStackMaxTop) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(sources_, constants_, integrityFunctionPointers());
         integrityCheckState_.stackMaxTop = stackMaxTop_;
@@ -251,9 +239,7 @@ contract LibIntegrityCheckTest {
     }
 
     // function(uint256) internal view returns (uint256)
-    function applyFn0(
-        Pointer stackTop_
-    ) external view returns (Pointer) {
+    function applyFn0(Pointer stackTop_) external view returns (Pointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
                 new bytes[](0),
@@ -265,9 +251,7 @@ contract LibIntegrityCheckTest {
     }
 
     // function(Operand, uint256) internal view returns (uint256)
-    function applyFn1(
-        Pointer stackTop_
-    ) external view returns (Pointer) {
+    function applyFn1(Pointer stackTop_) external view returns (Pointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
                 new bytes[](0),
@@ -279,9 +263,7 @@ contract LibIntegrityCheckTest {
     }
 
     // function(uint256, uint256) internal view returns (uint256)
-    function applyFn2(
-        Pointer stackTop_
-    ) external view returns (Pointer) {
+    function applyFn2(Pointer stackTop_) external view returns (Pointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
                 new bytes[](0),
@@ -293,9 +275,7 @@ contract LibIntegrityCheckTest {
     }
 
     // function(Operand, uint256, uint256) internal view returns (uint256)
-    function applyFn3(
-        Pointer stackTop_
-    ) external view returns (Pointer) {
+    function applyFn3(Pointer stackTop_) external view returns (Pointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
                 new bytes[](0),
@@ -307,9 +287,7 @@ contract LibIntegrityCheckTest {
     }
 
     // function(uint256, uint256, uint256) internal view returns (uint256)
-    function applyFn4(
-        Pointer stackTop_
-    ) external view returns (Pointer) {
+    function applyFn4(Pointer stackTop_) external view returns (Pointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
                 new bytes[](0),

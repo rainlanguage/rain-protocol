@@ -111,32 +111,24 @@ library AllStandardOps {
         Operand,
         Pointer
     ) view returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
-    using AllStandardOps for function(
-        InterpreterState memory,
-        Operand,
-        Pointer
-    ) view returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(InterpreterState memory, Operand, Pointer)
+        view
+        returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        Pointer
-    ) view returns (Pointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        Pointer
-    ) pure returns (Pointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        Pointer
-    ) view returns (Pointer)[];
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        view
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        pure
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        view
+        returns (Pointer)[];
     using LibCast for function(InterpreterState memory, Operand, Pointer)
         view
         returns (Pointer)[];

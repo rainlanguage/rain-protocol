@@ -93,6 +93,8 @@ describe("Flow context tests", async function () {
       erc1155: [],
     };
 
+    console.log(opMetaHash);
+
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`

@@ -46,17 +46,17 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0afc0b130b220bb70bc50c170c870d050d
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x4d20608f71c7fa71ba1c08b5f6415dd29475e786d78c70c37f780abb7ff693db
+    0x84e72ce88d31615999ce43cfe84672cba51be981f20fcef863ef4b85bcc41971
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x0bf506ba81b44f0ee2afcfd259dc439ae8cf7f1182610e100e1475ea80004504
+    0x2bc54dc07158d987e295cad9cfeb2f73eb6b391dd2f58e530c535b0fb4953e8b
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x4aefbb823a919b2e26063c8428a38c29fb284ad13ea20dab8c442c3645b9263b
+    0xf0ae44aab5d7776b609cb17207a7aec027cc071e831d797c1e1066a8cb07273c
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -228,9 +228,9 @@ contract RainterpreterExpressionDeployer is
         );
         uint256[] memory stack_;
         {
-            uint256 stackLength_ = integrityCheckState_.stackBottom.unsafeToIndex(
-                integrityCheckState_.stackMaxTop
-            );
+            uint256 stackLength_ = integrityCheckState_
+                .stackBottom
+                .unsafeToIndex(integrityCheckState_.stackMaxTop);
             for (uint256 i_; i_ < sources_.length; i_++) {
                 LibCompile.unsafeCompile(
                     sources_[i_],
@@ -277,8 +277,7 @@ contract RainterpreterExpressionDeployer is
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
         Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        Pointer initialStackHighwater_ = integrityCheckState_
-            .stackHighwater;
+        Pointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
         for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
