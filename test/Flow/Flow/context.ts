@@ -532,12 +532,12 @@ describe("Flow context tests", async function () {
       expected  ${0}
       got       ${youBalanceIn0}`
     );
-
     await assertError(
       async () =>
         await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
-      "Transaction reverted without a reason string",
+      "ExpressionError",
       "did not prevent flow when a flow time already registered"
-    );
+    ); 
+    
   });
 });

@@ -508,7 +508,7 @@ describe("FlowERC721 flow tests", async function () {
         await flowCannotTransfer
           .connect(you)
           .transferFrom(you.address, signerReceiver.address, tokenId),
-      "Transaction reverted without a reason string",
+      "ExpressionError",
       "transferred when it should not"
     );
   });
