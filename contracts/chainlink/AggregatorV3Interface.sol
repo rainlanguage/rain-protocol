@@ -2,7 +2,7 @@
 // include transitive deps with security issues.
 // https://github.com/smartcontractkit/chainlink/blob/f8227975f4f4955f083c5b732354702a55bfdb8d/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 interface AggregatorV3Interface {
     function decimals() external view returns (uint8);

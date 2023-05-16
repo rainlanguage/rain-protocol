@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 /// Constructor config for standard Open Zeppelin ERC20.
 /// @param name Name as defined by Open Zeppelin ERC20.

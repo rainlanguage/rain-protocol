@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "rain.interface.sale/ISaleV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
