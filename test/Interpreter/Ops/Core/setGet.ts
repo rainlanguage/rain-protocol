@@ -374,11 +374,7 @@ key: ${key},
       await standardEvaluableConfig(
         rainlang`
         @${opMetaHash}
-        key1: ${key1},
-        val1: ${val1},
-        key2: ${key2},
-        val2: ${val2},
-        : set(key1 val1) set(key2 val2);`
+        : set(${key1} ${val1}) set(${key2} ${val2});`
       );
 
     const expressionA = await expressionConsumerDeploy(
@@ -408,19 +404,17 @@ key: ${key},
     // Asserting StateChanges array
     const kvs = await consumerLogicA["kvs()"]();
 
-    assert(kvs.length == 4, "Invalid kvs length");
-    assert(kvs[0].eq(key2), "Invalid Key set in kv");
-    assert(kvs[1].eq(val2), "Invalid Value set in kv");
-    assert(kvs[2].eq(key1), "Invalid Key set in kv");
-    assert(kvs[3].eq(val1), "Invalid Value set in kv");
+    assert(kvs.length == 4, `Invalid kvs length`);
+    assert(kvs[0].eq(key1), `Invalid Key 2 set in kv ${kvs[0]} ${key1}`);
+    assert(kvs[1].eq(val1), `Invalid Value 2 set in kv ${kvs[1]} ${val1}`);
+    assert(kvs[2].eq(key2), `Invalid Key 1 set in kv ${kvs[2]} ${key2}`);
+    assert(kvs[3].eq(val2), `Invalid Value 1 set in kv ${kvs[3]} ${val2}`);
 
     const { sources: sourcesB, constants: constantsB } =
       await standardEvaluableConfig(
         rainlang`
         @${opMetaHash}
-key1: ${key1},
-        key2: ${key2},
-        _ _: get(key1) get(key2);`
+        _ _: get(${key1}) get(${key2});`
       );
 
     const expressionB = await expressionConsumerDeploy(
