@@ -2,7 +2,8 @@
 pragma solidity =0.8.19;
 
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibNamespace.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @title RainterpreterStore
@@ -12,7 +13,7 @@ import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable
 /// doesn't attempt to do any deduping etc. if the same key appears twice it will
 /// be set twice.
 contract RainterpreterStore is IInterpreterStoreV1, IERC165 {
-    using LibInterpreterState for StateNamespace;
+    using LibNamespace for StateNamespace;
 
     /// Store is several tiers of sandbox.
     ///

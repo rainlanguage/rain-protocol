@@ -6,6 +6,7 @@ import "sol.lib.datacontract/LibDataContract.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
 import "rain.interface.interpreter/unstable/IDebugExpressionDeployerV1.sol";
+import "rain.lib.interpreter/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -41,21 +42,21 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac80adf0aee0b710b7f0bd10c410cbf0d9e0df40e8d10211061107f108e109c10ab10b910c710d510e310ab10f110ff110e111c112a113911481157116611751184119311a211b111c011cf1218122a1238126a12781286129412a212b012be12cc12da12e812f6130413121320132e133c134a1358136613741383139213a113af13bd13cb13d913e713f51403153115b915c815d715e51657";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0afc0b130b220bb70bc50c170c870d050de40e3a0ed3107c10bc10da10e910f71106111411221130113e1106114c115a11d811e611f41203121212211230123f124e125d126c127b128a129912e712f9130713391347135513631371137f138d139b13a913b713c513d313e113ef13fd140b1419142714351443145214611470147e148c149a14a814b614c414d215fe1686169516a416b21724";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xb087015cd99d1d2c8e9bb9293c82596bc77edd9715d4931d9c13f0c1a37baa49
+    0x69a16e32e4391d10c1b263d172c50ff38f40d44f4108f647a6864330f950d1e9
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xc9c2b2bdabe67a82e58fadfd7725c2333877bda939b8a15938d15061d93ed045
+    0x2bc54dc07158d987e295cad9cfeb2f73eb6b391dd2f58e530c535b0fb4953e8b
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0x47ed85f917e187757bff09371cedcf5c0eb277c27e4673feb2d3cc040c66c993
+    0xf0ae44aab5d7776b609cb17207a7aec027cc071e831d797c1e1066a8cb07273c
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -76,7 +77,7 @@ contract RainterpreterExpressionDeployer is
     IDebugExpressionDeployerV1,
     IERC165
 {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256[];
 
     /// The config of the deployed expression including uncompiled sources. Will
@@ -192,9 +193,9 @@ contract RainterpreterExpressionDeployer is
         view
         virtual
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
+                returns (Pointer)[]
                 memory
         )
     {
@@ -213,7 +214,7 @@ contract RainterpreterExpressionDeployer is
     ) external view returns (uint256[] memory, uint256[] memory) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(sources_, constants_, integrityFunctionPointers());
-        StackPointer stackTop_ = integrityCheckState_.stackBottom;
+        Pointer stackTop_ = integrityCheckState_.stackBottom;
         stackTop_ = LibIntegrityCheck.push(
             integrityCheckState_,
             stackTop_,
@@ -227,11 +228,11 @@ contract RainterpreterExpressionDeployer is
         );
         uint256[] memory stack_;
         {
-            uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(
-                integrityCheckState_.stackMaxTop
-            );
+            uint256 stackLength_ = integrityCheckState_
+                .stackBottom
+                .unsafeToIndex(integrityCheckState_.stackMaxTop);
             for (uint256 i_; i_ < sources_.length; i_++) {
-                LibInterpreterState.compile(
+                LibCompile.unsafeCompile(
                     sources_[i_],
                     OPCODE_FUNCTION_POINTERS
                 );
@@ -275,9 +276,8 @@ contract RainterpreterExpressionDeployer is
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
-        StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        StackPointer initialStackHighwater_ = integrityCheckState_
-            .stackHighwater;
+        Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
+        Pointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
         for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
@@ -295,7 +295,7 @@ contract RainterpreterExpressionDeployer is
         }
 
         return
-            integrityCheckState_.stackBottom.toIndex(
+            integrityCheckState_.stackBottom.unsafeToIndex(
                 integrityCheckState_.stackMaxTop
             );
     }
@@ -320,17 +320,16 @@ contract RainterpreterExpressionDeployer is
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(
-                LibInterpreterState.serializeSize(
+                LibInterpreterStateDataContract.serializeSize(
                     sources_,
-                    constants_,
-                    stackLength_
+                    constants_
                 )
             );
 
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
         // provided function pointers.
-        LibInterpreterState.serialize(
+        LibInterpreterStateDataContract.unsafeSerialize(
             pointer_,
             sources_,
             constants_,

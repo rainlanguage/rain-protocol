@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "../../deploy/LibIntegrityCheck.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 
 /// @title OpContextColumnHash
 /// @notice Hashes a single context column. Useful for snapshotting values
@@ -11,13 +11,13 @@ import "../../run/LibInterpreterState.sol";
 /// handles dynamic length columns without an expensive fold operation.
 library OpContextColumnHash {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityCheckState_.push(stackTop_);
@@ -26,10 +26,10 @@ library OpContextColumnHash {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
-            stackTop_.push(
+            stackTop_.unsafePush(
                 uint256(
                     keccak256(
                         // Using encodePacked here instead of encode so that we

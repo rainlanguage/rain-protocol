@@ -10,6 +10,7 @@ import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "rain.interface.flow/IFlowERC20V3.sol";
+import "sol.lib.memory/LibStackSentinel.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -17,11 +18,11 @@ import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x080b8626c7efbe240a47c135e2869515d4023c9dc60de2bf64f7932c03bc4f75
+    0xb271976fcef1f51118e22c737ec239cc9320135bd67476e11a73bbddb858375a
 );
 
-uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
-    keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
+Sentinel constant RAIN_FLOW_ERC20_SENTINEL = Sentinel.wrap(
+    uint256(keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS)
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -36,12 +37,12 @@ contract FlowERC20 is
     FlowCommon,
     ERC20
 {
+    using LibStackSentinel for Pointer;
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-    using LibInterpreterState for InterpreterState;
     using LibFixedPointMath for uint256;
 
     bool private evalHandleTransfer;
@@ -137,32 +138,41 @@ contract FlowERC20 is
         Evaluable memory evaluable_,
         uint256[][] memory context_
     ) internal view virtual returns (FlowERC20IOV1 memory, uint256[] memory) {
-        uint256[] memory refs_;
-        FlowERC20IOV1 memory flowIO_;
+        ERC20SupplyChange[] memory mints_;
+        ERC20SupplyChange[] memory burns_;
+        Pointer tuplesPointer_;
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
-        (stackTop_, refs_) = stackTop_.consumeStructs(
-            stackBottom_,
+        // mints
+        (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+            stackTop_,
             RAIN_FLOW_ERC20_SENTINEL,
             2
         );
         assembly ("memory-safe") {
-            mstore(flowIO_, refs_)
+            mints_ := tuplesPointer_
         }
-        (stackTop_, refs_) = stackTop_.consumeStructs(
-            stackBottom_,
+        // burns
+        (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+            stackTop_,
             RAIN_FLOW_ERC20_SENTINEL,
             2
         );
         assembly ("memory-safe") {
-            mstore(add(flowIO_, 0x20), refs_)
+            burns_ := tuplesPointer_
         }
-        flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
 
-        return (flowIO_, kvs_);
+        return (
+            FlowERC20IOV1(
+                mints_,
+                burns_,
+                LibFlow.stackToFlow(stackBottom_, stackTop_)
+            ),
+            kvs_
+        );
     }
 
     function _flow(

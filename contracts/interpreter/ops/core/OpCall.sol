@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibEval.sol";
 import "sol.lib.memory/LibMemCpy.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
@@ -24,9 +26,10 @@ import "sol.lib.binmaskflag/Binary.sol";
 /// in the called source will 0 index from the first input, NOT the bottom of
 /// the calling stack.
 library OpCall {
+    using LibEval for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
-    using LibInterpreterState for InterpreterState;
+    using LibStackPointer for Pointer;
+    using LibPointer for Pointer;
     using LibUint256Array for uint256;
 
     /// Interpreter integrity logic.
@@ -43,8 +46,8 @@ library OpCall {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         // Unpack the operand to get IO and the source to be called.
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
@@ -53,8 +56,8 @@ library OpCall {
         );
 
         // Remember the outer stack bottom and highwater.
-        StackPointer stackBottom_ = integrityCheckState_.stackBottom;
-        StackPointer stackHighwater_ = integrityCheckState_.stackHighwater;
+        Pointer stackBottom_ = integrityCheckState_.stackBottom;
+        Pointer stackHighwater_ = integrityCheckState_.stackHighwater;
 
         // Set the inner stack bottom to below the inputs and highwater to
         // protect the inputs from being popped internally.
@@ -62,7 +65,7 @@ library OpCall {
             stackTop_,
             inputs_
         );
-        integrityCheckState_.stackHighwater = stackTop_.down();
+        integrityCheckState_.stackHighwater = stackTop_.unsafeSubWord();
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
@@ -99,8 +102,8 @@ library OpCall {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer stackTopAfter_) {
+        Pointer stackTop_
+    ) internal view returns (Pointer stackTopAfter_) {
         // Unpack the operand to get IO and the source to be called.
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
@@ -109,25 +112,27 @@ library OpCall {
         );
 
         // Remember the outer stack bottom.
-        StackPointer stackBottom_ = state_.stackBottom;
+        Pointer stackBottom_ = state_.stackBottom;
 
         // Set the inner stack bottom to below the inputs.
-        state_.stackBottom = stackTop_.down(inputs_);
+        state_.stackBottom = stackTop_.unsafeSubWords(inputs_);
 
         // Eval the source from the operand on the current state using the stack
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
-        StackPointer stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
+        Pointer stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibMemCpy.unsafeCopyWordsTo(
-            Pointer.wrap(StackPointer.unwrap(stackTopEval_.down(outputs_))),
-            Pointer.wrap(StackPointer.unwrap(state_.stackBottom)),
+            Pointer.wrap(
+                Pointer.unwrap(stackTopEval_.unsafeSubWords(outputs_))
+            ),
+            Pointer.wrap(Pointer.unwrap(state_.stackBottom)),
             outputs_
         );
 
         // The outer stack top should now point above the outputs.
-        stackTopAfter_ = state_.stackBottom.up(outputs_);
+        stackTopAfter_ = state_.stackBottom.unsafeAddWords(outputs_);
 
         // The outer stack bottom needs to be reinstated as it was before eval.
         state_.stackBottom = stackBottom_;

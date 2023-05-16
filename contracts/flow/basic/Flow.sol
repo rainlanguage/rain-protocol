@@ -9,11 +9,10 @@ import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xb6d4201d330adfb5887b1df3cee56bee9dbd54ead31c9628420afac3cdaf28b1
+    0x53a3a3600a7a0ed85318f75ff6ab01b96c3d5576eb458f118cb2d953dba9f37f
 );
 
 contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
-    using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
 
@@ -34,8 +33,8 @@ contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
         uint256[][] memory context_
     ) internal view returns (FlowTransferV1 memory, uint256[] memory) {
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
         return (LibFlow.stackToFlow(stackBottom_, stackTop_), kvs_);

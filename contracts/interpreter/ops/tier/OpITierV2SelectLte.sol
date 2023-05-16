@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "rain.lib.interpreter/LibOp.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 
@@ -13,15 +15,17 @@ error ZeroInputs();
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
+    using LibUint256Array for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             if (inputs_ == 0) {
@@ -45,17 +49,17 @@ library OpSelectLte {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             uint256 mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
             uint256 logic_ = Operand.unwrap(operand_) >> 10;
-            (uint256 time_, uint256[] memory reports_) = stackTop_.list(
+            (uint256 time_, uint256[] memory reports_) = stackTop_.unsafeList(
                 inputs_
             );
             return
-                reports_.asStackPointer().push(
+                reports_.startPointer().unsafePush(
                     TierwiseCombine.selectLte(logic_, mode_, time_, reports_)
                 );
         }

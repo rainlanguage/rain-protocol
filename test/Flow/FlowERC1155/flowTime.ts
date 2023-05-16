@@ -198,7 +198,7 @@ describe("FlowERC1155 flowTime tests", async function () {
     await assertError(
       async () =>
         await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
-      "Transaction reverted without a reason string",
+      "ExpressionError",
       "did not gate flow where flow time already registered for the given flow & id"
     );
   });

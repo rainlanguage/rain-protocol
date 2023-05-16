@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "rain.interface.flow/IFlowV3.sol";
 
-import "../../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibStackSentinel.sol";
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "../../sentinel/LibSentinel.sol";
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -25,58 +25,66 @@ error UnsupportedERC721Flow();
 /// @dev Thrown for unsupported erc1155 transfers.
 error UnsupportedERC1155Flow();
 
+bytes32 constant SENTINEL_HIGH_BITS = bytes32(
+    0xF000000000000000000000000000000000000000000000000000000000000000
+);
+
 /// @dev We want a sentinel with the following properties:
 /// - Won't collide with token amounts (| with very large number)
 /// - Won't collide with token addresses
 /// - Won't collide with common values like `type(uint256).max` and
 ///   `type(uint256).min`
 /// - Won't collide with other sentinels from unrelated contexts
-uint256 constant RAIN_FLOW_SENTINEL = uint256(
-    keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
+Sentinel constant RAIN_FLOW_SENTINEL = Sentinel.wrap(
+    uint256(keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS)
 );
 
 library LibFlow {
     using SafeERC20 for IERC20;
-    using LibStackPointer for StackPointer;
+    using LibPointer for Pointer;
+    using LibStackPointer for Pointer;
+    using LibStackSentinel for Pointer;
     using SafeCast for uint256;
     using LibFlow for FlowTransferV1;
     using LibUint256Array for uint256[];
 
     function stackToFlow(
-        StackPointer stackBottom_,
-        StackPointer stackTop_
+        Pointer stackBottom_,
+        Pointer stackTop_
     ) internal pure returns (FlowTransferV1 memory) {
         unchecked {
-            FlowTransferV1 memory transfer_;
-            uint256[] memory refs_;
+            ERC20Transfer[] memory erc20_;
+            ERC721Transfer[] memory erc721_;
+            ERC1155Transfer[] memory erc1155_;
+            Pointer tuplesPointer_;
             // erc20
-            (stackTop_, refs_) = stackTop_.consumeStructs(
-                stackBottom_,
+            (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+                stackTop_,
                 RAIN_FLOW_SENTINEL,
                 4
             );
             assembly ("memory-safe") {
-                mstore(transfer_, refs_)
+                erc20_ := tuplesPointer_
             }
             // erc721
-            (stackTop_, refs_) = stackTop_.consumeStructs(
-                stackBottom_,
+            (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+                stackTop_,
                 RAIN_FLOW_SENTINEL,
                 4
             );
             assembly ("memory-safe") {
-                mstore(add(transfer_, 0x20), refs_)
+                erc721_ := tuplesPointer_
             }
             // erc1155
-            (stackTop_, refs_) = stackTop_.consumeStructs(
-                stackBottom_,
+            (stackTop_, tuplesPointer_) = stackBottom_.consumeSentinelTuples(
+                stackTop_,
                 RAIN_FLOW_SENTINEL,
                 5
             );
             assembly ("memory-safe") {
-                mstore(add(transfer_, 0x40), refs_)
+                erc1155_ := tuplesPointer_
             }
-            return transfer_;
+            return FlowTransferV1(erc20_, erc721_, erc1155_);
         }
     }
 
