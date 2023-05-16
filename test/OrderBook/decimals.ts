@@ -28,6 +28,7 @@ import { assertError } from "../../utils/test/assertError";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -102,7 +103,7 @@ describe("OrderBook decimals", async function () {
         },
       ],
       evaluableConfig: EvaluableConfig_A0,
-      data: [],
+      meta: encodeMeta(""),
     };
     await orderBook.connect(alice).addOrder(OrderConfig_A0);
     const EvaluableConfig_A1 = await generateEvaluableConfig(
@@ -127,7 +128,7 @@ describe("OrderBook decimals", async function () {
         },
       ],
       evaluableConfig: EvaluableConfig_A1,
-      data: [],
+      meta: encodeMeta(""),
     };
     await assertError(
       async () => await orderBook.connect(alice).addOrder(OrderConfig_A1),
@@ -226,7 +227,7 @@ describe("OrderBook decimals", async function () {
         },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
@@ -275,7 +276,7 @@ describe("OrderBook decimals", async function () {
         },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: [],
+      meta: encodeMeta(""),
     };
 
     const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);
@@ -320,12 +321,12 @@ describe("OrderBook decimals", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     await orderBook

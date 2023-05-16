@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import "../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
-import "../math/SaturatingMath.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -32,7 +34,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x2585554eaf1d2921800db5358586f8c818c003c8708ffd1534dd0039f9d9364f
+    0x2fa94bd67d8a5c326e609881e8d66f161fea332869dc4516296266140d5c8130
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -40,10 +42,10 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param maxTimeoutDuration A max timeout is enforced in the constructor so
 /// that all cloned proxies share it, which prevents an initiator from setting a
 /// far future timeout and effectively disabling it to trap funds.
-/// @param callerMeta caller meta as per `IInterpreterCallerV1`.
+/// @param deployerDiscoverableMetaConfig as per `DeployerDiscoverableMetaV1`.
 struct LobbyConstructorConfig {
     uint256 maxTimeoutDuration;
-    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
+    DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
 
 /// Configuration for a `Lobby` to initialize.
@@ -101,18 +103,18 @@ SourceIndex constant ENTRYPOINT_INVALID = SourceIndex.wrap(3);
 /// @dev Need a truthy value to start the event and an amount (can be 0) for join
 /// deposits.
 uint256 constant JOIN_MIN_OUTPUTS = 2;
-uint256 constant JOIN_MAX_OUTPUTS = 2;
+uint16 constant JOIN_MAX_OUTPUTS = 2;
 
 // Only need an amount (can be 0) for leave refunds.
 uint256 constant LEAVE_MIN_OUTPUTS = 1;
-uint256 constant LEAVE_MAX_OUTPUTS = 2;
+uint16 constant LEAVE_MAX_OUTPUTS = 2;
 
 // Need the share for a claim.
 uint256 constant CLAIM_MIN_OUTPUTS = 1;
-uint256 constant CLAIM_MAX_OUTPUTS = 1;
+uint16 constant CLAIM_MAX_OUTPUTS = 1;
 
 uint256 constant INVALID_MIN_OUTPUTS = 1;
-uint256 constant INVALID_MAX_OUTPUTS = 1;
+uint16 constant INVALID_MAX_OUTPUTS = 1;
 
 // Event is waiting for the ref to agree to ref.
 uint256 constant PHASE_REF_PENDING = 0;
@@ -126,12 +128,19 @@ uint256 constant PHASE_COMPLETE = 3;
 // refund on their deposit.
 uint256 constant PHASE_INVALID = 4;
 
-contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
+contract Lobby is
+    ICloneableV1,
+    IInterpreterCallerV2,
+    Phased,
+    ReentrancyGuard,
+    DeployerDiscoverableMetaV1
+{
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using Math for uint256;
     using SaturatingMath for uint256;
     using LibFixedPointMath for uint256;
@@ -159,7 +168,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
     event Invalid(
         address sender,
         uint256[] callerContext,
-        SignedContext[] signedContext
+        SignedContextV1[] signedContext
     );
 
     uint256 internal immutable maxTimeoutDuration;
@@ -181,7 +190,12 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     constructor(
         LobbyConstructorConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+    )
+        DeployerDiscoverableMetaV1(
+            CALLER_META_HASH,
+            config_.deployerDiscoverableMetaConfig
+        )
+    {
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 
@@ -303,7 +317,9 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    function _deposit(uint256 amount_) internal {
+    function _deposit(
+        uint256 amount_
+    ) internal onlyAtLeastPhase(PHASE_PLAYERS_PENDING) {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);
@@ -318,7 +334,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     function join(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyPhase(PHASE_PLAYERS_PENDING)
@@ -329,8 +345,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
         unchecked {
             Evaluable memory evaluable_ = evaluable;
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -361,7 +376,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     function leave(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContext_
+        SignedContextV1[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
@@ -369,8 +384,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
         deposits[msg.sender] = 0;
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContext_
         );
         emit Context(msg.sender, context_);
@@ -384,7 +398,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
-        uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
+        uint256 amount_ = stack_.endPointer().unsafePeek().min(deposit_);
         totalDeposited -= amount_;
         emit Leave(msg.sender, address(token), deposit_, amount_);
 
@@ -396,7 +410,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     function claim(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     )
         external
         onlyAtLeastPhase(PHASE_RESULT_PENDING)
@@ -434,8 +448,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
             uint256[][] memory context_ = LibContext.build(
-                new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);
@@ -481,7 +494,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
     function _isInvalid(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) internal returns (bool, uint256[] memory) {
         // Timeouts ALWAYS allow an invalid result, unless the lobby is complete.
         // This guards against the expressions themselves being buggy and/or the
@@ -492,8 +505,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
         }
 
         uint256[][] memory context_ = LibContext.build(
-            new uint256[][](0),
-            callerContext_,
+            callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
@@ -513,7 +525,7 @@ contract Lobby is ICloneableV1, Phased, ReentrancyGuard, InterpreterCallerV1 {
 
     function invalid(
         uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        SignedContextV1[] memory signedContexts_
     ) external onlyNotPhase(PHASE_COMPLETE) nonReentrant {
         Evaluable memory evaluable_ = evaluable;
         // It is NOT possible to rollback a prior completion. Complete/invalid

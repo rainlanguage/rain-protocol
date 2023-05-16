@@ -1,5 +1,5 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -50,7 +50,7 @@ describe("ISaleV2 SaleStatus tests", async function () {
     // prettier-ignore
     const sources = [concat([
       SALE_ADDRESS(),
-      op(Opcode.isale_v2_sale_status),
+      op(Opcode.sale_v2_sale_status),
     ])];
     const constants = [fakeSale.address];
 

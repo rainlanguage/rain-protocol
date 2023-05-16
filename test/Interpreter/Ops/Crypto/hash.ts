@@ -1,7 +1,7 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -26,7 +26,9 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a list of values from constant", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: hash(100 200 300);`
+      rainlang`
+        @${opMetaHash}
+_: hash(100 200 300);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -59,7 +61,9 @@ describe("HASH Opcode test", async function () {
     const context = [[alice.address, 0x12031]];
 
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`value0: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+value0: context<0 0>(),
       value1: context<0 1>(),
       _: hash(value0 value1);`
     );
@@ -90,7 +94,9 @@ describe("HASH Opcode test", async function () {
 
   it("should hash a single value", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: hash(${ethers.constants.MaxUint256})`
+      rainlang`
+        @${opMetaHash}
+_: hash(${ethers.constants.MaxUint256});`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
@@ -7,7 +7,7 @@ import {
   ApproveEvent,
   BanEvent,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
   verifyImplementation,
@@ -22,7 +22,7 @@ describe("Verify duplicate admin actions", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should support duplicate admin actions", async function () {

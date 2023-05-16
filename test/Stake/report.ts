@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../typechain";
@@ -18,6 +18,7 @@ import {
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { numArrayToReport } from "../../utils/tier";
@@ -35,7 +36,7 @@ describe("Stake report", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

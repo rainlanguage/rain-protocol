@@ -1,58 +1,30 @@
 import { decodeAllSync } from "cbor";
-
-import { assert } from "chai";
+import { strict as assert } from "assert";
+import { ethers } from "hardhat";
 import {
-  ContractMeta,
-  getAbi,
   getRainContractMetaBytes,
-  getRainMetaDocumentFromContract,
-  getRainMetaDocumentFromOpmeta,
   getRainterpreterOpMetaBytes,
 } from "../../utils";
-import { MAGIC_NUMBERS } from "../../utils/meta/cbor";
-import { ethers } from "hardhat";
+import {
+  encodeCBORContractMeta,
+  getAbi,
+  getRainMetaDocumentFromContract,
+  getRainMetaDocumentFromOpmeta,
+} from "../../utils/meta/rainMetaDocument";
+import {
+  RainMetaDocumentMN,
+  ContractMetaMN,
+  SolidityABIMN,
+  OpsMetaMN,
+  findDocInDecodedArray,
+  hexToBin,
+  hexToDecimal,
+  binToDecimal,
+  RainDocumentKeys,
+  MT,
+} from "./cbor.utils";
 
-/**
- * Rain Meta Document magic number as hex string
- */
-const RainMetaDocument = ethers.utils.hexlify(MAGIC_NUMBERS.RAIN_META_DOCUMENT);
-/**
- * Contract Meta V1 magic number as hex string
- */
-const ContractMeta = ethers.utils.hexlify(MAGIC_NUMBERS.CONTRACT_META_V1);
-/**
- * Solidiy ABI V2 magic number as hex string
- */
-const SolidityABI = ethers.utils.hexlify(MAGIC_NUMBERS.SOLIDITY_ABIV2);
-/**
- * Ops Meta V1 magic number as hex string
- */
-const OpsMeta = ethers.utils.hexlify(MAGIC_NUMBERS.OPS_META_V1);
-
-/**
- * Use a decoded array of Maps from CBOR and return an specific item that met the
- * `compareValue_` in the magic number key (1).
- *
- * @param decodedMaps_ The array obtained from CBOR decode
- * @param magicNumber_ Magic number to found an specific item
- */
-const findDocInDecodedArray = (
-  decodedMaps_: any[],
-  magicNumber_: any
-): Map<number, any> | undefined => {
-  const magicNumberKey = 1;
-
-  if (decodedMaps_.every((map_) => map_ instanceof Map)) {
-    const decodedMaps = decodedMaps_ as Array<Map<number, any>>;
-    return decodedMaps.find(
-      (elem_) => ethers.utils.hexlify(elem_.get(magicNumberKey)) == magicNumber_
-    );
-  } else {
-    // If a value is not a map, means that does not follow the Rain Meta Document design.
-    // See: https://github.com/rainprotocol/metadata-spec/blob/main/README.md#header-name-aliases-cbor-map-keys
-    throw new Error("A value in the decoded value is not a map");
-  }
-};
+import type { ContractMeta } from "../../utils/types/contractMeta";
 
 describe("Contract Rain Meta Document", function () {
   it("should construct a meta document from a contract with the start magic number", async function () {
@@ -63,7 +35,7 @@ describe("Contract Rain Meta Document", function () {
     const metaDocument = getRainMetaDocumentFromContract(contractName);
 
     assert(
-      metaDocument.startsWith(RainMetaDocument),
+      metaDocument.startsWith(RainMetaDocumentMN),
       "The rain meta document does not start with the magic number"
     );
   });
@@ -76,18 +48,18 @@ describe("Contract Rain Meta Document", function () {
     const metaDocument = getRainMetaDocumentFromContract(contractName);
 
     assert(
-      metaDocument.startsWith(RainMetaDocument),
+      metaDocument.startsWith(RainMetaDocumentMN),
       "The rain meta document does not start with the magic number"
     );
 
     // The cbor sequence without the magic number.
-    const cborSequence = metaDocument.replace(RainMetaDocument, "");
+    const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
     const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the contract meta in the decoded values
-    const contractMetaMap = findDocInDecodedArray(dataDecoded, ContractMeta);
+    const contractMetaMap = findDocInDecodedArray(dataDecoded, ContractMetaMN);
 
     // Contract Meta Bytes from the decoded CBOR
     const contractMetaBytes = ethers.utils.hexlify(contractMetaMap.get(0));
@@ -120,18 +92,18 @@ describe("Contract Rain Meta Document", function () {
     const metaDocument = getRainMetaDocumentFromContract(contractName);
 
     assert(
-      metaDocument.startsWith(RainMetaDocument),
+      metaDocument.startsWith(RainMetaDocumentMN),
       "The rain meta document does not start with the magic number"
     );
 
     // The cbor sequence without the magic number.
-    const cborSequence = metaDocument.replace(RainMetaDocument, "");
+    const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
     const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the solidity ABI map in the decoded values
-    const solidityAbiMap = findDocInDecodedArray(dataDecoded, SolidityABI);
+    const solidityAbiMap = findDocInDecodedArray(dataDecoded, SolidityABIMN);
 
     // Solidity ABIv2 Bytes from the decoded CBOR
     const solidityAbiBytes = ethers.utils.hexlify(solidityAbiMap.get(0));
@@ -161,18 +133,18 @@ describe("Contract Rain Meta Document", function () {
     const metaDocument = getRainMetaDocumentFromOpmeta();
 
     assert(
-      metaDocument.startsWith(RainMetaDocument),
+      metaDocument.startsWith(RainMetaDocumentMN),
       "The rain meta document does not start with the magic number"
     );
 
     // The cbor sequence without the magic number.
-    const cborSequence = metaDocument.replace(RainMetaDocument, "");
+    const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
     const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the Ops Meta map in the decoded values
-    const opsMetaMap = findDocInDecodedArray(dataDecoded, OpsMeta);
+    const opsMetaMap = findDocInDecodedArray(dataDecoded, OpsMetaMN);
 
     // Ops Meta Bytes from the decoded CBOR
     const opsMetaBytes = ethers.utils.hexlify(opsMetaMap.get(0));
@@ -195,5 +167,96 @@ describe("Contract Rain Meta Document", function () {
       contentEncoding === "deflate",
       "Ops Meta does not have the correct encoding type"
     );
+  });
+
+  it("should have the correct major type on the payload of the contract meta", async function () {
+    // The contract name to generate the Rain Meta Document
+    const contractName: ContractMeta = "flow20";
+
+    // Getting the meta document from an arbitrary contract
+    const metaDocument = getRainMetaDocumentFromContract(contractName);
+
+    assert(
+      metaDocument.startsWith(RainMetaDocumentMN),
+      "The rain meta document does not start with the magic number"
+    );
+
+    // The cbor sequence without the magic number.
+    const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
+
+    let contractMetaBytesCBOR = encodeCBORContractMeta(contractName);
+
+    assert(
+      cborSequence.includes(contractMetaBytesCBOR),
+      "The cbor sequence does not include the contract meta bytes"
+    );
+
+    // --- MAP PAIRS CHECK
+
+    // Get the first bytes from the Contract Meta bytes and parse to bits
+    const mapTypeBin = hexToBin(contractMetaBytesCBOR.slice(0, 2));
+
+    // Removing the previous byte(s)
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    // The high-order 3 are the major type.
+    const mapType = binToDecimal(mapTypeBin.slice(0, 3));
+
+    // The low-order 5 bits are additional information.
+    // Total keys should be used from `0` to `n - 1`.
+    // const mapTotalKeys = binToDecimal(mapTypeBin.slice(-5));
+
+    assert(mapType == MT.MAP, "The cbor data do not have the correct map type");
+
+    // --- PAYLOAD CHECK
+
+    // Looking in the map following the Rain Meta Documents design.
+    const keyPayload = hexToDecimal(contractMetaBytesCBOR.slice(0, 2));
+
+    // Remove the last byte
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    assert(
+      keyPayload == RainDocumentKeys.Payload,
+      `Wrong key header aliases - expected: "${RainDocumentKeys.Payload}" and got "${keyPayload}"`
+    );
+
+    let payloadLength = 0;
+
+    // Get the next byte
+    const bytesTypeBin_0 = hexToBin(contractMetaBytesCBOR.slice(0, 2));
+
+    // Remove the last byte
+    contractMetaBytesCBOR = contractMetaBytesCBOR.slice(2);
+
+    // The high-order 3 are the major type.
+    const bytesType = binToDecimal(bytesTypeBin_0.slice(0, 3));
+
+    assert(
+      bytesType == MT.BYTE_STRING,
+      "The data payload do not have the correct cbor bytes type"
+    );
+
+    // The low-order 5 bits are additional information. For bytes string determined
+    // the length of the string byte
+    const bytesLength = binToDecimal(bytesTypeBin_0.slice(-5));
+
+    if (bytesLength == 25) {
+      // Additional information 25 to indicate that the next two-byte determined the length
+      payloadLength = hexToDecimal(contractMetaBytesCBOR.slice(0, 4));
+      // Remove the last two bytes
+      contractMetaBytesCBOR = contractMetaBytesCBOR.slice(4);
+    } else {
+      // Otherwise, "the number of bytes in the string is equal to the argument."
+      // Which means that the low-order 5 bits itself are the length
+      payloadLength = bytesLength;
+    }
+
+    const payloadData = contractMetaBytesCBOR.slice(0, payloadLength * 2);
+
+    // Getting the originalRain Contract Meta bytes without the init '0x'
+    const contractMetaBytes = getRainContractMetaBytes(contractName).slice(2);
+
+    assert(payloadData == contractMetaBytes, "The payload data is malformed");
   });
 });

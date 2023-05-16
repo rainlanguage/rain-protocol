@@ -1,6 +1,6 @@
 {
-  "name": "prb-ud60x18-log2",
-  "desc": "PRBMath UD60x18: Calculates the binary logarithm of x.",
+  "name": "prb-log2",
+  "desc": "Calculates the binary logarithm of x as 18 decimal fixed point.",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["prb-log2", "fp-log2"]
+  "aliases": ["decimal18-log2"]
 }

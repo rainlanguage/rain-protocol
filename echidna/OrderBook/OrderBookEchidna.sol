@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.18;
 
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {LibOrderBook, OrderIOCalculation} from "../../contracts/orderbook/LibOrderBook.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 import {LibFixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/LibFixedPointMath.sol";
-import {ClearStateChange} from "../../contracts/orderbook/IOrderBookV1.sol";
+import {ClearStateChange} from "rain.interface.orderbook/IOrderBookV1.sol";
 
 /// Since we are fuzzing inputs rather than functionality the contract is
 /// standalone.

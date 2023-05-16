@@ -3,7 +3,7 @@ import {
   Flow as FlowType,
   RainterpreterExpressionDeployer,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 
@@ -12,12 +12,12 @@ export const deployFlow = async (
 ) => {
   const flowFactory = await ethers.getContractFactory("Flow");
 
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
+  const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("flow"),
     deployer: deployer_.address,
   };
 
-  const Flow = (await flowFactory.deploy(interpreterCallerConfig)) as FlowType;
+  const Flow = (await flowFactory.deploy(config_)) as FlowType;
 
-  registerContract("Flow", Flow.address, interpreterCallerConfig);
+  registerContract("Flow", Flow.address, config_);
 };

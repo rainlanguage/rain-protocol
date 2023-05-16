@@ -1,12 +1,12 @@
 import { ethers } from "hardhat";
 import { RainterpreterExpressionDeployer } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 import {
   Lobby as LobbyType,
   LobbyConstructorConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 
 export const deployLobby = async (
   deployer_: RainterpreterExpressionDeployer,
@@ -14,14 +14,15 @@ export const deployLobby = async (
 ) => {
   const lobbyFactory = await ethers.getContractFactory("Lobby");
 
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("lobby"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("lobby"),
+      deployer: deployer_.address,
+    };
 
   const lobbyConstructorConfig: LobbyConstructorConfigStruct = {
     maxTimeoutDuration: timeoutDuration,
-    interpreterCallerConfig,
+    deployerDiscoverableMetaConfig,
   };
 
   const Lobby = (await lobbyFactory.deploy(

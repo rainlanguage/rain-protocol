@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../../typechain";
@@ -10,7 +10,7 @@ import {
   ApproveEvent,
   Verify,
 } from "../../../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../../../utils";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   autoApproveCloneDeploy,
@@ -43,7 +43,7 @@ describe("AutoApprove afterAdd", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should automatically approve sender if AutoApprove has APPROVER role", async () => {
@@ -270,6 +270,8 @@ describe("AutoApprove afterAdd", async function () {
       admin.address,
       autoApprove.address
     );
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 

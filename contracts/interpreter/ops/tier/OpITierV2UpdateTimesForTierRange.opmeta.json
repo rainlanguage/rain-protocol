@@ -1,0 +1,31 @@
+{
+  "name": "tier-v2-update-times-for-tier-range",
+  "desc": "Inserts the result of updating the range of tiers of a report taken from stack by a value taken from the stack into the stack",
+  "operand": [
+    {
+      "name": "end-tier",
+      "desc": "the ending tier to update",
+      "bits": [4, 7],
+      "validRange": [[0, 8]]
+    },
+    {
+      "name": "start-tier",
+      "desc": "the starting tier to update",
+      "bits": [0, 3],
+      "validRange": [[0, 8]]
+    }
+  ],
+  "inputs": {
+    "parameters": [
+      {
+        "name": "report",
+        "desc": "the report to update its tier range"
+      },
+      {
+        "name": "update-timestamp",
+        "desc": "the timestamp to update tier range to"
+      }
+    ]
+  },
+  "outputs": 1
+}

@@ -1,13 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { artifacts, ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
   Stake,
 } from "../../../typechain";
-import { NewCloneEvent } from "../../../typechain/contracts/factory/CloneFactory";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
+import {
+  DeployerDiscoverableMetaV1ConstructionConfigStruct,
+  NewCloneEvent,
+} from "../../../typechain/contracts/factory/CloneFactory";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
@@ -19,12 +21,15 @@ export const stakeImplementation = async (): Promise<Stake> => {
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("stake"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("stake"),
+      deployer: touchDeployer.address,
+    };
 
-  const stake = (await stakeFactory.deploy(interpreterCallerConfig)) as Stake;
+  const stake = (await stakeFactory.deploy(
+    deployerDiscoverableMetaConfig
+  )) as Stake;
 
   assert(!(stake.address === zeroAddress), "implementation stake zero address");
 

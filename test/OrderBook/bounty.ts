@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReserveToken18 } from "../../typechain";
@@ -35,6 +35,7 @@ import {
 } from "../../utils/test/compareStructs";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -69,7 +70,7 @@ describe("OrderBook bounty", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     // Order_A
 
@@ -102,7 +103,7 @@ describe("OrderBook bounty", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
@@ -138,7 +139,7 @@ describe("OrderBook bounty", async function () {
       bRatio,
     ]);
 
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
 
     const EvaluableConfig_B = await generateEvaluableConfig(
       [bidSource, []],
@@ -153,7 +154,7 @@ describe("OrderBook bounty", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txOrder_B = await orderBook.connect(bob).addOrder(orderConfig_B);
@@ -223,12 +224,12 @@ describe("OrderBook bounty", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const txClearOrder = await orderBook
@@ -237,8 +238,8 @@ describe("OrderBook bounty", async function () {
 
     const {
       sender: _clearSender,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: _clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -265,10 +266,10 @@ describe("OrderBook bounty", async function () {
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
-      aOutput: aOutputExpected,
-      bOutput: bOutputExpected,
-      aInput: fixedPointMul(ratio_A, aOutputExpected),
-      bInput: fixedPointMul(ratio_B, bOutputExpected),
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(_afterClearSender === bountyBot.address);
@@ -279,8 +280,8 @@ describe("OrderBook bounty", async function () {
     compareStructs(_clearStateChange, expectedClearStateChange);
 
     const _actualBounty = {
-      a: _clearStateChange.aOutput.sub(_clearStateChange.bInput),
-      b: _clearStateChange.bOutput.sub(_clearStateChange.aInput),
+      a: _clearStateChange.aliceOutput.sub(_clearStateChange.bobInput),
+      b: _clearStateChange.bobOutput.sub(_clearStateChange.aliceInput),
     };
 
     // alice pays 90% of input amount to bob and 10% to order clearer to make

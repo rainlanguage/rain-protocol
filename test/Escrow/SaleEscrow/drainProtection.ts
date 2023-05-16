@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { MockISaleV2, ReserveToken } from "../../../typechain";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";

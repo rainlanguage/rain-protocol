@@ -1,32 +1,33 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "sol.lib.memory/LibUint256Matrix.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x1b4cad4ce93782ba918b76faef40045b82d9310226ef1cbb23d4d917e20f28b6
+    0xff34b4b701c88a038a14509b8807eec1772dc07c97149e9d0ae0f2f589a2e743
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant REPORT_MIN_OUTPUTS = 1;
-uint256 constant REPORT_MAX_OUTPUTS = 1;
+uint16 constant REPORT_MAX_OUTPUTS = 1;
 
 uint256 constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
-uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
+uint16 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
@@ -45,20 +46,19 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
-    using LibStackPointer for StackPointer;
+contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-    using LibInterpreterState for InterpreterState;
 
     event Initialize(address sender, CombineTierConfig config);
 
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 
@@ -102,7 +102,7 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
     /// @inheritdoc ITierV2
     function report(
         address account_,
-        uint256[] memory callerContext_
+        uint256[] memory reportContext_
     ) external view virtual override returns (uint256) {
         unchecked {
             Evaluable memory evaluable_ = evaluable;
@@ -115,9 +115,11 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
                     REPORT_MAX_OUTPUTS
                 ),
                 LibContext.build(
-                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                    callerContext_,
-                    new SignedContext[](0)
+                    LibUint256Matrix.matrixFrom(
+                        uint256(uint160(account_)).arrayFrom(),
+                        reportContext_
+                    ),
+                    new SignedContextV1[](0)
                 )
             );
             return stack_[stack_.length - 1];
@@ -128,7 +130,7 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] memory callerContext_
+        uint256[] memory reportContext_
     ) external view returns (uint256) {
         unchecked {
             Evaluable memory evaluable_ = evaluable;
@@ -141,11 +143,14 @@ contract CombineTier is ICloneableV1, TierV2, InterpreterCallerV1 {
                     REPORT_FOR_TIER_MAX_OUTPUTS
                 ),
                 LibContext.build(
-                    LibUint256Array
-                        .arrayFrom(uint256(uint160(account_)), tier_)
-                        .matrixFrom(),
-                    callerContext_,
-                    new SignedContext[](0)
+                    LibUint256Matrix.matrixFrom(
+                        LibUint256Array.arrayFrom(
+                            uint256(uint160(account_)),
+                            tier_
+                        ),
+                        reportContext_
+                    ),
+                    new SignedContextV1[](0)
                 )
             );
             return stack_[stack_.length - 1];

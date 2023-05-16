@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "./TierReport.sol";
-import "../../math/SaturatingMath.sol";
+import "rain.math.saturating/SaturatingMath.sol";
 
 /// @dev Every lte check in `selectLte` must pass.
 uint256 constant TIERWISE_COMBINE_LOGIC_EVERY = 0;

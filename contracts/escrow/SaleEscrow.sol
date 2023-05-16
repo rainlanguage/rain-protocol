@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import "../sale/ISaleV2.sol";
+import "rain.interface.sale/ISaleV2.sol";
 
 /// Represents the 3 possible statuses an escrow could care about.
 /// Either the escrow takes no action or consistently allows a success/fail

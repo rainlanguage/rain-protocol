@@ -1,5 +1,11 @@
 import { BigNumberish, BytesLike } from "ethers";
-import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import {
+  concat,
+  Hexable,
+  hexlify,
+  zeroPad,
+  solidityKeccak256,
+} from "ethers/lib/utils";
 import { PromiseOrValue } from "../../typechain/common";
 import { EvaluableConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 import {
@@ -7,19 +13,12 @@ import {
   rainterpreterStoreDeploy,
 } from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { AllStandardOps } from "./ops/allStandardOps";
-import { ExpressionConfig, rlc } from "rainlang";
+import { ExpressionConfig, rlc, MetaStore } from "@rainprotocol/rainlang";
 import { getRainMetaDocumentFromOpmeta } from "../meta";
-import { MAGIC_NUMBERS, decodeRainMetaDocument } from "../meta/cbor";
 
 export enum MemoryType {
   Stack,
   Constant,
-}
-
-export enum Debug {
-  StatePacked,
-  Stack,
 }
 
 export enum SelectLteLogic {
@@ -31,14 +30,6 @@ export enum SelectLteMode {
   min,
   max,
   first,
-}
-
-export function DEBUG_STATE_PACKED(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.StatePacked)]);
-}
-
-export function DEBUG_STACK(items: ReadonlyArray<BytesLike>): BytesLike {
-  return concat([...items, op(AllStandardOps.debug, Debug.Stack)]);
 }
 
 /**
@@ -271,18 +262,10 @@ export async function generateEvaluableConfig(
 export const standardEvaluableConfig = async (
   expression: string
 ): Promise<ExpressionConfig> => {
-  const rainDocumentEncoded = getRainMetaDocumentFromOpmeta();
+  const store = new MetaStore();
+  await store.updateStore(opMetaHash);
 
-  const dataDecoded = decodeRainMetaDocument(rainDocumentEncoded);
-
-  // Find the correct element related to OPS_META_V1
-  const opsMetaMap = dataDecoded.find(
-    (elem_) => elem_.get(1) === MAGIC_NUMBERS.OPS_META_V1
-  );
-
-  const hexOpsMeta = hexlify(opsMetaMap.get(0));
-
-  return await rlc(expression, hexOpsMeta)
+  return await rlc(expression, store)
     .then((expressionConfig) => {
       return expressionConfig;
     })
@@ -290,3 +273,45 @@ export const standardEvaluableConfig = async (
       throw new Error(JSON.stringify(error, null, 2));
     });
 };
+
+/**
+ * Given a source in opcodes compile to an equivalent source with real function pointers for a given Interpreter contract.
+ * @param source Uncompiled Source
+ * @param pointers Opcode function pointers
+ * @returns Compiled Source
+ */
+export const compileSource = (source, pointers): string => {
+  const pointersBottom = pointers.slice(2); // skip first 2 bytes
+  const cursor = source.slice(2); // skip first 2 bytes
+  const pointersArray = [];
+  for (let i = 0; i < pointersBottom.length; i += 4) {
+    const substr = pointersBottom.slice(i, i + 4);
+    pointersArray.push(substr);
+  }
+  let result = "";
+  for (let i = 0; i < cursor.length; i += 8) {
+    const chunk = cursor.substring(i, i + 8);
+    result += pointersArray[parseInt(chunk.slice(0, 4), 16)] + chunk.slice(4);
+  }
+  return "0x" + result;
+};
+
+let opMetaHashResult: string;
+
+/**
+ * @returns A hex string which is the keccak256 hash of opmeta
+ */
+export const getOpMetaHash = (): string => {
+  if (!opMetaHashResult) {
+    opMetaHashResult = solidityKeccak256(
+      ["bytes"],
+      [getRainMetaDocumentFromOpmeta()]
+    );
+  }
+  return opMetaHashResult;
+};
+
+/**
+ * @returns Keccak256 OpMetaHash
+ */
+export const opMetaHash = getOpMetaHash();

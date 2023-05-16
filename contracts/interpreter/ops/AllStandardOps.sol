@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import "../../type/LibCast.sol";
-import "../../type/LibConvert.sol";
-import "../../array/LibUint256Array.sol";
+import "rain.lib.typecast/LibConvert.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import "./bytes32/OpDecode256.sol";
 import "./bytes32/OpEncode256.sol";
 import "./bytes32/OpExplode32.sol";
@@ -13,7 +12,6 @@ import "./context/OpContextColumnHash.sol";
 import "./context/OpContextRow.sol";
 import "./context/OpFoldContext.sol";
 import "./core/OpCall.sol";
-import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpExtern.sol";
 import "./core/OpLoopN.sol";
@@ -32,10 +30,7 @@ import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
-import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
-import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
-import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
 import "./math/logic/OpAny.sol";
 import "./math/logic/OpEagerIf.sol";
@@ -71,7 +66,7 @@ import "./math/OpMin.sol";
 import "./math/OpMod.sol";
 import "./math/OpMul.sol";
 import "./math/OpSub.sol";
-import "./rain/IOrderBookV1/OpIOrderBookV1VaultBalance.sol";
+import "./rain/IOrderBookV2/OpIOrderBookV2VaultBalance.sol";
 import "./rain/ISaleV2/OpISaleV2RemainingTokenInventory.sol";
 import "./rain/ISaleV2/OpISaleV2Reserve.sol";
 import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
@@ -84,16 +79,16 @@ import "./store/OpSet.sol";
 
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
-import "./tier/OpSaturatingDiff.sol";
-import "./tier/OpSelectLte.sol";
-import "./tier/OpUpdateTimesForTierRange.sol";
+import "./tier/OpITierV2SaturatingDiff.sol";
+import "./tier/OpITierV2SelectLte.sol";
+import "./tier/OpITierV2UpdateTimesForTierRange.sol";
 
 /// Thrown when a dynamic length array is NOT 1 more than a fixed length array.
 /// Should never happen outside a major breaking change to memory layouts.
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 81;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 77;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -101,50 +96,42 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = 81;
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         view
-        returns (StackPointer);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+        returns (Pointer);
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         pure
-        returns (StackPointer);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+        returns (Pointer);
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer)[];
 
     using AllStandardOps for function(
         IntegrityCheckState memory,
         Operand,
-        StackPointer
-    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
-    using AllStandardOps for function(
-        InterpreterState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
+        Pointer
+    ) view returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(InterpreterState memory, Operand, Pointer)
+        view
+        returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) pure returns (StackPointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer)[];
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        pure
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        view
+        returns (Pointer)[];
+    using LibCast for function(InterpreterState memory, Operand, Pointer)
+        view
+        returns (Pointer)[];
 
     /// An oddly specific length conversion between a fixed and dynamic `uint256`
     /// array. This is useful for the purpose of building metadata for bounds
@@ -159,9 +146,9 @@ library AllStandardOps {
     /// @param dynamic_ The dynamic `uint256` array with length of the standard
     /// ops.
     function asUint256Array(
-        function(IntegrityCheckState memory, Operand, StackPointer)
+        function(IntegrityCheckState memory, Operand, Pointer)
             view
-            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -185,9 +172,9 @@ library AllStandardOps {
     /// @param dynamic_ The dynamic `uint256` array with length of the standard
     /// ops.
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackPointer)
+        function(InterpreterState memory, Operand, Pointer)
             view
-            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -198,27 +185,77 @@ library AllStandardOps {
         }
     }
 
-    function integrityFunctionPointers(
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory locals_
+    /// Retype an integer to an integrity function pointer.
+    /// @param u_ The integer to cast to an integrity function pointer.
+    /// @return fn_ The integrity function pointer.
+    function asIntegrityFunctionPointer(
+        uint256 u_
     )
         internal
         pure
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
+                internal
                 view
-                returns (StackPointer)[]
-                memory
+                returns (Pointer) fn_
+        )
+    {
+        assembly ("memory-safe") {
+            fn_ := u_
+        }
+    }
+
+    /// Retype a list of integrity check function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
+    function asUint256Array(
+        function(IntegrityCheckState memory, Operand, Pointer)
+            internal
+            view
+            returns (Pointer)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory us_) {
+        assembly ("memory-safe") {
+            us_ := fns_
+        }
+    }
+
+    /// Retype a list of integers to integrity check function pointers.
+    /// @param us_ The list of integers to use as function pointers.
+    /// @return fns_ The list of integrity check function pointers.
+    function asIntegrityPointers(
+        uint256[] memory us_
+    )
+        internal
+        pure
+        returns (
+            function(IntegrityCheckState memory, Operand, Pointer)
+                view
+                returns (Pointer)[]
+                memory fns_
+        )
+    {
+        assembly ("memory-safe") {
+            fns_ := us_
+        }
+    }
+
+    function integrityFunctionPointers()
+        internal
+        pure
+        returns (
+            function(IntegrityCheckState memory, Operand, Pointer)
+                view
+                returns (Pointer)[]
+                memory pointers_
         )
     {
         unchecked {
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
-                    ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    asIntegrityFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.integrity,
                     OpEncode256.integrity,
                     OpExplode32.integrity,
@@ -228,7 +265,6 @@ library AllStandardOps {
                     OpContextRow.integrity,
                     OpFoldContext.integrity,
                     OpCall.integrity,
-                    OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpExtern.integrity,
                     OpLoopN.integrity,
@@ -255,10 +291,7 @@ library AllStandardOps {
                     OpMul.integrity,
                     OpSub.integrity,
                     OpFixedPointScale18.integrity,
-                    OpFixedPointScale18Div.integrity,
                     OpFixedPointScale18Dynamic.integrity,
-                    OpFixedPointScale18Mul.integrity,
-                    OpFixedPointScaleBy.integrity,
                     OpFixedPointScaleN.integrity,
                     OpAny.integrity,
                     OpEagerIf.integrity,
@@ -286,7 +319,7 @@ library AllStandardOps {
                     OpSaturatingAdd.integrity,
                     OpSaturatingMul.integrity,
                     OpSaturatingSub.integrity,
-                    OpIOrderBookV1VaultBalance.integrity,
+                    OpIOrderBookV2VaultBalance.integrity,
                     OpISaleV2RemainingTokenInventory.integrity,
                     OpISaleV2Reserve.integrity,
                     OpISaleV2SaleStatus.integrity,
@@ -302,33 +335,52 @@ library AllStandardOps {
                     OpSelectLte.integrity,
                     OpUpdateTimesForTierRange.integrity
                 ];
-            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
-            pointers_.extend(locals_.asUint256Array());
-            return pointers_.asIntegrityPointers();
+            assembly ("memory-safe") {
+                pointers_ := pointersFixed_
+            }
         }
     }
 
-    function opcodeFunctionPointers(
-        function(InterpreterState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory locals_
+    /// Retype an integer to an opcode function pointer.
+    /// @param u_ The integer to cast to an opcode function pointer.
+    /// @return fn_ The opcode function pointer.
+    function asOpFunctionPointer(
+        uint256 u_
     )
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackPointer)
+            function(InterpreterState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
-                memory opcodeFunctionPointers_
+                returns (Pointer) fn_
         )
     {
+        assembly ("memory-safe") {
+            fn_ := u_
+        }
+    }
+
+    /// Retype a list of interpreter opcode function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
+    function asUint256Array(
+        function(InterpreterState memory, Operand, Pointer)
+            view
+            returns (Pointer)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory us_) {
+        assembly ("memory-safe") {
+            us_ := fns_
+        }
+    }
+
+    function opcodeFunctionPointers() internal pure returns (bytes memory) {
         unchecked {
-            function(InterpreterState memory, Operand, StackPointer)
+            function(InterpreterState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
-                    ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    asOpFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.run,
                     OpEncode256.run,
                     OpExplode32.run,
@@ -338,8 +390,6 @@ library AllStandardOps {
                     OpContextRow.run,
                     OpFoldContext.run,
                     OpCall.run,
-                    // 1.001kb
-                    OpDebug.run,
                     OpDoWhile.run,
                     OpExtern.intern,
                     OpLoopN.run,
@@ -366,10 +416,7 @@ library AllStandardOps {
                     OpMul.run,
                     OpSub.run,
                     OpFixedPointScale18.run,
-                    OpFixedPointScale18Div.run,
                     OpFixedPointScale18Dynamic.run,
-                    OpFixedPointScale18Mul.run,
-                    OpFixedPointScaleBy.run,
                     OpFixedPointScaleN.run,
                     OpAny.run,
                     OpEagerIf.run,
@@ -398,7 +445,7 @@ library AllStandardOps {
                     OpSaturatingAdd.run,
                     OpSaturatingMul.run,
                     OpSaturatingSub.run,
-                    OpIOrderBookV1VaultBalance.run,
+                    OpIOrderBookV2VaultBalance.run,
                     OpISaleV2RemainingTokenInventory.run,
                     OpISaleV2Reserve.run,
                     OpISaleV2SaleStatus.run,
@@ -414,9 +461,8 @@ library AllStandardOps {
                     OpSelectLte.run,
                     OpUpdateTimesForTierRange.run
                 ];
-            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
-            pointers_.extend(locals_.asUint256Array());
-            opcodeFunctionPointers_ = pointers_.asOpcodeFunctionPointers();
+            return
+                LibConvert.unsafeTo16BitBytes(asUint256Array(pointersFixed_));
         }
     }
 }

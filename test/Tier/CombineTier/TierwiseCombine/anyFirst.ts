@@ -1,9 +1,9 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils";
 import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
+import { flowCloneFactory } from "../../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import {
   combineTierCloneDeploy,
@@ -40,7 +40,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   // prettier-ignore

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
@@ -32,6 +32,7 @@ import {
   stakeImplementation,
   Tier,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
@@ -64,7 +65,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     erc20Pullee = await erc20PulleeDeploy();
 

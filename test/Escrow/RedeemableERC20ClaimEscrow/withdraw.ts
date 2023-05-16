@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type {
   CloneFactory,
@@ -18,6 +18,7 @@ import {
   redeemableERC20DeployImplementation,
 } from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { Status } from "../../../utils/types/sale";
@@ -41,7 +42,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import "./libraries/LibFlow.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/caller/LibContext.sol";
-import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -27,38 +28,37 @@ uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
 uint256 constant FLAG_ROW_FLOW_TIME = 2;
 
-uint256 constant MIN_FLOW_SENTINELS = 4;
+uint256 constant MIN_FLOW_SENTINELS = 3;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
+uint16 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 contract FlowCommon is
     ERC721Holder,
     ERC1155Holder,
     Multicall,
-    InterpreterCallerV1
+    IInterpreterCallerV2,
+    DeployerDiscoverableMetaV1
 {
-    using LibInterpreterState for InterpreterState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvaluable for Evaluable;
 
     /// Evaluable hash => is registered
-    mapping(bytes32 => uint256) internal _flows;
+    mapping(bytes32 => uint256) internal registeredFlows;
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
     constructor(
         bytes32 metaHash_,
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(metaHash_, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(metaHash_, config_) {
         _disableInitializers();
     }
 
-    // solhint-disable-next-line func-name-mixedcase
-    function __FlowCommon_init(
+    function flowCommonInit(
         EvaluableConfig[] memory evaluableConfigs_,
         uint256 flowMinOutputs_
     ) internal onlyInitializing {
@@ -82,7 +82,7 @@ contract FlowCommon is
                     LibUint256Array.arrayFrom(flowMinOutputs_)
                 );
             evaluable_ = Evaluable(interpreter_, store_, expression_);
-            _flows[evaluable_.hash()] = 1;
+            registeredFlows[evaluable_.hash()] = 1;
             emit FlowInitialized(msg.sender, evaluable_);
         }
     }
@@ -100,7 +100,7 @@ contract FlowCommon is
 
     modifier onlyRegisteredEvaluable(Evaluable memory evaluable_) {
         bytes32 hash_ = evaluable_.hash();
-        if (_flows[hash_] == 0) {
+        if (registeredFlows[hash_] == 0) {
             revert UnregisteredFlow(hash_);
         }
         _;
@@ -113,7 +113,7 @@ contract FlowCommon is
         internal
         view
         onlyRegisteredEvaluable(evaluable_)
-        returns (StackPointer, StackPointer, uint256[] memory)
+        returns (Pointer, Pointer, uint256[] memory)
     {
         (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
             .interpreter
@@ -123,8 +123,6 @@ contract FlowCommon is
                 _flowDispatch(evaluable_.expression),
                 context_
             );
-        return (stack_.asStackPointerUp(), stack_.asStackPointerAfter(), kvs_);
+        return (stack_.dataPointer(), stack_.endPointer(), kvs_);
     }
-
-    receive() external payable virtual {}
 }

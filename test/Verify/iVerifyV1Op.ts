@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
@@ -11,12 +11,12 @@ import type {
 import * as Util from "../../utils";
 import {
   AllStandardOps,
-  basicDeploy,
   getBlockTimestamp,
   op,
   verifyCloneDeploy,
   verifyImplementation,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -39,7 +39,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
     rainInterpreter = await rainterpreterDeploy();
 
     const consumerFactory = await ethers.getContractFactory(
@@ -67,7 +67,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
         op(Opcode.context, 0x0000), // CONTRACT
         op(Opcode.context, 0x0001), // ADDRESS
         op(Opcode.context, 0x0002), // TIMESTAMP
-      op(Opcode.iverify_v1_account_status_at_time), // STATUS
+      op(Opcode.verify_v1_account_status_at_time), // STATUS
     ]);
 
     const expression0 = await expressionConsumerDeploy(

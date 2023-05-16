@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import type { PhasedScheduleTest, PhasedTest } from "../../typechain";
 import * as Util from "../../utils";
 import { getBlockTimestamp, max_uint32, timewarp } from "../../utils";

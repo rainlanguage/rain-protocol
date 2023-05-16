@@ -1,23 +1,23 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
 } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
 import {
   FlowERC1155,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 
 import {
   assertError,
-  basicDeploy,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -27,7 +27,7 @@ import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import {
-  MemoryType,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
@@ -45,58 +45,56 @@ describe("FlowERC1155 construction tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
     const [deployer] = signers;
 
-    const constants = [1, 2];
-
     // prettier-ignore
-    const { sources} = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
-        _: read-memory<0 ${MemoryType.Constant}>();
+        _: 1;
       `
     );
 
-    const { sources: sourceFlowIO } = await standardEvaluableConfig(
-      rainlang`
+    const { sources: sourceFlowIO, constants: constantsFlowIO } =
+      await standardEvaluableConfig(
+        rainlang`
+        @${opMetaHash}
+
       /* variables */
-      seperator: read-memory<1 ${MemoryType.Constant}>(),
+      seperator: 2,
       /**
        * erc1155 transfers
        */
       transfererc1155slist: seperator,
-      
+
       /**
        * erc721 transfers
        */
       transfererc721slist: seperator,
-      
+
       /**
        * er20 transfers
        */
       transfererc20slist: seperator,
-      
-      /**
-       * native (gas) token transfers
-       */
-      transfernativeslist: seperator,
-      
+
       /**
        * burns of this erc1155 token
        */
       burnslist: seperator,
-      
+
       /**
        * mints of this erc1155 token
        */
-      mintslist: seperator,
+      mintslist: seperator;
     `
-    );
+      );
 
     const flowERC1155Config: FlowERC1155Config = {
       uri: "F1155",
@@ -107,7 +105,7 @@ describe("FlowERC1155 construction tests", async function () {
       flows: [
         {
           sources: sourceFlowIO,
-          constants,
+          constants: constantsFlowIO,
         },
       ],
     };
@@ -139,14 +137,14 @@ describe("FlowERC1155 construction tests", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("flow1155"),
         deployer: touchDeployer.address,
       };
 
     const flowERC1155 = (await flowERC1155Factory.deploy(
-      interpreterCallerConfig0
+      deployerDiscoverableMetaConfig0
     )) as FlowERC1155;
 
     assert(
@@ -154,14 +152,15 @@ describe("FlowERC1155 construction tests", async function () {
       "flowERC1155 did not deploy"
     );
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await flowERC1155Factory.deploy(interpreterCallerConfig1),
+      async () =>
+        await flowERC1155Factory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "FlowERC1155 Deployed for bad hash"
     );

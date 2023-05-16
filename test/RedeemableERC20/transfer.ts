@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type {
   CloneFactory,
@@ -10,12 +10,12 @@ import type {
 import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
 import {
-  basicDeploy,
   readWriteTierDeploy,
   redeemableERC20DeployClone,
   redeemableERC20DeployImplementation,
   Tier,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
@@ -32,7 +32,7 @@ describe("RedeemableERC20 transfer test", async function () {
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

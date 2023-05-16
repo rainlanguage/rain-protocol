@@ -1,0 +1,37 @@
+{
+  "name": "tier-v2-select-lte",
+  "desc": "The result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack",
+  "operand": [
+    {
+      "name": "logic",
+      "desc": "select lte logic: every or any logic",
+      "bits": [13, 13]
+    },
+    {
+      "name": "mode",
+      "desc": "select lte mode: min, max or first",
+      "bits": [8, 9],
+      "validRange": [[0, 2]]
+    },
+    {
+      "name": "inputs",
+      "bits": [0, 7],
+      "validRange": [[1, 255]]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 7],
+    "parameters": [
+      {
+        "name": "reference-timestamp",
+        "desc": "The timestamp to check the tier reports against"
+      },
+      {
+        "name": "report",
+        "desc": "The report to selectLte from",
+        "spread": true
+      }
+    ]
+  },
+  "outputs": 1
+}

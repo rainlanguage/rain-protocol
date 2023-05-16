@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
@@ -36,6 +36,7 @@ import {
 
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -113,7 +114,7 @@ describe("OrderBook counterparty in context", async function () {
       op(Opcode.eager_if),
       aRatio,
     ]);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
       [source_A, []],
@@ -128,7 +129,7 @@ describe("OrderBook counterparty in context", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
@@ -159,7 +160,7 @@ describe("OrderBook counterparty in context", async function () {
       bOpMax,
       bRatio,
     ]);
-    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const bobOrder = encodeMeta("Order_B");
     const EvaluableConfig_B = await generateEvaluableConfig(
       [source_B, []],
       constants_B
@@ -172,7 +173,7 @@ describe("OrderBook counterparty in context", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
       evaluableConfig: EvaluableConfig_B,
-      data: bobOrder,
+      meta: bobOrder,
     };
 
     const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);
@@ -203,7 +204,7 @@ describe("OrderBook counterparty in context", async function () {
       cOpMax,
       cRatio,
     ]);
-    const carolOrder = ethers.utils.toUtf8Bytes("Order_C");
+    const carolOrder = encodeMeta("Order_C");
     const EvaluableConfig_C = await generateEvaluableConfig(
       [source_C, []],
       constants_C
@@ -216,7 +217,7 @@ describe("OrderBook counterparty in context", async function () {
         { token: tokenA.address, decimals: 18, vaultId: carolOutputVault },
       ],
       evaluableConfig: EvaluableConfig_C,
-      data: carolOrder,
+      meta: carolOrder,
     };
 
     const txOrder_C = await orderBook.connect(carol).addOrder(OrderConfig_C);
@@ -307,12 +308,12 @@ describe("OrderBook counterparty in context", async function () {
     // BOUNTY BOT CLEARS THE ORDER - BAD MATCH
 
     const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
+      aliceInputIOIndex: 0,
+      aliceOutputIOIndex: 0,
+      bobInputIOIndex: 0,
+      bobOutputIOIndex: 0,
+      aliceBountyVaultId: bountyBotVaultA,
+      bobBountyVaultId: bountyBotVaultB,
     };
 
     const badClearOrder = await orderBook
@@ -321,8 +322,8 @@ describe("OrderBook counterparty in context", async function () {
 
     const {
       sender: badClearSender,
-      a: badClearA_,
-      b: badClearB_,
+      alice: badClearA_,
+      bob: badClearB_,
       clearConfig: badClearBountyConfig,
     } = (await getEventArgs(
       badClearOrder,
@@ -340,10 +341,10 @@ describe("OrderBook counterparty in context", async function () {
     )) as AfterClearEvent["args"];
 
     const expectedBadClearStateChange: ClearStateChangeStruct = {
-      aOutput: 0,
-      bOutput: 0,
-      aInput: 0,
-      bInput: 0,
+      aliceOutput: 0,
+      bobOutput: 0,
+      aliceInput: 0,
+      bobInput: 0,
     };
 
     assert(badAfterClearSender === bountyBot.address);
@@ -361,8 +362,8 @@ describe("OrderBook counterparty in context", async function () {
 
     const {
       sender: clearSender,
-      a: clearA_,
-      b: clearB_,
+      alice: clearA_,
+      bob: clearB_,
       clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -389,10 +390,10 @@ describe("OrderBook counterparty in context", async function () {
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
-      aOutput: aOutputExpected,
-      bOutput: bOutputExpected,
-      aInput: fixedPointMul(ratio_A, aOutputExpected),
-      bInput: fixedPointMul(ratio_B, bOutputExpected),
+      aliceOutput: aOutputExpected,
+      bobOutput: bOutputExpected,
+      aliceInput: fixedPointMul(ratio_A, aOutputExpected),
+      bobInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(afterClearSender === bountyBot.address);

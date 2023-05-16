@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
-import "../../../../math/SaturatingMath.sol";
-import "../../../run/LibStackPointer.sol";
-import "../../../run/LibInterpreterState.sol";
+import "rain.math.saturating/SaturatingMath.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpSaturatingMul
 /// @notice Opcode for multiplying N numbers with saturating multiplication.
 library OpSaturatingMul {
+    using LibOp for Pointer;
     using SaturatingMath for uint256;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
@@ -29,8 +31,8 @@ library OpSaturatingMul {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer stackTopAfter_) {
+        Pointer stackTop_
+    ) internal view returns (Pointer stackTopAfter_) {
         return
             stackTop_.applyFnN(
                 SaturatingMath.saturatingMul,

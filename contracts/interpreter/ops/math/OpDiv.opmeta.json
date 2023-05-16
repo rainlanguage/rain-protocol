@@ -1,6 +1,6 @@
 {
   "name": "div",
-  "desc": "Inserts the result of divide of N values taken from the stack into the stack",
+  "desc": "Divides multiple integer values sequentially.",
   "operand": [
     {
       "name": "inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["divide"]
+  "aliases": ["int-div"]
 }

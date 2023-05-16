@@ -1,5 +1,5 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -20,7 +20,7 @@ import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpr
 
 const Opcode = AllStandardOps;
 
-describe("IOrderBookV1 vault balance tests", async function () {
+describe("IOrderBookV2 vault balance tests", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
   let fakeOrderBook: FakeContract<OrderBook>;
@@ -67,7 +67,7 @@ describe("IOrderBookV1 vault balance tests", async function () {
         OWNER(),
         TOKEN(),
         ID(),
-      op(Opcode.iorderbook_v1_vault_balance),
+      op(Opcode.orderbook_v2_vault_balance),
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 

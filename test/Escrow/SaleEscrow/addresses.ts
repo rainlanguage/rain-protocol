@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, RedeemableERC20 } from "../../../typechain";
@@ -16,6 +16,7 @@ import {
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
@@ -41,7 +42,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {

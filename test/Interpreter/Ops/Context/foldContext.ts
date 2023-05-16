@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
@@ -6,7 +6,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
-  MemoryType,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
@@ -29,20 +29,139 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     await logic.deployed();
   });
 
+  it("should skip 2 context rows", async () => {
+    const sourceIndex = 1;
+    const column = 0;
+    const width = 4;
+    const startingRow = 2;
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        @${opMetaHash}
+
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
+      */
+      a b c d e: ,
+      _: add(a b c d e);`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+      rainInterpreter,
+      1
+    );
+
+    const context = [
+      [10, 20, 30, 40],
+      [100, 200, 300, 400],
+      [1000, 2000, 3000, 4000],
+      [5, 6, 7, 8],
+    ];
+
+    const contextWithRowSkip = [
+      [30, 40],
+      [300, 400],
+      [3000, 4000],
+      [7, 8],
+    ];
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
+    const result = await logic.stackTop();
+    const expectedResult = contextWithRowSkip
+      .flat()
+      .reduce((acc, val) => acc + val);
+    assert(
+      result.eq(expectedResult),
+      `Invalid value calculated using FOLD_CONTEXT, expected ${expectedResult} actual ${result}`
+    );
+  });
+
+  it("should skip a context row", async () => {
+    const sourceIndex = 1;
+    const column = 0;
+    const width = 4;
+    const startingRow = 1;
+
+    const { sources, constants } = await standardEvaluableConfig(
+      rainlang`
+        @${opMetaHash}
+
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
+      */
+      a b c d e: ,
+      _: add(a b c d e);`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources,
+      constants,
+      rainInterpreter,
+      1
+    );
+
+    const context = [
+      [10, 20, 30, 40],
+      [100, 200, 300, 400],
+      [1000, 2000, 3000, 4000],
+      [5, 6, 7, 8],
+    ];
+
+    const contextWithRowSkip = [
+      [20, 30, 40],
+      [200, 300, 400],
+      [2000, 3000, 4000],
+      [6, 7, 8],
+    ];
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
+    const result = await logic.stackTop();
+    const expectedResult = contextWithRowSkip
+      .flat()
+      .reduce((acc, val) => acc + val);
+    assert(
+      result.eq(expectedResult),
+      `Invalid value calculated using FOLD_CONTEXT, expected ${expectedResult} actual ${result}`
+    );
+  });
+
   it("should add all the elements in the context", async () => {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
-      */
-      _: fold-context<${width} ${column} ${sourceIndex}>(0);
+        @${opMetaHash}
 
-      /* 
-        sources[1] 
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
       */
       a b c d e: ,
       _: add(a b c d e);`
@@ -77,27 +196,29 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
   it("should count the occurences of X in the context", async () => {
     const X = 10;
-    const constants = [0, X];
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
-      */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+        @${opMetaHash}
 
-      /* 
-        sources[1] 
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
       */
       acc a1 a2 a3 a4: ,
-      a: equal-to(a1 read-memory<1 ${MemoryType.Constant}>()),
-      b: equal-to(a2 read-memory<1 ${MemoryType.Constant}>()),
-      c: equal-to(a3 read-memory<1 ${MemoryType.Constant}>()),
-      d: equal-to(a4 read-memory<1 ${MemoryType.Constant}>()),
-      _: add(acc a b c d),
+      a: equal-to(a1 ${X}),
+      b: equal-to(a2 ${X}),
+      c: equal-to(a3 ${X}),
+      d: equal-to(a4 ${X}),
+      _: add(acc a b c d);
       `
     );
 
@@ -140,19 +261,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
-      */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+        @${opMetaHash}
 
-      /* 
-        sources[1] 
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
-      _: add(s0 s1 s2 s3 s4),
+      _: add(s0 s1 s2 s3 s4);
       `
     );
 
@@ -187,22 +311,24 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 0;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
-      */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+        @${opMetaHash}
 
-      /* 
-        sources[1] 
+      /*
+        sources[0]
       */
-      s0: ,
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1] is empty
+      */
       `
     );
     const expression0 = await expressionConsumerDeploy(
-      sources,
+      [sources[0], []],
       constants,
       rainInterpreter,
       1
@@ -230,16 +356,19 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0; // Starting Column
     const width = 4;
+    const startingRow = 0;
 
     const { sources } = await standardEvaluableConfig(
       rainlang`
-      /* 
-        sources[0] 
-      */
-      _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>());
+        @${opMetaHash}
 
-      /* 
-        sources[1] 
+      /*
+        sources[0]
+      */
+      _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0);
+
+      /*
+        sources[1]
       */
       s0 s1 s2 s3 s4: ,
       _: add(s0 s1 s2 s3 s4);
@@ -320,38 +449,39 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const sourceIndex = 1;
     const column = 0;
     const width = 4;
+    const startingRow = 0;
 
-    const constants = [0, 2, width];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _ _: fold-context<${width} ${column} ${sourceIndex}>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
+      _ _: fold-context<${startingRow} ${width} ${column} ${sourceIndex}>(0 0);
 
-      /* 
+      /*
         sourceCalculate
       */
-       
+
       evencount oddcount s2 s3 s4 s5: ,
       retevencount: call<2 1>(s2 s3 s4 s5),
 
       /* counting ODD numbers [Total elements - EVEN number count = ODD number count] */
-      totalminuseven: sub(read-memory<2 ${MemoryType.Constant}>() retevencount),
+      totalminuseven: sub(${width} retevencount),
       retoddcount: add(totalminuseven oddcount),
       _: add(retevencount evencount),
       _: retoddcount;
 
 
-      /* 
+      /*
       sourceCountEvent
       */
       s0 s1 s2 s3: ,
-      a: is-zero(mod(s0 read-memory<1 ${MemoryType.Constant}>())),
-      b: is-zero(mod(s1 read-memory<1 ${MemoryType.Constant}>())),
-      c: is-zero(mod(s2 read-memory<1 ${MemoryType.Constant}>())),
-      d: is-zero(mod(s3 read-memory<1 ${MemoryType.Constant}>())),
+      a: is-zero(mod(s0 2)),
+      b: is-zero(mod(s1 2)),
+      c: is-zero(mod(s2 2)),
+      d: is-zero(mod(s3 2)),
       _: add(a b c d);
       `
     );

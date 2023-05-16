@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
@@ -24,6 +24,7 @@ import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 import { deployOrderBook } from "../../utils/deploy/orderBook/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { encodeMeta } from "../../utils/orderBook/order";
 
 const Opcode = AllStandardOps;
 
@@ -67,7 +68,7 @@ describe("OrderBook remove order", async function () {
       aOpMax,
       aRatio,
     ]);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+    const aliceOrder = encodeMeta("Order_A");
 
     const EvaluableConfig_A = await generateEvaluableConfig(
       [source_A, []],
@@ -82,7 +83,7 @@ describe("OrderBook remove order", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       evaluableConfig: EvaluableConfig_A,
-      data: aliceOrder,
+      meta: aliceOrder,
     };
 
     const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);

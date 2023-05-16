@@ -5,8 +5,8 @@ import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
 import { metaFromBytes, validateMeta } from "../general";
-import { MAGIC_NUMBERS, cborEncode } from "../cbor";
-import { arrayify, BytesLike } from "ethers/lib/utils";
+
+import type { BytesLike } from "ethers/lib/utils";
 
 /**
  * Generates list of file paths for all `.opmeta.json` files under `contracts/` directory.
@@ -132,26 +132,4 @@ export const getRainterpreterOpMetaFromBytes = (
   path?: string
 ) => {
   return metaFromBytes(bytes, OpMetaSchema, path);
-};
-
-export const getRainMetaDocumentFromOpmeta = (): string => {
-  // Prefixes every rain meta document as an hex string
-  const metaDocumentHex =
-    "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
-
-  // -- Encoding ContractMeta with CBOR
-  // Obtain Contract Meta as string (Deflated JSON) and parse it to an ArrayBuffer
-  const opsMeta = arrayify(getRainterpreterOpMetaBytes()).buffer;
-
-  const opsMetaEncoded = cborEncode(
-    opsMeta,
-    MAGIC_NUMBERS.OPS_META_V1,
-    "application/json",
-    {
-      contentEncoding: "deflate",
-    }
-  );
-
-  // Contract document magic number plus each encoded data
-  return metaDocumentHex + opsMetaEncoded;
 };

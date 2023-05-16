@@ -1,10 +1,10 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, CombineTier } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   Stake,
   StakeConfigStruct,
@@ -24,6 +24,7 @@ import {
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
@@ -53,7 +54,7 @@ describe("CombineTier ERC165 tests", async function () {
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   // report time for tier context
@@ -194,7 +195,7 @@ describe("CombineTier ERC165 tests", async function () {
   it("should fail if combineTier is deployed with bad callerMeta", async function () {
     const combineTierFactory = await ethers.getContractFactory("CombineTier");
     const touchDeployer = await getTouchDeployer();
-    const config0: InterpreterCallerV1ConstructionConfigStruct = {
+    const config0: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("combinetier"),
       deployer: touchDeployer.address,
     };
@@ -209,7 +210,7 @@ describe("CombineTier ERC165 tests", async function () {
       "combineTier did not deploy"
     );
 
-    const config1: InterpreterCallerV1ConstructionConfigStruct = {
+    const config1: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
@@ -223,7 +224,7 @@ describe("CombineTier ERC165 tests", async function () {
 
   it("should validate contract meta with abi", async function () {
     assert(
-      validateContractMetaAgainstABI("sale"),
+      validateContractMetaAgainstABI("combinetier"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });

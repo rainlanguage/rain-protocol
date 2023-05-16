@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReadWriteTier, ReserveToken } from "../../typechain";
@@ -9,9 +9,10 @@ import {
   Sale,
   StartEvent,
 } from "../../typechain/contracts/sale/Sale";
-import { basicDeploy, readWriteTierDeploy } from "../../utils";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
@@ -46,7 +47,7 @@ describe("Sale minimum raise", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });

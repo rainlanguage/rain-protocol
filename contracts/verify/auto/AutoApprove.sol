@@ -1,25 +1,26 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "../../array/LibUint256Array.sol";
+import "sol.lib.memory/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
-import "../../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../../interpreter/run/IInterpreterV1.sol";
-import "../../interpreter/run/LibStackPointer.sol";
-import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../interpreter/caller/LibContext.sol";
-import "../../interpreter/caller/InterpreterCallerV1.sol";
-import "../../interpreter/run/LibEvaluable.sol";
-import "../../factory/ICloneableV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xbf2a964c553d2605b25d842dc9288c569dd83d7a335b7b781c50681559b3535f
+    0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7
 );
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
-uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
+uint16 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
 struct AutoApproveConfig {
@@ -27,13 +28,18 @@ struct AutoApproveConfig {
     EvaluableConfig evaluableConfig;
 }
 
-contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
-    using LibStackPointer for StackPointer;
+contract AutoApprove is
+    ICloneableV1,
+    VerifyCallback,
+    IInterpreterCallerV2,
+    DeployerDiscoverableMetaV1
+{
+    using LibStackPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -43,8 +49,8 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     Evaluable internal evaluable;
 
     constructor(
-        InterpreterCallerV1ConstructionConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_) {
+        DeployerDiscoverableMetaV1ConstructionConfig memory config_
+    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
         _disableInitializers();
     }
 
@@ -72,10 +78,13 @@ contract AutoApprove is ICloneableV1, VerifyCallback, InterpreterCallerV1 {
     }
 
     function afterAdd(
-        address,
+        address adder_,
         Evidence[] calldata evidences_
-    ) external virtual override {
+    ) public virtual override {
         unchecked {
+            // Inherit owner check etc.
+            super.afterAdd(adder_, evidences_);
+
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);

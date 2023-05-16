@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexValue, hexZeroPad, keccak256, randomBytes } from "ethers/lib/utils";
 import type { LibCommitmentTest } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";

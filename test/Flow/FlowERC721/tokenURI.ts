@@ -1,16 +1,16 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
 import {
   FlowERC721,
-  FlowERC721IOStruct,
+  FlowERC721IOV1Struct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC721Clone,
   flowERC721Implementation,
@@ -18,7 +18,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC721Config } from "../../../utils/types/flow";
@@ -36,7 +39,7 @@ describe("FlowERC721 tokenURI test", async function () {
     implementation = await flowERC721Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should generate tokenURI based on the expression result", async () => {
@@ -47,7 +50,7 @@ describe("FlowERC721 tokenURI test", async function () {
 
     const tokenId = 0;
 
-    const flowERC721IOMint: FlowERC721IOStruct = {
+    const flowERC721IOMint: FlowERC721IOV1Struct = {
       mints: [
         {
           account: you.address,
@@ -56,14 +59,13 @@ describe("FlowERC721 tokenURI test", async function () {
       ],
       burns: [],
       flow: {
-        native: [],
         erc20: [],
         erc721: [],
         erc1155: [],
       },
     };
 
-    const flowERC721IOBurn: FlowERC721IOStruct = {
+    const flowERC721IOBurn: FlowERC721IOV1Struct = {
       mints: [],
       burns: [
         {
@@ -72,7 +74,6 @@ describe("FlowERC721 tokenURI test", async function () {
         },
       ],
       flow: {
-        native: [],
         erc20: [],
         erc721: [],
         erc1155: [],
@@ -82,6 +83,8 @@ describe("FlowERC721 tokenURI test", async function () {
     const { sources: sourceFlowIOMint, constants: constantsFlowIOMint } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -92,27 +95,22 @@ describe("FlowERC721 tokenURI test", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
-        
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
-        
+
         /**
          * mints of this erc721 token
          */
@@ -123,6 +121,8 @@ describe("FlowERC721 tokenURI test", async function () {
     const { sources: sourceFlowIOBurn, constants: constantsFlowIOBurn } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -133,28 +133,23 @@ describe("FlowERC721 tokenURI test", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: sentinel,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: sentinel,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
-        
+
         /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
         _ _: bob tokenid,
-        
+
         /**
          * mints of this erc721 token
          */
@@ -165,9 +160,11 @@ describe("FlowERC721 tokenURI test", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
-        
+
         /* sourceTokenURI */
         me: context<0 1>(),
         you: context<0 0>(),

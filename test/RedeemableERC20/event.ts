@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type {
   CloneFactory,
@@ -15,7 +15,6 @@ import {
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
 import {
-  basicDeploy,
   getEventArgs,
   readWriteTierDeploy,
   redeemableERC20DeployClone,
@@ -23,6 +22,7 @@ import {
   Tier,
   zeroAddress,
 } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 
 describe("RedeemableERC20 event test", async function () {
@@ -37,7 +37,7 @@ describe("RedeemableERC20 event test", async function () {
     implementation = await redeemableERC20DeployImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should emit Initialize event", async function () {

@@ -11,25 +11,28 @@ import {
 } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../typechain/contracts/flow/FlowCommon";
 import { getRainMetaDocumentFromContract } from "../../../meta";
 import { zeroAddress } from "../../../constants";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 
 export const flowImplementation = async (): Promise<Flow> => {
   const flowFactory = await ethers.getContractFactory("Flow", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("flow"),
-    deployer: touchDeployer.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("flow"),
+      deployer: touchDeployer.address,
+    };
 
-  const flow = (await flowFactory.deploy(interpreterCallerConfig)) as Flow;
+  const flow = (await flowFactory.deploy(
+    deployerDiscoverableMetaConfig
+  )) as Flow;
 
   assert(!(flow.address === zeroAddress), "implementation stake zero address");
 

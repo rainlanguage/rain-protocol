@@ -1,6 +1,6 @@
 {
-  "name": "itier-v2-report",
-  "desc": "Inserts the report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
+  "name": "tier-v2-report",
+  "desc": "The TierV2 report for an account, optionally providing context values.",
   "operand": [
     {
       "name": "inputs",
@@ -14,7 +14,7 @@
     "computation": "bits + 2",
     "parameters": [
       {
-        "name": "itier-address"
+        "name": "tier-address"
       },
       {
         "name": "account"
@@ -26,6 +26,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["tier-report"]
+  "outputs": 1
 }

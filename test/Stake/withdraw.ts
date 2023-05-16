@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken, ReserveToken18 } from "../../typechain";
@@ -30,6 +30,7 @@ import { op, Opcode } from "../../utils";
 import { assertError } from "../../utils/test/assertError";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 
 describe("Stake withdraw", async function () {
   let implementation: Stake;
@@ -44,7 +45,7 @@ describe("Stake withdraw", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

@@ -1,11 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumberish, BytesLike } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, CloneFactory } from "../../../../../typechain";
 import { PromiseOrValue } from "../../../../../typechain/common";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../../../../typechain/contracts/flow/FlowCommon";
 import {
   AutoApproveConfigStruct,
   EvaluableConfigStruct,
@@ -21,7 +21,7 @@ export const autoApproveImplementation = async (): Promise<AutoApprove> => {
   const contractFactory = await ethers.getContractFactory("AutoApprove");
 
   const touchDeployer = await getTouchDeployer();
-  const config_: InterpreterCallerV1ConstructionConfigStruct = {
+  const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("autoapprove"),
     deployer: touchDeployer.address,
   };

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer } from "../../../typechain";
@@ -43,7 +43,7 @@ describe("TierV2 report time for tier op", async function () {
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.context, 0x0000), // account
         op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // tier
-      op(Opcode.itier_v2_report_time_for_tier)
+      op(Opcode.tier_v2_report_time_for_tier)
     ]);
 
     const expression0 = await expressionConsumerDeploy(

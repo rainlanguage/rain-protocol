@@ -3,7 +3,7 @@ import {
   RainterpreterExpressionDeployer,
   Stake as StakeType,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 
@@ -12,14 +12,15 @@ export const deployStake = async (
 ) => {
   const stakeFactory = await ethers.getContractFactory("Stake");
 
-  const interpreterCallerConfig: InterpreterCallerV1ConstructionConfigStruct = {
-    meta: getRainMetaDocumentFromContract("stake"),
-    deployer: deployer_.address,
-  };
+  const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
+    {
+      meta: getRainMetaDocumentFromContract("stake"),
+      deployer: deployer_.address,
+    };
 
   const Stake = (await stakeFactory.deploy(
-    interpreterCallerConfig
+    deployerDiscoverableMetaConfig
   )) as StakeType;
 
-  registerContract("Stake", Stake.address, interpreterCallerConfig);
+  registerContract("Stake", Stake.address, deployerDiscoverableMetaConfig);
 };

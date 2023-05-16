@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../typechain";
@@ -16,6 +16,7 @@ import {
 } from "../../utils";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import {
   stakeCloneDeploy,
@@ -37,7 +38,7 @@ describe("Stake direct ledger analysis", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {

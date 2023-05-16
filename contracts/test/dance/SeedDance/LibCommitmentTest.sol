@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import {LibCommitment, Commitment, Secret} from "../../../dance/SeedDance.sol";
 

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -8,9 +8,10 @@ import {
   SaleReentrant,
 } from "../../typechain";
 import { BuyEvent, Sale } from "../../typechain/contracts/sale/Sale";
-import { basicDeploy, readWriteTierDeploy } from "../../utils";
+import { readWriteTierDeploy } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
@@ -43,7 +44,7 @@ describe("Sale buy", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });
@@ -373,7 +374,7 @@ describe("Sale buy", async function () {
             distributionEndForwardingAddress: ethers.constants.AddressZero,
           }
         ),
-      "COOLDOWN_0",
+      "ZeroInitCooldown",
       "did not prevent configuring a cooldown of 0 blocks"
     );
     const evaluableConfig = await generateEvaluableConfig(sources, constants);
@@ -440,7 +441,7 @@ describe("Sale buy", async function () {
     // buy some units
     await assertError(
       async () => await sale.connect(signer1).buy(buyConfig),
-      "COOLDOWN",
+      "ActiveCooldown",
       "Cooldown (with non-zero configured cooldown duration) did not revert reentrant buy call"
     );
   });
@@ -545,7 +546,7 @@ describe("Sale buy", async function () {
           desiredUnits: 10,
           maximumPrice: staticPrice,
         }),
-      "COOLDOWN",
+      "ActiveCooldown",
       "successive buy did not trigger cooldown while Sale was Active"
     );
   });

@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import {Cooldown} from "../cooldown/Cooldown.sol";
+import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
 import "../math/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import "./ISaleV2.sol";
+import "rain.interface.sale/ISaleV2.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/caller/LibContext.sol";
-import "../interpreter/caller/InterpreterCallerV1.sol";
-import "../interpreter/run/LibEvaluable.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import "rain.interface.interpreter/LibContext.sol";
+import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 import "../factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x2341cb348a1e1326291c79bf03383ab4a1fe05312f37ba7a5789ed657dfd4721
+    0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -33,12 +33,12 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// that never end, or perhaps never even start.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
-/// @param callerMeta As per `IInterpreterCallerV1`.
+/// @param deployerDiscoverableMetaConfig As per `DeployerDiscoverableMetaV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     CloneFactory cloneFactory;
     address redeemableERC20Implementation;
-    InterpreterCallerV1ConstructionConfig interpreterCallerConfig;
+    DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -65,8 +65,8 @@ struct SaleConstructorConfig {
 struct SaleConfig {
     address recipient;
     address reserve;
-    uint256 saleTimeout;
-    uint256 cooldownDuration;
+    uint32 saleTimeout;
+    uint32 cooldownDuration;
     uint256 minimumRaise;
     uint256 dustSize;
     EvaluableConfig evaluableConfig;
@@ -140,15 +140,22 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant HANDLE_BUY_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
-uint256 constant CAN_LIVE_MAX_OUTPUTS = 1;
+uint16 constant CAN_LIVE_MAX_OUTPUTS = 1;
 uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
-uint256 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
+uint16 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
-uint256 constant HANDLE_BUY_MAX_OUTPUTS = 0;
+uint16 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint256 constant CONTEXT_COLUMNS = 2;
+/// @dev Number of columns excluding the base column added by lib context.
+uint256 constant CONTEXT_COLUMNS = 3;
+/// @dev Index of the base column.
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+/// @dev Index of the calculations column.
 uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+/// @dev Index of the buy column.
 uint256 constant CONTEXT_BUY_COLUMN = 2;
+/// @dev Index of the sender column.
+uint256 constant CONTEXT_SENDER_COLUMN = 3;
 
 uint256 constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
 uint256 constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
@@ -165,13 +172,12 @@ contract Sale is
     Cooldown,
     ISaleV2,
     ReentrancyGuard,
-    InterpreterCallerV1
+    IInterpreterCallerV2,
+    DeployerDiscoverableMetaV1
 {
     using Math for uint256;
     using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -266,7 +272,12 @@ contract Sale is
 
     constructor(
         SaleConstructorConfig memory config_
-    ) InterpreterCallerV1(CALLER_META_HASH, config_.interpreterCallerConfig) {
+    )
+        DeployerDiscoverableMetaV1(
+            CALLER_META_HASH,
+            config_.deployerDiscoverableMetaConfig
+        )
+    {
         _disableInitializers();
 
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -427,8 +438,7 @@ contract Sale is
                         _dispatchCanLive(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            new uint256[](0),
-                            new SignedContext[](0)
+                            new SignedContextV1[](0)
                         )
                     );
                 return (stack_[stack_.length - 1] > 0, evaluable_.store, kvs_);
@@ -479,30 +489,37 @@ contract Sale is
             uint256[] memory
         )
     {
-        uint256[][] memory context_ = LibContext.build(
-            new uint256[][](CONTEXT_COLUMNS),
-            targetUnits_.arrayFrom(),
-            new SignedContext[](0)
-        );
-        Evaluable memory evaluable_ = evaluable;
-        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
-            .interpreter
-            .eval(
-                evaluable_.store,
-                DEFAULT_STATE_NAMESPACE,
-                _dispatchCalculateBuy(evaluable_.expression),
-                context_
+        unchecked {
+            uint256[][] memory callerContext_ = new uint256[][](
+                CONTEXT_COLUMNS
             );
-        (uint256 amount_, uint256 ratio_) = stack_
-            .asStackPointerAfter()
-            .peek2();
-        uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
-            amount_,
-            ratio_
-        );
-        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-        context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
-        return (amount_, ratio_, context_, evaluable_.store, kvs_);
+            uint256[][] memory context_ = LibContext.build(
+                callerContext_,
+                new SignedContextV1[](0)
+            );
+            context_[CONTEXT_SENDER_COLUMN] = targetUnits_.arrayFrom();
+
+            Evaluable memory evaluable_ = evaluable;
+            (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                .interpreter
+                .eval(
+                    evaluable_.store,
+                    DEFAULT_STATE_NAMESPACE,
+                    _dispatchCalculateBuy(evaluable_.expression),
+                    context_
+                );
+
+            uint256 amount_ = stack_[stack_.length - 2];
+            uint256 ratio_ = stack_[stack_.length - 1];
+
+            uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
+                amount_,
+                ratio_
+            );
+            context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+            context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
+            return (amount_, ratio_, context_, evaluable_.store, kvs_);
+        }
     }
 
     function previewCalculateBuy(

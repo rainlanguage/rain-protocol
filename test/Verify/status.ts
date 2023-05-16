@@ -1,9 +1,8 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, Verify } from "../../typechain";
-
-import { basicDeploy } from "../../utils";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import {
   verifyCloneDeploy,
   verifyImplementation,
@@ -19,7 +18,7 @@ describe("Verify status", async function () {
     implementVerify = await verifyImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("statusAtTime should return correct status for any given state & block number", async function () {

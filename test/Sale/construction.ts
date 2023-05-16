@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -9,7 +9,8 @@ import {
   ReserveToken,
   Sale,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
+
 import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
 import {
   getRainMetaDocumentFromContract,
@@ -20,6 +21,7 @@ import {
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { saleClone, saleImplementation } from "../../utils/deploy/sale/deploy";
@@ -50,7 +52,7 @@ describe("Sale construction", async function () {
     readWriteTier = await readWriteTierDeploy();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
 
     implementation = await saleImplementation(cloneFactory);
   });
@@ -197,7 +199,7 @@ describe("Sale construction", async function () {
     const redeemableERC20Implementation: RedeemableERC20 =
       await redeemableERC20DeployImplementation();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("sale"),
         deployer: touchDeployer.address,
@@ -207,14 +209,14 @@ describe("Sale construction", async function () {
       maximumSaleTimeout: 1000,
       cloneFactory: cloneFactory.address,
       redeemableERC20Implementation: redeemableERC20Implementation.address,
-      interpreterCallerConfig: interpreterCallerConfig0,
+      deployerDiscoverableMetaConfig: deployerDiscoverableMetaConfig0,
     };
 
     const sale = (await saleFactory.deploy(saleConstructorConfig0)) as Sale;
 
     assert(!(sale.address === zeroAddress), "sale did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
@@ -224,7 +226,7 @@ describe("Sale construction", async function () {
       maximumSaleTimeout: 1000,
       cloneFactory: cloneFactory.address,
       redeemableERC20Implementation: redeemableERC20Implementation.address,
-      interpreterCallerConfig: interpreterCallerConfig1,
+      deployerDiscoverableMetaConfig: deployerDiscoverableMetaConfig1,
     };
     await assertError(
       async () => await saleFactory.deploy(saleConstructorConfig1),
@@ -235,7 +237,7 @@ describe("Sale construction", async function () {
 
   it("should validate contract meta with abi", async function () {
     assert(
-      validateContractMetaAgainstABI("combinetier"),
+      validateContractMetaAgainstABI("sale"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });

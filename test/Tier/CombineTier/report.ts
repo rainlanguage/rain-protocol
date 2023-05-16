@@ -1,6 +1,6 @@
 /* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -16,7 +16,6 @@ import {
   StakeConfigStruct,
 } from "../../../typechain/contracts/stake/Stake";
 import {
-  basicDeploy,
   getBlockTimestamp,
   max_uint256,
   readWriteTierDeploy,
@@ -26,6 +25,7 @@ import {
   Tier,
   timewarp,
 } from "../../../utils";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 
@@ -71,7 +71,7 @@ describe("CombineTier report tests", async function () {
     implementationCombineTier = await combineTierImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   const ctxAccount = op(Opcode.context, 0x0000);

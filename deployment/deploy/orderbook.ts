@@ -3,7 +3,7 @@ import {
   OrderBook as OrderBookType,
   RainterpreterExpressionDeployer,
 } from "../../typechain";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 import { getRainMetaDocumentFromContract } from "../../utils";
 import { registerContract } from "../utils";
 
@@ -12,7 +12,7 @@ export const deployOrderbook = async (
 ) => {
   const orderBookFactory = await ethers.getContractFactory("OrderBook");
 
-  const config: InterpreterCallerV1ConstructionConfigStruct = {
+  const config: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: getRainMetaDocumentFromContract("orderbook"),
     deployer: deployer_.address,
   };
@@ -20,4 +20,6 @@ export const deployOrderbook = async (
   const OrderBook = (await orderBookFactory.deploy(config)) as OrderBookType;
 
   registerContract("OrderBook", OrderBook.address, config);
+
+  return OrderBook;
 };

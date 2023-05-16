@@ -32,7 +32,9 @@ async function main() {
   const { RainterpreterExpressionDeployer } = await deployDISpair();
 
   // Deploy CloneFactory
-  const cloneFactory = await deployCloneFactory();
+  const cloneFactory = await deployCloneFactory(
+    RainterpreterExpressionDeployer
+  );
 
   // Deploy Flow (Basic)
   await deployFlow(RainterpreterExpressionDeployer);
@@ -46,7 +48,7 @@ async function main() {
   // Deploy FlowERC1155
   await deployFlowErc1155(RainterpreterExpressionDeployer);
 
-  // Deploy FlowERC1155
+  // Deploy Lobby
   const timeoutDuration = 15000000;
   await deployLobby(RainterpreterExpressionDeployer, timeoutDuration);
 

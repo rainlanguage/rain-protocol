@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "../erc20/ERC20Redeem.sol";
@@ -10,7 +10,7 @@ import {ITierV2} from "../tier/ITierV2.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
-import "../factory/ICloneableV1.sol";
+import "rain.interface.factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 

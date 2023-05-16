@@ -1,18 +1,18 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory } from "../../../typechain";
-import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import {
   ContextEvent,
   FlowERC1155,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { SignedContextV1Struct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { basicDeploy } from "../../../utils";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -20,7 +20,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs, getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
 describe("FlowERC1155 expressions tests", async function () {
@@ -35,7 +38,7 @@ describe("FlowERC1155 expressions tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should validate multiple signed contexts", async () => {
@@ -45,15 +48,17 @@ describe("FlowERC1155 expressions tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -65,15 +70,10 @@ describe("FlowERC1155 expressions tests", async function () {
         transfererc20slist: sentinel,
 
         /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-
-        /**
          * burns of this erc1155 token
          */
         burnslist: sentinel1155,
-        
+
         /**
          * mints of this erc1155 token
         */
@@ -83,6 +83,8 @@ describe("FlowERC1155 expressions tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
       /* sourceHandleTransfer */
       _: 1;
       `
@@ -118,7 +120,7 @@ describe("FlowERC1155 expressions tests", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: alice.address,
         signature: goodSignature0,

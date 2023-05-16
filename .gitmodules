@@ -1,10 +1,48 @@
+[submodule "lib/rain.cooldown"]
+	path = lib/rain.cooldown
+	url = https://github.com/rainprotocol/rain.cooldown
+[submodule "lib/rain.interface.factory"]
+	path = lib/rain.interface.factory
+	url = https://github.com/rainprotocol/rain.interface.factory
+[submodule "lib/rain.interface.flow"]
+	path = lib/rain.interface.flow
+	url = https://github.com/rainprotocol/rain.interface.flow
+[submodule "lib/rain.interface.orderbook"]
+	path = lib/rain.interface.orderbook
+	url = https://github.com/rainprotocol/rain.interface.orderbook
+[submodule "lib/rain.interface.sale"]
+	path = lib/rain.interface.sale
+	url = https://github.com/rainprotocol/rain.interface.sale
+[submodule "lib/rain.lib.typecast"]
+	path = lib/rain.lib.typecast
+	url = https://github.com/rainprotocol/rain.lib.typecast
+[submodule "lib/rain.math.fixedpoint"]
+	path = lib/rain.math.fixedpoint
+	url = https://github.com/rainprotocol/rain.math.fixedpoint
+[submodule "lib/rain.math.saturating"]
+	path = lib/rain.math.saturating
+	url = https://github.com/rainprotocol/rain.math.saturating
+[submodule "lib/sol.lib.memory"]
+	path = lib/sol.lib.memory
+	url = https://github.com/rainprotocol/sol.lib.memory
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-	branch = v1.5.2
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/rain.interface.interpreter"]
+	path = lib/rain.interface.interpreter
+	url = https://github.com/rainprotocol/rain.interface.interpreter
 [submodule "lib/sol.lib.binmaskflag"]
 	path = lib/sol.lib.binmaskflag
 	url = https://github.com/rainprotocol/sol.lib.binmaskflag
+[submodule "lib/sol.metadata"]
+	path = lib/sol.metadata
+	url = https://github.com/rainprotocol/sol.metadata
 [submodule "lib/sol.lib.datacontract"]
 	path = lib/sol.lib.datacontract
 	url = https://github.com/rainprotocol/sol.lib.datacontract
+[submodule "lib/rain.lib.interpreter"]
+	path = lib/rain.lib.interpreter
+	url = https://github.com/rainprotocol/rain.lib.interpreter

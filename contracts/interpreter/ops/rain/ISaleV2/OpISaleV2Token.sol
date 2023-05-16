@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
-import "../../../../sale/ISaleV2.sol";
-import "../../../run/LibStackPointer.sol";
-import "../../../run/LibInterpreterState.sol";
+import "rain.interface.sale/ISaleV2.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpISaleV2Token
 /// @notice Opcode for ISaleV2 `token`.
 library OpISaleV2Token {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 sale_) internal view returns (uint256) {
@@ -19,8 +21,8 @@ library OpISaleV2Token {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
@@ -28,8 +30,8 @@ library OpISaleV2Token {
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "mod",
-  "desc": "Inserts the mod of N values taken from the stack into the stack",
+  "desc": "Calculates modulo of multiple integer values.",
   "operand": [
     {
       "name": "inputs",
@@ -17,5 +17,6 @@
       }
     ]
   },
-  "outputs": 1
+  "outputs": 1,
+  "aliases": ["int-mod"]
 }

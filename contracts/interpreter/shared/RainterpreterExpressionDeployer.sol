@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import "sol.lib.datacontract/LibDataContract.sol";
 
-import "../deploy/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
+import "rain.interface.interpreter/unstable/IDebugExpressionDeployerV1.sol";
+import "rain.lib.interpreter/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
@@ -39,21 +42,21 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0ac70ad60ae50b680b760bc80c380cb60d800dd60e020e9b102f106410821091109f10ae10bc10ca10d810e610ae10f411021111111f112d113c114b115a116911781187119611a511b411c311d211e111f011ff1248125a1268129a12a812b612c412d212e012ee12fc130a13181326133413421350135e136c137a1388139613a413b313c213d113df13ed13fb1409141714251433156115e915f8160716151687";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0afc0b130b220bb70bc50c170c870d050de40e3a0ed3107c10bc10da10e910f71106111411221130113e1106114c115a11d811e611f41203121212211230123f124e125d126c127b128a129912e712f9130713391347135513631371137f138d139b13a913b713c513d313e113ef13fd140b1419142714351443145214611470147e148c149a14a814b614c414d215fe1686169516a416b21724";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x0c010c2191f3301f8abe5fa206c6376db1a0a81957c9186e929976d589554952
+    0x69a16e32e4391d10c1b263d172c50ff38f40d44f4108f647a6864330f950d1e9
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xf229ec48ab47979c15b94ee5c2ecf4405f44691f43667387d0caa1713197b445
+    0x2bc54dc07158d987e295cad9cfeb2f73eb6b391dd2f58e530c535b0fb4953e8b
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0xc633bd425d2c692ef398442774a5c7c81427e04268c7169fcd1670f93ada0731
+    0xf0ae44aab5d7776b609cb17207a7aec027cc071e831d797c1e1066a8cb07273c
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -69,8 +72,13 @@ struct RainterpreterExpressionDeployerConstructionConfig {
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
-    using LibStackPointer for StackPointer;
+contract RainterpreterExpressionDeployer is
+    IExpressionDeployerV1,
+    IDebugExpressionDeployerV1,
+    IERC165
+{
+    using LibStackPointer for Pointer;
+    using LibUint256Array for uint256[];
 
     /// The config of the deployed expression including uncompiled sources. Will
     /// only be emitted after the config passes the integrity check.
@@ -185,29 +193,75 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         view
         virtual
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
+                returns (Pointer)[]
                 memory
         )
     {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localFnPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
+        return AllStandardOps.integrityFunctionPointers();
     }
 
-    /// @inheritdoc IExpressionDeployerV1
-    function deployExpression(
+    /// @inheritdoc IDebugExpressionDeployerV1
+    function offchainDebugEval(
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        FullyQualifiedNamespace namespace_,
+        uint256[][] memory context_,
+        SourceIndex sourceIndex_,
+        uint256[] memory initialStack_,
+        uint256 minOutputs_
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
+            .newState(sources_, constants_, integrityFunctionPointers());
+        Pointer stackTop_ = integrityCheckState_.stackBottom;
+        stackTop_ = LibIntegrityCheck.push(
+            integrityCheckState_,
+            stackTop_,
+            initialStack_.length
+        );
+        LibIntegrityCheck.ensureIntegrity(
+            integrityCheckState_,
+            sourceIndex_,
+            stackTop_,
+            minOutputs_
+        );
+        uint256[] memory stack_;
+        {
+            uint256 stackLength_ = integrityCheckState_
+                .stackBottom
+                .unsafeToIndex(integrityCheckState_.stackMaxTop);
+            for (uint256 i_; i_ < sources_.length; i_++) {
+                LibCompile.unsafeCompile(
+                    sources_[i_],
+                    OPCODE_FUNCTION_POINTERS
+                );
+            }
+            stack_ = new uint256[](stackLength_);
+            LibMemCpy.unsafeCopyWordsTo(
+                initialStack_.dataPointer(),
+                stack_.dataPointer(),
+                initialStack_.length
+            );
+        }
+
+        return
+            IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
+                store,
+                namespace_,
+                sources_,
+                constants_,
+                context_,
+                stack_,
+                sourceIndex_
+            );
+    }
+
+    function integrityCheck(
         bytes[] memory sources_,
         uint256[] memory constants_,
         uint256[] memory minOutputs_
-    ) external returns (IInterpreterV1, IInterpreterStoreV1, address) {
+    ) internal view returns (uint256) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
         if (minOutputs_.length > sources_.length) {
@@ -222,10 +276,9 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
-        StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        StackPointer initialStackHighwater_ = integrityCheckState_
-            .stackHighwater;
-        for (uint256 i_ = 0; i_ < minOutputs_.length; i_++) {
+        Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
+        Pointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
+        for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory
@@ -240,8 +293,23 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
                 minOutputs_[i_]
             );
         }
-        uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(
-            integrityCheckState_.stackMaxTop
+
+        return
+            integrityCheckState_.stackBottom.unsafeToIndex(
+                integrityCheckState_.stackMaxTop
+            );
+    }
+
+    /// @inheritdoc IExpressionDeployerV1
+    function deployExpression(
+        bytes[] memory sources_,
+        uint256[] memory constants_,
+        uint256[] memory minOutputs_
+    ) external returns (IInterpreterV1, IInterpreterStoreV1, address) {
+        uint256 stackLength_ = integrityCheck(
+            sources_,
+            constants_,
+            minOutputs_
         );
 
         // Emit the config of the expression _before_ we serialize it, as the
@@ -252,17 +320,16 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1, IERC165 {
             DataContractMemoryContainer container_,
             Pointer pointer_
         ) = LibDataContract.newContainer(
-                LibInterpreterState.serializeSize(
+                LibInterpreterStateDataContract.serializeSize(
                     sources_,
-                    constants_,
-                    stackLength_
+                    constants_
                 )
             );
 
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
         // provided function pointers.
-        LibInterpreterState.serialize(
+        LibInterpreterStateDataContract.unsafeSerialize(
             pointer_,
             sources_,
             constants_,

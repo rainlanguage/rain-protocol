@@ -1,12 +1,12 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
   RainterpreterExpressionDeployer,
   ReserveToken,
 } from "../../typechain";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   InitializeEvent,
   Stake,
@@ -27,6 +27,7 @@ import {
 } from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
@@ -47,7 +48,7 @@ describe("Stake construction", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   beforeEach(async () => {
@@ -138,26 +139,26 @@ describe("Stake construction", async function () {
     const touchDeployer: RainterpreterExpressionDeployer =
       await getTouchDeployer();
 
-    const interpreterCallerConfig0: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("stake"),
         deployer: touchDeployer.address,
       };
 
     const stake = (await stakeFactory.deploy(
-      interpreterCallerConfig0
+      deployerDiscoverableMetaConfig0
     )) as Stake;
 
     assert(!(stake.address === zeroAddress), "stake did not deploy");
 
-    const interpreterCallerConfig1: InterpreterCallerV1ConstructionConfigStruct =
+    const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
         meta: getRainMetaDocumentFromContract("orderbook"),
         deployer: touchDeployer.address,
       };
 
     await assertError(
-      async () => await stakeFactory.deploy(interpreterCallerConfig1),
+      async () => await stakeFactory.deploy(deployerDiscoverableMetaConfig1),
       "UnexpectedMetaHash",
       "Stake Deployed for bad hash"
     );

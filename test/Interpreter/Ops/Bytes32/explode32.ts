@@ -1,7 +1,7 @@
-import { expect } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -27,7 +27,9 @@ describe("EXPLODE32 Opcode test", async function () {
 
   it("should explode a single value into 8x 32 bit integers", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`value: context<0 0>(), /* initial value */
+      rainlang`
+        @${opMetaHash}
+value: context<0 0>(), /* initial value */
       _ _ _ _ _ _ _ _: explode-32(value);`
     );
 
@@ -60,7 +62,8 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0xffffffff"),
     ];
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
@@ -88,7 +91,8 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0"),
     ];
-    expect(result1).deep.equal(
+    assert.deepEqual(
+      result1,
       expectedResult1,
       `Invalid output, expected ${expectedResult1}, actual ${result1}`
     );
@@ -110,7 +114,8 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0"),
       ethers.BigNumber.from("0"),
     ];
-    expect(result2).deep.equal(
+    assert.deepEqual(
+      result2,
       expectedResult2,
       `Invalid output, expected ${expectedResult2}, actual ${result2}`
     );

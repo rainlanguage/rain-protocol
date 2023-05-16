@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { CloneFactory, ReportOMeter, ReserveToken18 } from "../../typechain";
 import {
@@ -16,6 +16,7 @@ import {
 } from "../../utils";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../utils/deploy/factory/cloneFactory";
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
@@ -34,7 +35,7 @@ describe("Stake many successive deposits and withdraws", async function () {
     implementation = await stakeImplementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
     reportOMeter = await reportOMeterDeploy();
   });
 

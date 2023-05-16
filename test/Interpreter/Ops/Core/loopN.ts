@@ -1,4 +1,4 @@
-import { assert, expect } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
@@ -10,6 +10,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -45,17 +46,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue});
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 ${incrementValue});
       `
     );
 
@@ -88,18 +90,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue});
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 ${incrementValue});
       `
     );
 
@@ -132,18 +134,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue});
 
       /* loop-n source */
       s0 : ,
-      _: add(s0 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 ${incrementValue});
       `
     );
 
@@ -177,23 +179,23 @@ describe("LOOP_N Opcode test", async function () {
     const incrementValueOuter = 1;
     const incrementValueInner = 5;
 
-    const constants = [initialValue, incrementValueOuter, incrementValueInner];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue});
 
       /* loop-n outer source */
       s0 : ,
-      op: add(s0 read-memory<1 ${MemoryType.Constant}>()),
+      op: add(s0 ${incrementValueOuter}),
       _: loop-n<${n} 2 1>(op);
 
       /* loop-n inner source */
       s0 : ,
-      op: add(s0 read-memory<2 ${MemoryType.Constant}>());
+      op: add(s0 ${incrementValueInner});
       `
     );
 
@@ -236,52 +238,44 @@ describe("LOOP_N Opcode test", async function () {
     const level = 7;
     const bits = 32;
 
-    const constants = [
-      initialValue,
-      incrementValue,
-      2,
-      bits,
-      finalValue,
-      level,
-      1,
-    ];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
         _ loopoutput _: loop-n<${n} 1 3>(
-            read-memory<0 ${MemoryType.Constant}>()
-            read-memory<4 ${MemoryType.Constant}>()
-            read-memory<5 ${MemoryType.Constant}>()
+            ${initialValue}
+            ${finalValue}
+            ${level}
           ),
         _ _ _ _ _ _ _ _: explode-32(loopoutput);
-        
-      /* 
-        sourceAdd source 
+
+      /*
+        sourceAdd source
       */
         s0 s1 s2: ,
         _ _ _: call<2 3>(s0 s1 s2);
-      
-      /* 
-        sourceAddAndShiftRight source 
+
+      /*
+        sourceAddAndShiftRight source
       */
         s0 s1 s2: ,
-        increment: add(s0 read-memory<1 ${MemoryType.Constant}>()),
+        increment: add(s0 ${incrementValue}),
 
         /* right shifting */
           shrval: call<3 1>(increment s1 s2),
-        
+
         /* decrementing the level */
-          lvldcr: saturating-sub(s2 read-memory<6 ${MemoryType.Constant}>());
-        
-      /* 
-        sourceShiftRight 
+          lvldcr: saturating-sub(s2 1);
+
+      /*
+        sourceShiftRight
       */
         s0 s1 s2: ,
-        levelmul: mul(read-memory<3 ${MemoryType.Constant}>() s2),
-        levelexp: exp(read-memory<2 ${MemoryType.Constant}>() levelmul),
+        levelmul: mul(${bits} s2),
+        levelexp: exp(2 levelmul),
         finalmul: mul(levelexp s0),
 
         op: add(finalmul s1);
@@ -310,7 +304,8 @@ describe("LOOP_N Opcode test", async function () {
     );
     const result0 = await logic.stack();
     expectedResult = expectedResult.reverse();
-    expect(result0).deep.equal(
+    assert.deepEqual(
+      result0,
       expectedResult,
       `Invalid output, expected ${expectedResult}, actual ${result0}`
     );
@@ -346,34 +341,34 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceShiftRight = concat([
-            op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-            op(Opcode.mul, 2), // 32 * LEVEL
-          op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
-        op(Opcode.mul, 2),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)), // 2
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 3)), // 32
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+      op(Opcode.mul, 2), // 32 * LEVEL
+      op(Opcode.exp, 2), // 2 ** (32 * LEVEL)
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
+      op(Opcode.mul, 2),
 
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.add, 2),
     ]);
 
     // prettier-ignore
     const sourceAddAndShiftRight = concat([
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
-        op(Opcode.add, 2),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
+      op(Opcode.add, 2),
 
-          // Right Shifting
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-        op(Opcode.call, callOperand(3, 1, 3)),
+      // Right Shifting
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+      op(Opcode.call, callOperand(3, 1, 3)),
 
-          // Decrementing the LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturating_sub, 2), // LEVEL - 1
+      // Decrementing the LEVEL
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
+      op(Opcode.saturating_sub, 2), // LEVEL - 1
     ]);
 
     // prettier-ignore
@@ -392,11 +387,11 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)), // Initial Value
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 5)), // LEVEL
       op(Opcode.loop_n, loopNOperand(n, 3, 3, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.explode_32), // EXPLODING the Value
       // explode is multioutput so the highwater has moved
       op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 9)),
@@ -444,18 +439,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _ _: loop-n<${n} 1 2>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
+      _ _: loop-n<${n} 1 2>(${initialValue} ${initialValue});
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 s1 ${incrementValue});
       `
     );
 
@@ -485,18 +480,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue});
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 s1 ${incrementValue});
       `
     );
 
@@ -520,18 +515,18 @@ describe("LOOP_N Opcode test", async function () {
     const initialValue = 2;
     const incrementValue = 1;
 
-    const constants = [initialValue, incrementValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      _: loop-n<${n} 1 1>(read-memory<0 ${MemoryType.Constant}>() read-memory<0 ${MemoryType.Constant}>());
+      _: loop-n<${n} 1 1>(${initialValue} ${initialValue});
 
       /* loop-n source */
       s0 s1: ,
-      _: add(s0 s1 read-memory<1 ${MemoryType.Constant}>());
+      _: add(s0 s1 ${incrementValue});
       `
     );
 

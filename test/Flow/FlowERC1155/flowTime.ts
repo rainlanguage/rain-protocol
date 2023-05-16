@@ -1,9 +1,7 @@
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
-import {
-  FlowERC1155,
-  FlowTransferStruct,
-} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { FlowERC1155 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { FlowTransferV1Struct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -11,6 +9,7 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowCloneFactory } from "../../../utils/deploy/factory/cloneFactory";
 import {
   flowERC1155Clone,
   flowERC1155Implementation,
@@ -18,7 +17,10 @@ import {
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
@@ -34,7 +36,7 @@ describe("FlowERC1155 flowTime tests", async function () {
     implementation = await flowERC1155Implementation();
 
     //Deploy Clone Factory
-    cloneFactory = (await basicDeploy("CloneFactory", {})) as CloneFactory;
+    cloneFactory = await flowCloneFactory();
   });
 
   it("should support gating flows where a flow time has already been registered for the given id", async () => {
@@ -50,8 +52,7 @@ describe("FlowERC1155 flowTime tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -73,6 +74,8 @@ describe("FlowERC1155 flowTime tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel1155: ${RAIN_FLOW_ERC1155_SENTINEL},
@@ -112,11 +115,6 @@ describe("FlowERC1155 flowTime tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
-
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
      
         /**
          * burns of this erc1155 token
@@ -135,6 +133,8 @@ describe("FlowERC1155 flowTime tests", async function () {
 
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         `
@@ -198,7 +198,7 @@ describe("FlowERC1155 flowTime tests", async function () {
     await assertError(
       async () =>
         await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
-      "Transaction reverted without a reason string",
+      "ExpressionError",
       "did not gate flow where flow time already registered for the given flow & id"
     );
   });

@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import "../../run/LibStackPointer.sol";
-import "../../../array/LibUint256Array.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers with error on overflow.
 library OpAdd {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     /// Addition with implied overflow checks from the Solidity 0.8.x compiler.
@@ -20,8 +22,8 @@ library OpAdd {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
@@ -33,8 +35,8 @@ library OpAdd {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }

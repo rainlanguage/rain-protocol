@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
-import "./IOrderBookV1.sol";
+import "rain.interface.orderbook/IOrderBookV2.sol";
 
 /// @title LibOrder
 /// @notice Consistent handling of `Order` for where it matters w.r.t.

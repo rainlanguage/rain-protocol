@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
-import "../run/LibEncodedDispatch.sol";
-import "../../kv/LibMemoryKV.sol";
-import "../store/IInterpreterStoreV1.sol";
+import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.lib.memkv/LibMemoryKV.sol";
+import "rain.interface.interpreter/IInterpreterStoreV1.sol";
+import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
+import "rain.lib.interpreter/LibInterpreterStateDataContract.sol";
+import "rain.lib.interpreter/LibNamespace.sol";
+import "sol.lib.memory/LibUint256Array.sol";
+import "rain.lib.interpreter/LibEval.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
@@ -18,17 +23,18 @@ import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1, IERC165 {
-    using LibStackPointer for StackPointer;
-    using LibInterpreterState for bytes;
-    using LibInterpreterState for InterpreterState;
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
+contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
+    using LibStackPointer for Pointer;
+    using LibStackPointer for uint256[];
+    using LibUint256Array for uint256[];
+    using LibEval for InterpreterState;
+    using LibNamespace for StateNamespace;
+    using LibInterpreterStateDataContract for bytes;
+    using LibCast for function(InterpreterState memory, Operand, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer)[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
-    using LibMemoryKV for MemoryKVPtr;
-    using LibInterpreterState for StateNamespace;
 
     // @inheritdoc IERC165
     function supportsInterface(
@@ -37,6 +43,31 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
         return
             interfaceId_ == type(IInterpreterV1).interfaceId ||
             interfaceId_ == type(IERC165).interfaceId;
+    }
+
+    /// @inheritdoc IDebugInterpreterV1
+    function offchainDebugEval(
+        IInterpreterStoreV1 store_,
+        FullyQualifiedNamespace namespace_,
+        bytes[] memory compiledSources_,
+        uint256[] memory constants_,
+        uint256[][] memory context_,
+        uint256[] memory stack_,
+        SourceIndex sourceIndex_
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        InterpreterState memory state_ = InterpreterState(
+            stack_.dataPointer(),
+            constants_.dataPointer(),
+            MemoryKV.wrap(0),
+            namespace_,
+            store_,
+            context_,
+            compiledSources_
+        );
+        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        uint256 stackLengthFinal_ = state_.stackBottom.unsafeToIndex(stackTop_);
+        (, uint256[] memory tail_) = stackTop_.unsafeList(stackLengthFinal_);
+        return (tail_, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1
@@ -56,16 +87,16 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
         // Build the interpreter state from the onchain expression.
         InterpreterState memory state_ = LibDataContract
             .read(expression_)
-            .deserialize();
+            .unsafeDeserialize();
         state_.stateKV = MemoryKV.wrap(0);
         state_.namespace = namespace_.qualifyNamespace();
         state_.store = store_;
         state_.context = context_;
 
         // Eval the expression and return up to maxOutputs_ from the final stack.
-        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
-        uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
-        (, uint256[] memory tail_) = stackTop_.list(
+        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        uint256 stackLength_ = state_.stackBottom.unsafeToIndex(stackTop_);
+        (, uint256[] memory tail_) = stackTop_.unsafeList(
             stackLength_.min(maxOutputs_)
         );
         return (tail_, state_.stateKV.toUint256Array());
@@ -73,19 +104,6 @@ contract Rainterpreter is IInterpreterV1, IERC165 {
 
     /// @inheritdoc IInterpreterV1
     function functionPointers() external view virtual returns (bytes memory) {
-        function(InterpreterState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localPtrs_ = new function(
-                InterpreterState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](0);
-        return
-            LibConvert.unsafeTo16BitBytes(
-                AllStandardOps
-                    .opcodeFunctionPointers(localPtrs_)
-                    .asUint256Array()
-            );
+        return AllStandardOps.opcodeFunctionPointers();
     }
 }

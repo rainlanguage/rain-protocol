@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -8,6 +8,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  opMetaHash,
   standardEvaluableConfig,
 } from "../../../../utils";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -30,23 +31,23 @@ describe("DO_WHILE Opcode test", async function () {
     const loopValue = 2; // Value added on every loop
     const minimumValue = 10; // The minimum value necessary to stop the loop
 
-    const constants = [initValue, loopValue, minimumValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
       sourceMain
       */
-     c0: read-memory<0 ${MemoryType.Constant}>(),
-     c2: read-memory<2 ${MemoryType.Constant}>(),
+     c0: ${initValue},
+     c2: ${minimumValue},
      condition: less-than(c0 c2),
      _ _: do-while<1>(c0 c0 condition);
-     
-     
+
+
       /* do-while source */
       s0 s1: ,
-      o1: add(s1 read-memory<1 ${MemoryType.Constant}>()),
-      o2: less-than(s0 read-memory<2 ${MemoryType.Constant}>());
+      o1: add(s1 ${loopValue}),
+      o2: less-than(s0 ${minimumValue});
       `
     );
     const { consumerLogic, interpreter, dispatch } =
@@ -73,23 +74,22 @@ describe("DO_WHILE Opcode test", async function () {
   it("should stop the loop when get a zero/false value as the conditional", async () => {
     const initValue = 5;
     const loopValue = 1;
-    const conditionalValue = 0;
 
-    const constants = [initValue, loopValue, conditionalValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      constant: read-memory<0 ${MemoryType.Constant}>(),
+      constant: ${initValue},
       _: do-while<1>(constant constant);
 
       /* do-while source */
       s0 : ,
       _: sub(
-          s0 
-          read-memory<1 ${MemoryType.Constant}>()
+          s0
+          ${loopValue}
         ),
       _: read-memory<1 ${MemoryType.Stack}>();
       `
@@ -123,21 +123,21 @@ describe("DO_WHILE Opcode test", async function () {
     const loopValue = 2; // Value added on every loop
     const minimumValue = 10; // The minimum value necessary to stop the loop
 
-    const constants = [initValue, loopValue, minimumValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      c1: read-memory<0 ${MemoryType.Constant}>(),
-      condition: less-than(c1 read-memory<2 ${MemoryType.Constant}>()),
+      c1: ${initValue},
+      condition: less-than(c1 ${minimumValue}),
       _: do-while<1>(c1 condition);
 
       /* do-while source */
       s0: ,
-      o1: add(s0 read-memory<1 ${MemoryType.Constant}>()),
-      _: less-than(o1 read-memory<2 ${MemoryType.Constant}>());
+      o1: add(s0 ${loopValue}),
+      _: less-than(o1 ${minimumValue});
       `
     );
 
@@ -169,18 +169,18 @@ describe("DO_WHILE Opcode test", async function () {
     const addAcc = 3; // Increase by three the accumulator in every loop
     const minValue = 20; // Min required to finish the script
 
-    const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
-
-    const { sources } = await standardEvaluableConfig(
+    const { sources, constants } = await standardEvaluableConfig(
       rainlang`
-      /* 
+        @${opMetaHash}
+
+      /*
         sourceMain
       */
-      c0: read-memory<0 ${MemoryType.Constant}>(),
-      c1: read-memory<1 ${MemoryType.Constant}>(),
+      c0: ${loopCounter},
+      c1: ${initAcc},
       condition: call<2 1>(c1), /* callCheckAcc */
       _ _: do-while<1>(c0 c1 condition);
-      
+
       /* sourceWHILE */
       s0 s1: ,
       o0 o1: call<3 2>(s0 s1),
@@ -188,12 +188,12 @@ describe("DO_WHILE Opcode test", async function () {
 
       /* sourceCheckAcc */
       s0: ,
-      _: less-than(s0 read-memory<4 ${MemoryType.Constant}>());
+      _: less-than(s0 ${minValue});
 
       /* sourceIncrease */
       s0 s1: ,
-      _: add(s0 read-memory<2 ${MemoryType.Constant}>()),
-      _: add(s1 read-memory<3 ${MemoryType.Constant}>());
+      _: add(s0 ${addCounter}),
+      _: add(s1 ${addAcc});
       `
     );
 
@@ -242,19 +242,19 @@ describe("DO_WHILE Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.less_than),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.less_than),
       op(Opcode.do_while, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.add, 2),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.read_memory, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.less_than),
     ]);
 

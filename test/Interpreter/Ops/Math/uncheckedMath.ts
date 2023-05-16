@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -28,7 +28,9 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: exp(${max_uint256.div(2)} 2);`
+      rainlang`
+        @${opMetaHash}
+_: exp(${max_uint256.div(2)} 2);`
     );
     const expression0 = await expressionConsumerDeploy(
       sources,
@@ -51,7 +53,9 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with multiplication op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: mul(${max_uint256.div(2)} 3);`
+      rainlang`
+        @${opMetaHash}
+_: mul(${max_uint256.div(2)} 3);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -75,7 +79,9 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator underflows with subtraction op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: sub(0 1);`
+      rainlang`
+        @${opMetaHash}
+_: sub(0 1);`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -99,7 +105,9 @@ describe("RainInterpreter unchecked math", async () => {
 
   it("should panic when accumulator overflows with addition op", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: add(${max_uint256} 1);`
+      rainlang`
+        @${opMetaHash}
+_: add(${max_uint256} 1);`
     );
 
     const expression0 = await expressionConsumerDeploy(

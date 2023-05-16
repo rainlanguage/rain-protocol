@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import "../../../ierc5313/IERC5313.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 
 /// @title OpERC5313Owner
 /// @notice Opcode for ERC5313 `owner`.
 library OpERC5313Owner {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 contract_) internal view returns (uint256) {
@@ -21,16 +23,16 @@ library OpERC5313Owner {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity =0.8.19;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC20BalanceOf
 /// @notice Opcode for ERC20 `balanceOf`.
 library OpERC20BalanceOf {
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
+    using LibOp for Pointer;
 
     function f(
         uint256 token_,
@@ -25,16 +27,16 @@ library OpERC20BalanceOf {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

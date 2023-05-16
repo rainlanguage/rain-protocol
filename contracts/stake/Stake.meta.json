@@ -57,6 +57,20 @@
                   "cellIndex": 1
                 }
               ]
+            },
+            {
+              "name": "Vault action",
+              "desc": "Information about the vault action.",
+              "alias": "vault-action",
+              "columnIndex": 1,
+              "cells": [
+                {
+                  "name": "Account",
+                  "desc": "The account that the vault action is for.",
+                  "alias": "account",
+                  "cellIndex": 0
+                }
+              ]
             }
           ]
         }

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 
 import { ethers } from "hardhat";
 
@@ -6,13 +6,13 @@ import { OrderBook } from "../../typechain/contracts/orderbook/OrderBook";
 
 import deploy1820 from "../../utils/deploy/registry1820/deploy";
 import { getTouchDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { InterpreterCallerV1ConstructionConfigStruct } from "../../typechain/contracts/flow/FlowCommon";
 import {
   assertError,
   getRainMetaDocumentFromContract,
   validateContractMetaAgainstABI,
   zeroAddress,
 } from "../../utils";
+import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../typechain/contracts/factory/CloneFactory";
 
 describe("OrderBook Constructor", async function () {
   before(async () => {
@@ -25,7 +25,7 @@ describe("OrderBook Constructor", async function () {
     const orderBookFactory = await ethers.getContractFactory("OrderBook", {});
     const touchDeployer = await getTouchDeployer();
 
-    const config0: InterpreterCallerV1ConstructionConfigStruct = {
+    const config0: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("orderbook"),
       deployer: touchDeployer.address,
     };
@@ -33,7 +33,7 @@ describe("OrderBook Constructor", async function () {
 
     assert(!(orderBook.address === zeroAddress), "OrderBook did not deploy");
 
-    const config1: InterpreterCallerV1ConstructionConfigStruct = {
+    const config1: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
       meta: getRainMetaDocumentFromContract("lobby"),
       deployer: touchDeployer.address,
     };
@@ -47,7 +47,7 @@ describe("OrderBook Constructor", async function () {
 
   it("should validate contract meta with abi ", async function () {
     assert(
-      validateContractMetaAgainstABI("lobby"),
+      validateContractMetaAgainstABI("orderbook"),
       "Contract Meta Inconsistent with Contract ABI"
     );
   });

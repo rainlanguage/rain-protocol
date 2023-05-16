@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
-import "../../../../sale/ISaleV2.sol";
-import "../../../run/LibStackPointer.sol";
-import "../../../run/LibInterpreterState.sol";
+import "rain.interface.sale/ISaleV2.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpISaleV2SaleStatus
 /// @notice Opcode for ISaleV2 `saleStatus`.
 library OpISaleV2SaleStatus {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 sale_) internal view returns (uint256) {
-        return uint(ISaleV2(address(uint160(sale_))).saleStatus());
+        return uint256(ISaleV2(address(uint160(sale_))).saleStatus());
     }
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
@@ -28,8 +30,8 @@ library OpISaleV2SaleStatus {
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
-import "../../../run/LibStackPointer.sol";
-import "../../../run/LibInterpreterState.sol";
+pragma solidity ^0.8.18;
+import "sol.lib.memory/LibStackPointer.sol";
+import "sol.lib.memory/LibPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
 library OpAny {
-    using LibStackPointer for StackPointer;
+    using LibPointer for Pointer;
+    using LibStackPointer for Pointer;
+    using LibOp for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         function(uint256[] memory) internal view returns (uint256) fn_;
         return
             integrityCheckState_.applyFn(
@@ -30,19 +34,19 @@ library OpAny {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        StackPointer bottom_ = stackTop_.down(Operand.unwrap(operand_));
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
+        Pointer bottom_ = stackTop_.unsafeSubWords(Operand.unwrap(operand_));
         for (
-            StackPointer i_ = bottom_;
-            StackPointer.unwrap(i_) < StackPointer.unwrap(stackTop_);
-            i_ = i_.up()
+            Pointer i_ = bottom_;
+            Pointer.unwrap(i_) < Pointer.unwrap(stackTop_);
+            i_ = i_.unsafeAddWord()
         ) {
-            uint256 item_ = i_.peekUp();
+            uint256 item_ = i_.unsafeReadWord();
             if (item_ > 0) {
-                return bottom_.push(item_);
+                return bottom_.unsafePush(item_);
             }
         }
-        return bottom_.up();
+        return bottom_.unsafeAddWord();
     }
 }
