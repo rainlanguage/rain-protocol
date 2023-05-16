@@ -737,7 +737,7 @@ describe("FlowERC721 flow tests", async function () {
     );
 
     // prepare input Ether
-    const youEtherBalance0 = await ethers.provider.getBalance(you.address);
+    const _youEtherBalance0 = await ethers.provider.getBalance(you.address);
 
     // -- PERFORM MINT --
 
@@ -758,7 +758,7 @@ describe("FlowERC721 flow tests", async function () {
       fillEmptyAddressERC721(flowERC721IOMint, flow.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
+    const _txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
 
     // Check Balances
     const meMintBalanceIn = await erc20In.balanceOf(me.address);
@@ -821,7 +821,7 @@ describe("FlowERC721 flow tests", async function () {
       fillEmptyAddressERC721(flowERC721IOBurn, flow.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
+    const _txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
 
     // Check Balances
 
@@ -2278,7 +2278,7 @@ describe("FlowERC721 flow tests", async function () {
       fillEmptyAddressERC721(flowERC721IO, me.address)
     );
 
-    const txFlow = await flow
+    const _txFlow = await flow
       .connect(you)
       .flow(flowInitialized[0].evaluable, [1234], []);
 

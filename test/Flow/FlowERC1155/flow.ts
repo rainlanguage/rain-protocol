@@ -746,7 +746,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IOMint, me.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
+    const _txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], []);
 
     // Check Balances
 
@@ -808,7 +808,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IOBurn, me.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
+    const _txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
 
     // Check Balances
 
@@ -2029,7 +2029,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const txFlow = await flow
+    const _txFlow = await flow
       .connect(you)
       .flow(flowInitialized[0].evaluable, [1234], []);
 

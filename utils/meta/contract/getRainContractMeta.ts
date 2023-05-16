@@ -133,7 +133,7 @@ export const validateContractMetaAgainstABI = (
       const expressions = method.expressions;
       //Check for expressions
       for (let k = 0; k < expressions.length; k++) {
-        let expression = _.get(abiJSON, expressions[k].path);
+        const expression = _.get(abiJSON, expressions[k].path);
         console.log(expression);
         // if (!expression['name']) {
         //   throw new Error(`missing expressionName ${expression}`);
