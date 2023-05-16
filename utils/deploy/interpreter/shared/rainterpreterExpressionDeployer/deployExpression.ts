@@ -17,7 +17,6 @@ export const rainterpreterExpression = async (
     interpreter,
     store
   );
-
   const expressionTx = await expression.deployExpression(sources_, constants_, [
     0,
   ]);

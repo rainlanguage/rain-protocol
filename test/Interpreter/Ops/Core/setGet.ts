@@ -302,6 +302,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
   let consumerLogicA: IInterpreterV1Consumer;
   let consumerLogicB: IInterpreterV1Consumer;
 
+  before(async () => {
+    // Deploy ERC1820Registry
+    const signers = await ethers.getSigners();
+    await deploy1820(signers[0]);
+  });
+
   beforeEach(async () => {
     rainInterpreter = await rainterpreterDeploy();
     const consumerFactory = await ethers.getContractFactory(
@@ -368,7 +374,7 @@ key: ${key},
       await standardEvaluableConfig(
         rainlang`
         @${opMetaHash}
-key1: ${key1},
+        key1: ${key1},
         val1: ${val1},
         key2: ${key2},
         val2: ${val2},

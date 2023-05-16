@@ -20,8 +20,6 @@ library OpGet {
         Pointer stackTop_
     ) internal pure returns (Pointer) {
         unchecked {
-            // Pop key
-            // Stack value
             function(uint256) internal pure returns (uint256) fn_;
             return integrityCheckState_.applyFn(stackTop_, fn_);
         }
