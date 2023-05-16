@@ -59,11 +59,7 @@ export const expressionConsumerDeploy = async (
     constants
   );
 
-  const dispatch = await encodeDispatch(
-    expression,
-    ENTRYPOINT,
-    maxOutputs
-  );
+  const dispatch = await encodeDispatch(expression, ENTRYPOINT, maxOutputs);
 
   return { dispatch, expression };
 };

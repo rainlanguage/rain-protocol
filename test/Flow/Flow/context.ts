@@ -537,7 +537,6 @@ describe("Flow context tests", async function () {
         await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
       "ExpressionError",
       "did not prevent flow when a flow time already registered"
-    ); 
-    
+    );
   });
 });
