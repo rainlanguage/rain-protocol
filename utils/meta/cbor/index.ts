@@ -1,4 +1,4 @@
-import cbor from "cbor";
+import { encodeCanonical, decodeAllSync } from "cbor";
 
 /**
  * Magic numbers used to identify Rain documents. This use `BigInt` with their
@@ -68,7 +68,7 @@ export const cborEncode = (
     }
   }
 
-  return cbor.encodeCanonical(m).toString("hex").toLowerCase();
+  return encodeCanonical(m).toString("hex").toLowerCase();
 };
 
 /**
@@ -81,7 +81,7 @@ export const cborEncode = (
  * @returns An array with the decoded data.
  */
 export const cborDecode = (dataEncoded_: string): Array<any> => {
-  return cbor.decodeAllSync(dataEncoded_);
+  return decodeAllSync(dataEncoded_);
 };
 
 /**

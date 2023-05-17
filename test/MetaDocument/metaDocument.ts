@@ -1,4 +1,4 @@
-import cbor from "cbor";
+import { decodeAllSync } from "cbor";
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
@@ -56,7 +56,7 @@ describe("Contract Rain Meta Document", function () {
     const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
-    const dataDecoded = cbor.decodeAllSync(cborSequence);
+    const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the contract meta in the decoded values
     const contractMetaMap = findDocInDecodedArray(dataDecoded, ContractMetaMN);
@@ -100,7 +100,7 @@ describe("Contract Rain Meta Document", function () {
     const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
-    const dataDecoded = cbor.decodeAllSync(cborSequence);
+    const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the solidity ABI map in the decoded values
     const solidityAbiMap = findDocInDecodedArray(dataDecoded, SolidityABIMN);
@@ -141,7 +141,7 @@ describe("Contract Rain Meta Document", function () {
     const cborSequence = metaDocument.replace(RainMetaDocumentMN, "");
 
     // This should be the Maps array encoded data
-    const dataDecoded = cbor.decodeAllSync(cborSequence);
+    const dataDecoded = decodeAllSync(cborSequence);
 
     // Find the Ops Meta map in the decoded values
     const opsMetaMap = findDocInDecodedArray(dataDecoded, OpsMetaMN);
