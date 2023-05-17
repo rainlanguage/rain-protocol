@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
-import { IInterpreterV1Consumer, Rainterpreter, ReserveTokenFallback } from "../../../../typechain";
+import { Fallback, IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -157,12 +157,12 @@ _: block-number();`
     const signers = await ethers.getSigners(); 
     const [, ,alice] = signers;  
 
-    const tokenContract = (await basicDeploy("ReserveTokenFallback", {})) as ReserveTokenFallback ; 
+    const fallbackContract = (await basicDeploy("Fallback", {})) as Fallback ; 
 
     const { sources : sources0, constants : constants0 } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-        _: balance(${tokenContract.address}) ;`
+        _: balance(${fallbackContract.address}) ;`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -178,7 +178,7 @@ _: block-number();`
       []
     );  
 
-    const expectedBalance0 = await ethers.provider.getBalance(tokenContract.address)
+    const expectedBalance0 = await ethers.provider.getBalance(fallbackContract.address)
 
     const [balance0] = await logic.stack(); 
 
@@ -187,14 +187,14 @@ _: block-number();`
     const balanceDiff = ethers.BigNumber.from('10' + eighteenZeros)
 
     await alice.sendTransaction({
-      to: tokenContract.address,
+      to: fallbackContract.address,
       value : balanceDiff
     })  
 
     const { sources : sources1, constants : constants1 } = await standardEvaluableConfig(
       rainlang`
         @${opMetaHash}
-        _: balance(${tokenContract.address}) ;`
+        _: balance(${fallbackContract.address}) ;`
     ); 
 
     const expression1 = await expressionConsumerDeploy(
@@ -210,7 +210,7 @@ _: block-number();`
       []
     );   
 
-    const expectedBalance1 = await ethers.provider.getBalance(tokenContract.address)  
+    const expectedBalance1 = await ethers.provider.getBalance(fallbackContract.address)  
 
     const [balance1] = await logic.stack(); 
 
