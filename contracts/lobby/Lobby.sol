@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "sol.lib.memory/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -140,7 +140,7 @@ contract Lobby is
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using Math for uint256;
     using SaturatingMath for uint256;
     using LibFixedPointMath for uint256;
@@ -398,7 +398,7 @@ contract Lobby is
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
-        uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
+        uint256 amount_ = stack_.endPointer().unsafePeek().min(deposit_);
         totalDeposited -= amount_;
         emit Leave(msg.sender, address(token), deposit_, amount_);
 

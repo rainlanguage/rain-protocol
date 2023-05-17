@@ -1,10 +1,10 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { CloneFactory, ReserveToken18 } from "../../../typechain";
 import {
   Flow,
-  FlowTransferStruct,
+  FlowTransferV1Struct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
@@ -20,7 +20,10 @@ import { getEvents } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
@@ -52,8 +55,7 @@ describe("Flow context tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowStructFull: FlowTransferStruct = {
-      native: [],
+    const flowStructFull: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -72,8 +74,7 @@ describe("Flow context tests", async function () {
       erc1155: [],
     };
 
-    const flowStructReduced: FlowTransferStruct = {
-      native: [],
+    const flowStructReduced: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -92,18 +93,22 @@ describe("Flow context tests", async function () {
       erc1155: [],
     };
 
+    console.log(opMetaHash);
+
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
         flow-id: context<1 0>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowStructFull.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowStructFull.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowStructFull.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowStructFull.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowStructFull.erc20[1].token},
         flowtransfer-me-to-you-erc20-amount-full: ${flowStructFull.erc20[1].amount},
         flowtransfer-me-to-you-erc20-amount-reduced: ${flowStructReduced.erc20[1].amount},
         one-day: 86400,
@@ -113,7 +118,7 @@ describe("Flow context tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -133,20 +138,15 @@ describe("Flow context tests", async function () {
         erc20-from-1: me,
         erc20-to-1: you,
         erc20-amount-1:  eager-if(
-          is-zero(flow-time) 
-          flowtransfer-me-to-you-erc20-amount-full 
+          is-zero(flow-time)
+          flowtransfer-me-to-you-erc20-amount-full
           eager-if(
-            less-than(block-timestamp() add(flow-time one-day)) 
-            flowtransfer-me-to-you-erc20-amount-reduced 
+            less-than(block-timestamp() add(flow-time one-day))
+            flowtransfer-me-to-you-erc20-amount-reduced
             flowtransfer-me-to-you-erc20-amount-full
           )
         ),
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        
         /* Setting flow time */
         : set(flow-id block-timestamp());
       `
@@ -383,8 +383,7 @@ describe("Flow context tests", async function () {
     )) as ReserveToken18;
     await erc20Out.initialize();
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
+    const flowTransfer: FlowTransferV1Struct = {
       erc20: [
         {
           from: you.address,
@@ -406,18 +405,20 @@ describe("Flow context tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         you: context<0 0>(),
         me: context<0 1>(),
         flow-id: context<1 0>(),
-        
-        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token}, 
+
+        flowtransfer-you-to-me-erc20-token:  ${flowTransfer.erc20[0].token},
         flowtransfer-you-to-me-erc20-amount: ${flowTransfer.erc20[0].amount},
-        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token}, 
+        flowtransfer-me-to-you-erc20-token:  ${flowTransfer.erc20[1].token},
         flowtransfer-me-to-you-erc20-amount: ${flowTransfer.erc20[1].amount},
         flow-time: get(flow-id),
-        
+
         /* CAN FLOW */
         : ensure(is-zero(flow-time)),
 
@@ -425,7 +426,7 @@ describe("Flow context tests", async function () {
          * erc1155 transfers
          */
         transfererc1155slist: sentinel,
-      
+
         /**
          * erc721 transfers
          */
@@ -446,11 +447,6 @@ describe("Flow context tests", async function () {
         erc20-to-1: you,
         erc20-amount-1: flowtransfer-me-to-you-erc20-amount,
 
-        /**
-         * native (gas) token transfers
-        */
-        transfernativeslist: sentinel,
-        
         /* Setting flow time */
         : set(flow-id block-timestamp());
       `
@@ -536,11 +532,10 @@ describe("Flow context tests", async function () {
       expected  ${0}
       got       ${youBalanceIn0}`
     );
-
     await assertError(
       async () =>
         await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
-      "Transaction reverted without a reason string",
+      "ExpressionError",
       "did not prevent flow when a flow time already registered"
     );
   });

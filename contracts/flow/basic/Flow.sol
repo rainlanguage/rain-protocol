@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.interface.factory/ICloneableV1.sol";
 import "../FlowCommon.sol";
@@ -9,11 +9,10 @@ import "sol.lib.memory/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x9a42c3d95d5dc305c2a29eb66e0aa97decfaddd27e2f7e47cc4eeaa80cb4f06c
+    0x53a3a3600a7a0ed85318f75ff6ab01b96c3d5576eb458f118cb2d953dba9f37f
 );
 
-contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
-    using LibInterpreterState for InterpreterState;
+contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
 
@@ -32,10 +31,10 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    ) internal view returns (FlowTransfer memory, uint256[] memory) {
+    ) internal view returns (FlowTransferV1 memory, uint256[] memory) {
         (
-            StackPointer stackBottom_,
-            StackPointer stackTop_,
+            Pointer stackBottom_,
+            Pointer stackTop_,
             uint256[] memory kvs_
         ) = flowStack(evaluable_, context_);
         return (LibFlow.stackToFlow(stackBottom_, stackTop_), kvs_);
@@ -45,12 +44,12 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external view virtual returns (FlowTransfer memory) {
+    ) external view virtual returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
-        (FlowTransfer memory flowTransfer_, ) = _previewFlow(
+        (FlowTransferV1 memory flowTransfer_, ) = _previewFlow(
             evaluable_,
             context_
         );
@@ -61,14 +60,14 @@ contract Flow is ICloneableV1, IFlowV2, ReentrancyGuard, FlowCommon {
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContextV1[] memory signedContexts_
-    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
+    ) external virtual nonReentrant returns (FlowTransferV1 memory) {
         uint256[][] memory context_ = LibContext.build(
             callerContext_.matrixFrom(),
             signedContexts_
         );
         emit Context(msg.sender, context_);
         (
-            FlowTransfer memory flowTransfer_,
+            FlowTransferV1 memory flowTransfer_,
             uint256[] memory kvs_
         ) = _previewFlow(evaluable_, context_);
         LibFlow.flow(flowTransfer_, evaluable_.store, kvs_);

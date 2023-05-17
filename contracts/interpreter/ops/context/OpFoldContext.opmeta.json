@@ -1,29 +1,34 @@
 {
   "name": "fold-context",
-  "desc": "Performs a looped call over some inputs and some context rows specified by folding a column as start column index and width in operand arguments as length of items in rows",
+  "desc": "Performs a looped call over some inputs and some context rows specified by column start index and width.",
   "operand": [
     {
       "name": "inputs",
-      "bits": [12, 15]
+      "bits": [13, 15]
+    },
+    {
+      "name": "row",
+      "desc": "Starting row to loop from.",
+      "bits": [10, 12]
     },
     {
       "name": "width",
-      "desc": "number of columns to loop over",
-      "bits": [8, 11]
+      "desc": "Number of columns to loop over.",
+      "bits": [7, 9]
     },
     {
       "name": "fold-column",
-      "desc": "column to base the loop on",
-      "bits": [4, 7]
+      "desc": "Starting column to loop over.",
+      "bits": [4, 6]
     },
     {
       "name": "source-index",
-      "desc": "index of the source to run",
+      "desc": "Index of the source to run.",
       "bits": [0, 3]
     }
   ],
   "inputs": {
-    "bits": [12, 15],
+    "bits": [13, 15],
     "parameters": [
       {
         "name": "input",
@@ -32,7 +37,6 @@
     ]
   },
   "outputs": {
-    "bits": [12, 15]
-  },
-  "aliases": ["fold"]
+    "bits": [13, 15]
+  }
 }

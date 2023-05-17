@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.18;
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 

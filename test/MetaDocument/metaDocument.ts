@@ -1,5 +1,5 @@
 import cbor from "cbor";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   getRainContractMetaBytes,

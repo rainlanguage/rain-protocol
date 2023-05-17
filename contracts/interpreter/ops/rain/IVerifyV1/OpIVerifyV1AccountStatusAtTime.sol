@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import "../../../../verify/IVerifyV1.sol";
-import "../../../run/LibStackPointer.sol";
-import "../../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibOp.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIVerifyV1AccountStatusAtTime
 /// @notice Opcode for IVerifyV1 `accountStatusAtTime`.
 library OpIVerifyV1AccountStatusAtTime {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
@@ -29,8 +31,8 @@ library OpIVerifyV1AccountStatusAtTime {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
@@ -38,8 +40,8 @@ library OpIVerifyV1AccountStatusAtTime {
     function run(
         InterpreterState memory,
         Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f);
     }
 }

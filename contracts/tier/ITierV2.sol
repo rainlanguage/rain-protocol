@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 /// @title ITierV2
 /// @notice `ITierV2` is a simple interface that contracts can implement to

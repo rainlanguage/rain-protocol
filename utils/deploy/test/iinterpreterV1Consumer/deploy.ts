@@ -53,17 +53,13 @@ export const expressionConsumerDeploy = async (
   interpreter: Rainterpreter,
   maxOutputs: number
 ) => {
-  const expressionDeployer = await rainterpreterExpression(
+  const expression = await rainterpreterExpression(
     interpreter,
     sources,
     constants
   );
 
-  const dispatch = await encodeDispatch(
-    expressionDeployer,
-    ENTRYPOINT,
-    maxOutputs
-  );
+  const dispatch = await encodeDispatch(expression, ENTRYPOINT, maxOutputs);
 
-  return { dispatch, expressionDeployer };
+  return { dispatch, expression };
 };

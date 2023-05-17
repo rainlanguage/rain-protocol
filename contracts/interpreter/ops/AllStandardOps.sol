@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.lib.typecast/LibConvert.sol";
 import "sol.lib.memory/LibUint256Array.sol";
@@ -97,50 +97,42 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = 78;
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         view
-        returns (StackPointer);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+        returns (Pointer);
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         pure
-        returns (StackPointer);
-    using LibCast for function(InterpreterState memory, uint256, StackPointer)
+        returns (Pointer);
+    using LibCast for function(InterpreterState memory, uint256, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer)[];
 
     using AllStandardOps for function(
         IntegrityCheckState memory,
         Operand,
-        StackPointer
-    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
-    using AllStandardOps for function(
-        InterpreterState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
+        Pointer
+    ) view returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(InterpreterState memory, Operand, Pointer)
+        view
+        returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) pure returns (StackPointer);
-    using LibCast for function(
-        IntegrityCheckState memory,
-        Operand,
-        StackPointer
-    ) view returns (StackPointer)[];
-    using LibCast for function(InterpreterState memory, Operand, StackPointer)
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
         view
-        returns (StackPointer)[];
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        pure
+        returns (Pointer);
+    using LibCast for function(IntegrityCheckState memory, Operand, Pointer)
+        view
+        returns (Pointer)[];
+    using LibCast for function(InterpreterState memory, Operand, Pointer)
+        view
+        returns (Pointer)[];
 
     /// An oddly specific length conversion between a fixed and dynamic `uint256`
     /// array. This is useful for the purpose of building metadata for bounds
@@ -155,9 +147,9 @@ library AllStandardOps {
     /// @param dynamic_ The dynamic `uint256` array with length of the standard
     /// ops.
     function asUint256Array(
-        function(IntegrityCheckState memory, Operand, StackPointer)
+        function(IntegrityCheckState memory, Operand, Pointer)
             view
-            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -181,9 +173,9 @@ library AllStandardOps {
     /// @param dynamic_ The dynamic `uint256` array with length of the standard
     /// ops.
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackPointer)
+        function(InterpreterState memory, Operand, Pointer)
             view
-            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -203,10 +195,10 @@ library AllStandardOps {
         internal
         pure
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 internal
                 view
-                returns (StackPointer) fn_
+                returns (Pointer) fn_
         )
     {
         assembly ("memory-safe") {
@@ -218,10 +210,10 @@ library AllStandardOps {
     /// @param fns_ The list of function pointers.
     /// @return us_ The list of pointers as `uint256[]`.
     function asUint256Array(
-        function(IntegrityCheckState memory, Operand, StackPointer)
+        function(IntegrityCheckState memory, Operand, Pointer)
             internal
             view
-            returns (StackPointer)[]
+            returns (Pointer)[]
             memory fns_
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
@@ -238,9 +230,9 @@ library AllStandardOps {
         internal
         pure
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
+                returns (Pointer)[]
                 memory fns_
         )
     {
@@ -253,16 +245,16 @@ library AllStandardOps {
         internal
         pure
         returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[]
+                returns (Pointer)[]
                 memory pointers_
         )
     {
         unchecked {
-            function(IntegrityCheckState memory, Operand, StackPointer)
+            function(IntegrityCheckState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     asIntegrityFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.integrity,
@@ -360,9 +352,9 @@ library AllStandardOps {
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackPointer)
+            function(InterpreterState memory, Operand, Pointer)
                 view
-                returns (StackPointer) fn_
+                returns (Pointer) fn_
         )
     {
         assembly ("memory-safe") {
@@ -374,9 +366,9 @@ library AllStandardOps {
     /// @param fns_ The list of function pointers.
     /// @return us_ The list of pointers as `uint256[]`.
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackPointer)
+        function(InterpreterState memory, Operand, Pointer)
             view
-            returns (StackPointer)[]
+            returns (Pointer)[]
             memory fns_
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
@@ -386,9 +378,9 @@ library AllStandardOps {
 
     function opcodeFunctionPointers() internal pure returns (bytes memory) {
         unchecked {
-            function(InterpreterState memory, Operand, StackPointer)
+            function(InterpreterState memory, Operand, Pointer)
                 view
-                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (Pointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     asOpFunctionPointer(ALL_STANDARD_OPS_LENGTH),
                     OpDecode256.run,

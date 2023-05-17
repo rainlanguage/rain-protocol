@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
@@ -12,7 +12,10 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let signers: SignerWithAddress[];
@@ -51,7 +54,9 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 total supply snapshot", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`snapshot-id: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+snapshot-id: context<0 0>(),
       _: erc-20-snapshot-total-supply-at(
         ${tokenERC20Snapshot.address}
         snapshot-id
@@ -87,7 +92,9 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 balance snapshot", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`snapshot-id: context<0 0>(),
+      rainlang`
+        @${opMetaHash}
+snapshot-id: context<0 0>(),
       _: erc-20-snapshot-balance-of-at(
         ${tokenERC20Snapshot.address}
         ${signer1.address}

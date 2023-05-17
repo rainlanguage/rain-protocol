@@ -2,7 +2,7 @@ import { artifacts } from "hardhat";
 import { ContractMeta } from "../../types/contractMeta";
 import { MAGIC_NUMBERS, cborEncode } from "../cbor";
 import { deflateJson } from "../general";
-import { arrayify } from "ethers/lib/utils";
+import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { getRainContractMetaBytes } from "../contract/getRainContractMeta";
 import { getRainterpreterOpMetaBytes } from "../op/allStandardOpMeta";
 
@@ -131,4 +131,16 @@ export const encodeCBOROpMeta = () => {
   return cborEncode(opsMeta, MAGIC_NUMBERS.OPS_META_V1, "application/json", {
     contentEncoding: "deflate",
   });
+};
+
+/**
+ * @returns An hex string that is the keccak256 has of the contract meta
+ */
+export const getCallerMetaForContract = (
+  contractName_: ContractMeta
+): string => {
+  return solidityKeccak256(
+    ["bytes"],
+    [getRainMetaDocumentFromContract(contractName_)]
+  );
 };

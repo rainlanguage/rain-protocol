@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { BytesLike, concat, hexlify } from "ethers/lib/utils";
 import { PromiseOrValue } from "../../typechain/common";
-import { OrderConfigStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
+import { OrderConfigStruct } from "../../typechain/contracts/orderbook/OrderBook";
 import {
   generateEvaluableConfig,
   memoryOperand,

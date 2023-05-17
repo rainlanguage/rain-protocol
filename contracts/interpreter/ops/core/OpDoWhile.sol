@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
@@ -24,8 +24,7 @@ error DoWhileMaxInputs(uint256 inputs);
 /// loop (although the user paying gas might).
 library OpDoWhile {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
-    using LibInterpreterState for InterpreterState;
+    using LibStackPointer for Pointer;
 
     /// Interpreter integrity for do while.
     /// The loop itself pops a single value from the stack to determine whether
@@ -35,8 +34,8 @@ library OpDoWhile {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             /// We need outputs to be _larger than_ inputs so inputs must be
@@ -73,8 +72,8 @@ library OpDoWhile {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             uint256 outputs_ = inputs_ + 1;
@@ -82,10 +81,10 @@ library OpDoWhile {
                 Operand.unwrap(operand_) | (outputs_ << 4)
             );
             uint256 do_;
-            (stackTop_, do_) = stackTop_.pop();
+            (stackTop_, do_) = stackTop_.unsafePop();
             while (do_ > 0) {
                 stackTop_ = OpCall.run(state_, callOperand_, stackTop_);
-                (stackTop_, do_) = stackTop_.pop();
+                (stackTop_, do_) = stackTop_.unsafePop();
             }
             return stackTop_;
         }

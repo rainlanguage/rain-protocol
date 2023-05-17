@@ -14,7 +14,7 @@ import { FlowERC20Config } from "../../../types/flow";
 import { generateEvaluableConfig } from "../../../interpreter";
 import { getTouchDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getRainMetaDocumentFromContract } from "../../../meta";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { zeroAddress } from "../../../constants";
 import { DeployerDiscoverableMetaV1ConstructionConfigStruct } from "../../../../typechain/contracts/factory/CloneFactory";
 

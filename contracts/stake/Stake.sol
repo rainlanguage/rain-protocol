@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackPointer.sol";
+import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
@@ -152,7 +152,7 @@ contract Stake is
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
     using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     /// Emitted when the contract initializes.
     /// @param sender msg.sender that initializes the contract.

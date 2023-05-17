@@ -1,7 +1,6 @@
 import { arrayify, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { CloneFactory, FlowERC721 } from "../../../typechain";
-import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
@@ -14,10 +13,14 @@ import {
 } from "../../../utils/deploy/flow/flowERC721/deploy";
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEvents } from "../../../utils/events";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC721Config } from "../../../utils/types/flow";
 import { rainlang } from "../../../utils/extensions/rainlang";
+import { SignedContextV1Struct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 
 describe("FlowERC721 signed context tests", async function () {
   let cloneFactory: CloneFactory;
@@ -41,6 +44,8 @@ describe("FlowERC721 signed context tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -61,11 +66,6 @@ describe("FlowERC721 signed context tests", async function () {
         transfererc20slist: sentinel,
         
         /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
-        
-        /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
@@ -80,6 +80,8 @@ describe("FlowERC721 signed context tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         
@@ -120,7 +122,7 @@ describe("FlowERC721 signed context tests", async function () {
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
     const goodSignature1 = await goodSigner.signMessage(arrayify(hash1));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature0,
@@ -139,7 +141,7 @@ describe("FlowERC721 signed context tests", async function () {
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
-    const signedContexts1: SignedContextStruct[] = [
+    const signedContexts1: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature0,
@@ -169,6 +171,8 @@ describe("FlowERC721 signed context tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         sentinel: ${RAIN_FLOW_SENTINEL},
         sentinel721: ${RAIN_FLOW_ERC721_SENTINEL},
@@ -189,11 +193,6 @@ describe("FlowERC721 signed context tests", async function () {
         transfererc20slist: sentinel,
         
         /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: sentinel,
-        
-        /**
          * burns of this erc721 token
          */
         burnslist: sentinel721,
@@ -208,6 +207,8 @@ describe("FlowERC721 signed context tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
         
@@ -245,7 +246,7 @@ describe("FlowERC721 signed context tests", async function () {
 
     const goodSignature = await goodSigner.signMessage(arrayify(hash));
 
-    const signedContexts0: SignedContextStruct[] = [
+    const signedContexts0: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: goodSignature,
@@ -259,7 +260,7 @@ describe("FlowERC721 signed context tests", async function () {
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
-    const signedContexts1: SignedContextStruct[] = [
+    const signedContexts1: SignedContextV1Struct[] = [
       {
         signer: goodSigner.address,
         signature: badSignature,

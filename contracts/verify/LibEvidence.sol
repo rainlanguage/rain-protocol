@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
 /// Structure of arbitrary evidence to support any action taken.
 /// Privileged roles are expected to provide evidence just as applicants as an

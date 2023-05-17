@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
 library OpMul {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(uint256 a_, uint256 b_) internal pure returns (uint256) {
@@ -18,8 +20,8 @@ library OpMul {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
@@ -31,8 +33,8 @@ library OpMul {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer stackTopAfter_) {
+        Pointer stackTop_
+    ) internal view returns (Pointer stackTopAfter_) {
         return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }

@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import type {
   IInterpreterV1Consumer,
@@ -10,7 +10,10 @@ import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { standardEvaluableConfig } from "../../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
 
 let signers: SignerWithAddress[];
@@ -51,7 +54,9 @@ describe("RainInterpreter ERC721 ops", async function () {
   it("should return owner of specific ERC721 token", async () => {
     const nftId = 0;
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: erc-721-owner-of(${tokenERC721.address} ${nftId});`
+      rainlang`
+        @${opMetaHash}
+_: erc-721-owner-of(${tokenERC721.address} ${nftId});`
     );
 
     const expression0 = await expressionConsumerDeploy(
@@ -82,7 +87,9 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   it("should return ERC721 balance of signer", async () => {
     const { sources, constants } = await standardEvaluableConfig(
-      rainlang`_: erc-721-balance-of(${tokenERC721.address} ${signer1.address});`
+      rainlang`
+        @${opMetaHash}
+_: erc-721-balance-of(${tokenERC721.address} ${signer1.address});`
     );
 
     const expression0 = await expressionConsumerDeploy(

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibOp.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 import "./OpEncode256.sol";
@@ -11,7 +12,8 @@ import "./OpEncode256.sol";
 /// @notice Opcode for decoding binary data from a 256 bit value that was encoded
 /// with OpEncode256.
 library OpDecode256 {
-    using LibStackPointer for StackPointer;
+    using LibOp for Pointer;
+    using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
@@ -34,8 +36,8 @@ library OpDecode256 {
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+        Pointer stackTop_
+    ) internal pure returns (Pointer) {
         unchecked {
             uint256 startBit_ = (Operand.unwrap(operand_) >> 8) & MASK_8BIT;
             uint256 length_ = Operand.unwrap(operand_) & MASK_8BIT;
@@ -50,8 +52,8 @@ library OpDecode256 {
     function run(
         InterpreterState memory,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         return stackTop_.applyFn(f, operand_);
     }
 }

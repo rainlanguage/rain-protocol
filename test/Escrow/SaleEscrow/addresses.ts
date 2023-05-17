@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CloneFactory, RedeemableERC20 } from "../../../typechain";

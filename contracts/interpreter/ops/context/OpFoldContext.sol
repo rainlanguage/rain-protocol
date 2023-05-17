@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.18;
 
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "sol.lib.memory/LibStackPointer.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../core/OpCall.sol";
 
@@ -18,21 +18,26 @@ import "../core/OpCall.sol";
 /// pushed to the stack on top of any additional inputs specified by the
 /// expression. The additional inputs are the accumulators and so the number of
 /// outputs in the called source needs to match the number of accumulator inputs.
+/// An initial row offset can be specified to allow a fixed number of additional
+/// context items to be used in expressions while still allowing a dynamic
+/// iterator over the tail of the column.
 library OpFoldContext {
     using LibIntegrityCheck for IntegrityCheckState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             // We don't use the column for anything in the integrity check.
-            // uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
-            uint256 width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
-            uint256 inputs_ = Operand.unwrap(operand_) >> 12;
+            // uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_3BIT;
+            uint256 width_ = (Operand.unwrap(operand_) >> 7) & MASK_3BIT;
+            // We don't use the row offset for anything in the integrity check
+            // uint256 row_ = (Operand.unwrap(operand_) >> 10) & MASK_3BIT;
+            uint256 inputs_ = Operand.unwrap(operand_) >> 13;
             uint256 callInputs_ = width_ + inputs_;
 
             // Outputs for call is the same as the inputs.
@@ -57,23 +62,24 @@ library OpFoldContext {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+        Pointer stackTop_
+    ) internal view returns (Pointer) {
         unchecked {
             uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
-            uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
-            uint256 width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
-            uint256 inputs_ = Operand.unwrap(operand_) >> 12;
+            uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_3BIT;
+            uint256 width_ = (Operand.unwrap(operand_) >> 7) & MASK_3BIT;
+            uint256 row_ = (Operand.unwrap(operand_) >> 10) & MASK_3BIT;
+            uint256 inputs_ = Operand.unwrap(operand_) >> 13;
             // Call will take the width of the context rows being copied and the
             // base inputs that will be the accumulators of the fold.
             uint256 callInputs_ = width_ + inputs_;
 
             // Fold over the entire context. This will error with an OOB index
             // if the context columns are not of the same length.
-            for (uint256 i_ = 0; i_ < state_.context[column_].length; i_++) {
+            for (uint256 i_ = row_; i_ < state_.context[column_].length; i_++) {
                 // Push the width of the context columns onto the stack as rows.
                 for (uint256 j_ = 0; j_ < width_; j_++) {
-                    stackTop_ = stackTop_.push(
+                    stackTop_ = stackTop_.unsafePush(
                         state_.context[column_ + j_][i_]
                     );
                 }

@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import {
   CloneFactory,
@@ -26,7 +26,10 @@ import { getTouchDeployer } from "../../../utils/deploy/interpreter/shared/raint
 import deploy1820 from "../../../utils/deploy/registry1820/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { rainlang } from "../../../utils/extensions/rainlang";
-import { standardEvaluableConfig } from "../../../utils/interpreter/interpreter";
+import {
+  opMetaHash,
+  standardEvaluableConfig,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
 
@@ -52,6 +55,8 @@ describe("FlowERC20 construction tests", async function () {
     // prettier-ignore
     const { sources, constants } = await standardEvaluableConfig(
       rainlang`
+        @${opMetaHash}
+
         /* sourceHandleTransfer */
         _: 1;
       `
@@ -60,47 +65,37 @@ describe("FlowERC20 construction tests", async function () {
     const { sources: sourceFlowIO, constants: constantsFlowIO } =
       await standardEvaluableConfig(
         rainlang`
+        @${opMetaHash}
+
         /* variables */
         me: context<0 1>(),
         to: 2,
         amount: 2,
         seperator: 2,
-        
+
         /**
          * erc1155 transfers
          */
         transfererc1155slist: seperator,
-        
+
         /**
          * erc721 transfers
          */
         transfererc721slist: seperator,
-        
+
         /**
          * er20 transfers
          */
         transfererc20slist: seperator,
-        
-        /**
-         * native (gas) token transfers
-         */
-        transfernativeslist: seperator,
-          /* 0 */ 
-          nativefrom0: me,
-          nativeto0: to,
-          nativeamount0: amount,
-          /* 1 */ 
-          nativefrom1: to,
-          nativeto1: me,
-          nativeamount1: amount,
-        
+
+
         /**
          * burns of this erc20 token
          */
         burnslist: seperator,
         burnto: to,
         burnamount: amount,
-        
+
         /**
          * mints of this erc20 token
          */

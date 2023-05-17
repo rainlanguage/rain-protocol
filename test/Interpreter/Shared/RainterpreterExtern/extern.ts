@@ -17,7 +17,7 @@ import {
 
 import { smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   rainterpreterDeploy,

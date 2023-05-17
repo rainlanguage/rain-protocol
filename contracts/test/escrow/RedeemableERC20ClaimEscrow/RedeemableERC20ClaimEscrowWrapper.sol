@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import {RedeemableERC20ClaimEscrow} from "../../../escrow/RedeemableERC20ClaimEscrow.sol";
 

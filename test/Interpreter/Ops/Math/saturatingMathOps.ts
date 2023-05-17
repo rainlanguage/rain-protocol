@@ -1,7 +1,7 @@
-import { assert } from "chai";
+import { strict as assert } from "assert";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { standardEvaluableConfig } from "../../../../utils";
+import { opMetaHash, standardEvaluableConfig } from "../../../../utils";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
@@ -30,7 +30,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating multiplication", async () => {
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      await standardEvaluableConfig(rainlang`_: mul(${max_uint256} 2);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+_: mul(${max_uint256} 2);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -52,7 +54,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
     const { sources: sourcesSat, constants: constantsSat } =
       await standardEvaluableConfig(
-        rainlang`_: saturating-mul(${max_uint256} 2);`
+        rainlang`
+        @${opMetaHash}
+_: saturating-mul(${max_uint256} 2);`
       );
 
     const expression1 = await expressionConsumerDeploy(
@@ -78,7 +82,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating subtraction", async () => {
     // test case with normal subtraction
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      await standardEvaluableConfig(rainlang`_: sub(10 20);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+_: sub(10 20);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -99,7 +105,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     const { sources: sourcesSat, constants: constantsSat } =
-      await standardEvaluableConfig(rainlang`_: saturating-sub(10 20);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+_: saturating-sub(10 20);`);
 
     const expression1 = await expressionConsumerDeploy(
       sourcesSat,
@@ -124,7 +132,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
   it("should perform saturating addition", async () => {
     // test case with normal addition
     const { sources: sourcesUnsat, constants: constantsUnsat } =
-      await standardEvaluableConfig(rainlang`_: add(${max_uint256} 10);`);
+      await standardEvaluableConfig(rainlang`
+        @${opMetaHash}
+_: add(${max_uint256} 10);`);
 
     const expression0 = await expressionConsumerDeploy(
       sourcesUnsat,
@@ -146,7 +156,9 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
     const { sources: sourcesSat, constants: constantsSat } =
       await standardEvaluableConfig(
-        rainlang`_: saturating-add(${max_uint256} 10);`
+        rainlang`
+        @${opMetaHash}
+_: saturating-add(${max_uint256} 10);`
       );
 
     const expression1 = await expressionConsumerDeploy(

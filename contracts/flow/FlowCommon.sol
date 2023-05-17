@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.18;
+pragma solidity =0.8.19;
 
 import "./libraries/LibFlow.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
@@ -7,7 +7,7 @@ import "rain.interface.interpreter/IExpressionDeployerV1.sol";
 import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
-import "../interpreter/run/LibInterpreterState.sol";
+import "rain.lib.interpreter/LibInterpreterState.sol";
 import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 
@@ -28,7 +28,7 @@ uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
 uint256 constant FLAG_ROW_FLOW_TIME = 2;
 
-uint256 constant MIN_FLOW_SENTINELS = 4;
+uint256 constant MIN_FLOW_SENTINELS = 3;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 uint16 constant FLOW_MAX_OUTPUTS = type(uint16).max;
@@ -40,8 +40,7 @@ contract FlowCommon is
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
 {
-    using LibInterpreterState for InterpreterState;
-    using LibStackPointer for StackPointer;
+    using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -114,7 +113,7 @@ contract FlowCommon is
         internal
         view
         onlyRegisteredEvaluable(evaluable_)
-        returns (StackPointer, StackPointer, uint256[] memory)
+        returns (Pointer, Pointer, uint256[] memory)
     {
         (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
             .interpreter
@@ -124,8 +123,6 @@ contract FlowCommon is
                 _flowDispatch(evaluable_.expression),
                 context_
             );
-        return (stack_.asStackPointerUp(), stack_.asStackPointerAfter(), kvs_);
+        return (stack_.dataPointer(), stack_.endPointer(), kvs_);
     }
-
-    receive() external payable virtual {}
 }
