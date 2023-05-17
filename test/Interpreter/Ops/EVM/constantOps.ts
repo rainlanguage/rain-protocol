@@ -1,6 +1,6 @@
 import { strict as assert } from "assert";
 import { ethers } from "hardhat";
-import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter, ReserveTokenFallback } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import deploy1820 from "../../../../utils/deploy/registry1820/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -10,7 +10,7 @@ import {
   standardEvaluableConfig,
 } from "../../../../utils/interpreter/interpreter";
 import { rainlang } from "../../../../utils/extensions/rainlang";
-import { eighteenZeros } from "../../../../utils";
+import { basicDeploy, eighteenZeros } from "../../../../utils";
 
 describe("RainInterpreter Interpreter constant ops", async () => {
   let rainInterpreter: Rainterpreter;
@@ -82,7 +82,7 @@ _: block-number();`
     assert(result.eq(block), `expected block ${block} got ${result}`); 
   });  
   
-  it("should return account balance" , async () => { 
+  it("should return account balance for accounts" , async () => { 
 
     const signers = await ethers.getSigners(); 
     const [, alice, bob] = signers; 
@@ -149,6 +149,72 @@ _: block-number();`
 
     assert(aliceBalance1.eq(expectedAliceBalance1), `expected balance ${expectedAliceBalance1.toString()} got ${aliceBalance1.toString()}`); 
     assert(bobBalance1.eq(expectedBobBalance1), `expected balance ${expectedBobBalance1.toString()} got ${bobBalance1.toString()}`);  
+
+  }) 
+
+  it("should return balance for contract account" , async () => { 
+
+    const signers = await ethers.getSigners(); 
+    const [, ,alice] = signers;  
+
+    const tokenContract = (await basicDeploy("ReserveTokenFallback", {})) as ReserveTokenFallback ; 
+
+    const { sources : sources0, constants : constants0 } = await standardEvaluableConfig(
+      rainlang`
+        @${opMetaHash}
+        _: balance(${tokenContract.address}) ;`
+    );
+
+    const expression0 = await expressionConsumerDeploy(
+      sources0,
+      constants0,
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );  
+
+    const expectedBalance0 = await ethers.provider.getBalance(tokenContract.address)
+
+    const [balance0] = await logic.stack(); 
+
+    assert(balance0.eq(expectedBalance0), `expected balance ${expectedBalance0.toString()} got ${balance0.toString()}`); 
+
+    const balanceDiff = ethers.BigNumber.from('10' + eighteenZeros)
+
+    await alice.sendTransaction({
+      to: tokenContract.address,
+      value : balanceDiff
+    })  
+
+    const { sources : sources1, constants : constants1 } = await standardEvaluableConfig(
+      rainlang`
+        @${opMetaHash}
+        _: balance(${tokenContract.address}) ;`
+    ); 
+
+    const expression1 = await expressionConsumerDeploy(
+      sources1,
+      constants1,
+      rainInterpreter,
+      1
+    );
+    
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );   
+
+    const expectedBalance1 = await ethers.provider.getBalance(tokenContract.address)  
+
+    const [balance1] = await logic.stack(); 
+
+    assert(balance1.eq(expectedBalance1), `expected balance ${expectedBalance1.toString()} got ${balance1.toString()}`); 
 
   })
 
