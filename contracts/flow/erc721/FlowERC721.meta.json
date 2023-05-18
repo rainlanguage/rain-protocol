@@ -14,19 +14,19 @@
           "name": "Name",
           "abiName": "name",
           "desc": "Name of the ERC721 token that is minted.",
-          "path": "[16].inputs[1].components[0]"
+          "path": "[15].inputs[1].components[0]"
         },
         {
           "name": "Symbol",
           "abiName": "symbol",
           "desc": "Symbol for the ERC721 token that is minted.",
-          "path": "[16].inputs[1].components[1]"
+          "path": "[15].inputs[1].components[1]"
         },
         {
           "name": "Base URI",
           "abiName": "baseURI",
           "desc": "Base URI for the ERC721 token that is minted.",
-          "path": "[16].inputs[1].components[2]"
+          "path": "[15].inputs[1].components[2]"
         }
       ],
       "expressions": [
@@ -34,7 +34,7 @@
           "name": "Handle transfer",
           "abiName": "evaluableConfig",
           "desc": "Review and restrict transfers of the flow contract's own ERC721 token. Mint and burns must be controlled by the flow expressions instead.",
-          "path": "[16].inputs[1].components[3]",
+          "path": "[15].inputs[1].components[3]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -89,7 +89,7 @@
           "name": "Flows",
           "abiName": "flowConfig",
           "desc": "The available flows.",
-          "path": "[16].inputs[1].components[4]",
+          "path": "[15].inputs[1].components[4]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

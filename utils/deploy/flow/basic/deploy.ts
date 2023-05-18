@@ -23,7 +23,7 @@ export const flowImplementation = async (): Promise<Flow> => {
   const flowFactory = await ethers.getContractFactory("Flow", {});
 
   const touchDeployer: RainterpreterExpressionDeployer =
-    await getTouchDeployer();
+    await getTouchDeployer(); 
   const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
     {
       meta: getRainMetaDocumentFromContract("flow"),

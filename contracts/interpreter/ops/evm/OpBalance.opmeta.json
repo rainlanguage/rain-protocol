@@ -1,0 +1,14 @@
+{
+  "name": "balance",
+  "desc": "Current native gas balance of an account.",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "account",
+        "desc": "The account to get the balance of."
+      }
+    ]
+  },
+  "outputs": 1
+}

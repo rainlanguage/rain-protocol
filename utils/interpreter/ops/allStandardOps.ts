@@ -27,8 +27,11 @@ export enum AllStandardOps {
   erc_721_balance_of,
   erc_721_owner_of,
   ensure,
+
+  balance,
   block_number,
   block_timestamp,
+
   add,
   div,
   exp,
