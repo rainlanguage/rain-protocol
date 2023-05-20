@@ -48,6 +48,10 @@ const config: HardhatUserConfig = {
           evmVersion: "london",
           // viaIR: true,
           metadata: {
+            // DO NOT enable CBOR until it is no longer possible to produce valid
+            // jumpdest accidentally in the IPFS hash that could lead to
+            // mutations in the interpreter.
+            appendCBOR: false,
             useLiteralContent: true,
           },
         },
