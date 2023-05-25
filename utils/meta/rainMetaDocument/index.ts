@@ -68,7 +68,6 @@ export const getAbi = (contractName_: ContractMeta): string => {
 
   if (contractName_ === "sale") name = "Sale";
   if (contractName_ === "stake") name = "Stake";
-  if (contractName_ === "orderbook") name = "OrderBook";
   if (contractName_ === "flow") name = "Flow";
   if (contractName_ === "flow20") name = "FlowERC20";
   if (contractName_ === "flow721") name = "FlowERC721";

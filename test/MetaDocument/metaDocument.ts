@@ -29,7 +29,7 @@ import type { ContractMeta } from "../../utils/types/contractMeta";
 describe("Contract Rain Meta Document", function () {
   it("should construct a meta document from a contract with the start magic number", async function () {
     // The contract name to generate the Rain Meta Document
-    const contractName: ContractMeta = "orderbook";
+    const contractName: ContractMeta = "sale";
 
     // Getting the meta document from an arbitrary contract
     const metaDocument = getRainMetaDocumentFromContract(contractName);

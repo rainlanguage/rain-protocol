@@ -10,7 +10,7 @@ import type { ContractMeta } from "../../utils/types/contractMeta";
 describe("CBOR JS Check types", function () {
   it("should have the correct CBOR type on the payload using ArrayBuffer", async function () {
     // A given contract
-    const contractName: ContractMeta = "orderbook";
+    const contractName: ContractMeta = "sale";
 
     // Get the ArrayBufferLike from the Uint8Array expression
     const dataU8A = arrayify(getAbi(contractName)); // Uint8Array
@@ -41,7 +41,7 @@ describe("CBOR JS Check types", function () {
 
   it("should have the correct CBOR type on the payload using Uint8Array", async function () {
     // A given contract
-    const contractName: ContractMeta = "orderbook";
+    const contractName: ContractMeta = "sale";
 
     // Get the ArrayBufferLike from the Uint8Array expression
     const dataU8A = arrayify(getAbi(contractName)); // Uint8Array

@@ -154,7 +154,7 @@ describe("FlowERC1155 construction tests", async function () {
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
-        meta: getRainMetaDocumentFromContract("orderbook"),
+        meta: getRainMetaDocumentFromContract("sale"),
         deployer: touchDeployer.address,
       };
 
