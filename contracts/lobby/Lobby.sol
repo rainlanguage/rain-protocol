@@ -12,7 +12,7 @@ import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "rain.interface.interpreter/deployerDiscoverable/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
-import "rain.math.fixedpoint/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/FixedPointDecimalArithmeticOpenZeppelin.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 
@@ -143,7 +143,7 @@ contract Lobby is
     using LibStackPointer for Pointer;
     using Math for uint256;
     using SaturatingMath for uint256;
-    using LibFixedPointMath for uint256;
+    using FixedPointDecimalArithmeticOpenZeppelin for uint256;
 
     event Initialize(address sender, LobbyConfig config);
 

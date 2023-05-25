@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
-import "rain.math.fixedpoint/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/FixedPointDecimalArithmeticOpenZeppelin.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "rain.interface.sale/ISaleV2.sol";
@@ -176,7 +176,7 @@ contract Sale is
     DeployerDiscoverableMetaV1
 {
     using Math for uint256;
-    using LibFixedPointMath for uint256;
+    using FixedPointDecimalArithmeticOpenZeppelin for uint256;
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];

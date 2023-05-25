@@ -11,7 +11,7 @@ import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "rain.interface.flow/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
-import "rain.math.fixedpoint/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/FixedPointDecimalArithmeticOpenZeppelin.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -43,7 +43,7 @@ contract FlowERC20 is
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-    using LibFixedPointMath for uint256;
+    using FixedPointDecimalArithmeticOpenZeppelin for uint256;
 
     bool private evalHandleTransfer;
     Evaluable internal evaluable;
