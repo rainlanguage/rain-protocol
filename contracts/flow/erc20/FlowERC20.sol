@@ -11,10 +11,10 @@ import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "rain.interface.flow/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
+import "rain.math.fixedpoint/LibFixedPointMath.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
-import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(

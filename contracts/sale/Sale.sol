@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import {Cooldown} from "rain.cooldown/Cooldown.sol";
 
-import "../math/LibFixedPointMath.sol";
+import "rain.math.fixedpoint/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "rain.interface.sale/ISaleV2.sol";
