@@ -13,7 +13,7 @@ import {
   implementation,
 } from "./1_deploy.test";
 
-describe.only("GET-SET test", () => {
+describe("GET-SET test", () => {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let flowContract: Flow;
