@@ -3,6 +3,8 @@ on: [push]
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI || secrets.DEPLOYMENT_KEY_MUMBAI_DEV }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -18,5 +20,5 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell --run 'forge install && ci-deployment mumbai'
         env:
-          DEPLOYMENT_KEY_MUMBAI: ${{ secrets.DEPLOYMENT_KEY_MUMBAI }}
+          DEPLOYMENT_KEY_MUMBAI: ${{ env.DEPLOYMENT_KEY }}
           POLYGONSCAN_KEY: ${{ secrets.POLYGONSCAN_KEY }}
