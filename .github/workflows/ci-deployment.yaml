@@ -4,21 +4,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI || secrets.DEPLOYMENT_KEY_MUMBAI_DEV }}
+      DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI_DEV || secrets.DEPLOYMENT_KEY_MUMBAI }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-      # foundry doesn't have a nix derivation so we do it impure
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+      - name: Display environment variables
+        run: |
+          echo "DEPLOYMENT_KEY: $DEPLOYMENT_KEY"
 
-      - uses: cachix/install-nix-action@v13
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-shell --run 'forge install && ci-deployment mumbai'
-        env:
-          DEPLOYMENT_KEY_MUMBAI: ${{ env.DEPLOYMENT_KEY }}
-          POLYGONSCAN_KEY: ${{ secrets.POLYGONSCAN_KEY }}
+      # - uses: actions/checkout@v2
+      #   with:
+      #     token: ${{ secrets.ACCESS_TOKEN }}
+      # # foundry doesn't have a nix derivation so we do it impure
+      # - name: Install Foundry
+      #   uses: foundry-rs/foundry-toolchain@v1
+      #   with:
+      #     version: nightly
+
+      # - uses: cachix/install-nix-action@v13
+      #   with:
+      #     nix_path: nixpkgs=channel:nixos-unstable
+      # - run: nix-shell --run 'forge install && ci-deployment mumbai'
+      #   env:
+      #     DEPLOYMENT_KEY_MUMBAI: ${{ env.DEPLOYMENT_KEY }}
+      #     POLYGONSCAN_KEY: ${{ secrets.POLYGONSCAN_KEY }}
