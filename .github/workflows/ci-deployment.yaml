@@ -6,10 +6,6 @@ jobs:
     env:
       DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI || secrets.DEPLOYMENT_KEY_MUMBAI_DEV }}
     steps:
-      - name: Display environment variables
-        run: |
-          echo "DEPLOYMENT_KEY: $DEPLOYMENT_KEY"
-
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
