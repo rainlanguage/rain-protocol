@@ -15,6 +15,11 @@ jobs:
         with:
           version: nightly
 
+      - name: Report public key to make it easy to send funds for deployments
+        env:
+          DEPLOYMENT_KEY: ${{ env.DEPLOYMENT_KEY }}
+        run: cast wallet address "${DEPLOYMENT_KEY}"
+
       - uses: cachix/install-nix-action@v13
         with:
           nix_path: nixpkgs=channel:nixos-unstable
