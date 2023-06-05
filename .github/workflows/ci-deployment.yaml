@@ -4,7 +4,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI_DEV || secrets.DEPLOYMENT_KEY_MUMBAI }}
+      DEPLOYMENT_KEY: ${{ github.ref == 'refs/heads/develop' && secrets.DEPLOYMENT_KEY_MUMBAI || secrets.DEPLOYMENT_KEY_MUMBAI_DEV }}
     steps:
       - name: Display environment variables
         run: |
