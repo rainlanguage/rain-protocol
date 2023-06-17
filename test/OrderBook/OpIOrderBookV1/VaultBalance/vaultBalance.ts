@@ -30,7 +30,7 @@ describe("IOrderBookV2 vault balance tests", async function () {
     const signers = await ethers.getSigners();
     await deploy1820(signers[0]);
 
-    fakeOrderBook = await smock.fake("OrderBook");
+    fakeOrderBook = await smock.fake("IOrderBookV2");
   });
 
   before(async () => {
