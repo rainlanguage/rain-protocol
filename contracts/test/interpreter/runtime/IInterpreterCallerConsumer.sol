@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
 
-import "../../../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "../../../interpreter/deploy/LibDeployerDiscoverable.sol";
+import "rain.interface.interpreter/deployerDiscoverable/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/deployerDiscoverable/LibDeployerDiscoverable.sol";
 
 contract IInterpreterCallerConsumer is DeployerDiscoverableMetaV1 {
     constructor(

@@ -35,7 +35,7 @@ describe("Caller Test", async function () {
       {}
     );
 
-    const lobbyContractMeta = getRainMetaDocumentFromContract("orderbook");
+    const lobbyContractMeta = getRainMetaDocumentFromContract("sale");
 
     const deployerDiscoverableMetaConfig: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
@@ -174,7 +174,7 @@ describe("Caller Test", async function () {
     await assertError(
       async () =>
         await caller.checkMeta(
-          getRainMetaDocumentFromContract("orderbook"),
+          getRainMetaDocumentFromContract("sale"),
           getRainMetaDocumentFromContract("lobby")
         ),
       "UnexpectedMetaHash",

@@ -129,7 +129,7 @@ describe("Lobby Tests Intialize", async function () {
 
     const interpreterCallerConfig0: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
-        meta: getRainMetaDocumentFromContract("orderbook"), // Bad callerMeta passed.
+        meta: getRainMetaDocumentFromContract("sale"), // Bad callerMeta passed.
         deployer: touchDeployer.address,
       };
 

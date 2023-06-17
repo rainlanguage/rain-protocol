@@ -3,7 +3,6 @@ import FlowERC20 from "../../../contracts/flow/erc20/FlowERC20.meta.json";
 import FlowERC721 from "../../../contracts/flow/erc721/FlowERC721.meta.json";
 import FlowERC1155 from "../../../contracts/flow/erc1155/FlowERC1155.meta.json";
 import Lobby from "../../../contracts/lobby/Lobby.meta.json";
-import Orderbook from "../../../contracts/orderbook/OrderBook.meta.json";
 import Sale from "../../../contracts/sale/Sale.meta.json";
 import Stake from "../../../contracts/stake/Stake.meta.json";
 import CombineTier from "../../../contracts/tier/CombineTier.meta.json";
@@ -27,7 +26,6 @@ export const getRainContractMetaBytes = (contract: ContractMeta): string => {
   let meta;
   if (contract === "sale") meta = Sale;
   if (contract === "stake") meta = Stake;
-  if (contract === "orderbook") meta = Orderbook;
   if (contract === "flow") meta = Flow;
   if (contract === "flow20") meta = FlowERC20;
   if (contract === "flow721") meta = FlowERC721;
@@ -65,9 +63,6 @@ export const validateContractMetaAgainstABI = (
   }
   if (contractName_ === "stake") {
     (meta = Stake), (name = "Stake");
-  }
-  if (contractName_ === "orderbook") {
-    (meta = Orderbook), (name = "OrderBook");
   }
   if (contractName_ === "flow") {
     (meta = Flow), (name = "Flow");

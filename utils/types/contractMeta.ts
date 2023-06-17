@@ -1,7 +1,6 @@
 export type ContractMeta =
   | "sale"
   | "stake"
-  | "orderbook"
   | "flow"
   | "flow20"
   | "flow721"

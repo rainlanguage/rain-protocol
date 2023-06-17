@@ -211,7 +211,7 @@ describe("CombineTier ERC165 tests", async function () {
     );
 
     const config1: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-      meta: getRainMetaDocumentFromContract("orderbook"),
+      meta: getRainMetaDocumentFromContract("sale"),
       deployer: touchDeployer.address,
     };
 

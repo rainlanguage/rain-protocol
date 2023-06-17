@@ -12,10 +12,10 @@ import "sol.lib.memory/LibStackSentinel.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.factory/ICloneableV1.sol";
 import "rain.interface.flow/IFlowERC721V3.sol";
+import "rain.math.fixedpoint/FixedPointDecimalArithmeticOpenZeppelin.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
-import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
 /// Thrown when burner of tokens is not the owner of tokens.
@@ -49,7 +49,7 @@ contract FlowERC721 is
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
-    using LibFixedPointMath for uint256;
+    using FixedPointDecimalArithmeticOpenZeppelin for uint256;
     using LibStackSentinel for Pointer;
 
     bool private evalHandleTransfer;

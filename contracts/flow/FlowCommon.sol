@@ -8,7 +8,7 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "rain.lib.interpreter/LibInterpreterState.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/deployerDiscoverable/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";

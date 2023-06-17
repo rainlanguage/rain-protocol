@@ -89,8 +89,6 @@ const main = async () => {
       if (item.length !== 1) throw new Error("expected Rain contract name");
       if (item[0].toLocaleLowerCase() === "sale") contractMeta = Sale;
       else if (item[0].toLocaleLowerCase() === "stake") contractMeta = Stake;
-      else if (item[0].toLocaleLowerCase() === "orderbook")
-        contractMeta = Orderbook;
       else if (item[0].toLocaleLowerCase() === "flow20")
         contractMeta = FlowERC20;
       else if (item[0].toLocaleLowerCase() === "flow721")

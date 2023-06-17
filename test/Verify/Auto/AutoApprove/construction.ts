@@ -157,7 +157,7 @@ describe("AutoApprove construction", async function () {
     assert(!(autoApprove.address === zeroAddress), "autoApprove not deployed");
 
     const config_1: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
-      meta: getRainMetaDocumentFromContract("orderbook"),
+      meta: getRainMetaDocumentFromContract("sale"),
       deployer: touchDeployer.address,
     };
 

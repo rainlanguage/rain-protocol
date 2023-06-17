@@ -218,7 +218,7 @@ describe("Sale construction", async function () {
 
     const deployerDiscoverableMetaConfig1: DeployerDiscoverableMetaV1ConstructionConfigStruct =
       {
-        meta: getRainMetaDocumentFromContract("orderbook"),
+        meta: getRainMetaDocumentFromContract("stake"),
         deployer: touchDeployer.address,
       };
 

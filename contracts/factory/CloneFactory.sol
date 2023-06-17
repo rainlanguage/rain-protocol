@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import "rain.interface.factory/ICloneableV1.sol";
 import "rain.interface.factory/ICloneFactoryV1.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interface.interpreter/deployerDiscoverable/DeployerDiscoverableMetaV1.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// Thrown when an implementation is the zero address which is always a mistake.
