@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
 
-import "rain.orderbook/interface/IOrderBookV2.sol";
+import "rain.orderbook/src/interface/IOrderBookV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interpreter/lib/LibInterpreterState.sol";
 import "rain.interpreter/lib/LibOp.sol";
