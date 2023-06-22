@@ -20,7 +20,7 @@ import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/lib/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/LibEvaluable.sol";
-import "rain.interface.factory/ICloneableV1.sol";
+import "rain.factory/ICloneableV1.sol";
 import "rain.factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(

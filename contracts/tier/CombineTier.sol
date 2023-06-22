@@ -12,7 +12,7 @@ import "rain.interpreter/lib/LibContext.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/LibEvaluable.sol";
-import "rain.interface.factory/ICloneableV1.sol";
+import "rain.factory/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
