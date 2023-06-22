@@ -8,7 +8,7 @@ import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contr
 import "rain.interpreter/lib/LibEncodedDispatch.sol";
 import "rain.factory/interface/ICloneableV1.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.interface.flow/IFlowERC1155V3.sol";
+import "rain.flow/interface/IFlowERC1155V3.sol";
 
 import "sol.lib.memory/LibStackPointer.sol";
 import "../libraries/LibFlow.sol";

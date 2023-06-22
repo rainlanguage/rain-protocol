@@ -9,7 +9,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interpreter/lib/LibEncodedDispatch.sol";
 import "rain.factory/interface/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC20V3.sol";
+import "rain.flow/interface/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
