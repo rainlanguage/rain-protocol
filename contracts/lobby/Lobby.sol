@@ -9,7 +9,7 @@ import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interface.interpreter/LibContext.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";

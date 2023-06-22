@@ -2,8 +2,8 @@
 pragma solidity =0.8.19;
 
 import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "rain.lib.interpreter/LibInterpreterState.sol";
-import "rain.lib.interpreter/LibNamespace.sol";
+import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/LibNamespace.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @title RainterpreterStore

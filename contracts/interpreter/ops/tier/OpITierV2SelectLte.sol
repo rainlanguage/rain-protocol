@@ -4,8 +4,8 @@ pragma solidity ^0.8.18;
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";
-import "rain.lib.interpreter/LibOp.sol";
-import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.interpreter/lib/LibOp.sol";
+import "rain.interpreter/lib/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 

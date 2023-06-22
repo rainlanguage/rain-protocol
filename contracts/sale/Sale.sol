@@ -18,10 +18,10 @@ import "rain.interface.interpreter/IInterpreterV1.sol";
 import "rain.interface.interpreter/LibEncodedDispatch.sol";
 import "rain.interface.interpreter/IInterpreterCallerV2.sol";
 import "rain.interface.interpreter/LibContext.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
+import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interface.interpreter/LibEvaluable.sol";
 import "rain.interface.factory/ICloneableV1.sol";
-import "../factory/CloneFactory.sol";
+import "rain.factory/CloneFactory.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
