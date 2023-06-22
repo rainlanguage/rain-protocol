@@ -3,9 +3,9 @@ pragma solidity =0.8.19;
 
 import "sol.lib.datacontract/LibDataContract.sol";
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
-import "rain.interface.interpreter/unstable/IDebugExpressionDeployerV1.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
+import "rain.interpreter/interface/unstable/IDebugExpressionDeployerV1.sol";
 import "rain.interpreter/lib/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
 import "../../ierc1820/LibIERC1820.sol";

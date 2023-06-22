@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.interface.interpreter/IInterpreterV1.sol";
-import "rain.interface.interpreter/IInterpreterExternV1.sol";
+import "rain.interpreter/interface/IInterpreterV1.sol";
+import "rain.interpreter/interface/IInterpreterExternV1.sol";
 import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibUint256Array.sol";

@@ -5,8 +5,8 @@ import "sol.lib.memory/LibPointer.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/IInterpreterV1.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/interface/IInterpreterV1.sol";
 
 /// @dev The virtual stack pointers are never read or written so don't need to
 /// point to a real location in memory. We only care that the stack never moves

@@ -5,7 +5,7 @@ import "rain.interface.flow/IFlowV3.sol";
 
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
-import "rain.interface.interpreter/IInterpreterStoreV1.sol";
+import "rain.interpreter/interface/IInterpreterStoreV1.sol";
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
