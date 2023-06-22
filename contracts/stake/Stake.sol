@@ -10,7 +10,7 @@ import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/LibEvaluable.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.factory/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
