@@ -24,7 +24,7 @@ import "rain.factory/interface/ICloneableV1.sol";
 import "rain.factory/interface/ICloneableFactoryV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
+    0x21b7a5f7778e838d8059caf00f52d2fcda4c800d947d7c7bdb6b7f9ca6d5f7be
 );
 
 /// Everything required to construct a Sale (not initialize).
