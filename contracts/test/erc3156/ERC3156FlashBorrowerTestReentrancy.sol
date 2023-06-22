@@ -6,7 +6,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "hardhat/console.sol";
 
 import {OrderBookFlashLender} from "../../orderbook/OrderBookFlashLender.sol";
-import "rain.orderbook/interface/ierc3156/IERC3156FlashLender.sol";
+import "rain.orderbook/src/interface/ierc3156/IERC3156FlashLender.sol";
 
 /// @title ERC3156FlashBorrowerTest
 contract ERC3156FlashBorrowerTestReentrancy is IERC3156FlashBorrower {

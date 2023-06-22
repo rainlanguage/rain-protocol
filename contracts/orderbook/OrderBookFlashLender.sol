@@ -6,7 +6,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 import "rain.orderbook/src/interface/ierc3156/IERC3156FlashBorrower.sol";
-import "rain.orderbook/interface/ierc3156/IERC3156FlashLender.sol";
+import "rain.orderbook/src/interface/ierc3156/IERC3156FlashLender.sol";
 
 /// Thrown when `flashLoan` token is zero address.
 error ZeroToken();
