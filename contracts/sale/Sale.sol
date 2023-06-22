@@ -21,7 +21,7 @@ import "rain.interpreter/lib/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/LibEvaluable.sol";
 import "rain.factory/interface/ICloneableV1.sol";
-import "rain.factory/concrete/CloneFactory.sol";
+import "rain.factory/interface/ICloneableFactoryV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
@@ -36,7 +36,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param deployerDiscoverableMetaConfig As per `DeployerDiscoverableMetaV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
-    CloneFactory cloneFactory;
+    ICloneableFactoryV1 cloneFactory;
     address redeemableERC20Implementation;
     DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
@@ -240,7 +240,7 @@ contract Sale is
     SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
-    CloneFactory private immutable cloneFactory;
+    ICloneableFactoryV1 private immutable cloneFactory;
     /// ICloneableV1 implementation of rTKN.
     address private immutable redeemableERC20Implementation;
 
