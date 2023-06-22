@@ -31,9 +31,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "lib/rain.interface.interpreter"]
-	path = lib/rain.interface.interpreter
-	url = https://github.com/rainprotocol/rain.interface.interpreter
 [submodule "lib/sol.lib.binmaskflag"]
 	path = lib/sol.lib.binmaskflag
 	url = https://github.com/rainprotocol/sol.lib.binmaskflag
@@ -43,6 +40,3 @@
 [submodule "lib/sol.lib.datacontract"]
 	path = lib/sol.lib.datacontract
 	url = https://github.com/rainprotocol/sol.lib.datacontract
-[submodule "lib/rain.lib.interpreter"]
-	path = lib/rain.lib.interpreter
-	url = https://github.com/rainprotocol/rain.lib.interpreter
