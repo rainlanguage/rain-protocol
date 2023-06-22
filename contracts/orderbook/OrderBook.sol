@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.interface.orderbook/IOrderBookV2.sol";
+import "rain.orderbook/interface/IOrderBookV2.sol";
 import "./LibOrder.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
