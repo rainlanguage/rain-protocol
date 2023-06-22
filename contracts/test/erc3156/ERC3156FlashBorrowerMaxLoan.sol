@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
 
-import "rain.orderbook/interface/ierc3156/IERC3156FlashBorrower.sol";
+import "rain.orderbook/src/interface/ierc3156/IERC3156FlashBorrower.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import {OrderBookFlashLender} from "../../orderbook/OrderBookFlashLender.sol";
