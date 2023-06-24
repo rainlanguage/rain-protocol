@@ -4,15 +4,15 @@ pragma solidity =0.8.19;
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/lib/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.lib.interpreter/LibInterpreterState.sol";
-import "rain.interface.interpreter/LibContext.sol";
+import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/LibContext.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "rain.interface.interpreter/LibEvaluable.sol";
-import "rain.interface.factory/ICloneableV1.sol";
+import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
+import "rain.interpreter/lib/LibEvaluable.sol";
+import "rain.factory/interface/ICloneableV1.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 

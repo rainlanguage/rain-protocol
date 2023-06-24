@@ -3,8 +3,8 @@ pragma solidity =0.8.19;
 
 import "../../../ierc5313/IERC5313.sol";
 import "../../deploy/LibIntegrityCheck.sol";
-import "rain.lib.interpreter/LibInterpreterState.sol";
-import "rain.lib.interpreter/LibOp.sol";
+import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/LibOp.sol";
 
 /// @title OpERC5313Owner
 /// @notice Opcode for ERC5313 `owner`.

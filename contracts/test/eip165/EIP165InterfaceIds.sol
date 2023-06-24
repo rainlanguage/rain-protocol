@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import {IInterpreterCallerV1} from "rain.interface.interpreter/deprecated/IInterpreterCallerV1.sol";
-import "rain.interface.interpreter/IInterpreterCallerV2.sol";
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/IInterpreterExternV1.sol";
-import "rain.interface.interpreter/IInterpreterV1.sol";
-import "rain.interface.interpreter/IInterpreterStoreV1.sol";
+import {IInterpreterCallerV1} from "rain.interpreter/interface/deprecated/IInterpreterCallerV1.sol";
+import "rain.interpreter/interface/IInterpreterCallerV2.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/interface/IInterpreterExternV1.sol";
+import "rain.interpreter/interface/IInterpreterV1.sol";
+import "rain.interpreter/interface/IInterpreterStoreV1.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 contract EIP165InterfaceIds {

@@ -30,6 +30,33 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
+        version: "0.8.18",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000000,
+            details: {
+              peephole: true,
+              inliner: true,
+              jumpdestRemover: true,
+              orderLiterals: true,
+              deduplicate: true,
+              cse: true,
+              constantOptimizer: true,
+            },
+          },
+          evmVersion: "london",
+          // viaIR: true,
+          metadata: {
+            // DO NOT enable CBOR until it is no longer possible to produce valid
+            // jumpdest accidentally in the IPFS hash that could lead to
+            // mutations in the interpreter.
+            appendCBOR: false,
+            useLiteralContent: true,
+          },
+        },
+      },
+      {
         version: "0.8.19",
         settings: {
           optimizer: {

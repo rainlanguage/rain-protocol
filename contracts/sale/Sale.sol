@@ -13,18 +13,18 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/IInterpreterV1.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.interpreter/IInterpreterCallerV2.sol";
-import "rain.interface.interpreter/LibContext.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "rain.interface.interpreter/LibEvaluable.sol";
-import "rain.interface.factory/ICloneableV1.sol";
-import "../factory/CloneFactory.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/interface/IInterpreterV1.sol";
+import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/interface/IInterpreterCallerV2.sol";
+import "rain.interpreter/lib/LibContext.sol";
+import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
+import "rain.interpreter/lib/LibEvaluable.sol";
+import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableFactoryV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x6b84e000a8f199fdcf4a85bbf63fa0870101003b452b4c28930be0ae5bd1d301
+    0x21b7a5f7778e838d8059caf00f52d2fcda4c800d947d7c7bdb6b7f9ca6d5f7be
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -36,7 +36,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param deployerDiscoverableMetaConfig As per `DeployerDiscoverableMetaV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
-    CloneFactory cloneFactory;
+    ICloneableFactoryV1 cloneFactory;
     address redeemableERC20Implementation;
     DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
@@ -240,7 +240,7 @@ contract Sale is
     SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
-    CloneFactory private immutable cloneFactory;
+    ICloneableFactoryV1 private immutable cloneFactory;
     /// ICloneableV1 implementation of rTKN.
     address private immutable redeemableERC20Implementation;
 

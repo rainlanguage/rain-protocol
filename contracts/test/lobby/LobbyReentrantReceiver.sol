@@ -4,7 +4,7 @@ pragma solidity =0.8.19;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {ReserveToken18} from "../testToken/ReserveToken18.sol";
 import {Lobby, PHASE_PLAYERS_PENDING, PHASE_RESULT_PENDING, PHASE_COMPLETE, PHASE_INVALID} from "../../lobby/Lobby.sol";
-import {SignedContextV1} from "rain.interface.interpreter/IInterpreterCallerV2.sol";
+import {SignedContextV1} from "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "hardhat/console.sol";
 
 contract LobbyReentrantReceiver is ReserveToken18 {

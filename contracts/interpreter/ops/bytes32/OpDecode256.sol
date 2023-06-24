@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.lib.interpreter/LibOp.sol";
+import "rain.interpreter/lib/LibOp.sol";
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.lib.interpreter/LibInterpreterState.sol";
+import "rain.interpreter/lib/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 import "./OpEncode256.sol";

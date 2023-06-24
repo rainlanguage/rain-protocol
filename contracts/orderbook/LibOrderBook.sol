@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "rain.interface.orderbook/IOrderBookV2.sol";
+import "rain.interpreter/interface/IInterpreterStoreV1.sol";
+import "rain.orderbook/src/interface/IOrderBookV2.sol";
 import "../math/LibFixedPointMath.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 

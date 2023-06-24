@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.interface.factory/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV1.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "sol.lib.memory/LibUint256Array.sol";

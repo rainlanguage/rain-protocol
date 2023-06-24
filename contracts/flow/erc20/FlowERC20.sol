@@ -4,12 +4,12 @@ pragma solidity =0.8.19;
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
-import "rain.interface.factory/ICloneableV1.sol";
-import "rain.interface.flow/IFlowERC20V3.sol";
+import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.factory/interface/ICloneableV1.sol";
+import "rain.flow/interface/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";

@@ -4,14 +4,14 @@ pragma solidity =0.8.19;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/LibEncodedDispatch.sol";
 import "rain.lib.memkv/LibMemoryKV.sol";
-import "rain.interface.interpreter/IInterpreterStoreV1.sol";
-import "rain.interface.interpreter/unstable/IDebugInterpreterV1.sol";
-import "rain.lib.interpreter/LibInterpreterStateDataContract.sol";
-import "rain.lib.interpreter/LibNamespace.sol";
+import "rain.interpreter/interface/IInterpreterStoreV1.sol";
+import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
+import "rain.interpreter/lib/LibInterpreterStateDataContract.sol";
+import "rain.interpreter/lib/LibNamespace.sol";
 import "sol.lib.memory/LibUint256Array.sol";
-import "rain.lib.interpreter/LibEval.sol";
+import "rain.interpreter/lib/LibEval.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 

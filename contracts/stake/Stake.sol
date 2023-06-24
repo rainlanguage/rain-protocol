@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.interface.interpreter/IExpressionDeployerV1.sol";
-import "rain.interface.interpreter/LibEncodedDispatch.sol";
+import "rain.interpreter/interface/IExpressionDeployerV1.sol";
+import "rain.interpreter/lib/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interface.interpreter/LibContext.sol";
-import "rain.interface.interpreter/IInterpreterCallerV2.sol";
-import "../interpreter/deploy/DeployerDiscoverableMetaV1.sol";
-import "rain.interface.interpreter/LibEvaluable.sol";
+import "rain.interpreter/lib/LibContext.sol";
+import "rain.interpreter/interface/IInterpreterCallerV2.sol";
+import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
+import "rain.interpreter/lib/LibEvaluable.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.interface.factory/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV1.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
