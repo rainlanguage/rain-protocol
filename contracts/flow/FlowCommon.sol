@@ -9,7 +9,7 @@ import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
+import "rain.interpreter/lib/callable/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";

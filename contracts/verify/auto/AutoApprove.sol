@@ -12,7 +12,7 @@ import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
+import "rain.interpreter/lib/callable/LibEvaluable.sol";
 import "rain.factory/interface/ICloneableV1.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
