@@ -13,7 +13,7 @@ import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
     0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7
@@ -29,7 +29,7 @@ struct AutoApproveConfig {
 }
 
 contract AutoApprove is
-    ICloneableV1,
+    ICloneableV2,
     VerifyCallback,
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
@@ -54,8 +54,8 @@ contract AutoApprove is
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         verifyCallbackInit();
 
         AutoApproveConfig memory config_ = abi.decode(
@@ -75,6 +75,8 @@ contract AutoApprove is
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function afterAdd(

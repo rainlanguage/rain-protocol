@@ -8,7 +8,7 @@ import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 
@@ -31,7 +31,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 /// @title FlowERC20
 contract FlowERC20 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC20V3,
     ReentrancyGuard,
     FlowCommon,
@@ -52,8 +52,8 @@ contract FlowERC20 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
@@ -81,6 +81,8 @@ contract FlowERC20 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _dispatchHandleTransfer(

@@ -13,7 +13,7 @@ import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
@@ -129,7 +129,7 @@ uint256 constant PHASE_COMPLETE = 3;
 uint256 constant PHASE_INVALID = 4;
 
 contract Lobby is
-    ICloneableV1,
+    ICloneableV2,
     IInterpreterCallerV2,
     Phased,
     ReentrancyGuard,
@@ -199,8 +199,8 @@ contract Lobby is
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         // anon initializes with the passed config
         // we initialize rather than construct as there would be some factory
         // producing cheap clones of an implementation contract
@@ -240,6 +240,8 @@ contract Lobby is
                 )
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _joinEncodedDispatch(

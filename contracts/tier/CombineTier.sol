@@ -12,7 +12,7 @@ import "rain.interpreter/lib/caller/LibContext.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -46,7 +46,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
+contract CombineTier is ICloneableV2, TierV2, DeployerDiscoverableMetaV1 {
     using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -62,8 +62,8 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         tierV2Init();
 
         CombineTierConfig memory config_ = abi.decode(
@@ -97,6 +97,8 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                 )
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// @inheritdoc ITierV2

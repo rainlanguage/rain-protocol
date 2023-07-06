@@ -89,7 +89,7 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
             .read(expression_)
             .unsafeDeserialize();
         state_.stateKV = MemoryKV.wrap(0);
-        state_.namespace = namespace_.qualifyNamespace();
+        state_.namespace = namespace_.qualifyNamespace(msg.sender);
         state_.store = store_;
         state_.context = context_;
 

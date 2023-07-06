@@ -9,7 +9,7 @@ import "./LibEvidence.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "./IVerifyV1.sol";
 import "./libraries/LibVerifyStatus.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -175,7 +175,7 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is IVerifyV1, ICloneableV1, AccessControl {
+contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibVerifyStatus for VerifyStatus;
@@ -252,8 +252,8 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
         require(config_.admin != address(0), "0_ACCOUNT");
         __AccessControl_init();
@@ -287,6 +287,8 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
         callback = IVerifyCallbackV1(config_.callback);
 
         emit Initialize(msg.sender, config_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// Typed accessor into states.

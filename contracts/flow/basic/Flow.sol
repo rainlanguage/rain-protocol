@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import "sol.lib.memory/LibUint256Array.sol";
@@ -12,7 +12,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
     0x3939727b6d233d590e82d29d8e5fef403ddcd96f3ec8a8db3640f5e0a71649a5
 );
 
-contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV2, IFlowV3, ReentrancyGuard, FlowCommon {
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
 
@@ -20,12 +20,13 @@ contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         emit Initialize(msg.sender, config_);
 
         flowCommonInit(config_.config, MIN_FLOW_SENTINELS);
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _previewFlow(

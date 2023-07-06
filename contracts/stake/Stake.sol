@@ -10,7 +10,7 @@ import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -140,7 +140,7 @@ struct DepositRecord {
 contract Stake is
     ERC4626,
     TierV2,
-    ICloneableV1,
+    ICloneableV2,
     ReentrancyGuard,
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
@@ -171,8 +171,8 @@ contract Stake is
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes memory data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes memory data_) external initializer returns (bytes32) {
         __ReentrancyGuard_init();
 
         StakeConfig memory config_ = abi.decode(data_, (StakeConfig));
@@ -196,6 +196,8 @@ contract Stake is
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// General purpose eval for setting context, dispatching and catching the

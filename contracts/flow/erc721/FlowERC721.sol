@@ -10,7 +10,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC721V3.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
@@ -38,7 +38,7 @@ uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC721V3,
     ReentrancyGuard,
     FlowCommon,
@@ -61,8 +61,8 @@ contract FlowERC721 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC721Config memory config_ = abi.decode(data_, (FlowERC721Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
@@ -99,6 +99,8 @@ contract FlowERC721 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {

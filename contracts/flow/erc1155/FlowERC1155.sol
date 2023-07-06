@@ -6,7 +6,7 @@ import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/interface/ICloneableV2.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.flow/interface/IFlowERC1155V3.sol";
 
@@ -29,7 +29,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC1155V3,
     ReentrancyGuard,
     FlowCommon,
@@ -49,8 +49,8 @@ contract FlowERC1155 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC1155Config memory config_ = abi.decode(
             data_,
             (FlowERC1155Config)
@@ -81,6 +81,8 @@ contract FlowERC1155 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _dispatchHandleTransfer(
