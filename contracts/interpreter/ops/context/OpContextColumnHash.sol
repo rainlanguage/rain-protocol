@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "../../deploy/LibIntegrityCheck.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 
 /// @title OpContextColumnHash
 /// @notice Hashes a single context column. Useful for snapshotting values

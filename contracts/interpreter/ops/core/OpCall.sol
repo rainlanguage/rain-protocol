@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/lib/LibEval.sol";
 import "sol.lib.memory/LibMemCpy.sol";
 import "../../deploy/LibIntegrityCheck.sol";

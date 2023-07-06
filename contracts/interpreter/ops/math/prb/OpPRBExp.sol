@@ -2,8 +2,8 @@
 pragma solidity =0.8.19;
 
 import "../../../deploy/LibIntegrityCheck.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibOp.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
 import {UD60x18, exp} from "@prb/math/src/ud60x18/Math.sol";
 
 library OpPRBExp {

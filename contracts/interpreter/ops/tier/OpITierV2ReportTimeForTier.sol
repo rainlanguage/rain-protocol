@@ -3,8 +3,8 @@ pragma solidity ^0.8.18;
 
 import "../../../tier/ITierV2.sol";
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibOp.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpITierV2Report

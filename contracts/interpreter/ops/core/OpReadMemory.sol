@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";

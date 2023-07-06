@@ -3,8 +3,8 @@ pragma solidity ^0.8.18;
 
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibOp.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 

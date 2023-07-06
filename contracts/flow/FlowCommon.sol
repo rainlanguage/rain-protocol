@@ -6,8 +6,8 @@ import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
 import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "rain.interpreter/lib/LibContext.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/caller/LibContext.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/LibEvaluable.sol";
 

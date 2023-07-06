@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../core/OpCall.sol";
 
