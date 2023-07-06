@@ -9,7 +9,7 @@ import "./LibEvidence.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "./IVerifyV1.sol";
 import "./libraries/LibVerifyStatus.sol";
-import "rain.factory/interface/ICloneableV2.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.

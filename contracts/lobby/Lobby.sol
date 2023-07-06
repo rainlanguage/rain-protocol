@@ -13,7 +13,7 @@ import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
-import "rain.factory/interface/ICloneableV2.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";

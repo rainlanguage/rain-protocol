@@ -8,7 +8,7 @@ import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "sol.lib.memory/LibUint256Array.sol";
 import "sol.lib.memory/LibUint256Matrix.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV2.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC20V3.sol";
 import "sol.lib.memory/LibStackSentinel.sol";
 
