@@ -11,7 +11,7 @@ import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
 import "rain.interpreter/lib/LibInterpreterStateDataContract.sol";
 import "rain.interpreter/lib/LibNamespace.sol";
 import "sol.lib.memory/LibUint256Array.sol";
-import "rain.interpreter/lib/LibEval.sol";
+import "rain.interpreter/lib/eval/LibEval.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 

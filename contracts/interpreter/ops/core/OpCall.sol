@@ -5,7 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "sol.lib.memory/LibStackPointer.sol";
 import "sol.lib.memory/LibPointer.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibEval.sol";
+import "rain.interpreter/lib/eval/LibEval.sol";
 import "sol.lib.memory/LibMemCpy.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
