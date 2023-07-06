@@ -2,7 +2,7 @@
 pragma solidity =0.8.19;
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";

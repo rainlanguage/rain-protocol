@@ -5,7 +5,7 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";

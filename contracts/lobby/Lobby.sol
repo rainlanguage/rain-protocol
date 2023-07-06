@@ -5,7 +5,7 @@ import "sol.lib.memory/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "sol.lib.memory/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";

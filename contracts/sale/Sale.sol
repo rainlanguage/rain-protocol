@@ -15,7 +15,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";

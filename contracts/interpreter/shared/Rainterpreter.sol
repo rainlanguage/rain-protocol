@@ -4,7 +4,7 @@ pragma solidity =0.8.19;
 import "sol.lib.datacontract/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.lib.memkv/LibMemoryKV.sol";
 import "rain.interpreter/interface/IInterpreterStoreV1.sol";
 import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
