@@ -14,13 +14,13 @@
           "name": "Dummy Expression",
           "abiName": "dummyConfig",
           "desc": "A dummy expression. This is here to workaround a bug in Solidity.",
-          "path": "[12].inputs[1].components[0]"
+          "path": "[13].inputs[1].components[0]"
         },
         {
           "name": "Flows",
           "abiName": "config",
           "desc": "The available flows.",
-          "path": "[12].inputs[1].components[1]",
+          "path": "[13].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

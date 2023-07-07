@@ -18,7 +18,7 @@ import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x11305809a22c188977ba526669c5811d6e9fd3f82f8c6cf9e23becf3f36315ef
+    0xeb405a4903caa023066f0472a718a9925c7a7b3284e56f87639d6c19f28df97a
 );
 
 Sentinel constant RAIN_FLOW_ERC20_SENTINEL = Sentinel.wrap(

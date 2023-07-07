@@ -14,7 +14,7 @@
           "name": "URI",
           "abiName": "uri",
           "desc": "The URI for the ERC1155 token that is minted.",
-          "path": "[13].inputs[1].components[0]"
+          "path": "[14].inputs[1].components[0]"
         }
       ],
       "expressions": [
@@ -22,7 +22,7 @@
           "name": "Handle transfer",
           "abiName": "evaluableConfig",
           "desc": "Review and restrict transfers of the flow contract's own ERC1155 token. Mint and burns must be controlled by the flow expressions instead.",
-          "path": "[13].inputs[1].components[1]",
+          "path": "[14].inputs[1].components[1]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -89,7 +89,7 @@
           "name": "Flows",
           "abiName": "flowConfig",
           "desc": "The available flows for this token.",
-          "path": "[13].inputs[1].components[2]",
+          "path": "[14].inputs[1].components[2]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

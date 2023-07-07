@@ -14,13 +14,13 @@
           "name": "Name",
           "abiName": "name",
           "desc": "Name of the ERC20 token that is minted.",
-          "path": "[13].inputs[1].components[0]"
+          "path": "[14].inputs[1].components[0]"
         },
         {
           "name": "Symbol",
           "abiName": "symbol",
           "desc": "Symbol of the ERC20 token that is minted.",
-          "path": "[13].inputs[1].components[1]"
+          "path": "[14].inputs[1].components[1]"
         }
       ],
       "expressions": [
@@ -28,7 +28,7 @@
           "name": "Handle Transfer",
           "abiName": "evaluableConfig",
           "desc": "Review and restrict transfers of the flow contract's own ERC20 token. Mint and burns must be controlled by the flow expressions instead.",
-          "path": "[13].inputs[1].components[2]",
+          "path": "[14].inputs[1].components[2]",
           "signedContext": false,
           "contextColumns": [
             {
@@ -83,7 +83,7 @@
           "name": "Flows",
           "abiName": "flowConfig",
           "desc": "The available flows.",
-          "path": "[13].inputs[1].components[3]",
+          "path": "[14].inputs[1].components[3]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [

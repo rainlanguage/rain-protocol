@@ -14,7 +14,7 @@
           "name": "Owner",
           "abiName": "owner",
           "desc": "Sets owner",
-          "path": "[5].inputs[1].components[0]"
+          "path": "[6].inputs[1].components[0]"
         }
       ],
       "expressions": [
@@ -22,7 +22,7 @@
           "name": "",
           "abiName": "evaluableConfig",
           "desc": "",
-          "path": "[5].inputs[1].components[1]",
+          "path": "[6].inputs[1].components[1]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [
