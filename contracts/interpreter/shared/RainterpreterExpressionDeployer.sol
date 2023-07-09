@@ -8,7 +8,7 @@ import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
 import "rain.interpreter/interface/unstable/IDebugExpressionDeployerV1.sol";
 import "rain.interpreter/lib/state/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
-import "../../ierc1820/LibIERC1820.sol";
+import "rain.factory/ierc1820/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
