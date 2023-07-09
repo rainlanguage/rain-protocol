@@ -26,7 +26,7 @@ Sentinel constant RAIN_FLOW_ERC721_SENTINEL = Sentinel.wrap(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xab400a0382ce344b3f1c4fa71095079fcef46d22d552278b5f9f69adaf70363e
+    0x7f7944a4b89741668c06a27ffde94e19be970cd0506786de91aee01c2893d4ef
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
