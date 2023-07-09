@@ -59,6 +59,8 @@ bytes32 constant OP_META_HASH = bytes32(
     0xe4c000f3728f30e612b34e401529ce5266061cc1233dc54a6a89524929571d8f
 );
 
+string constant IERC1820_NAME_IEXPRESSION_DEPLOYER_V1 = "IExpressionDeployerV1";
+
 /// All config required to construct a `Rainterpreter`.
 /// @param store The `IInterpreterStoreV1`. MUST match known bytecode.
 /// @param opMeta All opmeta as binary data. MAY be compressed bytes etc. The
