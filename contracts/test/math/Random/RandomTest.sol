@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.datacontract/LibDataContract.sol";
+import "rain.datacontract/lib/LibDataContract.sol";
 
 import "../../../math/Random.sol";
-import "sol.lib.memory/LibBytes.sol";
-import "sol.lib.memory/LibMemCpy.sol";
+import "rain.solmem/lib/LibBytes.sol";
+import "rain.solmem/lib/LibMemCpy.sol";
 
 contract RandomTest {
     using LibBytes for bytes;

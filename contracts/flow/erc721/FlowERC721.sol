@@ -6,9 +6,9 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
-import "sol.lib.memory/LibStackSentinel.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibStackSentinel.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.factory/src/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC721V3.sol";

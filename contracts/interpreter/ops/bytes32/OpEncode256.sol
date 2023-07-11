@@ -3,7 +3,7 @@ pragma solidity =0.8.19;
 
 import "rain.interpreter/lib/op/LibOp.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 
 /// Thrown during integrity check when the encoding is truncated due to the end

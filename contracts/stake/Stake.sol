@@ -3,13 +3,13 @@ pragma solidity =0.8.19;
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
 import "rain.interpreter/lib/caller/LibEvaluable.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 import "rain.factory/src/interface/ICloneableV2.sol";
 
 import "../tier/TierV2.sol";

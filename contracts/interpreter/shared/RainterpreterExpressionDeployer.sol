@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.datacontract/LibDataContract.sol";
+import "rain.datacontract/lib/LibDataContract.sol";
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
@@ -58,8 +58,6 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
 bytes32 constant OP_META_HASH = bytes32(
     0xe4c000f3728f30e612b34e401529ce5266061cc1233dc54a6a89524929571d8f
 );
-
-string constant IERC1820_NAME_IEXPRESSION_DEPLOYER_V1 = "IExpressionDeployerV1";
 
 /// All config required to construct a `Rainterpreter`.
 /// @param store The `IInterpreterStoreV1`. MUST match known bytecode.
@@ -206,100 +204,103 @@ contract RainterpreterExpressionDeployer is
 
     /// @inheritdoc IDebugExpressionDeployerV1
     function offchainDebugEval(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        FullyQualifiedNamespace namespace_,
-        uint256[][] memory context_,
-        SourceIndex sourceIndex_,
-        uint256[] memory initialStack_,
-        uint256 minOutputs_
+        bytes[] memory sources,
+        uint256[] memory constants,
+        FullyQualifiedNamespace namespace,
+        uint256[][] memory context,
+        SourceIndex sourceIndex,
+        uint256[] memory initialStack,
+        uint8 minOutputs
     ) external view returns (uint256[] memory, uint256[] memory) {
-        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
-            .newState(sources_, constants_, integrityFunctionPointers());
-        Pointer stackTop_ = integrityCheckState_.stackBottom;
-        stackTop_ = LibIntegrityCheck.push(
-            integrityCheckState_,
-            stackTop_,
-            initialStack_.length
+        IntegrityCheckState memory integrityCheckState = LibIntegrityCheck
+            .newState(sources, constants, integrityFunctionPointers());
+        Pointer stackTop = integrityCheckState.stackBottom;
+        stackTop = LibIntegrityCheck.push(
+            integrityCheckState,
+            stackTop,
+            initialStack.length
         );
         LibIntegrityCheck.ensureIntegrity(
-            integrityCheckState_,
-            sourceIndex_,
-            stackTop_,
-            minOutputs_
+            integrityCheckState,
+            sourceIndex,
+            stackTop,
+            minOutputs
         );
-        uint256[] memory stack_;
+        uint256[] memory stack;
         {
-            uint256 stackLength_ = integrityCheckState_
+            int256 stackLength = integrityCheckState
                 .stackBottom
-                .unsafeToIndex(integrityCheckState_.stackMaxTop);
-            for (uint256 i_; i_ < sources_.length; i_++) {
+                .toIndexSigned(integrityCheckState.stackMaxTop);
+            for (uint256 i_; i_ < sources.length; i_++) {
                 LibCompile.unsafeCompile(
-                    sources_[i_],
+                    sources[i_],
                     OPCODE_FUNCTION_POINTERS
                 );
             }
-            stack_ = new uint256[](stackLength_);
+
+            require(stackLength >= 0, "Stack underflow");
+            stack = new uint256[](uint256(stackLength));
             LibMemCpy.unsafeCopyWordsTo(
-                initialStack_.dataPointer(),
-                stack_.dataPointer(),
-                initialStack_.length
+                initialStack.dataPointer(),
+                stack.dataPointer(),
+                initialStack.length
             );
         }
 
         return
             IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
                 store,
-                namespace_,
-                sources_,
-                constants_,
-                context_,
-                stack_,
-                sourceIndex_
+                namespace,
+                sources,
+                constants,
+                context,
+                stack,
+                sourceIndex
             );
     }
 
     function integrityCheck(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        uint256[] memory minOutputs_
+        bytes[] memory sources,
+        uint256[] memory constants,
+        uint256[] memory minOutputs
     ) internal view returns (uint256) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
-        if (minOutputs_.length > sources_.length) {
-            revert MissingEntrypoint(minOutputs_.length, sources_.length);
+        if (minOutputs.length > sources.length) {
+            revert MissingEntrypoint(minOutputs.length, sources.length);
         }
 
         // Build the initial state of the integrity check.
-        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
-            .newState(sources_, constants_, integrityFunctionPointers());
+        IntegrityCheckState memory integrityCheckState = LibIntegrityCheck
+            .newState(sources, constants, integrityFunctionPointers());
         // Loop over each possible entrypoint as defined by the calling contract
         // and check the integrity of each. At the least we need to be sure that
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
-        Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        Pointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
-        for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
+        Pointer initialStackBottom = integrityCheckState.stackBottom;
+        Pointer initialStackHighwater = integrityCheckState.stackHighwater;
+        for (uint16 i_ = 0; i_ < minOutputs.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory
             // allocation so MUST be the max height across all possible
             // entrypoints.
-            integrityCheckState_.stackBottom = initialStackBottom_;
-            integrityCheckState_.stackHighwater = initialStackHighwater_;
+            integrityCheckState.stackBottom = initialStackBottom;
+            integrityCheckState.stackHighwater = initialStackHighwater;
             LibIntegrityCheck.ensureIntegrity(
-                integrityCheckState_,
+                integrityCheckState,
                 SourceIndex.wrap(i_),
                 INITIAL_STACK_BOTTOM,
-                minOutputs_[i_]
+                uint8(minOutputs[i_])
             );
         }
 
-        return
-            integrityCheckState_.stackBottom.unsafeToIndex(
-                integrityCheckState_.stackMaxTop
+        int256 finalIndex = integrityCheckState.stackBottom.toIndexSigned(
+                integrityCheckState.stackMaxTop
             );
+        require(finalIndex >= 0, "Stack underflow");
+        return uint256(finalIndex);
     }
 
     /// @inheritdoc IExpressionDeployerV1

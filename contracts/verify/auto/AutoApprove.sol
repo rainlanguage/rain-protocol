@@ -3,12 +3,12 @@ pragma solidity =0.8.19;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "sol.lib.memory/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";

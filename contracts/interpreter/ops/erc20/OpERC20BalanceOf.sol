@@ -2,10 +2,10 @@
 pragma solidity =0.8.19;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/lib/op/LibOp.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 
 /// @title OpERC20BalanceOf
 /// @notice Opcode for ERC20 `balanceOf`.

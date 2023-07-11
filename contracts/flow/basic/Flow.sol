@@ -4,8 +4,8 @@ pragma solidity =0.8.19;
 import "rain.factory/src/interface/ICloneableV2.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(

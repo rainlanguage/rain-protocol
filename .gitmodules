@@ -10,24 +10,15 @@
 [submodule "lib/rain.math.saturating"]
 	path = lib/rain.math.saturating
 	url = https://github.com/rainprotocol/rain.math.saturating
-[submodule "lib/sol.lib.memory"]
-	path = lib/sol.lib.memory
-	url = https://github.com/rainprotocol/sol.lib.memory
 [submodule "lib/sol.lib.binmaskflag"]
 	path = lib/sol.lib.binmaskflag
 	url = https://github.com/rainprotocol/sol.lib.binmaskflag
-[submodule "lib/sol.lib.datacontract"]
-	path = lib/sol.lib.datacontract
-	url = https://github.com/rainprotocol/sol.lib.datacontract
 [submodule "lib/rain.math.fixedpoint"]
 	path = lib/rain.math.fixedpoint
 	url = https://github.com/rainprotocol/rain.math.fixedpoint
 [submodule "lib/rain.metadata"]
 	path = lib/rain.metadata
 	url = https://github.com/rainprotocol/rain.metadata
-[submodule "lib/rain.interpreter"]
-	path = lib/rain.interpreter
-	url = https://github.com/rainprotocol/rain.interpreter
 [submodule "lib/rain.factory"]
 	path = lib/rain.factory
 	url = https://github.com/rainprotocol/rain.factory
@@ -40,3 +31,12 @@
 [submodule "lib/rain.flow"]
 	path = lib/rain.flow
 	url = https://github.com/rainprotocol/rain.flow
+[submodule "lib/rain.solmem"]
+	path = lib/rain.solmem
+	url = https://github.com/rainprotocol/rain.solmem
+[submodule "lib/rain.interpreter"]
+	path = lib/rain.interpreter
+	url = https://github.com/rainprotocol/rain.interpreter
+[submodule "lib/rain.datacontract"]
+	path = lib/rain.datacontract
+	url = https://github.com/rainprotocol/rain.datacontract

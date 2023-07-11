@@ -3,8 +3,8 @@ pragma solidity ^0.8.18;
 
 import "rain.flow/interface/IFlowV3.sol";
 
-import "sol.lib.memory/LibStackPointer.sol";
-import "sol.lib.memory/LibStackSentinel.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackSentinel.sol";
 import "rain.interpreter/interface/IInterpreterStoreV1.sol";
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";

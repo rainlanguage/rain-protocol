@@ -2,9 +2,9 @@
 pragma solidity ^0.8.18;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
 /// More inputs were encoded in the operand than can be dispatched internally by

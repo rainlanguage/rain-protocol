@@ -2,11 +2,11 @@
 pragma solidity ^0.8.18;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "sol.lib.memory/LibUint256Array.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
 import "rain.interpreter/lib/op/LibOp.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 import "sol.lib.binmaskflag/Binary.sol";
 
 /// Zero inputs to select lte is NOT supported.

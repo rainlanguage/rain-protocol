@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.memory/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
 import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
@@ -14,7 +14,7 @@ import "rain.interpreter/lib/caller/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
 import "rain.factory/src/interface/ICloneableV2.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";

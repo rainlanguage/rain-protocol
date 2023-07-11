@@ -2,12 +2,12 @@
 pragma solidity ^0.8.18;
 
 import "sol.lib.binmaskflag/Binary.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 import "./OpReadMemory.sol";
 import "../../extern/LibExtern.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibPointer.sol";
 
 /// Thrown when the length of results from an extern don't match what the operand
 /// defines. This is bad because it implies our integrity check miscalculated the
