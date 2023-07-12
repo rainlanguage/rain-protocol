@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
 
-import {LibChainlink} from "../../../chainlink/LibChainlink.sol";
+import {LibChainlink} from "rain.chainlink/lib/LibChainlink.sol";
 import "rain.interpreter/lib/op/LibOp.sol";
 import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.interpreter/lib/state/LibInterpreterState.sol";
 import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/op/chainlink/LibOpChainlinkOraclePrice.sol";
 
 /// @title OpChainlinkOraclePrice
 /// @notice Opcode for chainlink oracle prices.
@@ -14,26 +15,19 @@ library OpChainlinkOraclePrice {
     using LibStackPointer for Pointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function f(
-        uint256 feed_,
-        uint256 staleAfter_
-    ) internal view returns (uint256) {
-        return LibChainlink.price(address(uint160(feed_)), staleAfter_);
-    }
-
     function integrity(
-        IntegrityCheckState memory integrityCheckState_,
+        IntegrityCheckState memory integrityCheckState,
         Operand,
-        Pointer stackTop_
+        Pointer stackTop
     ) internal pure returns (Pointer) {
-        return integrityCheckState_.applyFn(stackTop_, f);
+        return integrityCheckState.applyFn(stackTop, LibOpChainlinkOraclePrice.f);
     }
 
     function run(
         InterpreterState memory,
-        Operand,
-        Pointer stackTop_
+        Operand operand,
+        Pointer stackTop
     ) internal view returns (Pointer) {
-        return stackTop_.applyFn(f);
+        return stackTop.applyFn(LibOpChainlinkOraclePrice.f, operand);
     }
 }

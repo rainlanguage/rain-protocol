@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import "sol.lib.binmaskflag/Binary.sol";
 import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 import "./OpReadMemory.sol";
-import "../../extern/LibExtern.sol";
+import "rain.interpreter/lib/extern/LibExtern.sol";
 import "rain.solmem/lib/LibStackPointer.sol";
 import "rain.solmem/lib/LibUint256Array.sol";
 import "rain.solmem/lib/LibPointer.sol";
@@ -23,80 +23,80 @@ library OpExtern {
     using LibUint256Array for uint256[];
 
     function integrity(
-        IntegrityCheckState memory integrityCheckState_,
-        Operand operand_,
-        Pointer stackTop_
+        IntegrityCheckState memory integrityCheckState,
+        Operand operand,
+        Pointer stackTop
     ) internal pure returns (Pointer) {
-        uint256 inputs_ = Operand.unwrap(operand_) & MASK_5BIT;
-        uint256 outputs_ = (Operand.unwrap(operand_) >> 5) & MASK_5BIT;
-        uint256 offset_ = Operand.unwrap(operand_) >> 10;
+        uint256 inputs = Operand.unwrap(operand) & MASK_5BIT;
+        uint256 outputs = (Operand.unwrap(operand) >> 5) & MASK_5BIT;
+        uint256 offset = Operand.unwrap(operand) >> 10;
 
-        if (offset_ >= integrityCheckState_.constantsLength) {
+        if (offset >= integrityCheckState.constantsLength) {
             revert OutOfBoundsConstantsRead(
-                integrityCheckState_.constantsLength,
-                offset_
+                integrityCheckState.constantsLength,
+                offset
             );
         }
 
         return
-            integrityCheckState_.push(
-                integrityCheckState_.pop(stackTop_, inputs_),
-                outputs_
+            integrityCheckState.push(
+                integrityCheckState.pop(stackTop, inputs),
+                outputs
             );
     }
 
     function intern(
-        InterpreterState memory interpreterState_,
-        Operand operand_,
-        Pointer stackTop_
+        InterpreterState memory interpreterState,
+        Operand operand,
+        Pointer stackTop
     ) internal view returns (Pointer) {
-        IInterpreterExternV1 interpreterExtern_;
-        ExternDispatch externDispatch_;
-        uint256 head_;
-        uint256[] memory tail_;
+        IInterpreterExternV1 interpreterExtern;
+        ExternDispatch externDispatch;
+        uint256 head;
+        uint256[] memory tail;
         {
-            uint256 inputs_ = Operand.unwrap(operand_) & MASK_5BIT;
-            uint256 offset_ = (Operand.unwrap(operand_) >> 10);
+            uint256 inputs = Operand.unwrap(operand) & MASK_5BIT;
+            uint256 offset = (Operand.unwrap(operand) >> 10);
 
             // Mirrors constant opcode.
-            EncodedExternDispatch encodedDispatch_;
+            EncodedExternDispatch encodedDispatch;
             assembly ("memory-safe") {
-                encodedDispatch_ := mload(
-                    add(mload(add(interpreterState_, 0x20)), mul(0x20, offset_))
+                encodedDispatch := mload(
+                    add(mload(add(interpreterState, 0x20)), mul(0x20, offset))
                 )
             }
 
-            (interpreterExtern_, externDispatch_) = LibExtern.decode(
-                encodedDispatch_
+            (interpreterExtern, externDispatch) = LibExtern.decodeExternCall(
+                encodedDispatch
             );
-            (head_, tail_) = stackTop_.unsafeList(inputs_);
+            (head, tail) = stackTop.unsafeList(inputs);
             unchecked {
-                stackTop_ = stackTop_.unsafeSubWords(inputs_ + 1).unsafePush(
-                    head_
+                stackTop = stackTop.unsafeSubWords(inputs + 1).unsafePush(
+                    head
                 );
             }
         }
 
         {
-            uint256 outputs_ = (Operand.unwrap(operand_) >> 5) & MASK_5BIT;
+            uint256 outputs = (Operand.unwrap(operand) >> 5) & MASK_5BIT;
 
-            uint256[] memory results_ = interpreterExtern_.extern(
-                externDispatch_,
-                tail_
+            uint256[] memory results = interpreterExtern.extern(
+                externDispatch,
+                tail
             );
 
-            if (results_.length != outputs_) {
-                revert BadExternResultsLength(outputs_, results_.length);
+            if (results.length != outputs) {
+                revert BadExternResultsLength(outputs, results.length);
             }
 
             LibMemCpy.unsafeCopyWordsTo(
-                results_.dataPointer(),
-                stackTop_,
-                results_.length
+                results.dataPointer(),
+                stackTop,
+                results.length
             );
-            stackTop_ = stackTop_.unsafeAddWords(results_.length);
+            stackTop = stackTop.unsafeAddWords(results.length);
         }
 
-        return stackTop_;
+        return stackTop;
     }
 }
