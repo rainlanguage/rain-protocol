@@ -32,53 +32,23 @@ async function main() {
   const { RainterpreterExpressionDeployer } = await deployDISpair();
 
   // Deploy Flow (Basic)
-  try {
-    await deployFlow(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployFlow");
-    console.log(error);
-  }
+  await deployFlow(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC20
-  try {
-    await deployFlowErc20(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployFlowErc20");
-    console.log(error);
-  }
+  await deployFlowErc20(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC721
-  try {
-    await deployFlowErc721(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployFlowErc721");
-    console.log(error);
-  }
+  await deployFlowErc721(RainterpreterExpressionDeployer);
 
   // Deploy FlowERC1155
-  try {
-    await deployFlowErc1155(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployFlowErc1155");
-    console.log(error);
-  }
+  await deployFlowErc1155(RainterpreterExpressionDeployer);
 
   // Deploy Lobby
-  try {
-    const timeoutDuration = 15000000;
-    await deployLobby(RainterpreterExpressionDeployer, timeoutDuration);
-  } catch (error) {
-    console.log("Error in deployLobby");
-    console.log(error);
-  }
+  const timeoutDuration = 15000000;
+  await deployLobby(RainterpreterExpressionDeployer, timeoutDuration);
 
   // Deploy OrderBook
-  try {
-    await deployOrderbook(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployOrderbook");
-    console.log(error);
-  }
+  await deployOrderbook(RainterpreterExpressionDeployer);
 
   //
   // // Deploy Sale (and RedeemableERC20)
@@ -90,44 +60,19 @@ async function main() {
   // );
 
   // Deploy Stake
-  try {
-    await deployStake(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployStake");
-    console.log(error);
-  }
+  await deployStake(RainterpreterExpressionDeployer);
 
   // Deploy CombineTier
-  try {
-    await deployCombineTier(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployCombineTier");
-    console.log(error);
-  }
+  await deployCombineTier(RainterpreterExpressionDeployer);
 
   // Deploy ReadWriteTier
-  try {
-    await deployReadWriteTier();
-  } catch (error) {
-    console.log("Error in deployReadWriteTier");
-    console.log(error);
-  }
+  await deployReadWriteTier();
 
   // Deploy Verify
-  try {
-    await deployVerify();
-  } catch (error) {
-    console.log("Error in deployVerify");
-    console.log(error);
-  }
+  await deployVerify();
 
   // Deploy AutoApprove
-  try {
-    await deployAutoApprove(RainterpreterExpressionDeployer);
-  } catch (error) {
-    console.log("Error in deployAutoApprove");
-    console.log(error);
-  }
+  await deployAutoApprove(RainterpreterExpressionDeployer);
 }
 
 let code: number;
