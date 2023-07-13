@@ -17,7 +17,7 @@ import "rain.factory/src/interface/ICloneableV2.sol";
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xff34b4b701c88a038a14509b8807eec1772dc07c97149e9d0ae0f2f589a2e743
+    0x79f1f9d36a1aa47f51a3a7f94f530cd9453bf2260b3214df63e939d1340bb4c8
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
