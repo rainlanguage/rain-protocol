@@ -42,11 +42,13 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
+
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0dd00de70df60e8b0e9a0eec0f5c0fe410c3111911b21352139213b013bf13cd13dc13ea13f81406141413dc1422143014ae14bc14ca14d814e714f6150515141523153215411550155f156e157d15cb15dd15eb161d162b16391647165516631671167f168d169b16a916b716c516d316e116ef16fd170b1719172717361745175417621770177e178c179a17a817b618e2196a1979198819961a08";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
     0x5f9cdd5b7f0ab1bd9573f94840dd3dece5593f511e9faf1ecd9483e6d6ee3bbb
+
 );
 
 /// @dev Hash of the known store bytecode.
