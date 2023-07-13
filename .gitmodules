@@ -40,3 +40,6 @@
 [submodule "lib/rain.datacontract"]
 	path = lib/rain.datacontract
 	url = https://github.com/rainprotocol/rain.datacontract
+[submodule "lib/rain.chainlink"]
+	path = lib/rain.chainlink
+	url = https://github.com/rainprotocol/rain.chainlink
