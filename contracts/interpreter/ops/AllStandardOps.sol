@@ -28,9 +28,9 @@ import "./erc1155/OpERC1155BalanceOfBatch.sol";
 import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBalance.sol";
-import "./evm/OpBlockNumber.sol";
+import "rain.interpreter/lib/op/evm/LibOpBlockNumber.sol";
 import "rain.interpreter/lib/op/evm/LibOpChainId.sol";
-import "./evm/OpTimestamp.sol";
+import "rain.interpreter/lib/op/evm/LibOpTimestamp.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
@@ -283,9 +283,9 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpEnsure.integrity,
                     OpBalance.integrity,
-                    OpBlockNumber.integrity,
+                    LibOpBlockNumber.integrity,
                     LibOpChainId.integrity,
-                    OpTimestamp.integrity,
+                    LibOpTimestamp.integrity,
                     OpAdd.integrity,
                     OpDiv.integrity,
                     OpExp.integrity,
@@ -410,9 +410,9 @@ library AllStandardOps {
                     OpERC721OwnerOf.run,
                     OpEnsure.run,
                     OpBalance.run,
-                    OpBlockNumber.run,
+                    LibOpBlockNumber.run,
                     LibOpChainId.run,
-                    OpTimestamp.run,
+                    LibOpTimestamp.run,
                     OpAdd.run,
                     OpDiv.run,
                     OpExp.run,
