@@ -6,11 +6,11 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
-import "sol.lib.memory/LibStackSentinel.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibStackSentinel.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC721V3.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
@@ -26,7 +26,7 @@ Sentinel constant RAIN_FLOW_ERC721_SENTINEL = Sentinel.wrap(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xadc006b59e59ca81ccbe68cd66f31b748a4a806eb539e34ea4bf2377e09bbbb8
+    0x7f7944a4b89741668c06a27ffde94e19be970cd0506786de91aee01c2893d4ef
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -38,7 +38,7 @@ uint16 constant TOKEN_URI_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC721V3,
     ReentrancyGuard,
     FlowCommon,
@@ -61,8 +61,8 @@ contract FlowERC721 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC721Config memory config_ = abi.decode(data_, (FlowERC721Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
@@ -99,6 +99,8 @@ contract FlowERC721 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {

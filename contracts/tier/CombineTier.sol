@@ -5,19 +5,19 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibContext.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/caller/LibContext.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.interpreter/lib/caller/LibEvaluable.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xff34b4b701c88a038a14509b8807eec1772dc07c97149e9d0ae0f2f589a2e743
+    0x79f1f9d36a1aa47f51a3a7f94f530cd9453bf2260b3214df63e939d1340bb4c8
 );
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -46,7 +46,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
+contract CombineTier is ICloneableV2, TierV2, DeployerDiscoverableMetaV1 {
     using LibStackPointer for Pointer;
     using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
@@ -62,8 +62,8 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         tierV2Init();
 
         CombineTierConfig memory config_ = abi.decode(
@@ -97,6 +97,8 @@ contract CombineTier is ICloneableV1, TierV2, DeployerDiscoverableMetaV1 {
                 )
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// @inheritdoc ITierV2

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
-import "sol.lib.memory/LibStackPointer.sol";
-import "sol.lib.memory/LibPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibOp.sol";
-import "../../../deploy/LibIntegrityCheck.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.solmem/lib/LibPointer.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.

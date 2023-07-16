@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.memory/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibContext.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
+import "rain.interpreter/lib/caller/LibEvaluable.sol";
 import "rain.math.saturating/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
-import "rain.factory/interface/ICloneableV1.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -34,7 +34,7 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 error NotInvalid();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x2fa94bd67d8a5c326e609881e8d66f161fea332869dc4516296266140d5c8130
+    0x978dd2b56244f91b939c79dd6f69cfd45e99fbae9f27c9e51bb230d06400ad13
 );
 
 /// Configuration for the construction of a `Lobby` reference implementation.
@@ -129,7 +129,7 @@ uint256 constant PHASE_COMPLETE = 3;
 uint256 constant PHASE_INVALID = 4;
 
 contract Lobby is
-    ICloneableV1,
+    ICloneableV2,
     IInterpreterCallerV2,
     Phased,
     ReentrancyGuard,
@@ -199,8 +199,8 @@ contract Lobby is
         maxTimeoutDuration = config_.maxTimeoutDuration;
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         // anon initializes with the passed config
         // we initialize rather than construct as there would be some factory
         // producing cheap clones of an implementation contract
@@ -240,6 +240,8 @@ contract Lobby is
                 )
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _joinEncodedDispatch(

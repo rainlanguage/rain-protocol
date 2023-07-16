@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibDeployerDiscoverable.sol";
+import "rain.interpreter/lib/caller/LibDeployerDiscoverable.sol";
 
 contract IInterpreterCallerConsumer is DeployerDiscoverableMetaV1 {
     constructor(

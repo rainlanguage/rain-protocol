@@ -2,15 +2,15 @@
 pragma solidity =0.8.19;
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibContext.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.interpreter/lib/caller/LibEvaluable.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -50,7 +50,7 @@ error ZeroWithdrawAssets();
 error ZeroWithdrawShares();
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xfcafafcf5c0c62fb4ef7603c1b446d85b1c51a850ff4e09af12e29d1fdb2742d
+    0x28dc1e51110b28e4f9063df0db7c7173e345ca21d3d1574c08c3f5b66e2b768a
 );
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
@@ -140,7 +140,7 @@ struct DepositRecord {
 contract Stake is
     ERC4626,
     TierV2,
-    ICloneableV1,
+    ICloneableV2,
     ReentrancyGuard,
     IInterpreterCallerV2,
     DeployerDiscoverableMetaV1
@@ -171,8 +171,8 @@ contract Stake is
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes memory data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes memory data_) external initializer returns (bytes32) {
         __ReentrancyGuard_init();
 
         StakeConfig memory config_ = abi.decode(data_, (StakeConfig));
@@ -196,6 +196,8 @@ contract Stake is
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// General purpose eval for setting context, dispatching and catching the

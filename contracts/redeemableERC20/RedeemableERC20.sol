@@ -10,7 +10,7 @@ import {ITierV2} from "../tier/ITierV2.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -138,7 +138,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
+contract RedeemableERC20 is Initializable, ICloneableV2, Phased, ERC20Redeem {
     using SafeERC20 for IERC20;
 
     /// @dev To be clear, this admin is NOT intended to be an EOA.
@@ -187,8 +187,8 @@ contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
 
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         initializePhased();
 
         RedeemableERC20Config memory config_ = abi.decode(
@@ -245,6 +245,8 @@ contract RedeemableERC20 is Initializable, ICloneableV1, Phased, ERC20Redeem {
         emit Initialize(msg.sender, config_);
 
         schedulePhase(REDEEMABLE_ERC20_PHASE_DISTRIBUTING, block.timestamp);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// Require a function is only admin callable.

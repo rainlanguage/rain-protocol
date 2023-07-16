@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.datacontract/LibDataContract.sol";
+import "rain.datacontract/lib/LibDataContract.sol";
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
 import "rain.interpreter/interface/unstable/IDebugExpressionDeployerV1.sol";
-import "rain.interpreter/lib/LibInterpreterStateDataContract.sol";
+import "rain.interpreter/lib/state/LibInterpreterStateDataContract.sol";
 import "../ops/AllStandardOps.sol";
-import "../../ierc1820/LibIERC1820.sol";
+import "rain.factory/src/lib/LibIERC1820.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
@@ -42,21 +42,22 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0c5e0c750c840d190d270d790de90e710f500fa6103f11e8122812461255126312721280128e129c12aa127212b812c6134413521360136e137d138c139b13aa13b913c813d713e613f51404141314611473148114b314c114cf14dd14eb14f91507151515231531153f154d155b156915771585159315a115af15bd15cc15db15ea15f81606161416221630163e164c17781800180f181e182c189e";
+
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0dd90df00dff0e940ea30ef50f650fed10cc112211bb135b139b13b913c813d613e513f31401140f141d13e5142b143914b714c514d314e114ef14fe150d151c152b153a15491558156715761585159415e215f41602163416421650165e166c167a1688169616a416b216c016ce16dc16ea16f81706171417221730173e174d175c176b17791787179517a317b117bf17cd18f919811990199f19ad1a1f";
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xba4c010b1990025e29241b302df5601101dbe9df778b00f1e865071f3aa32f15
+    0xf4a4777289d32f6f51d8bebc14aa8196f32cf56ae62797c35db65c1aa1a84e17
 );
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xc99f290f9f20034372f82bccd8912519fce161e748ecca195fb077ec2d03b81c
+    0xd6130168250d3957ae34f8026c2bdbd7e21d35bb202e8540a9b3abcbc232ddb6
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0xe4c000f3728f30e612b34e401529ce5266061cc1233dc54a6a89524929571d8f
+    0x37042217d6e1a50790fcea19503943302d7779a9b47d61dcadf07ffecc4c0812
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -204,100 +205,103 @@ contract RainterpreterExpressionDeployer is
 
     /// @inheritdoc IDebugExpressionDeployerV1
     function offchainDebugEval(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        FullyQualifiedNamespace namespace_,
-        uint256[][] memory context_,
-        SourceIndex sourceIndex_,
-        uint256[] memory initialStack_,
-        uint256 minOutputs_
+        bytes[] memory sources,
+        uint256[] memory constants,
+        FullyQualifiedNamespace namespace,
+        uint256[][] memory context,
+        SourceIndex sourceIndex,
+        uint256[] memory initialStack,
+        uint8 minOutputs
     ) external view returns (uint256[] memory, uint256[] memory) {
-        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
-            .newState(sources_, constants_, integrityFunctionPointers());
-        Pointer stackTop_ = integrityCheckState_.stackBottom;
-        stackTop_ = LibIntegrityCheck.push(
-            integrityCheckState_,
-            stackTop_,
-            initialStack_.length
+        IntegrityCheckState memory integrityCheckState = LibIntegrityCheck
+            .newState(sources, constants, integrityFunctionPointers());
+        Pointer stackTop = integrityCheckState.stackBottom;
+        stackTop = LibIntegrityCheck.push(
+            integrityCheckState,
+            stackTop,
+            initialStack.length
         );
         LibIntegrityCheck.ensureIntegrity(
-            integrityCheckState_,
-            sourceIndex_,
-            stackTop_,
-            minOutputs_
+            integrityCheckState,
+            sourceIndex,
+            stackTop,
+            minOutputs
         );
-        uint256[] memory stack_;
+        uint256[] memory stack;
         {
-            uint256 stackLength_ = integrityCheckState_
+            int256 stackLength = integrityCheckState
                 .stackBottom
-                .unsafeToIndex(integrityCheckState_.stackMaxTop);
-            for (uint256 i_; i_ < sources_.length; i_++) {
+                .toIndexSigned(integrityCheckState.stackMaxTop);
+            for (uint256 i_; i_ < sources.length; i_++) {
                 LibCompile.unsafeCompile(
-                    sources_[i_],
+                    sources[i_],
                     OPCODE_FUNCTION_POINTERS
                 );
             }
-            stack_ = new uint256[](stackLength_);
+
+            require(stackLength >= 0, "Stack underflow");
+            stack = new uint256[](uint256(stackLength));
             LibMemCpy.unsafeCopyWordsTo(
-                initialStack_.dataPointer(),
-                stack_.dataPointer(),
-                initialStack_.length
+                initialStack.dataPointer(),
+                stack.dataPointer(),
+                initialStack.length
             );
         }
 
         return
             IDebugInterpreterV1(address(interpreter)).offchainDebugEval(
                 store,
-                namespace_,
-                sources_,
-                constants_,
-                context_,
-                stack_,
-                sourceIndex_
+                namespace,
+                sources,
+                constants,
+                context,
+                stack,
+                sourceIndex
             );
     }
 
     function integrityCheck(
-        bytes[] memory sources_,
-        uint256[] memory constants_,
-        uint256[] memory minOutputs_
+        bytes[] memory sources,
+        uint256[] memory constants,
+        uint256[] memory minOutputs
     ) internal view returns (uint256) {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
-        if (minOutputs_.length > sources_.length) {
-            revert MissingEntrypoint(minOutputs_.length, sources_.length);
+        if (minOutputs.length > sources.length) {
+            revert MissingEntrypoint(minOutputs.length, sources.length);
         }
 
         // Build the initial state of the integrity check.
-        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
-            .newState(sources_, constants_, integrityFunctionPointers());
+        IntegrityCheckState memory integrityCheckState = LibIntegrityCheck
+            .newState(sources, constants, integrityFunctionPointers());
         // Loop over each possible entrypoint as defined by the calling contract
         // and check the integrity of each. At the least we need to be sure that
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
-        Pointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        Pointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
-        for (uint16 i_ = 0; i_ < minOutputs_.length; i_++) {
+        Pointer initialStackBottom = integrityCheckState.stackBottom;
+        Pointer initialStackHighwater = integrityCheckState.stackHighwater;
+        for (uint16 i_ = 0; i_ < minOutputs.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory
             // allocation so MUST be the max height across all possible
             // entrypoints.
-            integrityCheckState_.stackBottom = initialStackBottom_;
-            integrityCheckState_.stackHighwater = initialStackHighwater_;
+            integrityCheckState.stackBottom = initialStackBottom;
+            integrityCheckState.stackHighwater = initialStackHighwater;
             LibIntegrityCheck.ensureIntegrity(
-                integrityCheckState_,
+                integrityCheckState,
                 SourceIndex.wrap(i_),
                 INITIAL_STACK_BOTTOM,
-                minOutputs_[i_]
+                uint8(minOutputs[i_])
             );
         }
 
-        return
-            integrityCheckState_.stackBottom.unsafeToIndex(
-                integrityCheckState_.stackMaxTop
+        int256 finalIndex = integrityCheckState.stackBottom.toIndexSigned(
+                integrityCheckState.stackMaxTop
             );
+        require(finalIndex >= 0, "Stack underflow");
+        return uint256(finalIndex);
     }
 
     /// @inheritdoc IExpressionDeployerV1

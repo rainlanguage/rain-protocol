@@ -2,10 +2,10 @@
 pragma solidity ^0.8.18;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityCheck.sol";
-import "rain.lib.memkv/LibMemoryKV.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
+import "rain.lib.memkv/lib/LibMemoryKV.sol";
 
 /// @title OpSet
 /// @notice Opcode for recording k/v state changes to be set in storage.

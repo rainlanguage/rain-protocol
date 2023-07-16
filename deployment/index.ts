@@ -31,11 +31,6 @@ async function main() {
   // Deploy the DISpair contracts (Rainterpreter, Store and Deployer)
   const { RainterpreterExpressionDeployer } = await deployDISpair();
 
-  // Deploy CloneFactory
-  const cloneFactory = await deployCloneFactory(
-    RainterpreterExpressionDeployer
-  );
-
   // Deploy Flow (Basic)
   await deployFlow(RainterpreterExpressionDeployer);
 
@@ -55,13 +50,14 @@ async function main() {
   // Deploy OrderBook
   await deployOrderbook(RainterpreterExpressionDeployer);
 
-  // Deploy Sale (and RedeemableERC20)
-  const maximumSaleTimeout = 2592000; // Aprox 1 month
-  await deploySale(
-    RainterpreterExpressionDeployer,
-    cloneFactory,
-    maximumSaleTimeout
-  );
+  //
+  // // Deploy Sale (and RedeemableERC20)
+  // const maximumSaleTimeout = 2592000; // Aprox 1 month
+  // await deploySale(
+  //   RainterpreterExpressionDeployer,
+  //   cloneFactory,
+  //   maximumSaleTimeout
+  // );
 
   // Deploy Stake
   await deployStake(RainterpreterExpressionDeployer);

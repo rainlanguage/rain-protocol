@@ -14,23 +14,26 @@ export const flowCloneFactory = async () => {
   const touchDeployer: RainterpreterExpressionDeployer =
     await getTouchDeployer();
 
-  const metaDocumentHex =
-    "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
+  // const metaDocumentHex =
+  //   "0x" + MAGIC_NUMBERS.RAIN_META_DOCUMENT.toString(16).toLowerCase();
 
   // Get ABI clone abi and deflate it
-  const cloneAbi = deflateJson(artifacts.readArtifactSync("CloneFactory").abi);
-  const abiJson = arrayify(cloneAbi).buffer;
+  // const cloneAbi = deflateJson(artifacts.readArtifactSync("CloneFactory").abi);
+  // const abiJson = arrayify(cloneAbi).buffer;
 
-  const abiEncoded = cborEncode(
-    abiJson,
-    MAGIC_NUMBERS.SOLIDITY_ABIV2,
-    "application/json",
-    {
-      contentEncoding: "deflate",
-    }
-  );
+  // const abiEncoded = cborEncode(
+  //   abiJson,
+  //   MAGIC_NUMBERS.SOLIDITY_ABIV2,
+  //   "application/json",
+  //   {
+  //     contentEncoding: "deflate",
+  //   }
+  // );
 
-  const meta = metaDocumentHex + abiEncoded;
+  const metaFactory = await ethers.getContractFactory("CloneFactoryMeta");
+  const metaContract = await metaFactory.deploy();
+  await metaContract.deployed();
+  const meta = await metaContract.meta();
 
   const config_: DeployerDiscoverableMetaV1ConstructionConfigStruct = {
     meta: meta,

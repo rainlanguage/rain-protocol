@@ -2,10 +2,10 @@
 pragma solidity ^0.8.18;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibOp.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 
 /// @title OpERC721OwnerOf
 /// @notice Opcode for getting the current erc721 owner of an account.

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x3939727b6d233d590e82d29d8e5fef403ddcd96f3ec8a8db3640f5e0a71649a5
+    0x95de68a447a477b8fab10701f1265b3e85a98b24710b3e40e6a96aa6d76263bc
 );
 
-contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
+contract Flow is ICloneableV2, IFlowV3, ReentrancyGuard, FlowCommon {
     using LibUint256Array for uint256[];
     using LibUint256Matrix for uint256[];
 
@@ -20,12 +20,13 @@ contract Flow is ICloneableV1, IFlowV3, ReentrancyGuard, FlowCommon {
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         emit Initialize(msg.sender, config_);
 
         flowCommonInit(config_.config, MIN_FLOW_SENTINELS);
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _previewFlow(

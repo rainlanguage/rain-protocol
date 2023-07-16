@@ -2,11 +2,11 @@
 pragma solidity ^0.8.18;
 
 import "rain.math.fixedpoint/FixedPointDecimalScale.sol";
-import "sol.lib.memory/LibStackPointer.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibOp.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
 import "sol.lib.binmaskflag/Binary.sol";
-import "../../../deploy/LibIntegrityCheck.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 
 /// @title OpFixedPointScaleN
 /// @notice Opcode for scaling a number to N fixed point.

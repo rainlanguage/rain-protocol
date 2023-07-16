@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.18;
 
-import "sol.lib.memory/LibStackPointer.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "rain.interpreter/lib/LibInterpreterState.sol";
-import "rain.interpreter/lib/LibOp.sol";
-import "../../deploy/LibIntegrityCheck.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.interpreter/lib/state/LibInterpreterState.sol";
+import "rain.interpreter/lib/op/LibOp.sol";
+import "rain.interpreter/lib/integrity/LibIntegrityCheck.sol";
 
 /// @title OpHash
 /// @notice Opcode for hashing a list of values.

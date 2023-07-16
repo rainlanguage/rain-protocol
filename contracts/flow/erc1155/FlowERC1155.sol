@@ -5,12 +5,12 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
 import "rain.flow/interface/IFlowERC1155V3.sol";
 
-import "sol.lib.memory/LibStackPointer.sol";
+import "rain.solmem/lib/LibStackPointer.sol";
 import "../libraries/LibFlow.sol";
 import "../FlowCommon.sol";
 
@@ -19,7 +19,7 @@ Sentinel constant RAIN_FLOW_ERC1155_SENTINEL = Sentinel.wrap(
 );
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0xaffe4d91de0d0d2a90ea7d6d39abe31a3198bd370f28d4358c0f0d0e40b46248
+    0x7ea70f837234357ec1bb5b777e04453ebaf3ca778a98805c4bb20a738d559a21
 );
 
 SourceIndex constant HANDLE_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -29,7 +29,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC1155V3,
     ReentrancyGuard,
     FlowCommon,
@@ -49,8 +49,8 @@ contract FlowERC1155 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC1155Config memory config_ = abi.decode(
             data_,
             (FlowERC1155Config)
@@ -81,6 +81,8 @@ contract FlowERC1155 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _dispatchHandleTransfer(

@@ -30,6 +30,7 @@ export enum AllStandardOps {
 
   balance,
   block_number,
+  chain_id,
   block_timestamp,
 
   add,

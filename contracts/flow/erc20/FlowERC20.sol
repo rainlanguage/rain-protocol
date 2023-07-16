@@ -5,12 +5,12 @@ import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/tok
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "sol.lib.memory/LibUint256Matrix.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "rain.factory/interface/ICloneableV1.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Matrix.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
 import "rain.flow/interface/IFlowERC20V3.sol";
-import "sol.lib.memory/LibStackSentinel.sol";
+import "rain.solmem/lib/LibStackSentinel.sol";
 
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../libraries/LibFlow.sol";
@@ -18,7 +18,7 @@ import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x11305809a22c188977ba526669c5811d6e9fd3f82f8c6cf9e23becf3f36315ef
+    0xff0499e4ee7171a54d176cfe13165a7ea512d146dbd99d42b3d3ec9963025acf
 );
 
 Sentinel constant RAIN_FLOW_ERC20_SENTINEL = Sentinel.wrap(
@@ -31,7 +31,7 @@ uint16 constant HANDLE_TRANSFER_MAX_OUTPUTS = 0;
 
 /// @title FlowERC20
 contract FlowERC20 is
-    ICloneableV1,
+    ICloneableV2,
     IFlowERC20V3,
     ReentrancyGuard,
     FlowCommon,
@@ -52,8 +52,8 @@ contract FlowERC20 is
         DeployerDiscoverableMetaV1ConstructionConfig memory config_
     ) FlowCommon(CALLER_META_HASH, config_) {}
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
@@ -81,6 +81,8 @@ contract FlowERC20 is
                 );
             evaluable = Evaluable(interpreter_, store_, expression_);
         }
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _dispatchHandleTransfer(

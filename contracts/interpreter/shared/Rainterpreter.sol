@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.19;
 
-import "sol.lib.datacontract/LibDataContract.sol";
+import "rain.datacontract/lib/LibDataContract.sol";
 
 import "../ops/AllStandardOps.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
-import "rain.lib.memkv/LibMemoryKV.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
+import "rain.lib.memkv/lib/LibMemoryKV.sol";
 import "rain.interpreter/interface/IInterpreterStoreV1.sol";
 import "rain.interpreter/interface/unstable/IDebugInterpreterV1.sol";
-import "rain.interpreter/lib/LibInterpreterStateDataContract.sol";
-import "rain.interpreter/lib/LibNamespace.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "rain.interpreter/lib/LibEval.sol";
+import "rain.interpreter/lib/state/LibInterpreterStateDataContract.sol";
+import "rain.interpreter/lib/ns/LibNamespace.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
+import "rain.interpreter/lib/eval/LibEval.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {IERC165Upgradeable as IERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
@@ -47,59 +47,61 @@ contract Rainterpreter is IInterpreterV1, IDebugInterpreterV1, IERC165 {
 
     /// @inheritdoc IDebugInterpreterV1
     function offchainDebugEval(
-        IInterpreterStoreV1 store_,
-        FullyQualifiedNamespace namespace_,
-        bytes[] memory compiledSources_,
-        uint256[] memory constants_,
-        uint256[][] memory context_,
-        uint256[] memory stack_,
-        SourceIndex sourceIndex_
+        IInterpreterStoreV1 store,
+        FullyQualifiedNamespace namespace,
+        bytes[] memory compiledSources,
+        uint256[] memory constants,
+        uint256[][] memory context,
+        uint256[] memory stack,
+        SourceIndex sourceIndex
     ) external view returns (uint256[] memory, uint256[] memory) {
-        InterpreterState memory state_ = InterpreterState(
-            stack_.dataPointer(),
-            constants_.dataPointer(),
+        InterpreterState memory state = InterpreterState(
+            stack.dataPointer(),
+            constants.dataPointer(),
             MemoryKV.wrap(0),
-            namespace_,
-            store_,
-            context_,
-            compiledSources_
+            namespace,
+            store,
+            context,
+            compiledSources
         );
-        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
-        uint256 stackLengthFinal_ = state_.stackBottom.unsafeToIndex(stackTop_);
-        (, uint256[] memory tail_) = stackTop_.unsafeList(stackLengthFinal_);
-        return (tail_, state_.stateKV.toUint256Array());
+        Pointer stackTop = state.eval(sourceIndex, state.stackBottom);
+        int256 stackLengthFinal = state.stackBottom.toIndexSigned(stackTop);
+        require(stackLengthFinal >= 0, "Stack underflow");
+        (uint256 head, uint256[] memory tail) = stackTop.unsafeList(uint256(stackLengthFinal));
+        (head);
+        return (tail, state.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1
     function eval(
-        IInterpreterStoreV1 store_,
-        StateNamespace namespace_,
-        EncodedDispatch dispatch_,
-        uint256[][] memory context_
+        IInterpreterStoreV1 store,
+        StateNamespace namespace,
+        EncodedDispatch dispatch,
+        uint256[][] memory context
     ) external view returns (uint256[] memory, uint256[] memory) {
         // Decode the dispatch.
         (
-            address expression_,
-            SourceIndex sourceIndex_,
-            uint256 maxOutputs_
-        ) = LibEncodedDispatch.decode(dispatch_);
+            address expression,
+            SourceIndex sourceIndex,
+            uint256 maxOutputs
+        ) = LibEncodedDispatch.decode(dispatch);
 
         // Build the interpreter state from the onchain expression.
-        InterpreterState memory state_ = LibDataContract
-            .read(expression_)
+        InterpreterState memory state = LibDataContract
+            .read(expression)
             .unsafeDeserialize();
-        state_.stateKV = MemoryKV.wrap(0);
-        state_.namespace = namespace_.qualifyNamespace();
-        state_.store = store_;
-        state_.context = context_;
+        state.stateKV = MemoryKV.wrap(0);
+        state.namespace = namespace.qualifyNamespace(msg.sender);
+        state.store = store;
+        state.context = context;
 
-        // Eval the expression and return up to maxOutputs_ from the final stack.
-        Pointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
-        uint256 stackLength_ = state_.stackBottom.unsafeToIndex(stackTop_);
-        (, uint256[] memory tail_) = stackTop_.unsafeList(
-            stackLength_.min(maxOutputs_)
-        );
-        return (tail_, state_.stateKV.toUint256Array());
+        // Eval the expression and return up to maxOutputs from the final stack.
+        Pointer stackTop = state.eval(sourceIndex, state.stackBottom);
+        int256 stackLength = state.stackBottom.toIndexSigned(stackTop);
+        require(stackLength >= 0, "Stack underflow");
+        (uint256 head, uint256[] memory tail) = stackTop.unsafeList(maxOutputs < uint256(stackLength) ? maxOutputs : uint256(stackLength));
+        (head);
+        return (tail, state.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1

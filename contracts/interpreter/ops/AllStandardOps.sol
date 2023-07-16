@@ -2,7 +2,7 @@
 pragma solidity =0.8.19;
 
 import "rain.lib.typecast/LibConvert.sol";
-import "sol.lib.memory/LibUint256Array.sol";
+import "rain.solmem/lib/LibUint256Array.sol";
 import "./bytes32/OpDecode256.sol";
 import "./bytes32/OpEncode256.sol";
 import "./bytes32/OpExplode32.sol";
@@ -28,8 +28,9 @@ import "./erc1155/OpERC1155BalanceOfBatch.sol";
 import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBalance.sol";
-import "./evm/OpBlockNumber.sol";
-import "./evm/OpTimestamp.sol";
+import "rain.interpreter/lib/op/evm/LibOpBlockNumber.sol";
+import "rain.interpreter/lib/op/evm/LibOpChainId.sol";
+import "rain.interpreter/lib/op/evm/LibOpTimestamp.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
@@ -89,7 +90,7 @@ import "./tier/OpITierV2UpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 78;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 79;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -282,8 +283,9 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpEnsure.integrity,
                     OpBalance.integrity,
-                    OpBlockNumber.integrity,
-                    OpTimestamp.integrity,
+                    LibOpBlockNumber.integrity,
+                    LibOpChainId.integrity,
+                    LibOpTimestamp.integrity,
                     OpAdd.integrity,
                     OpDiv.integrity,
                     OpExp.integrity,
@@ -408,8 +410,9 @@ library AllStandardOps {
                     OpERC721OwnerOf.run,
                     OpEnsure.run,
                     OpBalance.run,
-                    OpBlockNumber.run,
-                    OpTimestamp.run,
+                    LibOpBlockNumber.run,
+                    LibOpChainId.run,
+                    LibOpTimestamp.run,
                     OpAdd.run,
                     OpDiv.run,
                     OpExp.run,

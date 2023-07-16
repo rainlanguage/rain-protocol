@@ -15,16 +15,16 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "rain.interpreter/interface/IExpressionDeployerV1.sol";
 import "rain.interpreter/interface/IInterpreterV1.sol";
-import "rain.interpreter/lib/LibEncodedDispatch.sol";
+import "rain.interpreter/lib/caller/LibEncodedDispatch.sol";
 import "rain.interpreter/interface/IInterpreterCallerV2.sol";
-import "rain.interpreter/lib/LibContext.sol";
+import "rain.interpreter/lib/caller/LibContext.sol";
 import "rain.interpreter/abstract/DeployerDiscoverableMetaV1.sol";
-import "rain.interpreter/lib/LibEvaluable.sol";
-import "rain.factory/interface/ICloneableV1.sol";
-import "rain.factory/interface/ICloneableFactoryV1.sol";
+import "rain.interpreter/lib/caller/LibEvaluable.sol";
+import "rain.factory/src/interface/ICloneableV2.sol";
+import "rain.factory/src/interface/ICloneableFactoryV2.sol";
 
 bytes32 constant CALLER_META_HASH = bytes32(
-    0x21b7a5f7778e838d8059caf00f52d2fcda4c800d947d7c7bdb6b7f9ca6d5f7be
+    0xcdd5f02c68071340846608a79a17329fe065cf474452b933f046baa4ad56664e
 );
 
 /// Everything required to construct a Sale (not initialize).
@@ -36,7 +36,7 @@ bytes32 constant CALLER_META_HASH = bytes32(
 /// @param deployerDiscoverableMetaConfig As per `DeployerDiscoverableMetaV1`.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
-    ICloneableFactoryV1 cloneFactory;
+    ICloneableFactoryV2 cloneFactory;
     address redeemableERC20Implementation;
     DeployerDiscoverableMetaV1ConstructionConfig deployerDiscoverableMetaConfig;
 }
@@ -168,7 +168,7 @@ uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
 contract Sale is
-    ICloneableV1,
+    ICloneableV2,
     Cooldown,
     ISaleV2,
     ReentrancyGuard,
@@ -240,7 +240,7 @@ contract Sale is
     SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
-    ICloneableFactoryV1 private immutable cloneFactory;
+    ICloneableFactoryV2 private immutable cloneFactory;
     /// ICloneableV1 implementation of rTKN.
     address private immutable redeemableERC20Implementation;
 
@@ -288,8 +288,8 @@ contract Sale is
         emit Construct(msg.sender, config_);
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         __ReentrancyGuard_init();
 
         (
@@ -377,6 +377,8 @@ contract Sale is
                 )
             );
         evaluable = Evaluable(interpreter_, store_, expression_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     function _dispatchCanLive(
