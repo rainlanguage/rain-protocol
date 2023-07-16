@@ -101,7 +101,7 @@ _: chain-id();`
       expression0.dispatch,
       []
     );
-    const id = await ethers.provider.getBlockNumber();
+    const id = (await ethers.provider.getNetwork()).chainId;
     const result = await logic.stackTop();
     assert(result.eq(id), `expected chain id ${id} got ${result}`);
   });
