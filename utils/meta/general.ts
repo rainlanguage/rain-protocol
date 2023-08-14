@@ -3,7 +3,7 @@ import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
 import stringMath from "string-math";
-import { deflateSync, inflateSync } from "zlib";
+import { deflateRawSync, inflateRawSync } from "zlib";
 import { arrayify, BytesLike, isBytesLike } from "ethers/lib/utils";
 
 /**
@@ -321,7 +321,7 @@ export const metaFromBytes = (
 export const deflateJson = (data_: any): string => {
   const content = format(JSON.stringify(data_, null, 4), { parser: "json" });
 
-  return "0x" + deflateSync(content).toString("hex");
+  return "0x" + deflateRawSync(content).toString("hex");
 };
 
 /**
@@ -334,5 +334,5 @@ export const deflateJson = (data_: any): string => {
 export const inflateJson = (bytes: BytesLike): string => {
   if (!isBytesLike(bytes)) throw new Error("invalid bytes");
   const _uint8Arr = arrayify(bytes, { allowMissingPrefix: true });
-  return format(inflateSync(_uint8Arr).toString(), { parser: "json" });
+  return format(inflateRawSync(_uint8Arr).toString(), { parser: "json" });
 };

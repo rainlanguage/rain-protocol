@@ -1,6 +1,6 @@
 import OpMetaSchema from "../../../schema/meta/v0/op.meta.schema.json";
 import path from "path";
-import { deflateSync } from "zlib";
+import { deflateRawSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
@@ -83,7 +83,7 @@ export const getRainterpreterOpMetaBytes = (): string => {
   if (!validateMeta(rainterpreterOpmeta, OpMetaSchema))
     throw new Error("invalid op meta");
   const opmetaBytes = Uint8Array.from(
-    deflateSync(
+    deflateRawSync(
       format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
     )
   );
