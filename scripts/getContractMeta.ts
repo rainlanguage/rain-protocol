@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { format } from "prettier";
 import { argv } from "process";
-import { deflateSync } from "zlib";
+import { deflateRawSync } from "zlib";
 import ContractMetaSchema from "../schema/meta/v0/contract.meta.schema.json";
 
 const readFile = (_path: string) => {
@@ -125,7 +125,7 @@ const main = async () => {
 
       let contractMetaHexString = "0x";
       const opmetaBytes = Uint8Array.from(
-        deflateSync(
+        deflateRawSync(
           format(JSON.stringify(contractMeta, null, 4), { parser: "json" })
         )
       );
@@ -136,7 +136,9 @@ const main = async () => {
 
       let schemaHexString = "0x";
       const schemaBytes = Uint8Array.from(
-        deflateSync(format(JSON.stringify(schema, null, 4), { parser: "json" }))
+        deflateRawSync(
+          format(JSON.stringify(schema, null, 4), { parser: "json" })
+        )
       );
       for (let i = 0; i < schemaBytes.length; i++) {
         schemaHexString =

@@ -3,7 +3,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { argv } from "process";
-import { deflateSync } from "zlib";
+import { deflateRawSync } from "zlib";
 import { format } from "prettier";
 import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
 import { rainterpreterOpmeta } from "../utils/meta/op/allStandardOpMeta";
@@ -38,7 +38,7 @@ const main = async () => {
   } else {
     let opmetaHexString = "0x";
     const opmetaBytes = Uint8Array.from(
-      deflateSync(
+      deflateRawSync(
         format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
       )
     );
@@ -49,7 +49,7 @@ const main = async () => {
 
     let schemaHexString = "0x";
     const schemaBytes = Uint8Array.from(
-      deflateSync(
+      deflateRawSync(
         format(JSON.stringify(OpmetaSchema, null, 4), { parser: "json" })
       )
     );
